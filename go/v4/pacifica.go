@@ -807,8 +807,8 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool]) an
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01")
+			var builder string = *this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0.01")
 
 			r := <-this.ApproveBuilderCodeAsync(builder, maxFeeRate)
 			if r.Err != nil {
@@ -2095,7 +2095,7 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	requestoperationTypeVariable := this.CreateOrderRequest(symbol, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
 	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	var operationType *string = SafeStringPtr(requestoperationTypeVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
@@ -2155,12 +2155,12 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	})}
 	return nil
 }
-func (this *Pacifica) CreateOrderRequest(symbol any, typeVar *string, side *string, amount any, optionalArgs ...any) []any {
+func (this *Pacifica) CreateOrderRequest(symbol any, typeVar string, side *string, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if typeVar == nil {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	if side == nil {
@@ -2198,7 +2198,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar *string, side *stri
 	}
 	var operationType string = "create_order"
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var orderType string = strings.ToUpper(*typeVar)
+	var orderType string = strings.ToUpper(typeVar)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -2330,14 +2330,14 @@ func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) any
 		var symbol *string = this.SafeString(order, "symbol")
 		var side *string = this.SafeString(order, "side")
 		var price *string = this.SafeString(order, "price")
-		var typeVar *string = this.SafeString(order, "type", "limit")
+		var typeVar string = *this.SafeString(order, "type", "limit")
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		orderParams["timestamp"] = timestamp
 		var amount *string = this.SafeString(order, "amount")
 		var amountNumber *float64 = this.ParseNumber(amount)
 		var priceNumber *float64 = this.ParseNumber(price)
-		if typeVar == nil || *typeVar != "limit" {
-			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
+		if typeVar != "limit" {
+			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + typeVar))
 		}
 		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams))
 		var action map[string]any = map[string]any{
@@ -5044,12 +5044,12 @@ func (this *Pacifica) fetchApiKeysBody(ch chan AsyncResult[map[string]any], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Pacifica) ApproveBuilderCodeAsync(builderCode string, maxFeeRate string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[map[string]any], builderCode any, maxFeeRate any, optionalArgs ...any) any {
+func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[map[string]any], builderCode string, maxFeeRate string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

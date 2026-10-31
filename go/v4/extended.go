@@ -2732,7 +2732,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		panic(ArgumentsRequired(this.Id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]"))
 	}
 	var amountString any = this.CurrencyToPrecision(code, amount)
-	var settlement map[string]any = this.CreateTransferSettlementData(amountString, currency, account, toVault, toL2Key, params)
+	var settlement map[string]any = this.CreateTransferSettlementData(amountString, currency, account, *toVault, *toL2Key, params)
 	var request map[string]any = map[string]any{
 		"fromAccount":      currentAccountId,
 		"toAccount":        toAccount,
@@ -3569,7 +3569,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 		},
 		"salt": nonce,
 	}
-	var msgHash string = this.GetExtendedWithdrawalMsgHash(settlement, starkKey)
+	var msgHash string = this.GetExtendedWithdrawalMsgHash(settlement, *starkKey)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	settlement["signature"] = map[string]any{
 		"r": this.GetExtendedSignatureHex(*this.SafeString(sig, 0, "0")),
@@ -3577,7 +3577,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	}
 	return settlement
 }
-func (this *Extended) CreateTransferSettlementData(amountString any, currency map[string]any, account any, toVault *string, toL2Key *string, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateTransferSettlementData(amountString any, currency map[string]any, account any, toVault string, toL2Key string, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
@@ -4823,7 +4823,7 @@ func (this *Extended) GetExtendedOrderMsgHash(settlement map[string]any) string 
 	// SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash})
 }
-func (this *Extended) GetExtendedWithdrawalMsgHash(settlement map[string]any, starkKey *string) string {
+func (this *Extended) GetExtendedWithdrawalMsgHash(settlement map[string]any, starkKey string) string {
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var expiration map[string]any = SafeMapTyped(settlement, "expiration")

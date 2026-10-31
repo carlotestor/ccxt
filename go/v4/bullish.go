@@ -3188,7 +3188,7 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	if IsEqual(tradingAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 	}
-	this.Options["tradingAccountId"] = DerefScalar(tradingAccountId)
+	this.Options["tradingAccountId"] = tradingAccountId
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
 	return nil

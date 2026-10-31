@@ -283,13 +283,13 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol *string = this.SafeString(subscription, "symbol", "")
-	var messageHash string = "orderbook:" + *symbol
+	var symbol string = *this.SafeString(subscription, "symbol", "")
+	var messageHash string = "orderbook:" + symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
+	if _, ok := this.Orderbooks[symbol]; !ok {
+		this.Orderbooks[symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
 		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
@@ -309,7 +309,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	orderbook.SetNonce(nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol *string, optionalArgs ...any) any {
+func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
@@ -419,9 +419,9 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
 			// the message does not carry the side of the maker order and
 			// order ids are unique across the book, so try the bids first
 			// and fall back to the asks only on a miss
-			var reduced bool = this.ReduceOrderVolume(bidsOrderSide, makerOrderId, tradedAmount)
+			var reduced bool = this.ReduceOrderVolume(bidsOrderSide, *makerOrderId, *tradedAmount)
 			if !reduced {
-				this.ReduceOrderVolume(asksOrderSide, makerOrderId, tradedAmount)
+				this.ReduceOrderVolume(asksOrderSide, *makerOrderId, *tradedAmount)
 			}
 		}
 	}
@@ -453,12 +453,12 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
  * @param {string} tradedAmount the traded amount in base currency, as a string
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
-func (this *Luno) ReduceOrderVolume(orderSide any, orderId *string, tradedAmount *string) bool {
+func (this *Luno) ReduceOrderVolume(orderSide any, orderId string, tradedAmount string) bool {
 	var sideLength int = ccxt.GetArrayLength(orderSide)
 	for i := 0; i < sideLength; i++ {
 		var order any = ccxt.GetValue(orderSide, i)
 		var entryId *string = this.SafeString(order, 2)
-		if entryId == orderId || (entryId != nil && orderId != nil && *entryId == *orderId) {
+		if entryId != nil && *entryId == orderId {
 			var price *float64 = this.SafeNumber(order, 0)
 			var currentAmount *string = this.SafeString(order, 1)
 			var remainingAmount *string = ccxt.Precise.StringSub(currentAmount, tradedAmount)
@@ -484,11 +484,8 @@ func (this *Luno) ReduceOrderVolume(orderSide any, orderId *string, tradedAmount
  * @param {string} symbol unified market symbol of the book
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
-func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol *string) bool {
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol string) bool {
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var storedNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if storedNonce == nil {
 		// no snapshot was received yet, deltas cannot be applied to an

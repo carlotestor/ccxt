@@ -2020,8 +2020,8 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
 	return nil
 }
-func (this *Luno) ParseLedgerComment(comment *string) map[string]any {
-	var words []string = strings.Split(*comment, " ")
+func (this *Luno) ParseLedgerComment(comment string) map[string]any {
+	var words []string = strings.Split(comment, " ")
 	var types map[string]any = map[string]any{
 		"Withdrawal": "fee",
 		"Trading":    "fee",
@@ -2064,7 +2064,7 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) LedgerEntry {
 	var available_delta *string = this.SafeString(entry, "available_delta")
 	var balance_delta *string = this.SafeString(entry, "balance_delta")
 	var after *string = this.SafeString(entry, "balance")
-	var comment *string = this.SafeString(entry, "description", "")
+	var comment string = *this.SafeString(entry, "description", "")
 	var before *string = after
 	var amount any = "0.0"
 	var result map[string]any = this.ParseLedgerComment(comment)

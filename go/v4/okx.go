@@ -4626,12 +4626,12 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
-func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	if IsEqual(side, nil) {
@@ -4640,13 +4640,13 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var market map[string]any = this.Market(symbol)
 	var takeProfitPrice any = this.SafeValue2(params, "takeProfitPrice", "tpTriggerPx")
 	var stopLossPrice any = this.SafeValue2(params, "stopLossPrice", "slTriggerPx")
-	var conditional bool = (stopLossPrice != nil) || (takeProfitPrice != nil) || (IsEqual(typeVar, "conditional"))
+	var conditional bool = (stopLossPrice != nil) || (takeProfitPrice != nil) || (typeVar == "conditional")
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"side":    side,
 		"ordType": typeVar,
 	}
-	var isConditionalOrOCO bool = conditional || (IsEqual(typeVar, "oco"))
+	var isConditionalOrOCO bool = conditional || (typeVar == "oco")
 	var closeFraction *string = this.SafeString(params, "closeFraction")
 	var shouldOmitSize bool = isConditionalOrOCO && (closeFraction != nil)
 	if !shouldOmitSize {
@@ -4671,7 +4671,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
 	var trailingPrice *string = this.SafeStringN(params, []any{"trailingAmount", "trailingPrice", "callbackSpread"})
 	var isTrailingPriceOrder bool = (trailingPrice != nil)
-	var trigger bool = (triggerPrice != nil) || (IsEqual(typeVar, "trigger"))
+	var trigger bool = (triggerPrice != nil) || (typeVar == "trigger")
 	var isReduceOnly bool = (*this.SafeBool(params, "reduceOnly", false)) || (closeFraction != nil)
 	var defaultMarginMode *string = this.SafeString2(this.Options, "defaultMarginMode", "marginMode", "cross")
 	var marginMode *string = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not omitted so as to be extended into the request
@@ -4752,15 +4752,15 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		}
 		request["tdMode"] = marginMode
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "post_only")), paramsReduceOnly)
+	var isMarketOrder bool = (typeVar == "market")
+	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "post_only"), paramsReduceOnly)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var orderParams any = this.Omit(paramsPostOnly, []any{"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"})
-	var ioc bool = (timeInForce == "IOC") || (IsEqual(typeVar, "ioc"))
-	var fok bool = (timeInForce == "FOK") || (IsEqual(typeVar, "fok"))
+	var ioc bool = (timeInForce == "IOC") || (typeVar == "ioc")
+	var fok bool = (timeInForce == "FOK") || (typeVar == "fok")
 	// const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
-	var marketIOC bool = (isMarketOrder && ioc) || (IsEqual(typeVar, "optimal_limit_ioc"))
+	var marketIOC bool = (isMarketOrder && ioc) || (typeVar == "optimal_limit_ioc")
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy *string = this.SafeString(orderParams, "tgtCcy", defaultTgtCcy)
 	// conditional sell orders must not carry tgtCcy
@@ -5139,13 +5139,13 @@ func (this *Okx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, op
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar *string = this.SafeString(rawOrder, "type", "")
+		var typeVar string = *this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 

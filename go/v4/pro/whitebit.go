@@ -218,7 +218,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var paramsOmitted map[string]any = this.OmitDict(params, "priceInterval")
 	var reqParams []any = []any{market["id"], limitValue, priceInterval, true}
 
-	r1 := <-this.WatchPublicAsync(messageHash, method, reqParams, paramsOmitted)
+	r1 := <-this.WatchPublicAsync(*messageHash, method, reqParams, paramsOmitted)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1120,12 +1120,12 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Whitebit) WatchPublicAsync(messageHash any, method string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Whitebit) WatchPublicAsync(messageHash string, method string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, messageHash, method, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any, method string, optionalArgs ...any) any {
+func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var reqParams []any = ccxt.GetArgAnySlice(optionalArgs, 0, []any{})

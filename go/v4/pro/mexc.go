@@ -592,12 +592,12 @@ func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 		"info":      ticker,
 	}, marketResolved))
 }
-func (this *Mexc) WatchSpotPublicAsync(channel any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Mexc) WatchSpotPublicAsync(channel string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchSpotPublicBody(ch, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -761,7 +761,7 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	if market["spot"] == true {
 		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		r1 := <-this.WatchSpotPublicAsync(*channel, messageHash, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

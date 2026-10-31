@@ -8603,14 +8603,20 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input any, optionalArg
 	var uniqueResult []any = []any{}
 	for i := 0; i < GetArrayLength(input); i++ {
 		var entry any = GetValue(input, i)
-		var uniqValue any = func() any {
-			if fallbackToTimestamp == true {
-				return this.SafeStringN(entry, []any{"id", "timestamp", 0})
+		var uniqValue *string = this.SafeString(entry, "id")
+		if fallbackToTimestamp == true {
+			uniqValue = this.SafeStringN(entry, []any{"id", "timestamp", 0})
+		}
+		if (uniqValue != nil) && !(func() bool {
+			if uniqValue == nil {
+				return false
 			}
-			return this.SafeString(entry, "id")
-		}()
-		if !IsEqual(uniqValue, nil) && !(InOp(uniqueDic, uniqValue)) {
-			AddElementToObject(uniqueDic, uniqValue, 1)
+			_, ok := uniqueDic[*uniqValue]
+			return ok
+		}()) {
+			if uniqValue != nil {
+				uniqueDic[*uniqValue] = 1
+			}
 			uniqueResult = append(uniqueResult, entry)
 		}
 	}
@@ -11528,12 +11534,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11149, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048415 []any = listRecv11149
-	if retRes1048415 == nil {
+	listRecv11142, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11142
+	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
 	}
 	return nil
 }

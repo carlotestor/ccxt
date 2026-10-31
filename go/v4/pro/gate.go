@@ -1623,7 +1623,7 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var url any = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 
-	r1 := <-this.SubscribePublicAsync(url, messageHash, payload, channel, params)
+	r1 := <-this.SubscribePublicAsync(url, *messageHash, payload, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3233,12 +3233,12 @@ func (this *Gate) RequestId() int64 {
 	var reqid int64 = this.NextRequestId("reqid")
 	return reqid
 }
-func (this *Gate) SubscribePublicAsync(url any, messageHash any, payload []any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePublicAsync(url any, messageHash string, payload []any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, url, messageHash, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, messageHash any, payload []any, channel any, optionalArgs ...any) any {
+func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, messageHash string, payload []any, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

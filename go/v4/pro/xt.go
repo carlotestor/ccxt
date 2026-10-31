@@ -377,12 +377,12 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
  * @param {object} subscriptionParams extra parameters specific to the subscription
  * @returns {object} data from the websocket stream
  */
-func (this *Xt) UnSubscribeAsync(messageHash string, name string, access string, methodName string, topic any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Xt) UnSubscribeAsync(messageHash string, name string, access string, methodName string, topic string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, messageHash, name, access, methodName, topic, optionalArgs...)
 	return ch
 }
-func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash string, name string, access string, methodName string, topic any, optionalArgs ...any) any {
+func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash string, name string, access string, methodName string, topic string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -554,7 +554,7 @@ func (this *Xt) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string,
 	var name string = *method + "@" + *this.SafeString(market, "id", "")
 	var messageHash string = "unsubscribe::" + name
 
-	r1 := <-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTicker", defaultMethod, market, nil, params)
+	r1 := <-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTicker", *defaultMethod, market, nil, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

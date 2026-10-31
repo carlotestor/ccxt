@@ -5493,7 +5493,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) []any {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (deriveWalletAddress != nil) && (deriveWalletAddress == nil || *deriveWalletAddress != "") {
-		this.Options["deriveWalletAddress"] = DerefScalar(deriveWalletAddress)
+		this.Options["deriveWalletAddress"] = deriveWalletAddress
 		return []any{deriveWalletAddress, this.Extend(paramsDeriveWalletAddress)}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")

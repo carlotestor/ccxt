@@ -2825,7 +2825,8 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawPosition any = ccxt.DerefScalar(data[i])
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
-		if ccxt.IsEqual(this.SafeNumber(position, "contracts"), 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
+		var contracts *float64 = this.SafeNumber(position, "contracts")
+		if (contracts != nil && *contracts == 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
 			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
