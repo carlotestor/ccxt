@@ -3001,6 +3001,16 @@ impl Exchange {
         }
     }
 
+    /// `parse_number` without the box (no default): Float/Int -> f64, Str parsed, else None.
+    pub fn parse_number_opt(&self, v: Value, _optional_args: &[Value]) -> Option<f64> {
+        match v {
+            Value::Float(f) => Some(f),
+            Value::Int(n) => Some(n as f64),
+            Value::Str(ref s) => s.parse::<f64>().ok(),
+            _ => None,
+        }
+    }
+
     pub fn parse_timeframe(&self, tf: Value) -> Value {
         let s = stringify_param(&tf);
         let last = s.chars().last().unwrap_or('m');
