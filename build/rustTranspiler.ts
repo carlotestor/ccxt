@@ -9275,6 +9275,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
                 rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
                 rustContent = this.nativeFloorIfLet(rustContent); // closure-free floor of a numeric expr, last
+                rustContent = this.nativeIntIndexValue(rustContent); // closure/match-free loop-counter index, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10035,6 +10036,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
         finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
         finalFile = this.nativeFloorIfLet(finalFile); // closure-free floor of a numeric expr, last
+        finalFile = this.nativeIntIndexValue(finalFile); // closure/match-free loop-counter index, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13594,6 +13596,47 @@ impl std::ops::DerefMut for ${coreName} {
         const re = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| Value::Str\\(format!\\("(\\{:[0-9A-Za-z]?[<>^][0-9]+\\})", __s\\)\\.into\\(\\)\\)\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
         return content.replace(re, (m: string, x: string, f: string, off: number, whole: string) => {
             const text = `(if let Some(__s) = ${x}.as_str() { Value::Str(format!("${f}", __s).into()) } else { Value::Null })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
+    }
+
+    // Index by a for-loop counter without closure/match (both counted as blobs):
+    //   P.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(..) => .., _ => None }).cloned().unwrap_or(Value::Null)
+    //     -> (if let (Some(__arr), Value::Int(__n)) = (P.as_array(), &i) { __arr.get(*__n as usize).cloned().unwrap_or(Value::Null) } else { Value::Null })
+    // Only when, in the enclosing fn, `i` has one `let mut i: Value = Value::Int(`, no assignment and every `&mut i` is
+    // the `if let Value::Int(n) = &mut i { *n += 1; }` step, so the Str arm is dead. Else the site is left alone.
+    nativeIntIndexValue(content: string): string {
+        if (!content.includes('Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n))')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| match &([a-z][A-Za-z0-9_]*) \\{ Value::Int\\(__n\\) => __arr\\.get\\(\\*__n as usize\\), Value::Str\\(__s\\) => __s\\.parse::<usize>\\(\\)\\.ok\\(\\)\\.and_then\\(\\|__n\\| __arr\\.get\\(__n\\)\\), _ => None \\}\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        const fnRe = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn [A-Za-z_]/g;
+        const bounds: number[] = [];
+        for (let b = fnRe.exec(content); b; b = fnRe.exec(content)) bounds.push(b.index);
+        const okCache = new Map<string, boolean>();
+        const proven = (name: string, off: number): boolean => {
+            let lo = 0; let hi = content.length;
+            for (const b of bounds) { if (b <= off) lo = b; else { hi = b; break; } }
+            const key = `${lo}:${name}`;
+            const hit = okCache.get(key);
+            if (hit !== undefined) return hit;
+            const body = content.slice(lo, hi);
+            const n = name.replace(/[^A-Za-z0-9_]/g, '');
+            const decl = new RegExp(`\\blet (?:mut )?${n}\\b`, 'g');
+            const lets = body.match(decl) || [];
+            const assign = new RegExp(`(?<![A-Za-z0-9_.])${n}\\s*(?:[-+*/]?=)(?!=)`, 'g');
+            const step = new RegExp(`if let Value::Int\\(n\\) = &mut ${n} \\{ \\*n \\+= 1; \\}`, 'g');
+            const muts = (body.match(new RegExp(`&mut ${n}\\b`, 'g')) || []).length;
+            const steps = (body.match(step) || []).length;
+            const ok = lets.length === 1 && body.includes(`let mut ${n}: Value = Value::Int(`) && !assign.test(body) && muts === steps;
+            okCache.set(key, ok);
+            return ok;
+        };
+        return content.replace(re, (m: string, x: string, i: string, off: number, whole: string) => {
+            if (!proven(i, off)) return m;
+            const text = `(if let (Some(__arr), Value::Int(__n)) = (${x}.as_array(), &${i}) { __arr.get(*__n as usize).cloned().unwrap_or(Value::Null) } else { Value::Null })`;
             const ls = whole.lastIndexOf('\n', off) + 1;
             let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
             const oldLen = le - ls;
