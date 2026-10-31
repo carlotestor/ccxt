@@ -2388,7 +2388,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            if (Helpers.isEqual(this.safeNumber(position, "contracts", (Object) null), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
+            Double contracts = this.safeNumber(position, "contracts", (Object) null);
+            if ((contracts != null && contracts == 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
