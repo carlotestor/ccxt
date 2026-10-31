@@ -4951,7 +4951,7 @@ function handleTupleTargetType (printer, tupleTypes, element) {
     if (tupleTypes.has (declaration.parent)) {
         return tupleTypes.get (declaration.parent);
     }
-    return undefined;
+    return OMIT_TUPLE_TARGETS.has (declaration) ? HANDLE_ELEMENT_1_TYPE : undefined;
 }
 
 // the element type of a write to a parameter the printer declares natively: a `Dict` parameter
@@ -12471,7 +12471,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
             ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
     } else {
         // a tuple binding / write target typed by the handle* section publishes in HANDLE_TYPED_BINDINGS
-        type = printer.javaDeclaredLocalTypeResolver?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration);
+        type = printer.javaDeclaredLocalTypeResolver?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
+            ?? h2kJ04PairBoundType (declaration);
     }
     if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
         return false;
@@ -12520,6 +12521,9 @@ function javaOmitSelfCall (printer, node, declaration) {
     }
 }
 
+// omit-of-Map locals: a handle* params slot write takes the Map checkcast (see handleTupleTargetType)
+const OMIT_TUPLE_TARGETS = new WeakSet ();
+
 function javaOmitLocalType (printer, declaration) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
@@ -12532,7 +12536,8 @@ function javaOmitLocalType (printer, declaration) {
     const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined || javaOmitMapTernary (printer, right) !== undefined
         || javaOmitSelfCall (printer, right, declaration) || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile,
-        { noCastAssertions: true, writeOk }) ? info : undefined;
+        { noCastAssertions: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
+        ? info : undefined;
 }
 
 export function patchJavaOmitLocalTypes (transpiler) {
@@ -12567,6 +12572,7 @@ export function patchJavaOmitLocalTypes (transpiler) {
             return printed;
         }
         typed.set (declaration, info.type);
+        OMIT_TUPLE_TARGETS.add (declaration);
         const cast = info.cast === '' ? '' : info.cast + ' ';
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
     };
