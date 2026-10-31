@@ -1943,7 +1943,7 @@ impl KrakenCore {
         }  else {
             direction = Value::Str("in".into());
         }
-        let mut timestamp: Value = self.safe_integer_product_k(item.clone(), "time", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k_opt(item.clone(), "time", Value::Int(1000), &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -1958,8 +1958,8 @@ impl KrakenCore {
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), self.safe_number_k(item.clone(), "balance", &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(item, "fee", &[]));

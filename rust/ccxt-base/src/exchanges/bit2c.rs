@@ -1103,7 +1103,7 @@ impl Bit2cCore {
         }
         let mut id: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "id", &[]);
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k_opt(orderUnified.clone(), "created", Value::Int(1000), &[]);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -1155,8 +1155,8 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);

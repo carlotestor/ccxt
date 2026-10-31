@@ -13387,15 +13387,15 @@ impl BybitCore {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
-        let mut timestamp: Value = self.safe_integer_omit_zero(info.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero_opt(info.clone(), Value::Str("timestamp".into()), &[]);
         let mut longString: Option<String> = self.safe_string_k_opt(info.clone(), "buyRatio", &[]);
         let mut shortString: Option<String> = self.safe_string_k_opt(info.clone(), "sellRatio", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("timeframe".to_string(), Value::Null);
         m.insert("longShortRatio".to_string(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&longString.clone().map(Value::from).unwrap_or(Value::Null), &shortString.clone().map(Value::from).unwrap_or(Value::Null))));
     m

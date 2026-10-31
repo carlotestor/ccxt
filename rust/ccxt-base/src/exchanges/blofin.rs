@@ -4915,7 +4915,7 @@ impl BlofinCore {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "instId", &[]);
-        let mut timestamp: Value = self.safe_integer_omit_zero(info.clone(), Value::Str("createTime".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero_opt(info.clone(), Value::Str("createTime".into()), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
@@ -4923,8 +4923,8 @@ impl BlofinCore {
         m.insert("rank".to_string(), self.safe_integer_k(info, "adl", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
 });
 

@@ -2329,7 +2329,7 @@ impl DeriveCore {
         //         "maxp": "85617.6"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("t".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero_opt(ticker.clone(), Value::Str("t".into()), &[]);
         let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[]);
         let mut change: Option<String> = self.safe_string_k_opt(stats.clone(), "p", &[]);
         let mut percentage: Value = Value::Null;
@@ -2339,8 +2339,8 @@ impl DeriveCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(stats.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_string_k(stats.clone(), "l", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "b", &[]));
