@@ -805,7 +805,7 @@ public class P2b extends P2bApi
         //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
-        Long timestamp = (Long) this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
+        Long timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         String takerOrMaker = this.safeString(trade, "role");
         if (java.util.Objects.equals(takerOrMaker, "1"))
         {
@@ -1489,7 +1489,7 @@ public class P2b extends P2bApi
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        Long timestamp = (Long) this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
+        Long timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         return this.safeOrder(new HashMap<String, Object>() {{

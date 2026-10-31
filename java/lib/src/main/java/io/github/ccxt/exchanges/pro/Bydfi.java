@@ -376,7 +376,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker::" + symbol);
         this.tickers.put(symbol, ticker);
-        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
         client.resolve(this.tickers, "ticker::all");
     }
 

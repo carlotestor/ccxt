@@ -2229,7 +2229,7 @@ public class Dydx extends DydxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, "sequence"), this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}}));
+            String txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, "sequence"), this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}}));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "txBytes", txBytes );
             }};

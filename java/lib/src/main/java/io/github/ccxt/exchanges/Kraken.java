@@ -3401,7 +3401,7 @@ public class Kraken extends KrakenApi
                 request.put("start", this.parseToInt((((double) since) / ((double) 1000))));
             }
             Long userref = this.safeInteger(parameters, "userref");
-            Object paramsOmitted = (((!java.util.Objects.equals(userref, null)))) ? this.omit(parameters, "userref") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(userref, null)))) ? this.omit(parameters, "userref") : parameters;
             if (!java.util.Objects.equals(userref, null))
             {
                 request.put("userref", userref);
@@ -3412,7 +3412,7 @@ public class Kraken extends KrakenApi
                 request.put("cl_ord_id", clientOrderId);
                 paramsOmitted = this.omit(paramsOmitted, "clientOrderId");
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", request, (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("end", request, paramsOmitted, 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, paramsOmitted))).join();

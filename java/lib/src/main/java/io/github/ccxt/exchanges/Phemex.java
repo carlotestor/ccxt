@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Conversion;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.base.JsParse;
 
 public class Phemex extends PhemexApi
 {
@@ -2867,7 +2867,7 @@ public class Phemex extends PhemexApi
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.safeStringLower(order, "side");
         String type = this.parseOrderType(this.safeString(order, "ordType"));
-        Long timestamp = (Long) this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
+        Long timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
         Map<String, Object> fee = null;
         Object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), marketResolved);
         if (!java.util.Objects.equals(feeCost, null))

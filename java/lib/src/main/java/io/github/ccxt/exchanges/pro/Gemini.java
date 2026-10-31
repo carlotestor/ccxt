@@ -612,12 +612,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String marketId = this.safeString(firstBidAsk, "symbol", "").toLowerCase();
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        if (!(((Map<?, ?>)this.bidsasks).containsKey(symbol)))
+        if (!(this.bidsasks.containsKey(symbol)))
         {
             this.bidsasks.put(symbol, this.parseTicker(new HashMap<String, Object>() {{}}, (Map<String, Object>) null));
-            Helpers.addElementToObject((symbol == null || this.bidsasks == null ? null : ((Map<?, ?>)this.bidsasks).get(symbol)), "symbol", symbol);
+            Helpers.addElementToObject((symbol == null || this.bidsasks == null ? null : this.bidsasks.get(symbol)), "symbol", symbol);
         }
-        Object currentBidAsk = (symbol == null || this.bidsasks == null ? null : ((Map<?, ?>)this.bidsasks).get(symbol));
+        Object currentBidAsk = (symbol == null || this.bidsasks == null ? null : this.bidsasks.get(symbol));
         String messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
         for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)

@@ -1575,7 +1575,7 @@ public class Hibachi extends HibachiApi
             String r = this.safeString(signature, "r", "");
             String s = this.safeString(signature, "s", "");
             String v = this.intToBase16(signature.get("v"));
-            return Helpers.add(Helpers.add((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)), (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))), (((String)v).length() >= 2 ? ((String)v).substring(((String)v).length() - 2) : String.format("%" + (2 - ((String)v).length()) + "s", "").replace(' ', '0') + ((String)v)));
+            return (((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + (((String)v).length() >= 2 ? ((String)v).substring(((String)v).length() - 2) : String.format("%" + (2 - ((String)v).length()) + "s", "").replace(' ', '0') + ((String)v)));
         }
     }
 

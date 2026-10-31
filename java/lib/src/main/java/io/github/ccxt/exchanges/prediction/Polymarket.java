@@ -3627,7 +3627,7 @@ public class Polymarket extends PolymarketApi
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
-        String cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
+        String cleaned = this.remove0xPrefix(address).toLowerCase();
         Object hashHex = this.hash(this.encode(cleaned), keccak(), "hex");
         List<String> addrChars = this.stringToCharsArray(cleaned);
         List<String> hashChars = this.stringToCharsArray(hashHex);

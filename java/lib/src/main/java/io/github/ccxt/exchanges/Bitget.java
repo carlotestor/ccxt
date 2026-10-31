@@ -4051,8 +4051,8 @@ public class Bitget extends BitgetApi
             spot = true;
             String priceDecimals = this.safeString(market, "pricePrecision");
             String amountDecimals = this.safeString(market, "quantityPrecision");
-            Object priceStep = this.parsePrecision(priceDecimals);
-            Object amountStep = this.parsePrecision(amountDecimals);
+            String priceStep = (String) this.parsePrecision(priceDecimals);
+            String amountStep = (String) this.parsePrecision(amountDecimals);
             pricePrecision = this.parseNumber(priceStep);
             amountPrecision = this.parseNumber(amountStep);
             List<Object> crossMarginPairs = (List<Object>) this.safeList(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -8788,7 +8788,7 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsOmittedVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsOmitted);
             productType = (String) ((List<Object>) productTypeparamsOmittedVariable).get(0);
             paramsOmitted = (Map<String, Object>) ((List<Object>) productTypeparamsOmittedVariable).get(1);
-            List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsOmitted), "editOrder", false)).join();
+            List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams(paramsOmitted, "editOrder", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsOmittedVariable).get(0);
             paramsOmitted = (Map<String, Object>) ((List<Object>) utaparamsOmittedVariable).get(1);
             if (java.util.Objects.equals(uta, true))
@@ -10795,11 +10795,11 @@ public class Bitget extends BitgetApi
             marketType = marketTypeparamsOmittedVariable.first();
             paramsOmitted = marketTypeparamsOmittedVariable.second();
             Boolean uta = null;
-            List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsOmitted), "fetchLedger", false)).join();
+            List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams(paramsOmitted, "fetchLedger", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsOmittedVariable).get(0);
             paramsOmitted = (Map<String, Object>) ((List<Object>) utaparamsOmittedVariable).get(1);
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchLedger", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false);
             paginate = paginateparamsOmittedVariable.first();
             paramsOmitted = paginateparamsOmittedVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -10842,7 +10842,7 @@ public class Bitget extends BitgetApi
                 currency = this.currency((String) (code));
                 request.put("coin", currency.get("id"));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endTime", request, paramsOmitted, 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             if (!java.util.Objects.equals(since, null))

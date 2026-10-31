@@ -499,13 +499,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        if (((Map<?, ?>)this.tickers).containsKey(symbol))
+        if (this.tickers.containsKey(symbol))
         {
-            ((Map<String,Object>)this.tickers).remove((String)symbol);
+            this.tickers.remove((String)symbol);
         }
-        if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
+        if (this.bidsasks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.bidsasks).remove((String)symbol);
+            this.bidsasks.remove((String)symbol);
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         String bidAskHash = ("bidask:" + symbol);

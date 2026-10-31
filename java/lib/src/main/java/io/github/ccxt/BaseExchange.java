@@ -12112,7 +12112,11 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)input).size(); i++)
         {
             Object entry = (input == null || i < 0 || i >= ((List<?>)input).size() ? null : ((List<?>)input).get(i));
-            String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
+            String uniqValue = this.safeString(entry, "id");
+            if (java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))
+            {
+                uniqValue = this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0)));
+            }
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
                 uniqueDic.put(uniqValue, 1);
@@ -12678,15 +12682,15 @@ public Map<String, Object> describe()
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
-                    if (((Map<?, ?>)this.tickers).containsKey(symbol))
+                    if (this.tickers.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove(symbol);
+                        this.tickers.remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "bidsasks"))
                 {
-                    if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
+                    if (this.bidsasks.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove(symbol);
+                        this.bidsasks.remove(symbol);
                     }
                 }
             }
@@ -12717,9 +12721,9 @@ public Map<String, Object> describe()
                 for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
                 {
                     Object tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
-                    if (((Map<?, ?>)this.tickers).containsKey(tickerSymbol))
+                    if (this.tickers.containsKey(tickerSymbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)tickerSymbol);
+                        this.tickers.remove((String)tickerSymbol);
                     }
                 }
             } else if (java.util.Objects.equals(topic, "bidsasks") && (!java.util.Objects.equals(this.bidsasks, null)))
@@ -12728,9 +12732,9 @@ public Map<String, Object> describe()
                 for (var i = 0; i < ((List<?>)bidsaskSymbols).size(); i++)
                 {
                     Object bidsaskSymbol = (bidsaskSymbols == null || i < 0 || i >= bidsaskSymbols.size() ? null : bidsaskSymbols.get(i));
-                    if (((Map<?, ?>)this.bidsasks).containsKey(bidsaskSymbol))
+                    if (this.bidsasks.containsKey(bidsaskSymbol))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove((String)bidsaskSymbol);
+                        this.bidsasks.remove((String)bidsaskSymbol);
                     }
                 }
             }

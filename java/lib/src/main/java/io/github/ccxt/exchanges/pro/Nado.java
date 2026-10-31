@@ -2263,9 +2263,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         } else if ((((String)messageHash).indexOf("bidask:") == 0))
         {
             String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("bidask:", ""));
-            if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
+            if (this.bidsasks.containsKey(symbol))
             {
-                ((Map<String,Object>)this.bidsasks).remove(symbol);
+                this.bidsasks.remove(symbol);
             }
         } else if (java.util.Objects.equals(messageHash, "bidask"))
         {
@@ -2273,7 +2273,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object bidaskSymbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String,Object>)this.bidsasks).remove((String)bidaskSymbol);
+                this.bidsasks.remove((String)bidaskSymbol);
             }
         } else if ((((String)messageHash).indexOf("orders") == 0))
         {

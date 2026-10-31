@@ -333,7 +333,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage, (Map<String, Object>) null);
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
-        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
     public Ticker parseWsTicker(Object ticker, Map<String, Object> market)

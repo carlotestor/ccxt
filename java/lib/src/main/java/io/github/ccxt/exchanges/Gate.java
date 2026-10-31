@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.BorrowInterest;
 import io.github.ccxt.types.DepositAddress;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.base.JsParse;
 
 public class Gate extends GateApi
 {
@@ -5984,7 +5984,7 @@ public class Gate extends GateApi
         // this is because the other params will get extended into the request
         String clientOrderIdRaw = this.safeString2(paramsPostOnly, "text", "clientOrderId");
         String clientOrderId = clientOrderIdRaw;
-        Object query = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId")));
+        Map<String, Object> query = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId")));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         if (Boolean.TRUE.equals(isLimitOrder) && java.util.Objects.equals(price, null))
@@ -6068,9 +6068,9 @@ public class Gate extends GateApi
             } else
             {
                 String marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(false, (Map<String, Object>) (query));
+                var marginModequeryVariable = this.getMarginMode(false, query);
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-                query = ((List<Object>) marginModequeryVariable).get(1);
+                query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
                 // spot order
                 {
                     HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
@@ -6084,7 +6084,7 @@ public class Gate extends GateApi
                 {
                     String quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
                     query = createMarketBuyOrderRequiresPricequeryVariable.second();
                     Double cost = this.safeNumber(query, "cost", (Object) null);
@@ -6221,9 +6221,9 @@ public class Gate extends GateApi
                 // spot conditional order
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
                 String marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(true, (Map<String, Object>) (query));
+                var marginModequeryVariable = this.getMarginMode(true, query);
                 marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-                query = ((List<Object>) marginModequeryVariable).get(1);
+                query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
                 if (java.util.Objects.equals(timeInForce, null))
                 {
                     timeInForce = "gtc";

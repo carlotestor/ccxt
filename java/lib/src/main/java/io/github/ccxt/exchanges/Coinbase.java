@@ -6150,7 +6150,7 @@ public class Coinbase extends CoinbaseApi
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             byte[] byteArray = this.base64ToBinary(this.secret);
-            Object seed = this.arraySlice(byteArray, 0, 32);
+            List<Object> seed = this.arraySlice(byteArray, 0, 32);
             return jwt(request, seed, sha256(), false, new HashMap<String, Object>() {{
                 put( "kid", Coinbase.this.apiKey );
                 put( "nonce", nonce );

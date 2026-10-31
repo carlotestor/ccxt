@@ -246,7 +246,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash), false);
                     if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove(symbol);
+                        this.bidsasks.remove(symbol);
                     } else
                     {
                         ((Map<String,Object>)this.tickers).remove(symbol);
@@ -350,7 +350,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
             byte[] secretBytes = this.base64ToBinary(this.secret);
-            Object seed = this.arraySlice(secretBytes, 0, 32);
+            List<Object> seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("method", method);
@@ -386,9 +386,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:bidask:", "");
-                if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
+                if (this.bidsasks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.bidsasks).remove(symbol);
+                    this.bidsasks.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("candles") >= 0)
             {

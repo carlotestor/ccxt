@@ -536,15 +536,15 @@ public class Polymarket extends PolymarketApi
                 {
                     continue;
                 }
-                Object code = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-                if (!(result.containsKey(((String)code))))
+                String code = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                if (!(result.containsKey(code)))
                 {
                     // the venue tags each underlying with a category - only the
                     // crypto ones are unified as crypto, equities, commodities and
                     // indices map onto the other currency type
                     String category = this.safeString(instrument, "category");
                     String currencyType = (((java.util.Objects.equals(category, "crypto")))) ? "crypto" : "other";
-                    result.put((String)((String)code), this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    result.put((String)code, this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                         j39v2.put("id", baseId);
                         j39v2.put("code", code);
                         j39v2.put("name", baseId);
@@ -581,8 +581,8 @@ public class Polymarket extends PolymarketApi
                 {
                     continue;
                 }
-                Object code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                result.put((String)((String)code), this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                result.put((String)code, this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("id", currencyId);
                     j39v1.put("code", code);
                     j39v1.put("name", currencyId);

@@ -1368,9 +1368,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
-                    if (((Map<?, ?>)this.tickers).containsKey(symbol))
+                    if (this.tickers.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)symbol);
+                        this.tickers.remove((String)symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "ohlcv"))
                 {

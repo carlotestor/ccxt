@@ -1914,9 +1914,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String subMessageHash = this.getMessageHash("ticker", symbol, (String) null);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, (String) (subMessageHash), messageHash, false);
-        if (((Map<?, ?>)this.tickers).containsKey(symbol))
+        if (this.tickers.containsKey(symbol))
         {
-            ((Map<String,Object>)this.tickers).remove((String)symbol);
+            this.tickers.remove((String)symbol);
         }
     }
 

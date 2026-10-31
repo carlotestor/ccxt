@@ -1406,12 +1406,12 @@ public class Sxbet extends SxbetApi
                     end = this.parseToInt(idsLength);
                 }
                 List<Object> orderItems = new ArrayList<Object>(Arrays.asList());
-                Object chunkIds = this.arraySlice(ids, start, end);
-                Integer chunkIdsLength = (switch ((Object)(chunkIds)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; });
+                List<Object> chunkIds = this.arraySlice(ids, start, end);
+                Integer chunkIdsLength = (chunkIds == null ? 0 : chunkIds.size());
                 for (var i = 0; (chunkIdsLength != null && i < chunkIdsLength); i++)
                 {
                     HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                    j39v5.put("orderId", Helpers.GetValue(chunkIds, i));
+                    j39v5.put("orderId", (chunkIds == null || i < 0 || i >= chunkIds.size() ? null : chunkIds.get(i)));
                     ((List<Object>)orderItems).add(j39v5);
                 }
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2345,7 +2345,7 @@ public class Sxbet extends SxbetApi
                 {
                     end = this.parseToInt(hashesLength);
                 }
-                Object chunk = this.arraySlice(hashesOrder, start, end);
+                List<Object> chunk = this.arraySlice(hashesOrder, start, end);
                 Object rows = (this.fetchSxbetBestOdds(chunk, parameters)).join();
                 Integer rowsLength = ((List<?>)rows).size();
                 for (var j = 0; (rowsLength != null && j < rowsLength); j++)
@@ -2446,29 +2446,29 @@ public class Sxbet extends SxbetApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-            j39v9.put("outcome", this.safeString(outcomeObj, "outcome"));
-            j39v9.put("outcomeId", outcomeId);
-            j39v9.put("label", this.safeString(outcomeObj, "label"));
-            j39v9.put("market", this.safeString(outcomeObj, "market"));
-            j39v9.put("timestamp", timestamp);
-            j39v9.put("datetime", this.iso8601(timestamp));
-            j39v9.put("high", null);
-            j39v9.put("low", null);
-            j39v9.put("bid", bid);
-            j39v9.put("bidVolume", null);
-            j39v9.put("ask", ask);
-            j39v9.put("askVolume", null);
-            j39v9.put("open", null);
-            j39v9.put("close", bid);
-            j39v9.put("last", bid);
-            j39v9.put("change", null);
-            j39v9.put("percentage", null);
-            j39v9.put("average", average);
-            j39v9.put("baseVolume", null);
-            j39v9.put("quoteVolume", null);
-            j39v9.put("info", raw);
-            yield j39v9; } }), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+            j39v6.put("outcome", this.safeString(outcomeObj, "outcome"));
+            j39v6.put("outcomeId", outcomeId);
+            j39v6.put("label", this.safeString(outcomeObj, "label"));
+            j39v6.put("market", this.safeString(outcomeObj, "market"));
+            j39v6.put("timestamp", timestamp);
+            j39v6.put("datetime", this.iso8601(timestamp));
+            j39v6.put("high", null);
+            j39v6.put("low", null);
+            j39v6.put("bid", bid);
+            j39v6.put("bidVolume", null);
+            j39v6.put("ask", ask);
+            j39v6.put("askVolume", null);
+            j39v6.put("open", null);
+            j39v6.put("close", bid);
+            j39v6.put("last", bid);
+            j39v6.put("change", null);
+            j39v6.put("percentage", null);
+            j39v6.put("average", average);
+            j39v6.put("baseVolume", null);
+            j39v6.put("quoteVolume", null);
+            j39v6.put("info", raw);
+            yield j39v6; } }), market));
     }
 
     /**
@@ -2497,8 +2497,8 @@ public class Sxbet extends SxbetApi
             Map<String, Object> response = (this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters))).join();
             Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
-            Object sortedBids = this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
-            Object sortedAsks = this.safeList(sides, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sortedBids = (List<Object>) this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sortedAsks = (List<Object>) this.safeList(sides, "asks", new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(limit, null))
             {
                 Integer bidsLength = ((List<?>)sortedBids).size();

@@ -4181,7 +4181,7 @@ public class Backpack extends BackpackApi
                 payload = ((((((("instruction=" + instruction) + "&") + queryString) + "timestamp=") + ts) + "&window=") + recvWindow);
             }
             byte[] secretBytes = this.base64ToBinary(this.secret);
-            Object seed = this.arraySlice(secretBytes, 0, 32);
+            List<Object> seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
             headersSigned = new HashMap<String, Object>() {{
                 put( "X-Timestamp", ts );

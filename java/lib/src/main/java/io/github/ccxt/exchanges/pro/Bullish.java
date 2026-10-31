@@ -340,7 +340,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
-        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : this.tickers.get(symbol)), messageHash);
     }
 
     /**

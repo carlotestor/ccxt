@@ -2286,9 +2286,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:bidask:", "");
-                if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
+                if (this.bidsasks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.bidsasks).remove(symbol);
+                    this.bidsasks.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("candles") >= 0)
             {
@@ -2320,9 +2320,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             } else if (((String)messageHash).indexOf("fundingRate") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:fundingRate:", "");
-                if (((Map<?, ?>)this.fundingRates).containsKey(symbol))
+                if (this.fundingRates.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.fundingRates).remove(symbol);
+                    this.fundingRates.remove(symbol);
                 }
             }
         }

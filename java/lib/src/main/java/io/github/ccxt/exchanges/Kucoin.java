@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
@@ -48,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.base.JsParse;
 
 public class Kucoin extends KucoinApi
 {
@@ -4955,7 +4955,7 @@ public class Kucoin extends KucoinApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         String tradeType = this.safeString(paramsOmitted, "tradeType"); // keep it for backward compatibility
-        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        this.checkTriggerPrices(paramsOmitted);
         Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
         Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
         Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
@@ -5144,7 +5144,7 @@ public class Kucoin extends KucoinApi
                 request.put("size", JsParse.parseInt(sizeString));
             }
         }
-        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        this.checkTriggerPrices(paramsOmitted);
         Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
         Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
         Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
@@ -6224,7 +6224,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = this.market(symbol);
             request.put("symbol", market.get("id"));
             String accountMode = "unified";
-            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "cancelOrder", "accountMode", accountMode);
+            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams(paramsOmitted, "cancelOrder", "accountMode", accountMode);
             accountMode = accountModeparamsOmittedVariable.first();
             paramsOmitted = accountModeparamsOmittedVariable.second();
             request.put("accountMode", accountMode);
@@ -7424,7 +7424,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = this.market(symbol);
             request.put("symbol", market.get("id"));
             String accountMode = "unified";
-            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchOrder", "accountMode", accountMode);
+            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOrder", "accountMode", accountMode);
             accountMode = accountModeparamsOmittedVariable.first();
             paramsOmitted = accountModeparamsOmittedVariable.second();
             request.put("accountMode", accountMode);
@@ -7919,7 +7919,7 @@ public class Kucoin extends KucoinApi
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol", "");
-        Long timestamp = (Long) this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
+        Long timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Long lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String amount = null;
@@ -8399,7 +8399,7 @@ public class Kucoin extends KucoinApi
                 isContract = true;
             }
             String accountMode = "unified";
-            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchMyTrades", "accountMode", accountMode);
+            Pair<String, Map<String, Object>> accountModeparamsOmittedVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchMyTrades", "accountMode", accountMode);
             accountMode = accountModeparamsOmittedVariable.first();
             paramsOmitted = accountModeparamsOmittedVariable.second();
             request.put("accountMode", accountMode);
@@ -8418,7 +8418,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, paramsOmitted, 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.utaPrivateGetAccountModeOrderExecution(this.extend(request, paramsOmitted))).join();
@@ -14043,7 +14043,7 @@ public class Kucoin extends KucoinApi
                 put( "bizType", "TRANSFER" );
             }};
             Long until = this.safeInteger(paramsRequest, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsRequest, "until") : paramsRequest;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsRequest, "until") : paramsRequest;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endAt", until);
@@ -14065,7 +14065,7 @@ public class Kucoin extends KucoinApi
             {
                 request.put("pageSize", 500);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsOmittedVariable = this.handleUntilOption("endAt", request, paramsOmitted, 1);
             request = requestparamsOmittedVariable.first();
             paramsOmitted = requestparamsOmittedVariable.second();
             Map<String, Object> response = (this.privateGetAccountsLedgers(this.extend(request, paramsOmitted))).join();

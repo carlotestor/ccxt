@@ -1647,7 +1647,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("before", until);
             }
-            Object paramsOmitted = this.omit(paramsMarketType, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "until");
             Map<String, Object> response = (this.privateGetDeepcoinAccountBills(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2443,7 +2443,7 @@ public class Deepcoin extends DeepcoinApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
                 }
-                Object paramsOmitted = this.omit(paramsMarketType, "trigger");
+                Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "trigger");
                 //
                 //     {
                 //         "code": "0",
@@ -3625,7 +3625,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("end", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, "until") : paramsMarketType;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, "until") : paramsMarketType;
             Map<String, Object> response = (this.privateGetDeepcoinTradeFills(this.extend(request, paramsOmitted))).join();
             //
             //     {

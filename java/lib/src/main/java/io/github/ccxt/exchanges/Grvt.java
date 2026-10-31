@@ -7,6 +7,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import io.github.ccxt.base.JsParse;
 
 public class Grvt extends GrvtApi
 {
@@ -2088,7 +2088,7 @@ public class Grvt extends GrvtApi
                 addressFrom = this.safeString(parsedMeta, "endpoint");
             }
         }
-        Long timestamp = (Long) this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", transaction);

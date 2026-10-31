@@ -3484,7 +3484,7 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " createSubaccount() requires walletAddress")) ;
         }
         String subaccountName = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(subaccount, "default"), null)))) ? "default" : java.util.Objects.requireNonNullElse(subaccount, "default");
-        String address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
+        String address = this.remove0xPrefix(walletAddress).toLowerCase();
         if ((address.length() != 40))
         {
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;

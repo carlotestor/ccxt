@@ -611,7 +611,7 @@ public class Binance extends BinanceApi
                     }
                 }
             }
-            Object capped = collected;
+            List<Object> capped = collected;
             Integer collectedLength = ((List<?>)collected).size();
             if ((collectedLength != null && (limitResolved == null || collectedLength > limitResolved)))
             {

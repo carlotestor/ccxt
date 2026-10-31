@@ -4568,7 +4568,7 @@ public class Pacifica extends PacificaApi
         String message = this.prepareMessage(header, payload);
         Object messageBytes = this.encode(message);
         byte[] secretBytes = this.base58ToBinary(privateKey);
-        Object seed = this.arraySlice(secretBytes, 0, 32);
+        List<Object> seed = this.arraySlice(secretBytes, 0, 32);
         Object signatureBase64 = eddsa(messageBytes, seed, ed25519());
         byte[] signatureBinary = this.base64ToBinary(signatureBase64);
         String signatureBase58 = this.binaryToBase58(signatureBinary);

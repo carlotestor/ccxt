@@ -10078,7 +10078,7 @@ public class Okx extends OkxApi
                 {
                     request.put("end", until);
                 }
-                Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("until"))) : paramsMarketType;
+                Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("until"))) : paramsMarketType;
                 response = (this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, paramsOmitted))).join();
             }
             //

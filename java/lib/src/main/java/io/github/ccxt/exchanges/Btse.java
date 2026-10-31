@@ -2277,7 +2277,7 @@ public class Btse extends BtseApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
                 query = createMarketBuyOrderRequiresPricequeryVariable.second();
                 String cost = this.safeString(query, "cost");
@@ -2492,11 +2492,11 @@ public class Btse extends BtseApi
             if (java.util.Objects.equals(positionMode, null))
             {
                 Boolean hedged = false;
-                Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "hedged", hedged);
+                Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
                 hedged = hedgedqueryVariable.first();
                 query = hedgedqueryVariable.second();
                 String marginMode = "cross";
-                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "createOrder", "marginMode", marginMode);
+                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
                 marginMode = marginModequeryVariable.first();
                 query = marginModequeryVariable.second();
                 if (java.util.Objects.equals(marginMode, "isolated"))

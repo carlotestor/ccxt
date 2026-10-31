@@ -1616,7 +1616,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Long timestamp = (Long) this.safeIntegerProduct2(trade, "M", "E", 0.000001);
+        Long timestamp = this.safeIntegerProduct2(trade, "M", "E", 0.000001);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "f");
         if (!java.util.Objects.equals(feeCost, null))
@@ -2272,9 +2272,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    if ((symbol != null && ((Map<?, ?>)this.fundingRates).containsKey(symbol)))
+                    if ((symbol != null && this.fundingRates.containsKey(symbol)))
                     {
-                        ((Map<String,Object>)this.fundingRates).remove((String)symbol);
+                        this.fundingRates.remove((String)symbol);
                     }
                 }
             } else
@@ -3026,7 +3026,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             amount = this.safeString(trade, "size");
         }
         String order = this.safeString(trade, "orderId");
-        Long timestamp = (Long) this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
+        Long timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
         String feeCurrency = (String) marketResolved.get("quote");
         String feeRate = this.safeString(trade, "feeRate");
         String feeCost = this.safeString(trade, "fee");
