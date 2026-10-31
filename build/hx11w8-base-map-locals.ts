@@ -3,7 +3,66 @@
 // Same use rules as M43 (no rebind, address, assertion, selector, index or non-nil compare), so every
 // remaining use compiled against the box and keeps compiling against the map.
 
-import { m43Mask, m43Declarations, m43UseKeepsMap } from './hx11-m43-safedict-local.js';
+// ===== RF-go-6-A ===== use-rule helpers relocated verbatim from the deleted build/hx11-m43-safedict-local.ts (its SafeDict
+// local rule now lives in the ast-transpiler printer); this pass is the only remaining caller
+function m43Mask (content: string): string {
+    const out = content.split ('');
+    let state = 'code';
+    let escaped = false;
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if ((c === '/') && (content[i + 1] === '/')) { state = 'line'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if ((c === '/') && (content[i + 1] === '*')) { state = 'block'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if (c === '"') { state = 'dq'; out[i] = ' '; continue; }
+            if (c === '`') { state = 'raw'; out[i] = ' '; continue; }
+            if (c === '\'') { state = 'rune'; out[i] = ' '; continue; }
+            continue;
+        }
+        out[i] = (c === '\n') ? '\n' : ' ';
+        if (state === 'line') { if (c === '\n') { state = 'code'; } continue; }
+        if (state === 'block') { if ((c === '*') && (content[i + 1] === '/')) { out[i + 1] = ' '; i++; state = 'code'; } continue; }
+        if (state === 'dq') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return out.join ('');
+}
+
+function m43Declarations (maskedFunc: string, signature: string, name: string): number {
+    const vars = (maskedFunc.match (new RegExp ('\\bvar\\s+' + name + '\\b', 'g')) ?? []).length;
+    const shorts = (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? []).length;
+    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + name + '\\b').test (m[1])).length;
+    const ranges = (maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + name + '\\b[^\\n{]*:=\\s*range\\b')) ?? []).length;
+    const params = new RegExp ('[(,]\\s*' + name + '\\s+[^,()]+?\\s*[,)]').test (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0))) ? 1 : 0;
+    return vars + shorts + literalParams + ranges + params;
+}
+
+function m43UseKeepsMap (s: string, col: number, name: string): boolean {
+    const before = s.slice (0, col);
+    const after = s.slice (col + name.length);
+    const lhs = /^(\s*)((?:[\w.[\]]+\s*,\s*)*[\w.[\]]+)\s*(:=|=(?!=)|\+=|-=)/.exec (s);
+    if ((lhs !== null) && (col < lhs[0].length - lhs[3].length)) {
+        return false; // a rebinding or an element write target
+    }
+    if (/(?<![&\w)\]])&\s*$/.test (before) || /(?:^|[(,=:{]\s*)&\s*$/.test (before) || /\bswitch\s+$/.test (before)) {
+        return false;
+    }
+    if (/\bIsArray\($/.test (before)) {
+        return false; // the box folds `!Array.isArray(x)` to `if true`; a map would print IsArray
+    }
+    if (/^\s*(?:\.|\[|:(?!=))/.test (after)) {
+        return false; // assertion, selector, index, keyed field
+    }
+    if (/^\s*[!=]=(?!\s*nil\b)/.test (after)) {
+        return false;
+    }
+    if (/(?<![!=<>])[!=]=\s*$/.test (before) && !/\bnil\s*[!=]=\s*$/.test (before)) {
+        return false;
+    }
+    return true;
+}
+// ===== end RF-go-6-A =====
 
 // verified at head: one signature `map[string]any` for each name on base + all overrides + interface
 const BASE_MAP_CALLEES = 'ParseMarket|Markets|ParseWsTrade|ParseWsOrder|ParseBalance|Account|GetMarketFromSymbols|Extend|Currency|Describe';
