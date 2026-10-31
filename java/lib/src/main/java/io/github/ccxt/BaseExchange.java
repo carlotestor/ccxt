@@ -1587,7 +1587,7 @@ public class BaseExchange {
         return Time.ymd(ts, infix);
     }
 
-    public Object parseDate(Object datetime2) {
+    public Long parseDate(Object datetime2) {
         return Time.parseDate(datetime2);
     }
     // public Long nonce() {

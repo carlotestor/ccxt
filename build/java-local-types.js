@@ -462,6 +462,8 @@ const LOCAL_THIS_RETURN_TYPES = {
     'parse8601': { type: 'Long' },
     // BaseExchange.crc32 is declared Long (unsigned or signed 32-bit value on every path)
     'crc32': { type: 'Long' },
+    // BaseExchange.parseDate is declared Long (epoch millis or null on every path)
+    'parseDate': { type: 'Long' },
     // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
     'parseNumber': { type: 'Double' },
     // BaseExchange.encodeDydxTxForSimulation is declared String (ts/src/base declares `: string`)
@@ -815,7 +817,7 @@ const ACCESSOR_SOURCE_FILES = [
 // time functions are assigned as instance fields (`iso8601 = iso8601;`), so the checker
 // resolves no declaration for the call; they are hand-written Java methods with no
 // generated override (census), accepted by name
-const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
+const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'parseDate', 'iso8601' ]);
 
 // ===== string-element access locals =====
 //
@@ -3096,7 +3098,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return false;
             }
             if (javaType === 'Long') {
-                if (name === 'parse8601') {
+                if (name === 'parse8601' || name === 'parseDate') {
                     return resolvesToBaseAccessor (printer, node, name);
                 }
                 // safeTimestamp* are deliberately absent: SafeMethods.safeTimestampN hands
