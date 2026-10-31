@@ -1589,6 +1589,9 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     // object and deribit's is unproven, so those two declarations keep `object` and their
     // call sites stay `object` — the by-declaration prover decides per declaration).
     'addPaginationCursorToResult': 'List<object>',
+    // derive (pro): the one declaration returns only its `position` local (IDictionary, safeDict /
+    // safePosition joined)
+    'handlePositionDelta': 'IDictionary<string, object>',
     'cancelAllOrdersRequest': 'Dictionary<string, object>',
     'cancelOrderRequest': 'Dictionary<string, object>',
     'cancelOrdersRequest': 'Dictionary<string, object>',
