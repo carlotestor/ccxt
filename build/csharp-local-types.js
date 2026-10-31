@@ -544,7 +544,6 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
-import { w3c06Types } from './hx10w3-C06.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
@@ -1712,7 +1711,10 @@ function collectionReturnType (csharp, node, own) {
     // return-path proof, mapped to `string` — only the declarations whose every return already
     // prints a statically-`string` expression are retyped (stringReturnExpressionProves)
     const perDeclarationString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
-    return (perDeclarationString === undefined) ? undefined : declarationCollectionReturnType (csharp, node, perDeclarationString);
+    if (perDeclarationString === undefined) {
+        return inferredCollectionReturnType (csharp, node);
+    }
+    return declarationCollectionReturnType (csharp, node, perDeclarationString);
 }
 
 // true when the return expression already prints as the mapped type, so the boundary cast
@@ -1874,6 +1876,10 @@ function callCollectionReturnType (csharp, call) {
         const perDeclarationString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
         if (perDeclarationString !== undefined) {
             return boundCollectionReturnType (csharp, call, name, perDeclarationString);
+        }
+        const inferred = inferredBoundReturnType (csharp, call, name);
+        if (inferred !== undefined) {
+            return inferred;
         }
     }
     return (typeof csharp.csharpTypeOfInitializer === 'function') ? csharp.csharpTypeOfInitializer (call) : undefined;
@@ -2057,6 +2063,64 @@ function boundCollectionReturnType (csharp, call, name, mapped) {
     return (declaration?.name?.text === name) ? declarationCollectionReturnType (csharp, declaration, mapped) : undefined;
 }
 
+// ===== inferred return box (rfqConversionMarket / handleStockParams family) =====
+//
+// A venue-local, non-async method that NO other class declares (one ts/src file holds the name, one
+// declaration in it: no base slot, no override, so C# invariance has nothing to disagree with) and
+// whose annotated TS return type is a collection (`List`, `T[]` -> List<object>; a structure / `Dict`
+// -> IDictionary<string, object>, parseCollectionBox) is retyped when its OWN return paths prove
+// that box (the by-declaration proof, methodReturnsProveCollection). The signature, the return
+// statements and the callers' locals all read the same proof, so no name list is needed.
+function inferredCollectionBox (csharp, declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.body === undefined || declaration.type === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    if (collectionReturnMethodType (name) !== undefined || CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name] !== undefined
+            || CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name] !== undefined) {
+        return undefined; // the tables above own the name
+    }
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
+        return undefined;
+    }
+    const sourceFile = declaration.getSourceFile ();
+    const fileName = (sourceFile?.fileName ?? '').replace (/\\/g, '/');
+    if (!/(^|\/)ts\/src\//.test (fileName) || fileName.includes ('/test/') || fileName.includes ('ts/src/base/')) {
+        return undefined;
+    }
+    if (csharpMethodHasModifier (declaration, ts.SyntaxKind.OverrideKeyword) || sourceFileMethods (sourceFile, name).length !== 1) {
+        return undefined;
+    }
+    const owners = csharpCorpus ().declarations.get (name);
+    let declaringRel;
+    try {
+        declaringRel = path.relative (process.cwd (), sourceFile.fileName);
+    } catch (e) {
+        return undefined;
+    }
+    if (owners === undefined || owners.size !== 1 || !owners.has (declaringRel)) {
+        return undefined;
+    }
+    try {
+        const checker = csharp.getChecker ();
+        return parseCollectionBox (checker, checker.getTypeFromTypeNode (declaration.type));
+    } catch (e) {
+        return undefined; // no transpilation context: keep the printer's object
+    }
+}
+
+function inferredCollectionReturnType (csharp, declaration) {
+    const box = inferredCollectionBox (csharp, declaration);
+    return (box === undefined) ? undefined : declarationCollectionReturnType (csharp, declaration, box);
+}
+
+// `this.<name>(...)` binding such a declaration (the same-file one, or the checker-resolved base slot)
+function inferredBoundReturnType (csharp, call, name) {
+    const declaration = boundCollectionDeclaration (csharp, call, name);
+    return (declaration?.name?.text === name) ? inferredCollectionReturnType (csharp, declaration) : undefined;
+}
+
 // the per-declaration table names this declaration AND proves — the return-statements wrapper
 // skips the boundary cast on exactly these, because the proof already covers every return path
 // (and every proven path prints a statically-mapped expression, so the retyped signature needs
@@ -2071,7 +2135,10 @@ function byDeclarationCollectionReturnIsProven (csharp, declaration) {
     }
     // U34: the string table's own fallback (scalar mapped values, `===` is the same proof)
     const mappedString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
-    return mappedString !== undefined && declarationMappedTypes (mappedString).includes (declarationCollectionReturnType (csharp, declaration, mappedString));
+    if (mappedString === undefined) {
+        return inferredCollectionReturnType (csharp, declaration) !== undefined;
+    }
+    return declarationMappedTypes (mappedString).includes (declarationCollectionReturnType (csharp, declaration, mappedString));
 }
 
 // wrap printFunctionType / printReturnStatement on a Transpiler's C# printer. Idempotent.
@@ -6494,6 +6561,11 @@ function callReturnType (csharp, initializer) {
         const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         if (localType !== undefined) {
             return localType;
+        }
+        // an inferred venue-local collection return (inferredCollectionBox): same proof as the signature
+        const inferred = inferredBoundReturnType (csharp, initializer, methodName);
+        if (inferred !== undefined) {
+            return inferred;
         }
         // a venue method whose own body proves a non-null string at this site (its printed
         // signature stays `string?`, so the candidate starts nullable and the declaration
@@ -13064,6 +13136,76 @@ export function installCsharpMethodReturnTypes (csharp) {
     csharp._localMethodReturnTypesPatched = true;
 }
 
+// ===== parseJson on a string-returning call =====
+//
+// `JSON.parse (this.<callee> (...))` prints `parseJson(<call>)`, the hand-written one-line wrapper
+// `JsonHelper.Deserialize((string)json)` (Exchange.TranspileHelpers.cs). When the callee's EMITTED
+// signature already returns a string (the same answer the local declarations use, callReturnType;
+// or a hand-written `string` member of the base, read from cs/ccxt/base), the wrapper's unbox is an
+// identity, so the call is printed as exactly the argument the wrapper hands the deserializer.
+let csharpHandWrittenStringMethodNames;
+
+function csharpHandWrittenStringMethods () {
+    if (csharpHandWrittenStringMethodNames !== undefined) {
+        return csharpHandWrittenStringMethodNames;
+    }
+    const names = new Set ();
+    csharpHandWrittenStringMethodNames = names;
+    try {
+        for (const entry of fs.readdirSync (CSHARP_TYPED_CORE_FOLDER)) {
+            if (!entry.endsWith ('.cs')) {
+                continue;
+            }
+            const content = fs.readFileSync (path.join (CSHARP_TYPED_CORE_FOLDER, entry), 'utf8');
+            if (content.includes ('IT IS GENERATED AND WILL BE OVERWRITTEN')) {
+                continue; // only the hand-written declarations name a signature the generator does not decide
+            }
+            const pattern = /^[ \t]*public[ \t]+(?:virtual[ \t]+)?string\??[ \t]+([A-Za-z_]\w*)[ \t]*\(/gm;
+            let match;
+            while ((match = pattern.exec (content)) !== null) {
+                names.add (match[1]);
+            }
+        }
+    } catch (e) {
+        names.clear (); // no generated base on disk: nothing proves
+    }
+    return names;
+}
+
+function jsonParseArgumentIsStringCall (csharp, argument) {
+    let call = argument;
+    while (call?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        call = call.expression;
+    }
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const fileName = (call.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('/test/') || fileName.includes ('examples/')) {
+        return false;
+    }
+    if (isStringReturningCall (csharp, call)) {
+        return true;
+    }
+    // a callee the printer resolves to the hand-written base keeps that declaration's `string`
+    return csharpHandWrittenStringMethods ().has (call.expression.name?.text) && csharp.csharpCalleeResolves (call);
+}
+
+export function installCsharpJsonParseStringCalls (csharp) {
+    if (!csharp || typeof csharp.printJsonParseCall !== 'function' || csharp._jsonParseStringCallsPatched) {
+        return;
+    }
+    const upstream = csharp.printJsonParseCall.bind (csharp);
+    csharp.printJsonParseCall = (node, identation, parsedArg) => {
+        if (node?.arguments?.length === 1 && jsonParseArgumentIsStringCall (csharp, node.arguments[0])) {
+            return 'JsonHelper.Deserialize((string)' + parsedArg + ')';
+        }
+        return upstream (node, identation, parsedArg);
+    };
+    csharp._jsonParseStringCallsPatched = true;
+}
+
 // `this.<name>(...)` where <name> is a member of the tuple-returning handle family
 // (`handleOptionAndParams`, `handleMarginModeAndParams`, `customHandleMarginModeAndParams`,
 // ...). Destructuring callees outside the family keep the printer's shape.
@@ -14459,6 +14601,7 @@ export function installCsharpLocalTypes (transpiler) {
         return;
     }
     installCsharpMethodReturnTypes (csharp);
+    installCsharpJsonParseStringCalls (csharp);
     const upstream = csharp.printVariableDeclarationList.bind (csharp);
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstream (node, identation);
@@ -19241,6 +19384,3 @@ function hx5X12RegisterReturnTypes () {
     }
 }
 hx5X12RegisterReturnTypes ();
-
-// hx10w3 C06: generated method RETURN types (name-keyed, so every declaration and caller agrees)
-w3c06Types (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES);
