@@ -6120,7 +6120,7 @@ if _try_result.is_err() {
                 expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                 let mut expiryIso: Value = self.iso8601(expiry.clone());
                 expiryDatetime = expiryIso.clone();
-                let mut expiryParts: Value = Value::Array(expiryIso.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                let mut expiryParts: Value = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[Value::Str("".into())]);
                 let mut dayPart: Value = self.safe_string(expiryParts.clone(), Value::Int(2), &[Value::Str("".into())]);
                 let mut year: Value = yearPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
@@ -6445,7 +6445,7 @@ if _try_result.is_err() {
                 expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                 let mut expiryIso: Value = self.iso8601(expiry.clone());
                 expiryDatetime = expiryIso.clone();
-                let mut expiryParts: Value = Value::Array(expiryIso.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                let mut expiryParts: Value = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[Value::Str("".into())]);
                 let mut dayPart: Value = self.safe_string(expiryParts.clone(), Value::Int(2), &[Value::Str("".into())]);
                 let mut year: Value = yearPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
@@ -6630,7 +6630,7 @@ if _try_result.is_err() {
             if (network == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a network argument".into()))));
             }
-            network = network.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            network = (if let Some(__s) = network.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut withdrawableString: Option<String> = self.safe_string_k(chain.clone(), "withdrawable", &[]).as_str().map(str::to_owned);
             let mut rechargeableString: Option<String> = self.safe_string_k(chain.clone(), "rechargeable", &[]).as_str().map(str::to_owned);
             let mut withdrawable: Value = (Value::Bool(withdrawableString.as_deref() == Some("true")));
@@ -10119,7 +10119,7 @@ if _try_result.is_err() {
             let mut timeInForce: Value = Value::Null;
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (timeInForce != Value::Null) {
-                timeInForce = timeInForce.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+                timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             }
             if postOnly.as_bool() == Some(true) {
                 request.insert("timeInForce".into(), Value::Str("post_only".into()));
@@ -10229,7 +10229,7 @@ if _try_result.is_err() {
         let mut timeInForce: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (timeInForce != Value::Null) {
-            timeInForce = timeInForce.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         }
         if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("post_only".into())); }
@@ -12829,7 +12829,7 @@ if _try_result.is_err() {
             before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         let mut direction: Value = Value::Str("in".into());
-        if Value::Int(amountRaw.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if amountRaw.as_str().unwrap_or("").contains("-") {
             direction = Value::Str("out".into());
         }
         let mut businessType: Value = self.safe_string_n(item.clone(), Value::from(vec![Value::Str("businessType".into()), Value::Str("groupType".into()), Value::Str("type".into())]), &[]);
@@ -14775,7 +14775,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (marginModeValue.as_str() == Some("cross")) {
             marginModeValue = Value::Str("crossed".into());
         }
@@ -17070,7 +17070,7 @@ if _try_result.is_err() {
                     let mut sortedParams: Value = self.keysort(params.clone(), &[]);
                     let mut queryInner: Value = Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(sortedParams.clone(), &[Value::Bool(true)])).into());
                     // check #21169 pr
-                    if Value::Int(queryInner.as_str().and_then(|__s| __s.find("%24")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+                    if queryInner.as_str().unwrap_or("").contains("%24") {
                         queryInner = queryInner.as_str().map(|__s| Value::Str(__s.replace("%24", "$").into())).unwrap_or_else(|| queryInner.clone());
                     }
                     url = Value::Str(format!("{}{}", url, queryInner).into());

@@ -923,7 +923,7 @@ impl LimitlessCore {
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
-            let mut labelLower: Value = outcomeLabel.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut labelLower: Value = (if let Some(__s) = outcomeLabel.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             let mut legIndex: Value = Value::Int(i);
             if (labelLower.as_str() == Some("yes")) {
                 legIndex = Value::Int(0);
@@ -1627,7 +1627,7 @@ impl LimitlessCore {
             book = self.safe_dict_k(ticker.clone(), "book", &[]);
         }
         let mut rawLabel: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "label", &[self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())])]) } else { Value::Str("yes".into()) });
-        let mut isYes: bool = rawLabel.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() != Some("no");
+        let mut isYes: bool = (if let Some(__s) = rawLabel.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() != Some("no");
         let mut bidStr: Value = Value::Null;
         let mut askStr: Value = Value::Null;
         let mut bidSizeStr: Value = Value::Null;
@@ -2889,7 +2889,7 @@ if _try_result.is_err() {
             m
         });
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut sideValue: Value = self.safe_integer(Value::Map(sides), side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null), &[]);
+        let mut sideValue: Value = self.safe_integer(Value::Map(sides), (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }), &[]);
         let mut rank: Value = self.safe_dict_k(accountInfo, "rank", &[]);
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         let mut signatureType: Value = (if isSmartWallet { Value::Int(2) } else { Value::Int(0) });
@@ -3087,10 +3087,10 @@ if _try_result.is_err() {
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
-        let mut rPadded: Value = r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        let mut sPadded: Value = s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+        let mut rPadded: Value = (if let Some(__s) = r.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
+        let mut sPadded: Value = (if let Some(__s) = s.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
         let mut result: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), rPadded).into()), sPadded).into()), v).into());
-        return result.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = result.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
@@ -3169,7 +3169,7 @@ if _try_result.is_err() {
             let mut scaled: Value = crate::precise::Precise::stringDiv(&amount, &self.parse_precision(&[self.number_to_string(decimals)]));
             let mut amountInt: Value = self.parse_to_int(scaled);
             let mut amountBase16: Value = self.int_to_base16(amountInt, &[]);
-            amountHex = amountBase16.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+            amountHex = (if let Some(__s) = amountBase16.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         let mut approveData: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex).into());
@@ -3584,13 +3584,13 @@ if _try_result.is_err() {
         if (rawSide.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
-        if Value::Int(rawSide.as_deref().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if rawSide.as_deref().unwrap_or("").contains("limit") {
             type_var = Value::Str("limit".into());
             takerOrMaker = Value::Str("maker".into());
             if (rawSide.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing rawSide".into()))));
             }
-        }  else if Value::Int(rawSide.as_deref().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if rawSide.as_deref().unwrap_or("").contains("market") {
             type_var = Value::Str("market".into());
             takerOrMaker = Value::Str("taker".into());
         }

@@ -1203,7 +1203,7 @@ impl LighterCore {
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null })).into()), (if let Some(__s) = s.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null })).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_l1_and_prepare_tx_info(&self, mut txInfo: Value, mut message: Value, mut privateKey: Value) -> Option<String> {
@@ -1443,9 +1443,9 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".into()))));
         }
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]); // default false
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -2012,7 +2012,7 @@ if _try_result.is_err() {
             let mut marketSymbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Value = marketSymbol.clone().map(Value::from).unwrap_or(Value::Null);
             if (marketSymbol.is_some()) && (Value::Int(marketSymbol.as_deref().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
-                let mut symbolParts: Vec<Value> = Value::Array(marketSymbol.as_deref().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut symbolParts: Vec<Value> = Value::Array(if let Some(__s) = marketSymbol.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 baseId = symbolParts.get(0).cloned().unwrap_or(Value::Null);
             }
             let mut quoteId: Value = Value::Str("USDC".into());
@@ -3360,10 +3360,10 @@ if _try_result.is_err() {
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (type_var != Value::Null) {
-            if Value::Int(type_var.as_str().and_then(|__s| __s.find("stop-loss")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if type_var.as_str().unwrap_or("").contains("stop-loss") {
                 stopLossPrice = triggerPrice.clone();
             }
-            if Value::Int(type_var.as_str().and_then(|__s| __s.find("take-profit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if type_var.as_str().unwrap_or("").contains("take-profit") {
                 takeProfitPrice = triggerPrice.clone();
             }
         }

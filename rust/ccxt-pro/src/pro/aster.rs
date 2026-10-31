@@ -403,7 +403,7 @@ impl AsterCore {
 }
 
     pub fn get_account_type_from_url(&self, mut url: Value) -> Option<String> {
-        if Value::Int(url.as_str().and_then(|__s| __s.find("fstream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if url.as_str().unwrap_or("").contains("fstream") {
             return Value::Str("swap".into()).as_str().map(str::to_owned);
         }
         return Value::Str("spot".into()).as_str().map(str::to_owned);
@@ -2576,7 +2576,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str("myTrades".into());
         let mut executionType: Option<String> = (match __pro_message.get("x").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (executionType.as_deref() == Some("TRADE")) {
-            let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("fstream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+            let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("fstream");
             let mut type_var: Value = Value::Str("spot".into());
             if isSwap {
                 type_var = Value::Str("swap".into());

@@ -1593,7 +1593,7 @@ impl BlofinCore {
         let mut arg: Value = (match __pro_message.get("arg").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut channelName: Option<String> = self.safe_string_k_opt(arg, "channel", &[]);
         method = self.safe_value(Value::Map(methods.clone()), channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method == Value::Null) && (Value::Int(channelName.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+        if (method == Value::Null) && (channelName.as_deref().unwrap_or("").contains("candle")) {
             method = methods.get("candle").cloned().unwrap_or(Value::Null);
         }
         if (method != Value::Null) {

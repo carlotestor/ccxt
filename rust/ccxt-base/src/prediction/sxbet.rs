@@ -930,7 +930,7 @@ impl SxbetCore {
                 if (field == Value::Null) {
                     continue;
                 }
-                let mut fieldLower: Value = field.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut fieldLower: Value = (if let Some(__s) = field.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 if (Value::Int(query.as_str().zip(fieldLower.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(fieldLower.as_str().zip(query.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                     return Value::Bool(true);
                 }
@@ -1097,8 +1097,8 @@ impl SxbetCore {
         // matches a simple identifier, an expression form leaks a raw padStart() call
         let mut rRaw: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut sRaw: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
-        let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+        let mut r: Value = (if let Some(__s) = rRaw.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
+        let mut s: Value = (if let Some(__s) = sRaw.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), v).into()).as_str().map(str::to_owned);
 }
@@ -1125,10 +1125,10 @@ impl SxbetCore {
         let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut length: Value = self.parse_to_int(self.hex_to_int(lengthHex));
         let mut dataEnd: Value = self.sum(&[Value::Int(128), (match (&(length), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        let mut dataHex: Value = (match (&(hex), (match &(Value::Int(128)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(dataEnd) { Value::Int(__n) => Some(*__n),
-            Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         return self.decode(self.base16_to_binary(dataHex, &[]));
 
     Value::Null
@@ -1144,7 +1144,7 @@ impl SxbetCore {
  */
     pub fn hex_to_int(&self, mut hex: Value) -> Value {
         let mut digits: Value = Value::Str("0123456789abcdef".into());
-        let mut lowerHex: Value = hex.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
         let mut result: Value = self.parse_to_int(Value::Int(0));
         {
@@ -1416,7 +1416,7 @@ impl SxbetCore {
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
         let mut saltHexRaw: Value = self.int_to_base16(self.parse_to_int(saltNumber.clone()), &[]);
-        let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+        let mut saltHexPadded: Value = (if let Some(__s) = saltHexRaw.as_str() { Value::Str(format!("{:0>64}", __s).into()) } else { Value::Null });
         let mut saltHex: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), saltHexPadded).into());
         let mut defaultExpirySeconds: Value = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]);
         let mut expiry: Value = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), defaultExpirySeconds])]);
@@ -3212,7 +3212,7 @@ impl SxbetCore {
 }
 
     pub fn handle_text_message(&mut self, mut client: Value, mut message: Value) {
-        let mut lines: Vec<Value> = Value::Array(message.as_str().map(|__s| __s.split("\n").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut lines: Vec<Value> = Value::Array(if let Some(__s) = message.as_str() { __s.split("\n").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut linesLength: f64 = ((lines.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -3307,7 +3307,7 @@ impl SxbetCore {
         }  else {
             rows = Value::from(vec![data]);
         }
-        let mut parts: Value = Value::Array(channel.as_deref().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook_v3")) {
             self.handle_order_book(client.clone(), rows.clone());
@@ -3317,9 +3317,9 @@ impl SxbetCore {
             self.handle_trades(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
-            if Value::Int(channel.as_deref().and_then(|__s| __s.find("orders_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if channel.as_deref().unwrap_or("").contains("orders_v3") {
                 self.handle_order(client.clone(), rows.clone());
-            }  else if Value::Int(channel.as_deref().and_then(|__s| __s.find("fills_v3")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if channel.as_deref().unwrap_or("").contains("fills_v3") {
                 self.handle_my_trade(client, rows);
             }
         }

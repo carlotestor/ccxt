@@ -715,7 +715,7 @@ impl HyperliquidCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
         if !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut symbolParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+            let mut symbolParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
             let mut baseName: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[]);
             let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -888,7 +888,7 @@ impl HyperliquidCore {
         if (fullName.is_some()) && (name != Value::Null) {
             let mut isWrapped: bool = (fullName.as_deref().unwrap_or("").starts_with("Unit ")) && (name.as_str().unwrap_or("").starts_with("U"));
             if isWrapped {
-                let mut parts: Vec<Value> = Value::Array(name.as_str().map(|__s| __s.split("U").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut parts: Vec<Value> = Value::Array(if let Some(__s) = name.as_str() { __s.split("U").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut nameWithoutU: Value = Value::Str("".into());
                 {
                                         let mut j: i64 = 0;
@@ -1238,7 +1238,7 @@ impl HyperliquidCore {
         if (priceStr == Value::Null) {
             return Value::Int(0);
         }
-        let mut priceSplitted: Value = Value::Array(priceStr.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut priceSplitted: Value = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut maxDecimalsInt: Value = self.parse_to_int(maxDecimals);
         let mut amountPrecisionInt: Value = self.parse_to_int(amountPrecision);
         let mut decimalsLeft: Value = (match (&(maxDecimalsInt), &(amountPrecisionInt)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -2319,7 +2319,7 @@ impl HyperliquidCore {
     pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
         let mut market: Value = self.market(symbol);
         let mut priceStr: Value = self.number_to_string(price.clone());
-        let mut priceStrParts: Vec<Value> = Value::Array(priceStr.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Value = priceStrParts.get(0).cloned().unwrap_or(Value::Null);
         let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &Value::Int(integerPart.len() as i64));
         let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), significantDigits, &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
@@ -3094,7 +3094,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.initialize_client().await;
         let mut market: Value = self.market(symbol.clone());
         let mut nonce: Value = self.incrementing_nonce();
-        let mut isBuy: Value = (Value::Bool(side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() == Some("BUY")));
+        let mut isBuy: Value = (Value::Bool((if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("BUY")));
         let mut randomize: Value = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("randomize".into()), &[]);
         let vaultAddressOptionparamsVaultVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -3255,8 +3255,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
         let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-        let mut typeValue: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut sideValue: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut typeValue: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut sideValue: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut isMarket: Value = (Value::Bool(typeValue.as_str() == Some("MARKET")));
         let mut isBuy: Value = (Value::Bool(sideValue.as_str() == Some("BUY")));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -3475,7 +3475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if matches!(self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut builder: Value = Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into());
-            let mut wallet: Value = self.safe_string_lower_k(self.options.clone(), "builder", &[builder.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)]);
+            let mut wallet: Value = self.safe_string_lower_k(self.options.clone(), "builder", &[(if let Some(__s) = builder.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let mut feeInt: Value = self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(10)]);
             if !matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
@@ -4322,7 +4322,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
         let mut baseName: Value = (match market.get("baseName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut part: Value = Value::Array(baseName.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut part: Value = Value::Array(if let Some(__s) = baseName.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut partsLength: f64 = ((part.len() as i64) as f64);
         if partsLength > ((1i64) as f64) {
             return self.safe_string(part, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -4834,9 +4834,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (triggerPx != Value::Null) {
-            if Value::Int(orderTypeRaw.as_str().and_then(|__s| __s.find("stop")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if orderTypeRaw.as_str().unwrap_or("").contains("stop") {
                 stopLossPrice = triggerPx.clone();
-            }  else if Value::Int(orderTypeRaw.as_str().and_then(|__s| __s.find("take profit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if orderTypeRaw.as_str().unwrap_or("").contains("take profit") {
                 takeProfitPrice = triggerPx.clone();
             }
         }
@@ -5837,7 +5837,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        let mut isUsdc: bool = code.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() == Some("USDC");
+        let mut isUsdc: bool = (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("USDC");
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".into())));
@@ -5937,7 +5937,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         self.check_address(&[address.clone()]);
-        if (code.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() != Some("USDC")) {
+        if ((if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -6834,12 +6834,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut code: Value = self.safe_string_k(hip3Dict, "code", &[coin.clone()]);
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);
         }
-        if Value::Int(coin.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) || Value::Int(coin.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if coin.as_str().unwrap_or("").contains("/") || coin.as_str().unwrap_or("").contains("@") {
             return coin.as_str().map(str::to_owned);
         }
         // hip3
         let mut coinId: Value = coin.clone();
-        if Value::Int(coin.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if coin.as_str().unwrap_or("").contains(":") {
             coinId = coin.as_str().map(|__s| Value::Str(__s.replace(":", "-").into())).unwrap_or_else(|| coin.clone());
         }
         return Value::Str(format!("{}{}", self.safe_currency_code(coinId, &[]), Value::Str("/USDC:USDC".into())).into()).as_str().map(str::to_owned);

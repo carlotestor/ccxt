@@ -2023,7 +2023,7 @@ impl PhemexCore {
             }
         }
         let mut methodName: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (Value::Int(methodName.as_str().and_then(|__s| __s.find("perp_market24h_pack_p")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (methodName.as_str().unwrap_or("").contains("perp_market24h_pack_p")) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("trades_p"))) {

@@ -1487,7 +1487,7 @@ impl BitfinexCore {
             let mut market: Value = self.safe_list(pairObj, Value::Int(1), &[Value::from(vec![])]);
             let mut spot: bool = true;
             let mut type_var: Value = Value::Null;
-            if Value::Int(id.as_str().and_then(|__s| __s.find("F0")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if id.as_str().unwrap_or("").contains("F0") {
                 spot = false;
                 type_var = Value::Str("swap".into());
             }  else {
@@ -1496,8 +1496,8 @@ impl BitfinexCore {
             let mut swap: bool = type_var.as_str() == Some("swap");
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
-            if Value::Int(id.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut parts: Vec<Value> = Value::Array(id.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            if id.as_str().unwrap_or("").contains(":") {
+                let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 baseId = parts.get(0).cloned().unwrap_or(Value::Null);
                 quoteId = parts.get(1).cloned().unwrap_or(Value::Null);
             }  else {
@@ -1506,8 +1506,8 @@ impl BitfinexCore {
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut splitBase: Value = Value::Array(base.as_str().map(|__s| __s.split("F0").map(Value::from).collect()).unwrap_or_default());
-            let mut splitQuote: Value = Value::Array(quote.as_str().map(|__s| __s.split("F0").map(Value::from).collect()).unwrap_or_default());
+            let mut splitBase: Value = Value::Array(if let Some(__s) = base.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
+            let mut splitQuote: Value = Value::Array(if let Some(__s) = quote.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
             base = self.safe_string(splitBase, Value::Int(0), &[]);
             quote = self.safe_string(splitQuote, Value::Int(0), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
@@ -2607,7 +2607,7 @@ impl BitfinexCore {
         if (status == Value::Null) {
             return None;
         }
-        let mut parts: Value = Value::Array(status.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = status.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
         let mut state: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2697,7 +2697,7 @@ impl BitfinexCore {
         let mut status: Value = Value::Null;
         let mut statusString: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(13), &[]);
         if (statusString.is_some()) {
-            let mut parts: Value = Value::Array(statusString.as_deref().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = statusString.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             status = self.parse_order_status(self.safe_string(parts, Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null);
         }
         let mut average: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(17), &[]);
@@ -2780,7 +2780,7 @@ impl BitfinexCore {
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (trailingAmount.is_some()) {
             orderType = Value::Str("TRAILING STOP".into());
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
@@ -4435,17 +4435,17 @@ impl BitfinexCore {
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         if (type_var == Value::Null) {
             return Value::Null;
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("fee")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("charged")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("fee") || type_var.as_str().unwrap_or("").contains("charged") {
             return Value::Str("fee".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("rebate")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("rebate") {
             return Value::Str("rebate".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("deposit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("withdrawal")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("deposit") || type_var.as_str().unwrap_or("").contains("withdrawal") {
             return Value::Str("transaction".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("transfer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("transfer") {
             return Value::Str("transfer".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("payment")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("payment") {
             return Value::Str("payout".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("exchange")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(type_var.as_str().and_then(|__s| __s.find("position")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("exchange") || type_var.as_str().unwrap_or("").contains("position") {
             return Value::Str("trade".into());
         }  else {
             return type_var;
@@ -4482,7 +4482,7 @@ impl BitfinexCore {
         let mut after: Value = self.safe_number(itemList.clone(), Value::Int(6), &[]);
         let mut description: Option<String> = self.safe_string_opt(itemList, Value::Int(8), &[]);
         if (description.is_some()) {
-            let mut parts: Value = Value::Array(description.as_deref().map(|__s| __s.split(" @ ").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             let mut first: Value = self.safe_string_lower(parts, Value::Int(0), &[]);
             type_var = self.parse_ledger_entry_type(first);
         }

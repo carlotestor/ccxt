@@ -588,7 +588,7 @@ impl BydfiCore {
                 while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < (subHashes.len() as i64) } {
                 let mut subHash: Option<String> = self.safe_string_opt(subHashes.clone(), Value::Int(i), &[]);
                 if (subHash.is_some()) {
-                    let mut parts: Value = Value::Array(subHash.as_deref().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
+                    let mut parts: Value = Value::Array(if let Some(__s) = subHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });
                     let mut symbol: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
                     if (symbol.as_deref() == Some("all")) {
                         continue;

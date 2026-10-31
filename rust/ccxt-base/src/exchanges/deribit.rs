@@ -1349,10 +1349,10 @@ impl DeribitCore {
         // support expired option contracts
         let mut quote: Value = Value::Str("USD".into());
         let mut settle: Value = Value::Str("".into());
-        let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
-        let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
-        let mut hasSlash: bool = Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut hasUsdc: bool = Value::Int(symbol.as_str().and_then(|__s| __s.find("USDC")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+        let mut optionParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+        let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
+        let mut hasUsdc: bool = symbol.as_str().unwrap_or("").contains("USDC");
         let mut base: Value = Value::Null;
         let mut expiry: Value = Value::Null;
         if hasSlash {
@@ -1379,7 +1379,7 @@ impl DeribitCore {
             settle = baseResolved.clone();
         }
         // the part of the base before the first underscore, or the whole base when it has none
-        let splitBase: String = self.safe_string_opt(Value::Array(baseResolved.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()), Value::Int(0), &[Value::Str("".into())]).unwrap_or_default();
+        let splitBase: String = self.safe_string_opt(Value::Array(if let Some(__s) = baseResolved.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]).unwrap_or_default();
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]);
         let mut optionType: Value = self.safe_string(optionParts, Value::Int(3), &[Value::Str("".into())]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
@@ -1863,15 +1863,15 @@ impl DeribitCore {
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (Value::Int(kind.as_deref().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (kind.as_deref().unwrap_or("").contains("future")));
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut option: Value = (Value::Bool(Value::Int(kind.as_deref().and_then(|__s| __s.find("option")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                let mut option: Value = (Value::Bool(kind.as_deref().unwrap_or("").contains("option")));
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut isComboMarket: bool = Value::Int(kind.as_deref().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+                let mut isComboMarket: bool = kind.as_deref().unwrap_or("").contains("combo");
                 let mut expiry: Value = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]);
                 let mut strike: Value = Value::Null;
                 let mut optionType: Value = Value::Null;

@@ -4034,7 +4034,7 @@ impl HtxCore {
                 inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 if swap.as_bool() == Some(true) {
                     marketType = Value::Str("swap".into());
-                    let mut parts: Value = Value::Array(contractId.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                    let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     quoteId = self.safe_string_lower(parts.clone(), Value::Int(1), &[]);
                     if inverse.as_bool() == Some(true) {
@@ -4053,7 +4053,7 @@ impl HtxCore {
                         if (pair.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing pair".into()))));
                         }
-                        let mut parts: Value = Value::Array(pair.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                        let mut parts: Value = Value::Array(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                         quoteId = self.safe_string_lower(parts, Value::Int(1), &[]);
                         settleId = quoteId.clone();
                     }
@@ -4072,7 +4072,7 @@ impl HtxCore {
                 quoteId = spotQuoteId.clone().map(Value::from).unwrap_or(Value::Null);
                 let mut spotId: Value = Value::Str(format!("{}{}", spotBaseId.map(Value::from).unwrap_or(Value::Null), spotQuoteId.map(Value::from).unwrap_or(Value::Null)).into());
                 id = spotId.clone();
-                lowercaseId = spotId.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                lowercaseId = (if let Some(__s) = spotId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -4931,8 +4931,8 @@ impl HtxCore {
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]);
         let mut rawType: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
-        if (rawType.is_some()) && (Value::Int(rawType.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
-            let mut typeParts: Vec<Value> = Value::Array(rawType.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        if (rawType.is_some()) && (rawType.as_deref().unwrap_or("").contains("-")) {
+            let mut typeParts: Vec<Value> = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             side = typeParts.get(0).cloned().unwrap_or(Value::Null);
             type_var = typeParts.get(1).cloned().unwrap_or(Value::Null);
         }
@@ -4971,7 +4971,7 @@ impl HtxCore {
         // - otherwise the least priority is given to the `id` key
         let mut id: Value = Value::Null;
         let mut safeId: Option<String> = self.safe_string_k_opt(trade.clone(), "id", &[]);
-        if (safeId.is_some()) && Value::Int(safeId.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if (safeId.is_some()) && safeId.as_deref().unwrap_or("").contains("-") {
             id = safeId.map(Value::from).unwrap_or(Value::Null);
         }  else {
             id = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("trade_id".into()), Value::Str("trade-id".into()), Value::Str("id".into())]), &[]);
@@ -7573,8 +7573,8 @@ impl HtxCore {
         }  else {
             let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
             if (rawType.is_some()) {
-                if Value::Int(rawType.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    let mut orderType: Value = Value::Array(rawType.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                if rawType.as_deref().unwrap_or("").contains("-") {
+                    let mut orderType: Value = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     side = self.safe_string(orderType.clone(), Value::Int(0), &[]);
                     type_var = self.safe_string(orderType, Value::Int(1), &[]);
                 }  else if (type_var == Value::Null) {
@@ -7587,7 +7587,7 @@ impl HtxCore {
         let mut cost: Value = Value::Null;
         let mut amount: Value = Value::Null;
         let mut typeResolved: Value = type_var.clone();
-        if (typeResolved != Value::Null) && (Value::Int(typeResolved.as_str().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) && (!isLinearOrder) {
+        if (typeResolved != Value::Null) && (typeResolved.as_str().unwrap_or("").contains("market")) && (!isLinearOrder) {
             cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]);
         }  else {
             amount = self.safe_string2(order.clone(), Value::Str("volume".into()), Value::Str("amount".into()), &[]);
@@ -7936,7 +7936,7 @@ impl HtxCore {
             request.insert("margin_mode".into(), marginMode);
             request.insert("side".into(), side.clone());
             if (timeInForce != Value::Null) {
-                request.insert("time_in_force".into(), timeInForce.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+                request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
             }
             let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
@@ -8786,7 +8786,7 @@ impl HtxCore {
                     request.insert("order_id".into(), ids);
                 }  else {
                     if matches!(&clientOrderIds, Value::Str(_)) {
-                        request.insert("client_order_id".into(), Value::Array(clientOrderIds.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()));
+                        request.insert("client_order_id".into(), Value::Array(if let Some(__s) = clientOrderIds.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }));
                     }  else {
                         request.insert("client_order_id".into(), clientOrderIds);
                     }
@@ -8957,7 +8957,7 @@ impl HtxCore {
         let mut successes: Option<String> = self.safe_string_k_opt(orders.clone(), "successes", &[]);
         let mut success: Value = Value::Null;
         if (successes.is_some()) {
-            success = Value::Array(successes.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            success = Value::Array(if let Some(__s) = successes.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         }  else {
             success = self.safe_list_k(orders.clone(), "success", &[Value::from(vec![])]);
         }
@@ -9533,7 +9533,7 @@ impl HtxCore {
         let mut txHash: Value = self.safe_string_k(transaction.clone(), "tx-hash", &[]);
         // a freshly created withdrawal has no tx-hash yet, the create
         // endpoint returns only { "status": "ok", "data": "<id>" }
-        if (txHash != Value::Null) && (networkId.as_deref() == Some("ETH")) && (Value::Int(txHash.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
+        if (txHash != Value::Null) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_str().unwrap_or("").contains("0x")) {
             txHash = Value::Str(format!("{}{}", Value::Str("0x".into()), txHash).into());
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
@@ -10633,7 +10633,7 @@ impl HtxCore {
 })]);
                     let mut id: Value = self.safe_string_k(options, "id", &[Value::Str("AA03022abc".into())]);
                     if !isArrayParams {
-                        if (Value::Int(pathString.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) && (pathString.as_str().unwrap_or("").ends_with("order")) {
+                        if (!pathString.as_str().unwrap_or("").contains("cancel")) && (pathString.as_str().unwrap_or("").ends_with("order")) {
                             // swap order placement
                             let mut channelCode: Option<String> = self.safe_string_k(params.clone(), "channel_code", &[]).as_str().map(str::to_owned);
                             if (channelCode.is_none()) {

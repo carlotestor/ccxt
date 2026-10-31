@@ -1923,8 +1923,8 @@ impl CexCore {
                 m.insert("currency1".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
                 m.insert("currency2".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("accountId".to_string(), accountId);
-                m.insert("orderType".to_string(), self.capitalize(type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)));
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("timestamp".to_string(), self.milliseconds());
                 m.insert("amountCcy1".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -2675,7 +2675,7 @@ impl CexCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if Value::Int(url.as_str().and_then(|__s| __s.find("do_my_new_order")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("do_my_new_order") {
             let mut data: Value = self.safe_dict_k(responseParsed, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

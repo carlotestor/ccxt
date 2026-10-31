@@ -896,7 +896,7 @@ impl BithumbCore {
 
     pub fn get_gen2_market_id(&self, mut market: Value) -> Option<String> {
         let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
-        if (marketId.is_some()) && (Value::Int(marketId.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+        if (marketId.is_some()) && (marketId.as_deref().unwrap_or("").contains("-")) {
             return marketId.as_deref().map(str::to_owned);
         }
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteId".into()), Value::Str("quote".into()), &[Value::Str("".into())]);
@@ -942,7 +942,7 @@ impl BithumbCore {
                 let mut base: Value = Value::Null;
                 let mut quote: Value = Value::Null;
                 if (marketId.is_some()) {
-                    let mut parts: Vec<Value> = Value::Array(marketId.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                    let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).cloned().unwrap_or(Value::Null);
                     quoteId = parts.get(0).cloned().unwrap_or(Value::Null);
@@ -2090,7 +2090,7 @@ impl BithumbCore {
         let mut isGenerationTwo: bool = generationTwoTimestamp != Value::Null;
         let mut transactionDatetime: Option<String> = self.safe_string_k_opt(trade.clone(), "transaction_date", &[]);
         if (transactionDatetime.is_some()) {
-            let mut parts: Value = Value::Array(transactionDatetime.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
                 let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -2904,7 +2904,7 @@ impl BithumbCore {
         let mut datetime: Value = self.safe_string_k(order.clone(), "created_at", &[]);
         let mut timestamp: Value = Value::Null;
         if (datetime != Value::Null) {
-            if Value::Int(datetime.as_str().and_then(|__s| __s.find("+09:00")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if datetime.as_str().unwrap_or("").contains("+09:00") {
                 let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
                 let mut normalizedTimestamp: Value = self.parse8601(normalized);
                 if (normalizedTimestamp != Value::Null) {
@@ -3588,7 +3588,7 @@ impl BithumbCore {
         let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_map().cloned().unwrap_or_default();
         let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        if (datetime != Value::Null) && (Value::Int(datetime.as_str().and_then(|__s| __s.find("+09:00")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64)) {
+        if (datetime != Value::Null) && (datetime.as_str().unwrap_or("").contains("+09:00")) {
             let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
             let mut normalizedTimestamp: Value = self.parse8601(normalized);
             if (normalizedTimestamp != Value::Null) {
@@ -4069,7 +4069,7 @@ impl BithumbCore {
             return None;
         }
         let mut finalNumberStr: Value = numberStr;
-        while Value::Int(finalNumberStr.as_str().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        while finalNumberStr.as_str().unwrap_or("").contains(",") {
             finalNumberStr = finalNumberStr.as_str().map(|__s| Value::Str(__s.replace(",", "").into())).unwrap_or_else(|| finalNumberStr.clone());
         }
         return finalNumberStr.as_str().map(str::to_owned);
@@ -4197,7 +4197,7 @@ impl BithumbCore {
                 }), &[query]);
                 let mut encodedBody: Value = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                let mut bodyParts: Value = Value::Array(encodedBody.as_str().map(|__s| __s.split("%20").map(Value::from).collect()).unwrap_or_default());
+                let mut bodyParts: Value = Value::Array(if let Some(__s) = encodedBody.as_str() { __s.split("%20").map(Value::from).collect() } else { Vec::new() });
                 requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
                 let mut nonce: Value = self.number_to_string(self.nonce());
                 let mut authPayload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce).into()); // eslint-disable-line quotes

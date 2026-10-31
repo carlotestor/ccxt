@@ -604,7 +604,7 @@ impl WooCore {
         if (topic.is_none()) {
             return;
         }
-        let mut method: Option<String> = self.safe_string(Value::Array(topic.as_deref().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default()), Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string(Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("orderbookupdate")) {
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return;
@@ -2353,7 +2353,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
-            let mut splitTopic: Value = Value::Array(topic.as_deref().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
+            let mut splitTopic: Value = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
             let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
             if (splitLength == 2.0) {
                 let mut name: Option<String> = self.safe_string_opt(splitTopic.clone(), Value::Int(1), &[]);
@@ -2365,7 +2365,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }
-                let mut splitName: Value = Value::Array(name.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                let mut splitName: Value = Value::Array(if let Some(__s) = name.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 let mut splitNameLength: f64 = ((splitTopic.len() as i64) as f64);
                 if (splitNameLength == 2.0) {
                     method = self.safe_value(Value::Map(methods), self.safe_string(splitName, Value::Int(0), &[]), &[]);

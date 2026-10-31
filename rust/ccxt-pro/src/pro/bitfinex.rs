@@ -573,7 +573,7 @@ impl BitfinexCore {
         }
         let mut channel: Value = (match subscription.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut key: Value = (match subscription.get("key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut keyParts: Value = Value::Array(key.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
+        let mut keyParts: Value = Value::Array(if let Some(__s) = key.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut interval: Value = self.safe_string(keyParts.clone(), Value::Int(1), &[Value::Str("".into())]);
         let mut marketId: Value = self.safe_string(keyParts, Value::Int(2), &[Value::Str("".into())]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -912,9 +912,9 @@ impl BitfinexCore {
         marketId = marketResolved.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = self.safe_string(trade.clone(), Value::Int(6), &[]);
         if (type_var != Value::Null) {
-            if Value::Int(type_var.as_str().and_then(|__s| __s.find("LIMIT")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if type_var.as_str().unwrap_or("").contains("LIMIT") {
                 type_var = Value::Str("limit".into());
-            }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("MARKET")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
                 type_var = Value::Str("market".into());
             }
         }
@@ -1748,13 +1748,13 @@ impl BitfinexCore {
         }
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[]));
         let mut type_var: Value = self.safe_string(order.clone(), Value::Int(8), &[Value::Str("".into())]);
-        if Value::Int(type_var.as_str().and_then(|__s| __s.find("LIMIT")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if type_var.as_str().unwrap_or("").contains("LIMIT") {
             type_var = Value::Str("limit".into());
-        }  else if Value::Int(type_var.as_str().and_then(|__s| __s.find("MARKET")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
             type_var = Value::Str("market".into());
         }
         let mut rawState: Value = self.safe_string(order.clone(), Value::Int(13), &[Value::Str("".into())]);
-        let mut stateParts: Value = Value::Array(rawState.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+        let mut stateParts: Value = Value::Array(if let Some(__s) = rawState.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
         let mut trimmedStatus: Option<String> = self.safe_string_opt(stateParts, Value::Int(0), &[]);
         let mut status: Value = self.parse_ws_order_status(trimmedStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_opt(order.clone(), Value::Int(16), &[]);

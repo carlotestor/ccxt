@@ -935,12 +935,12 @@ impl KrakenfuturesCore {
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut marketType: Option<String> = self.safe_string_k_opt(market.clone(), "type", &[]);
             let mut type_var: Value = Value::Null;
-            let mut index: Value = (Value::Bool(Value::Int(marketType.as_deref().and_then(|__s| __s.find(" index")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+            let mut index: Value = (Value::Bool(marketType.as_deref().unwrap_or("").contains(" index")));
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             if !(matches!(&index, Value::Bool(true))) {
-                linear = (Value::Bool(Value::Int(marketType.as_deref().and_then(|__s| __s.find("_vanilla")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)));
+                linear = (Value::Bool(marketType.as_deref().unwrap_or("").contains("_vanilla")));
                 inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 let mut settleTime: Option<String> = self.safe_string_k_opt(market.clone(), "lastTradingTime", &[]);
                 type_var = (if (settleTime.is_none()) { Value::Str("swap".into()) } else { Value::Str("future".into()) });
@@ -951,13 +951,13 @@ impl KrakenfuturesCore {
             let mut swap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
             let mut future: Value = (Value::Bool(type_var.as_str() == Some("future")));
             let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
-            let mut split: Value = Value::Array(id.as_deref().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut split: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut splitMarket: Value = self.safe_string(split, Value::Int(1), &[Value::Str("".into())]);
-            let mut baseId: Value = (match (&(splitMarket), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &((match (&(Value::Int(splitMarket.len() as i64)),
-                &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n),
-                Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-                __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+            let mut baseId: Value = (match (&(splitMarket), 0i64, (match &((match (&(Value::Int(splitMarket.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+                __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+                __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
             let mut quoteId: Value = Value::Str("usd".into()); // always USD
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -1070,7 +1070,7 @@ impl KrakenfuturesCore {
             let mut code: Value = self.safe_string(settlementCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), code.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), (if let Some(__s) = code.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
                     m.insert("numericId".to_string(), Value::Null);
                     m.insert("code".to_string(), code);
                     m.insert("precision".to_string(), Value::Null);
@@ -1848,9 +1848,9 @@ impl KrakenfuturesCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut fillType: Option<String> = self.safe_string_k_opt(trade.clone(), "fillType", &[]);
         if (fillType.is_some()) {
-            if Value::Int(fillType.as_deref().and_then(|__s| __s.find("taker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if fillType.as_deref().unwrap_or("").contains("taker") {
                 takerOrMaker = Value::Str("taker".into());
-            }  else if Value::Int(fillType.as_deref().and_then(|__s| __s.find("maker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if fillType.as_deref().unwrap_or("").contains("maker") {
                 takerOrMaker = Value::Str("maker".into());
             }
         }
@@ -3950,7 +3950,7 @@ impl KrakenfuturesCore {
             if (code == Value::Null) {
                 continue;
             }
-            let mut splitCode: Vec<Value> = Value::Array(code.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut splitCode: Vec<Value> = Value::Array(if let Some(__s) = code.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut codeLength: f64 = ((splitCode.len() as i64) as f64);
             if codeLength > ((1i64) as f64) {
                 continue;
@@ -4643,7 +4643,7 @@ impl KrakenfuturesCore {
         }  else if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut market: Value = self.market(account.clone());
             let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
-            let mut splitId: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut splitId: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let splitMarketId: String = self.safe_string_opt(splitId, Value::Int(1), &[Value::Str("".into())]).unwrap_or_default();
             if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 return Value::Str(format!("{}{}", Value::Str("fi_".into()), splitMarketId).into());

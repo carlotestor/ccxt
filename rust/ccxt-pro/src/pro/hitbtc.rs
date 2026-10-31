@@ -440,7 +440,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut isBatch: bool = Value::Int(name.as_str().and_then(|__s| __s.find("batch")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isBatch: bool = name.as_str().unwrap_or("").contains("batch");
         let mut resolvedPerSymbol: bool = !isBatch || (messageHashPrefix.as_str() == Some("orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut url: Option<String> = self.safe_string_k_opt(wsUrls, "public", &[]);
@@ -495,7 +495,7 @@ impl HitbtcCore {
         self.authenticate().await;
         let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
         let mut url: Option<String> = self.safe_string_k_opt(wsUrls, "private", &[]);
-        let mut splitName: Value = Value::Array(name.as_str().map(|__s| __s.split("_subscribe").map(Value::from).collect()).unwrap_or_default());
+        let mut splitName: Value = Value::Array(if let Some(__s) = name.as_str() { __s.split("_subscribe").map(Value::from).collect() } else { Vec::new() });
         let mut messageHashBase: Value = self.safe_string(splitName, Value::Int(0), &[Value::Str("".into())]);
         let mut messageHash: Value = messageHashBase.clone();
         if (symbol != Value::Null) {
@@ -1329,7 +1329,7 @@ impl HitbtcCore {
         })]);
         let mut marketIds: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut channel: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut splitChannel: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut splitChannel: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut period: Option<String> = self.safe_string_opt(splitChannel, Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(period.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe == Value::Null) {
@@ -1520,7 +1520,7 @@ impl HitbtcCore {
         let mut orders: Value = self.orders.clone();
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
         let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut splitMethod: Value = Value::Array(method.as_str().map(|__s| __s.split("_order").map(Value::from).collect()).unwrap_or_default());
+        let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_str() { __s.split("_order").map(Value::from).collect() } else { Vec::new() });
         let mut messageHash: Option<String> = self.safe_string_opt(splitMethod, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut parsed: Value = self.parse_order(order, &[]);
@@ -2023,7 +2023,7 @@ impl HitbtcCore {
         }
         let mut channel: Value = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("method".into()), &[]);
         if (channel != Value::Null) {
-            let mut splitChannel: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+            let mut splitChannel: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
             channel = self.safe_string(splitChannel.clone(), Value::Int(0), &[]);
             if (channel.as_str() == Some("orderbook")) {
                 let mut channel2: Option<String> = self.safe_string(splitChannel, Value::Int(1), &[]).as_str().map(str::to_owned);
