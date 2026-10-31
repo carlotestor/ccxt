@@ -382,7 +382,13 @@ func (this *PredictionExchange) EventsList() []any {
 	}
 	var result []any = []any{}
 	var seen map[string]any = map[string]any{}
-	var keys []string = ObjectKeys(this.Events)
+	var keys []string = nil
+	if this.Events != nil {
+		keys = make([]string, 0, len(this.Events))
+		for objectKey := range this.Events {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var event any = this.Events[keys[i]]
 		var identity *string = this.SafeString2(event, "id", "event", keys[i])
@@ -1797,8 +1803,8 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var lastTradeTimestamp *int64 = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
 	// parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
 	var rawTrades []any = SafeListTypedDefault(outcomeOrder, "trades", []any{})
-	var trades any = this.ParsePredictionTrades(rawTrades, outcomeObj)
-	var tradesLength int = GetArrayLength(trades)
+	var trades []any = this.ParsePredictionTrades(rawTrades, outcomeObj)
+	var tradesLength int = len(trades)
 	var feeList []any = []any{}
 	if tradesLength > 0 {
 		if filled == nil {
@@ -1808,7 +1814,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 			cost = SafeStringPtr("0")
 		}
 		for i := 0; i < tradesLength; i++ {
-			var trade map[string]any = MapTyped(GetValue(trades, i))
+			var trade map[string]any = MapTyped(trades[i])
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			if tradeAmount != nil {
 				filled = Precise.StringAdd(filled, tradeAmount)

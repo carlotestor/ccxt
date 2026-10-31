@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Mexc struct {
@@ -1506,11 +1505,11 @@ func (this *Mexc) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 		return nil
 	}
 
-	listEp1492 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp1492.Err != nil {
-		panic(listEp1492.Err)
+	listEp1493 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp1493.Err != nil {
+		panic(listEp1493.Err)
 	}
-	var response []any = listEp1492.Value
+	var response []any = listEp1493.Value
 
 	//
 	// {
@@ -1719,7 +1718,7 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var data []any = SafeListTyped(response, "symbols")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -1870,7 +1869,7 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -3510,11 +3509,11 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, o
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	listEp3384 := <-this.SpotPrivatePostBatchOrders(request)
-	if listEp3384.Err != nil {
-		panic(listEp3384.Err)
+	listEp3370 := <-this.SpotPrivatePostBatchOrders(request)
+	if listEp3370.Err != nil {
+		panic(listEp3370.Err)
 	}
-	var response []any = listEp3384.Value
+	var response []any = listEp3370.Value
 
 	//
 	// [
@@ -4037,18 +4036,18 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			listEp3869 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
-			if listEp3869.Err != nil {
-				panic(listEp3869.Err)
+			listEp3855 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
+			if listEp3855.Err != nil {
+				panic(listEp3855.Err)
 			}
-			response = listEp3869.Value
+			response = listEp3855.Value
 		} else {
 
-			listEp3872 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
-			if listEp3872.Err != nil {
-				panic(listEp3872.Err)
+			listEp3858 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
+			if listEp3858.Err != nil {
+				panic(listEp3858.Err)
 			}
-			response = listEp3872.Value
+			response = listEp3858.Value
 		}
 
 		//
@@ -4166,8 +4165,8 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3986, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes326415 []any = listRecv3986
+	listRecv3972, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326415 []any = listRecv3972
 	if retRes326415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -4210,8 +4209,8 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv4025, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes328115 []any = listRecv4025
+	listRecv4011, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328115 []any = listRecv4011
 	if retRes328115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -6319,11 +6318,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5980 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5980.Err != nil {
-		panic(listEp5980.Err)
+	listEp5951 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5951.Err != nil {
+		panic(listEp5951.Err)
 	}
-	var response []any = listEp5980.Value
+	var response []any = listEp5951.Value
 	//
 	//    [
 	//        {
@@ -6541,11 +6540,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6178 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6178.Err != nil {
-		panic(listEp6178.Err)
+	listEp6149 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6149.Err != nil {
+		panic(listEp6149.Err)
 	}
-	var response []any = listEp6178.Value
+	var response []any = listEp6149.Value
 
 	//
 	// [
@@ -6620,11 +6619,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6250 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6250.Err != nil {
-		panic(listEp6250.Err)
+	listEp6221 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6221.Err != nil {
+		panic(listEp6221.Err)
 	}
-	var response []any = listEp6250.Value
+	var response []any = listEp6221.Value
 
 	//
 	// [
@@ -7689,11 +7688,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7249 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7249.Err != nil {
-		panic(listEp7249.Err)
+	listEp7220 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7220.Err != nil {
+		panic(listEp7220.Err)
 	}
-	var response []any = listEp7249.Value
+	var response []any = listEp7220.Value
 
 	//
 	//    [
@@ -7816,11 +7815,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7369 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7369.Err != nil {
-		panic(listEp7369.Err)
+	listEp7340 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7340.Err != nil {
+		panic(listEp7340.Err)
 	}
-	var response []any = listEp7369.Value
+	var response []any = listEp7340.Value
 
 	//
 	//    [

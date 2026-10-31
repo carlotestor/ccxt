@@ -420,7 +420,7 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
-			if symbol != nil && timeframe != nil {
+			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
@@ -632,7 +632,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -728,7 +728,7 @@ func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -848,7 +848,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	}
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
-		var messageHash *string = ccxt.SafeStringPtr(hashes[i])
+		var messageHash string = hashes[i]
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
@@ -1806,7 +1806,7 @@ func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 }
 func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -2229,12 +2229,14 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	}
 	this.Options["wsBalanceAssets"] = assets
 	var response map[string]any = this.ParseBalance(assets)
-	var parsed any = this.SafeDict(map[string]any{
+	var parsed map[string]any = this.SafeDictMap(map[string]any{
 		"balances": response,
 	}, "balances", map[string]any{})
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
+	if parsed != nil {
+		parsed["timestamp"] = timestamp
+	}
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(parsed, "info", assets)
 	this.WsBalanceReplace(parsed)

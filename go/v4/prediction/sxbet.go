@@ -1976,7 +1976,7 @@ func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 	var trades []any = []any{}
 	var rawTradesLength int = len(rawTrades)
 	for i := 0; i < rawTradesLength; i++ {
-		trades = append(trades, this.ParseSxbetV3PublicTrade(ccxt.DerefScalar(rawTrades[i])))
+		trades = append(trades, this.ParseSxbetV3PublicTrade(rawTrades[i]))
 	}
 	// the venue serves the tape newest-first - the unified contract is ascending by timestamp
 	trades = this.SortBy(trades, "timestamp")
@@ -2712,12 +2712,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 	var hasApiKey bool = !this.IsEmptyString(this.ApiKey)
 	if !hasApiKey {
 		for i := 0; i < hashesLength; i++ {
-			var marketHash *string = ccxt.SafeStringPtr(func() any {
-				if i >= 0 && i < len(hashesOrder) {
-					return ccxt.DerefScalar(hashesOrder[i])
-				}
-				return nil
-			}())
+			var marketHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(hashesOrder[i]))
 
 			r1 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 			if r1.Err != nil {
@@ -3203,8 +3198,8 @@ func (this *Sxbet) HandleTextMessage(client any, message any) {
 	var lines []string = ccxt.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
-		var line *string = ccxt.SafeStringPtr(lines[i])
-		if len(*line) > 0 {
+		var line string = lines[i]
+		if len(line) > 0 {
 			var parsed any = ccxt.JsonParse(line)
 			this.HandleCentrifugoFrame(client, parsed)
 		}
@@ -3412,7 +3407,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	var timestamp int64 = this.Milliseconds()
 	var watchedSymsLength int = len(watchedSyms)
 	for i := 0; i < watchedSymsLength; i++ {
-		var sym *string = ccxt.SafeStringPtr(watchedSyms[i])
+		var sym string = watchedSyms[i]
 		if this.SafeString(watchedBooks, sym) != marketHash && (this.SafeString(watchedBooks, sym) == nil || marketHash == nil || *this.SafeString(watchedBooks, sym) != *marketHash) {
 			continue
 		}
@@ -3423,9 +3418,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
 		if orderbook == nil {
 			orderbook = this.OrderBook(map[string]any{})
-			if sym != nil {
-				this.Orderbooks[*sym] = orderbook
-			}
+			this.Orderbooks[sym] = orderbook
 		}
 		var bookSnapshot map[string]any = map[string]any{
 			"bids":      this.SafeList(sides, "bids", []any{}),
@@ -3575,14 +3568,14 @@ func (this *Sxbet) HandleTicker(client any, rows []any) {
 		}
 		var watchedSymsLength int = len(watchedSyms)
 		for j := 0; j < watchedSymsLength; j++ {
-			var sym *string = ccxt.SafeStringPtr(watchedSyms[j])
+			var sym string = watchedSyms[j]
 			if this.SafeString(watchedTickers, sym) != marketHash && (this.SafeString(watchedTickers, sym) == nil || marketHash == nil || *this.SafeString(watchedTickers, sym) != *marketHash) {
 				continue
 			}
 			var outcomeObj map[string]any = this.Outcome(sym)
 			var ticker map[string]any = this.ParsePredictionTicker(raw, outcomeObj)
 			this.Tickers.Store(sym, ticker)
-			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
+			client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+sym)
 		}
 	}
 }
@@ -3700,9 +3693,7 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 		}
 		if this.Trades.Get(sym) == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-			if sym != nil {
-				this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
-			}
+			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 		}
 		var stored ccxt.WsArrayCache = this.Trades[*sym]
 		stored.Append(trade)

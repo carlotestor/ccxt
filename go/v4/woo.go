@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Woo struct {
@@ -3149,7 +3148,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		var marketId *string = this.SafeString(row, "symbol")
 		if marketId == nil {
 			continue
@@ -3869,8 +3868,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3661, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3661
+	listRecv3657, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3657
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4081,8 +4080,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3857, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3857
+	listRecv3853, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3853
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -5109,7 +5108,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	var rows []any = SafeListTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{

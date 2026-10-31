@@ -879,11 +879,11 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		marketQuery["marketType"] = marketTypes
 	}
 
-	listEp879 := <-this.PublicGetApiV1Markets(marketQuery)
-	if listEp879.Err != nil {
-		panic(listEp879.Err)
+	listEp874 := <-this.PublicGetApiV1Markets(marketQuery)
+	if listEp874.Err != nil {
+		panic(listEp874.Err)
 	}
-	var response []any = listEp879.Value
+	var response []any = listEp874.Value
 	var securities any = []any{}
 	if includeRfq {
 
@@ -1896,7 +1896,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			continue
 		}
 		var marketIsRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
-		var ticker any = this.SafeDict(tickers, marketSymbol)
+		var ticker map[string]any = this.SafeDictMap(tickers, marketSymbol)
 		if (ticker != nil) && ((source != "External") || (market["stock"] == true)) {
 			result[marketSymbol] = ticker
 		} else if marketIsRfq {
@@ -2173,7 +2173,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	var startTime any = nil
 	if since == nil {
 		var endTime int64 = this.Seconds()
-		if until != nil && *until != 0 {
+		if (until != nil) && (until == nil || *until != 0) {
 			endTime = this.ParseToInt(float64(*until) / 1000)
 		}
 		startTime = (endTime - (windowLimit * duration))
@@ -2198,11 +2198,11 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["priceType"] = this.Capitalize(price)
 	}
 
-	listEp2132 := <-this.PublicGetApiV1Klines(this.Extend(request, paramsOmitted))
-	if listEp2132.Err != nil {
-		panic(listEp2132.Err)
+	listEp2130 := <-this.PublicGetApiV1Klines(this.Extend(request, paramsOmitted))
+	if listEp2130.Err != nil {
+		panic(listEp2130.Err)
 	}
-	var response []any = listEp2132.Value
+	var response []any = listEp2130.Value
 	var ohlcvs []any = this.ToArray(response)
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
@@ -2264,11 +2264,11 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 		"symbol": market["id"],
 	}
 
-	listEp2191 := <-this.PublicGetApiV1MarkPrices(this.Extend(request, params))
-	if listEp2191.Err != nil {
-		panic(listEp2191.Err)
+	listEp2189 := <-this.PublicGetApiV1MarkPrices(this.Extend(request, params))
+	if listEp2189.Err != nil {
+		panic(listEp2189.Err)
 	}
-	var response []any = listEp2191.Value
+	var response []any = listEp2189.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
@@ -2346,11 +2346,11 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 		"symbol": market["id"],
 	}
 
-	listEp2266 := <-this.PublicGetApiV1OpenInterest(this.Extend(request, params))
-	if listEp2266.Err != nil {
-		panic(listEp2266.Err)
+	listEp2264 := <-this.PublicGetApiV1OpenInterest(this.Extend(request, params))
+	if listEp2264.Err != nil {
+		panic(listEp2264.Err)
 	}
-	var response []any = listEp2266.Value
+	var response []any = listEp2264.Value
 	var interest map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
@@ -2425,11 +2425,11 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 
-	listEp2338 := <-this.PublicGetApiV1FundingRates(this.Extend(request, params))
-	if listEp2338.Err != nil {
-		panic(listEp2338.Err)
+	listEp2336 := <-this.PublicGetApiV1FundingRates(this.Extend(request, params))
+	if listEp2336.Err != nil {
+		panic(listEp2336.Err)
 	}
-	var response []any = listEp2338.Value
+	var response []any = listEp2336.Value
 	//
 	//     [
 	//         {
@@ -2510,18 +2510,18 @@ func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	var offset *int64 = this.SafeInteger(query, "offset")
 	if offset != nil {
 
-		listEp2421 := <-this.PublicGetApiV1TradesHistory(this.Extend(request, query))
-		if listEp2421.Err != nil {
-			panic(listEp2421.Err)
+		listEp2419 := <-this.PublicGetApiV1TradesHistory(this.Extend(request, query))
+		if listEp2419.Err != nil {
+			panic(listEp2419.Err)
 		}
-		response = listEp2421.Value
+		response = listEp2419.Value
 	} else {
 
-		listEp2424 := <-this.PublicGetApiV1Trades(this.Extend(request, query))
-		if listEp2424.Err != nil {
-			panic(listEp2424.Err)
+		listEp2422 := <-this.PublicGetApiV1Trades(this.Extend(request, query))
+		if listEp2422.Err != nil {
+			panic(listEp2422.Err)
 		}
-		response = listEp2424.Value
+		response = listEp2422.Value
 	}
 	var responseList []any = this.ToArray(response)
 
@@ -2597,12 +2597,12 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		}
 		var rfqParams map[string]any = this.OmitDict(accountParams, []any{"assetClass", "marketType", "from", "to"})
 
-		listEp2497 := <-this.PrivateGetWapiV1HistoryRfqFill(this.Extend(rfqRequest, rfqParams))
-		if listEp2497.Err != nil {
-			panic(listEp2497.Err)
+		listEp2495 := <-this.PrivateGetWapiV1HistoryRfqFill(this.Extend(rfqRequest, rfqParams))
+		if listEp2495.Err != nil {
+			panic(listEp2495.Err)
 		}
-		var rfqResponse []any = listEp2497.Value
-		var rfqTrades any = this.ParseTrades(rfqResponse, market, since)
+		var rfqResponse []any = listEp2495.Value
+		var rfqTrades []any = this.ParseTrades(rfqResponse, market, since)
 		if aggregate {
 			var venueParams map[string]any = this.Extend(this.Omit(accountParams, []any{"rfqId", "quoteId", "deferredSettlement"}), map[string]any{
 				"assetClass": "STOCK",
@@ -2623,8 +2623,8 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			rfqTrades = this.FilterStockStructures(rfqTrades)
 		}
 		var filtered []any = []any{}
-		for i := 0; i < GetArrayLength(rfqTrades); i++ {
-			var trade any = GetValue(rfqTrades, i)
+		for i := 0; i < len(rfqTrades); i++ {
+			var trade any = rfqTrades[i]
 			var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 			if (until == nil) || ((timestamp != nil) && (until != nil && *timestamp <= *until)) {
 				filtered = append(filtered, trade)
@@ -2653,11 +2653,11 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["fillType"] = "User" // default
 	}
 
-	listEp2543 := <-this.PrivateGetWapiV1HistoryFills(this.Extend(paramsOmitted, request))
-	if listEp2543.Err != nil {
-		panic(listEp2543.Err)
+	listEp2541 := <-this.PrivateGetWapiV1HistoryFills(this.Extend(paramsOmitted, request))
+	if listEp2541.Err != nil {
+		panic(listEp2541.Err)
 	}
-	var response []any = listEp2543.Value
+	var response []any = listEp2541.Value
 	var responseList []any = this.ToArray(response)
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(responseList, market, since, limit))}
@@ -2820,11 +2820,11 @@ func (this *Backpack) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2703 := <-this.PublicGetApiV1Time(params)
-	if listEp2703.Err != nil {
-		panic(listEp2703.Err)
+	listEp2701 := <-this.PublicGetApiV1Time(params)
+	if listEp2701.Err != nil {
+		panic(listEp2701.Err)
 	}
-	var response []any = listEp2703.Value
+	var response []any = listEp2701.Value
 
 	//
 	//     1753131712992
@@ -2986,11 +2986,11 @@ func (this *Backpack) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		request["endTime"] = *until
 	}
 
-	listEp2849 := <-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, paramsUntil))
-	if listEp2849.Err != nil {
-		panic(listEp2849.Err)
+	listEp2850 := <-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, paramsUntil))
+	if listEp2850.Err != nil {
+		panic(listEp2850.Err)
 	}
-	var response []any = listEp2849.Value
+	var response []any = listEp2850.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
@@ -3052,11 +3052,11 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["to"] = *until
 	}
 
-	listEp2905 := <-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, paramsUntil))
-	if listEp2905.Err != nil {
-		panic(listEp2905.Err)
+	listEp2909 := <-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, paramsUntil))
+	if listEp2909.Err != nil {
+		panic(listEp2909.Err)
 	}
-	var response []any = listEp2905.Value
+	var response []any = listEp2909.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
@@ -3632,11 +3632,11 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	listEp3443 := <-this.PrivatePostApiV1Orders(ordersRequests)
-	if listEp3443.Err != nil {
-		panic(listEp3443.Err)
+	listEp3447 := <-this.PrivatePostApiV1Orders(ordersRequests)
+	if listEp3447.Err != nil {
+		panic(listEp3447.Err)
 	}
-	var response []any = listEp3443.Value
+	var response []any = listEp3447.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
 	return nil
@@ -3830,7 +3830,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		rfqResponse := r2.Raw
 		response = this.ArrayConcat(response, rfqResponse)
 	}
-	var orders any = this.ParseOrders(response, market, since)
+	var orders []any = this.ParseOrders(response, market, since)
 	if stock != nil && *stock {
 		orders = this.FilterStockStructures(orders)
 	}
@@ -4106,11 +4106,11 @@ func (this *Backpack) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		"symbol": market["id"],
 	}
 
-	listEp3869 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
-	if listEp3869.Err != nil {
-		panic(listEp3869.Err)
+	listEp3873 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
+	if listEp3873.Err != nil {
+		panic(listEp3873.Err)
 	}
-	var response []any = listEp3869.Value
+	var response []any = listEp3873.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
@@ -4192,7 +4192,7 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		rfqResponse := r2.Raw
 		response = this.ArrayConcat(response, rfqResponse)
 	}
-	var orders any = this.ParseOrders(response, market, since)
+	var orders []any = this.ParseOrders(response, market, since)
 	if stock != nil && *stock {
 		orders = this.FilterStockStructures(orders)
 	}
@@ -4404,11 +4404,11 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 		}
 	}
 
-	listEp4151 := <-this.PrivateGetApiV1Position(params)
-	if listEp4151.Err != nil {
-		panic(listEp4151.Err)
+	listEp4155 := <-this.PrivateGetApiV1Position(params)
+	if listEp4155.Err != nil {
+		panic(listEp4155.Err)
 	}
-	var response []any = listEp4151.Value
+	var response []any = listEp4155.Value
 	if this.IsEmpty(symbols) {
 
 		ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response))}
@@ -4551,11 +4551,11 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["limit"] = limit
 	}
 
-	listEp4291 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
-	if listEp4291.Err != nil {
-		panic(listEp4291.Err)
+	listEp4295 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
+	if listEp4295.Err != nil {
+		panic(listEp4295.Err)
 	}
-	var response []any = listEp4291.Value
+	var response []any = listEp4295.Value
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil

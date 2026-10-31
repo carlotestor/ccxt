@@ -1003,7 +1003,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var sideInternal int = 0
@@ -1053,7 +1053,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any,
 	var message []byte = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
 	return message
 }
-func (this *Hibachi) CreateOrderRequest(nonce any, symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1246,7 +1246,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ret)}
 	return nil
 }
-func (this *Hibachi) EditOrderRequest(nonce any, id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -1940,11 +1940,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1854 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1854.Err != nil {
-		panic(listEp1854.Err)
+	listEp1839 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1839.Err != nil {
+		panic(listEp1839.Err)
 	}
-	var response []any = listEp1854.Value
+	var response []any = listEp1839.Value
 
 	// [
 	//     {

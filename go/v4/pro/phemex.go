@@ -476,14 +476,12 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.Append(ccxt.GetValue(parsed, i))
+		stored.Append(parsed[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -539,7 +537,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 		for i := 0; i < len(ohlcvs); i++ {
-			var candle any = ccxt.GetValue(ohlcvs, i)
+			var candle any = ohlcvs[i]
 			stored.(ccxt.Appender).Append(candle)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1474,7 +1472,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var typeVar any = nil
 	var stored ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(parsedOrders); i++ {
-		var parsed any = ccxt.DerefScalar(parsedOrders[i])
+		var parsed any = parsedOrders[i]
 		stored.Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market map[string]any = this.Market(symbol)
@@ -1497,7 +1495,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders"+":", keys[i]))
+		var currentMessageHash string = "orders" + ":" + keys[i]
 		client.(ccxt.ClientInterface).Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)

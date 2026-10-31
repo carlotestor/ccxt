@@ -1889,7 +1889,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	var ordersMarkets []any = []any{}
 	var ordersEntries []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = MapTyped(orders[i])
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringLower(rawOrder, "type")
@@ -3909,12 +3909,12 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
  * @param {object} bodyOp the structured operation object transmitted to the venue
  * @returns {object} the signed request body with the op, sig, salt and ts fields
  */
-func (this *Polymarket) SignPerpsOpAsync(signable any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Polymarket) SignPerpsOpAsync(signable []any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.signPerpsOpBody(ch, signable, bodyOp, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable any, bodyOp any, optionalArgs ...any) any {
+func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any, bodyOp any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

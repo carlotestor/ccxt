@@ -274,7 +274,7 @@ func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 }
 func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -475,9 +475,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesArray
-		}
+		this.Trades[*symbol] = tradesArray
 	}
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)

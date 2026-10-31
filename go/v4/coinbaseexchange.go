@@ -4,7 +4,6 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Coinbaseexchange struct {
@@ -677,11 +676,11 @@ func (this *Coinbaseexchange) fetchCurrenciesBody(ch chan AsyncResult[map[string
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp677 := <-this.PublicGetCurrencies(params)
-	if listEp677.Err != nil {
-		panic(listEp677.Err)
+	listEp678 := <-this.PublicGetCurrencies(params)
+	if listEp678.Err != nil {
+		panic(listEp678.Err)
 	}
-	var response []any = listEp677.Value
+	var response []any = listEp678.Value
 
 	//
 	//   {
@@ -803,11 +802,11 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan AsyncResult[[]MarketInter
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp804 := <-this.PublicGetProducts(params)
-	if listEp804.Err != nil {
-		panic(listEp804.Err)
+	listEp800 := <-this.PublicGetProducts(params)
+	if listEp800.Err != nil {
+		panic(listEp800.Err)
 	}
-	var response []any = listEp804.Value
+	var response []any = listEp800.Value
 	//
 	//     [
 	//         {
@@ -959,11 +958,11 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 		}
 	}
 
-	listEp963 := <-this.PrivateGetAccounts(params)
-	if listEp963.Err != nil {
-		panic(listEp963.Err)
+	listEp959 := <-this.PrivateGetAccounts(params)
+	if listEp959.Err != nil {
+		panic(listEp959.Err)
 	}
-	var response []any = listEp963.Value
+	var response []any = listEp959.Value
 	//
 	//     [
 	//         {
@@ -1054,11 +1053,11 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan AsyncResult[Balances], op
 		}
 	}
 
-	listEp1051 := <-this.PrivateGetAccounts(params)
-	if listEp1051.Err != nil {
-		panic(listEp1051.Err)
+	listEp1047 := <-this.PrivateGetAccounts(params)
+	if listEp1047.Err != nil {
+		panic(listEp1047.Err)
 	}
-	var response []any = listEp1051.Value
+	var response []any = listEp1047.Value
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
@@ -1528,11 +1527,11 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 		return paramsPaginate
 	}()
 
-	listEp1489 := <-this.PrivateGetFills(this.Extend(request, paramsUntil))
-	if listEp1489.Err != nil {
-		panic(listEp1489.Err)
+	listEp1485 := <-this.PrivateGetFills(this.Extend(request, paramsUntil))
+	if listEp1485.Err != nil {
+		panic(listEp1485.Err)
 	}
-	var response []any = listEp1489.Value
+	var response []any = listEp1485.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -1578,11 +1577,11 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 		request["limit"] = limit // default 100
 	}
 
-	listEp1532 := <-this.PublicGetProductsIdTrades(this.Extend(request, params))
-	if listEp1532.Err != nil {
-		panic(listEp1532.Err)
+	listEp1528 := <-this.PublicGetProductsIdTrades(this.Extend(request, params))
+	if listEp1528.Err != nil {
+		panic(listEp1528.Err)
 	}
-	var response []any = listEp1532.Value
+	var response []any = listEp1528.Value
 
 	//
 	//    [
@@ -1765,11 +1764,11 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 		}
 	}
 
-	listEp1702 := <-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))
-	if listEp1702.Err != nil {
-		panic(listEp1702.Err)
+	listEp1698 := <-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))
+	if listEp1698.Err != nil {
+		panic(listEp1698.Err)
 	}
-	var response []any = listEp1702.Value
+	var response []any = listEp1698.Value
 
 	//
 	//     [
@@ -2000,11 +1999,11 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan AsyncResult[[]Trade],
 		"order_id": id,
 	}
 
-	listEp1915 := <-this.PrivateGetFills(this.Extend(request, params))
-	if listEp1915.Err != nil {
-		panic(listEp1915.Err)
+	listEp1911 := <-this.PrivateGetFills(this.Extend(request, params))
+	if listEp1911.Err != nil {
+		panic(listEp1911.Err)
 	}
-	var response []any = listEp1915.Value
+	var response []any = listEp1911.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -2129,11 +2128,11 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 		return paramsPaginate
 	}()
 
-	listEp2029 := <-this.PrivateGetOrders(this.Extend(request, paramsUntil))
-	if listEp2029.Err != nil {
-		panic(listEp2029.Err)
+	listEp2025 := <-this.PrivateGetOrders(this.Extend(request, paramsUntil))
+	if listEp2025.Err != nil {
+		panic(listEp2025.Err)
 	}
-	var response []any = listEp2029.Value
+	var response []any = listEp2025.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2649,11 +2648,11 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 		return params
 	}()
 
-	listEp2495 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
-	if listEp2495.Err != nil {
-		panic(listEp2495.Err)
+	listEp2491 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
+	if listEp2491.Err != nil {
+		panic(listEp2491.Err)
 	}
-	var response []any = listEp2495.Value
+	var response []any = listEp2491.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2727,11 +2726,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 	var response []any = nil
 	if id == nil {
 
-		listEp2563 := <-this.PrivateGetTransfers(this.Extend(request, params))
-		if listEp2563.Err != nil {
-			panic(listEp2563.Err)
+		listEp2559 := <-this.PrivateGetTransfers(this.Extend(request, params))
+		if listEp2559.Err != nil {
+			panic(listEp2559.Err)
 		}
-		var transfers []any = listEp2563.Value
+		var transfers []any = listEp2559.Value
 		//
 		//    [
 		//        {
@@ -2762,18 +2761,18 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		//
 		response = this.ToArray(transfers)
 		for i := 0; i < len(response); i++ {
-			var account_id *string = this.SafeString(GetValue(response, i), "account_id")
+			var account_id *string = this.SafeString(DerefScalar(response[i]), "account_id")
 			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
 			AddElementToObject(GetValue(response, i), "currency", codeInner)
 		}
 	} else {
 
-		listEp2601 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
-		if listEp2601.Err != nil {
-			panic(listEp2601.Err)
+		listEp2602 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
+		if listEp2602.Err != nil {
+			panic(listEp2602.Err)
 		}
-		var accountTransfers []any = listEp2601.Value
+		var accountTransfers []any = listEp2602.Value
 		//
 		//    [
 		//        {

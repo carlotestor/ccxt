@@ -140,18 +140,14 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbolValue != nil {
-			this.Trades[*symbolValue] = stored
-		}
+		this.Trades[*symbolValue] = stored
 	}
 	for i := 0; i < len(rawTrades); i++ {
 		var rawTrade any = rawTrades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade, market))
 		stored.Append(trade)
 	}
-	if symbolValue != nil {
-		this.Trades[*symbolValue] = stored
-	}
+	this.Trades[*symbolValue] = stored
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) ccxt.Trade {
@@ -539,7 +535,7 @@ func (this *Luno) HandleMessage(client any, message map[string]any) {
 	}
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; j < len(handlers); j++ {
-		var handler any = ccxt.DerefScalar(handlers[j])
+		var handler any = handlers[j]
 		ccxt.CallDynamically(handler, client, message, func() any {
 			if 0 >= 0 && 0 < len(subscriptions) {
 				return ccxt.DerefScalar(subscriptions[0])

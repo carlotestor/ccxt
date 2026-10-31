@@ -1104,8 +1104,8 @@ public partial class weex : Exchange
         }
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)};
         var spotResponsecontractResponseVariable = new List<object>(await Task.WhenAll(promises));
-        var spotResponse = ((IList<object>) spotResponsecontractResponseVariable)[0];
-        var contractResponse = ((IList<object>) spotResponsecontractResponseVariable)[1];
+        var spotResponse = spotResponsecontractResponseVariable[0];
+        var contractResponse = spotResponsecontractResponseVariable[1];
         List<object> spotArray = this.safeList(spotResponse, "symbols", new List<object>() {});
         List<object> contractArray = this.safeList(contractResponse, "symbols", new List<object>() {});
         List<object> result = this.arrayConcat(spotArray, contractArray);
@@ -3774,10 +3774,10 @@ public partial class weex : Exchange
             return;
         }
         string feedback = ((this.id + " ") + this.json(order));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessageValue, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCodeValue, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessageValue, feedback);
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorCodeValue, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessageValue, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCodeValue, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessageValue, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeValue, feedback);
         throw new InvalidOrder (feedback) ;
     }
 
@@ -5009,7 +5009,7 @@ public partial class weex : Exchange
         {
             return ((string?)((object)(marketId)));
         }
-        if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId))))
+        if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0))))
         {
             return ((string?)((object)(marketId)));  // a live market id, not a demo one
         }
@@ -5113,9 +5113,9 @@ public partial class weex : Exchange
                 return null;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

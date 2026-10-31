@@ -754,7 +754,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.Market(symbol)
 	var parsed []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.Append(ccxt.GetValue(parsed, i))
+		stored.Append(parsed[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1887,7 +1887,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 			}
 		}
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
+			var messageHash string = name + ":" + keys[i]
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		}
 	}
@@ -2049,10 +2049,8 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 				var first any = ccxt.GetValue(stored, 0)
 				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
 				var firstId *string = this.SafeString(first, "id")
-				if firstId != nil {
-					if _, ok := symbolsByOrderId[*firstId]; ok {
-						delete(symbolsByOrderId, *firstId)
-					}
+				if (firstId != nil) && (ccxt.InOp(symbolsByOrderId, firstId)) {
+					delete(symbolsByOrderId, *firstId)
 				}
 			}
 			stored.Append(newOrder)
@@ -2070,7 +2068,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			}
 		}
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
+			var messageHash string = name + ":" + keys[i]
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		}
 	}

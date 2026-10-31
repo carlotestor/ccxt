@@ -1253,8 +1253,8 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         List<Task<Dictionary<string, object>>> promisesRaw = new List<Task<Dictionary<string, object>>> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
         var chainsResponsecurrenciesResponseVariable = new List<object>(await Task.WhenAll(promisesRaw));
-        var chainsResponse = ((IList<object>) chainsResponsecurrenciesResponseVariable)[0];
-        var currenciesResponse = ((IList<object>) chainsResponsecurrenciesResponseVariable)[1];
+        var chainsResponse = chainsResponsecurrenciesResponseVariable[0];
+        var currenciesResponse = chainsResponsecurrenciesResponseVariable[1];
         //
         // currencies
         //
@@ -6150,8 +6150,8 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
         }
         var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
-        var response = ((IList<object>) responsebreakResponseVariable)[0];
-        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        var response = responsebreakResponseVariable[0];
+        var breakResponse = responsebreakResponseVariable[1];
         //
         // position/list
         //
@@ -6242,8 +6242,8 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(paramsSubType));
         }
         var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
-        var response = ((IList<object>) responsebreakResponseVariable)[0];
-        var breakResponse = ((IList<object>) responsebreakResponseVariable)[1];
+        var response = responsebreakResponseVariable[0];
+        var breakResponse = responsebreakResponseVariable[1];
         //
         // position/list
         //
@@ -6770,8 +6770,8 @@ public partial class xt : Exchange
             string? errorCode = this.safeString(error, "code", spotErrorCode);
             string? spotMessage = this.safeString(response, "msgInfo");
             string? message = this.safeString(error, "msg", spotMessage);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

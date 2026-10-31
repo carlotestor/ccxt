@@ -2092,9 +2092,7 @@ func (this *Binance) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	tradesArray.Append(trade)
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades[*symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 
@@ -4323,7 +4321,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 	var typeVar *string = this.SafeString2(this.Options, "defaultType", "authenticate", "spot")
 	typeVar = this.SafeString(params, "type", typeVar)
 	isPortfolioMargin, paramsPortfolioMargin := this.HandleOptionBoolAndParams2(params, "keepAliveListenKey", "papi", "portfolioMargin", false)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams("keepAliveListenKey", nil, paramsPortfolioMargin)), 0))
+	subType, _ := this.HandleSubTypeAndParams("keepAliveListenKey", nil, paramsPortfolioMargin)
 	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		// guard options first: isLinear returns true for linear-settled options (subType='linear')
 		// which would incorrectly convert type='option' to 'linear'.
@@ -4825,7 +4823,7 @@ func (this *Binance) HandlePositionsWs(client any, message map[string]any) {
 	var result []any = ccxt.SafeListTyped(message, "result")
 	var positions []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var parsed any = this.ParsePositionRisk(ccxt.DerefScalar(result[i]))
+		var parsed any = this.ParsePositionRisk(result[i])
 		var entryPrice *string = this.SafeString(parsed, "entryPrice")
 		if (entryPrice == nil || *entryPrice != "0") && (entryPrice == nil || *entryPrice != "0.0") && (entryPrice == nil || *entryPrice != "0.00000000") {
 			positions = append(positions, parsed)
@@ -4875,7 +4873,8 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var isPortfolioMargin *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false)), 0))
+	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false)
+	isPortfolioMargin := &isPortfolioMarginValue
 	var url any = ""
 	var urlType any = typeVar
 	if (typeVar == "spot") || (typeVar == "margin") {
@@ -5088,7 +5087,7 @@ func (this *Binance) GetMarketType(method string, market any, optionalArgs ...an
 	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams(method, market, params))
 	typeVar = ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = typeVarparamsMarketTypeVariable[1].(map[string]any)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(method, market, paramsMarketType)), 0))
+	subType, _ := this.HandleSubTypeAndParams(method, market, paramsMarketType)
 	if this.IsLinear(typeVar, subType) {
 		typeVar = "linear"
 	} else if this.IsInverse(typeVar, subType) {
@@ -6024,7 +6023,8 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	if (typeVar == "margin") || ((typeVar == "spot") && (marginMode != nil)) {
 		urlType = "spot" // spot-margin shares the same stream as regular spot
 	}
-	var isPortfolioMargin *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams2(paramsMarginMode, "watchOrders", "papi", "portfolioMargin", false)), 0))
+	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsMarginMode, "watchOrders", "papi", "portfolioMargin", false)
+	isPortfolioMargin := &isPortfolioMarginValue
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route orders to ws-api user data stream

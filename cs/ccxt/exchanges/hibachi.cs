@@ -724,8 +724,8 @@ public partial class hibachi : Exchange
         };
         List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
         var pricesResponsestatsResponseVariable = new List<object>(await Task.WhenAll(rawPromises));
-        var pricesResponse = ((IList<object>) pricesResponsestatsResponseVariable)[0];
-        var statsResponse = ((IList<object>) pricesResponsestatsResponseVariable)[1];
+        var pricesResponse = pricesResponsestatsResponseVariable[0];
+        var statsResponse = pricesResponsestatsResponseVariable[1];
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -2009,10 +2009,10 @@ public partial class hibachi : Exchange
             {
                 string? codeError = this.safeString(response, "errorCode");
                 string feedback = ((this.id + " ") + (body));
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
                 string? message = this.safeString(response, "message");
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }

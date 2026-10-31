@@ -572,7 +572,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var orders []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order any = ccxt.DerefScalar(data[i])
+		var order any = data[i]
 		var parsedOrder map[string]any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
@@ -842,7 +842,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var messageHashes []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, (name+"::")+symbolsNormalized[i])
+			messageHashes = append(messageHashes, name+"::"+symbolsNormalized[i])
 		}
 	}
 
@@ -920,7 +920,7 @@ func (this *Poloniex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var name string = "trades"
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:"+name+"::", symbolsNormalized[i]))
+		messageHashes = append(messageHashes, "unsubscribe:"+name+"::"+symbolsNormalized[i])
 	}
 
 	r1 := <-this.UnSubscribeAsync(name, symbolsNormalized, messageHashes, params)
@@ -1648,11 +1648,11 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var timestamp *string = this.SafeString(order, "ts")
 	var filledAmount *string = this.SafeString(order, "filledAmount")
 	var status *string = this.SafeString(order, "state")
-	var trades any = nil
+	var trades []any = nil
 	if !ccxt.Precise.StringEq(filledAmount, "0") {
 		trades = []any{}
 		var trade any = this.ParseWsOrderTrade(order)
-		ccxt.AppendToArray(&trades, trade)
+		trades = append(trades, trade)
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1709,7 +1709,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var item any = ccxt.DerefScalar(data[i])
+		var item any = data[i]
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(item))

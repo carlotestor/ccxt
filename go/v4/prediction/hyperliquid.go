@@ -1451,7 +1451,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if ccxt.IsEqual(outcomeInput, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
-	if this.Outcomes == nil || this.Outcomes_by_id == nil {
+	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
@@ -1605,7 +1605,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	if clientOrderId != nil {
 		orderObj["c"] = clientOrderId
 	}
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
@@ -1793,7 +1793,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 	}
 	cancelAction["cancels"] = cancelReq
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
@@ -1824,7 +1824,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var status any = ccxt.DerefScalar(statuses[i])
+		var status any = statuses[i]
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
@@ -1912,7 +1912,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 			"ccxtStatus": "open",
 		}))
 	}
-	var parsed any = this.ParsePredictionOrders(ordersWithStatus, nil, since)
+	var parsed []any = this.ParsePredictionOrders(ordersWithStatus, nil, since)
 	var outcomeHandle any = nil
 	if outcome != nil {
 
@@ -2010,7 +2010,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			dedupedValues = append(dedupedValues, objectValue)
 		}
 	}
-	var parsed any = this.ParsePredictionOrders(dedupedValues, nil, since)
+	var parsed []any = this.ParsePredictionOrders(dedupedValues, nil, since)
 	var outcomeHandle any = nil
 	if outcome != nil {
 
@@ -2539,9 +2539,9 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {
-					var word *string = ccxt.SafeStringPtr(words[wi])
+					var word string = words[wi]
 					// `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-					if (word == nil || *word != "") && (strings.Index(haystack, *word) < 0) {
+					if (word != "") && (strings.Index(haystack, word) < 0) {
 						allWords = false
 						break
 					}
