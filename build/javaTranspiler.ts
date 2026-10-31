@@ -40,14 +40,12 @@ import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
 import { installJ03BooleanConditions, nativeJavaJ03Family } from './hx10w2-J03.js'; // hx10 wave-2 J03
-import { installJ06TupleAsyncLocals, j06TupleAsyncSelfTest } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { hx10J01ElementWrites, j01ElementWritesSelfTest } from './hx10w2-J01.js';
 import { nativeJavaBF02FieldOps, bf02SelfTest } from './hx10w4-BF02.js'; // hx10 w4 BF02
 import { j01w7FieldPuts, j01w7FieldPutsSelfTest } from './hx10w7-J01.js'; // hx10w7 J01
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
-import { nativeJavaJ05, j05FamilySelfTest } from './hx10w2-J05.js';
 import { nativeJavaJ09SwitchBlobs, j09SelfTest } from './hx10w6-J09.js'; // hx10 wave-6 J09
 import { hx10w10JO01, jo01SelfTest } from './hx10w10-JO01.js'; // hx10 wave-10 JO01
 
@@ -2496,8 +2494,6 @@ class NewTranspiler {
         installJ17StringReturns(this.transpiler); // hx4 J17
         // hx10 J03: a `boolean`-typed parameter condition is a Boolean-or-null box (also in java-worker.ts)
         installJ03BooleanConditions(this.transpiler);
-        // hx10 wave-3 J06: awaited / destructured locals take the box their TS type proves (also in java-worker.ts)
-        installJ06TupleAsyncLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3729,7 +3725,6 @@ class NewTranspiler {
         content = nativeJavaJ31Arithmetic(content); // hx4 J31
         content = nativeJavaJ25Compare(content); // hx4 J25
         content = nativeJavaJ32DivModNeg(content); // hx4 J32
-        content = nativeJavaJ05(content); // hx10w2 J05
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -5891,7 +5886,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j03FamilySelfTest(), j01wsSelfTest(), j05DictChainsSelfTest(), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), jo01SelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7611,7 +7606,6 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     content = hx10J01ElementWrites(content); // hx10 J01
     content = j01w7FieldPuts(content); // hx10w7 J01
     content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
-    content = nativeJavaJ05(content); // hx10w2 J05
     content = hx11w8CacheFieldCasts(j01wsNativeOps(content)); // hx10 wave-3 J01
     content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
