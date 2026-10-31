@@ -1,4 +1,5 @@
 import bitstampRest from '../bitstamp.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -133,7 +134,7 @@ export default class bitstamp extends bitstampRest {
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    pruneCachedBySymbols(newCache: any, cache: any, symbols: string[]): any;
+    pruneCachedBySymbols(newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: string[]): ArrayCache;
     handleSubject(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;

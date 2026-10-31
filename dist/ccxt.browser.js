@@ -184599,11 +184599,14 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const uniqueResult = [];
         for(let i = 0; i < input.length; i++){
             const entry = input[i];
-            const uniqValue = fallbackToTimestamp ? this.safeStringN(entry, [
-                'id',
-                'timestamp',
-                0
-            ]) : this.safeString(entry, 'id');
+            let uniqValue = this.safeString(entry, 'id');
+            if (fallbackToTimestamp) {
+                uniqValue = this.safeStringN(entry, [
+                    'id',
+                    'timestamp',
+                    0
+                ]);
+            }
             if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
                 uniqueDic[uniqValue] = 1;
                 uniqueResult.push(entry);
@@ -601597,7 +601600,8 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         for(let i = 0; i < data.length; i++){
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (this.safeNumber(position, 'contracts') === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
+            const contracts = this.safeNumber(position, 'contracts');
+            if (contracts === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';
