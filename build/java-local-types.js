@@ -425,7 +425,7 @@ for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
 export const JAVA_STRING_HELPER_PLAIN = new Set ([
     'json', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat', 'urlencodeBase64',
     'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase16', 'intToBase16',
-    'jwt', 'rsa', 'totp', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
+    'jwt', 'rsa', 'totp', 'remove0xPrefix', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
     'capitalize', 'numberToString', 'decimalToPrecision',
 ]);
 
@@ -505,6 +505,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'capitalize': { type: 'String' },
     'numberToString': { type: 'String' },
     'decimalToPrecision': { type: 'String' },
+    'remove0xPrefix': { type: 'String' },
     'implodeParams': { type: 'String', cast: '(String)' },
     'implodeHostname': { type: 'String', cast: '(String)' },
     'hmac': { type: 'String', cast: '(String)' },
@@ -18236,7 +18237,6 @@ const J14_CAST_ACCESSORS = {
     'forceString': { type: 'String', defaultAt: -1, x21: true },
     'parsePrecision': { type: 'String', defaultAt: -1, x21: true },
     'convertExpireDate': { type: 'String', defaultAt: -1, x21: true },
-    'remove0xPrefix': { type: 'String', defaultAt: -1, x21: true },
 };
 const J14_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
 
