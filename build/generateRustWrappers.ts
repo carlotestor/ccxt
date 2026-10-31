@@ -403,13 +403,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<Vec<String>>`,
-                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }`,
+                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `Vec<String>`,
-            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(|s| Value::Str(s.into())).collect()))`,
+            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(Value::from).collect()))`,
         };
     }
     // Unknown / object — pass through as `Value`. Honour the TS optionality
