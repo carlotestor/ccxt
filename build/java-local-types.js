@@ -547,6 +547,8 @@ const LOCAL_THIS_RETURN_TYPES = {
     'crc32': { type: 'Long' },
     // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
     'parseNumber': { type: 'Double' },
+    // BaseExchange.encodeDydxTxForSimulation is declared String (ts/src/base declares `: string`)
+    'encodeDydxTxForSimulation': { type: 'String' },
     'iso8601': { type: 'String' },
     'base64ToBinary': { type: 'byte[]' },
     'base58ToBinary': { type: 'byte[]' },

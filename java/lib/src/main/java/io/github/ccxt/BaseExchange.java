@@ -3912,7 +3912,7 @@ public class BaseExchange {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
 
-    public Object encodeDydxTxForSimulation(
+    public String encodeDydxTxForSimulation(
         Object message,
         Object memo,
         Object sequence,
@@ -3937,7 +3937,7 @@ public class BaseExchange {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
 
-    public Object encodeDydxTxRaw(Object signDoc, Object signature)
+    public String encodeDydxTxRaw(Object signDoc, Object signature)
     {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
