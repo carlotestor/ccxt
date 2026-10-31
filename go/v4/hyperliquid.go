@@ -373,10 +373,10 @@ func (this *Hyperliquid) Market(symbol any) map[string]any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	if !(InOp(this.Markets(), symbol)) {
+	if !(InOp(this.Markets, symbol)) {
 		var symbolParts []string = Split(symbol, "/")
 		var baseName *string = this.SafeString(symbolParts, 0)
 		var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
@@ -384,8 +384,8 @@ func (this *Hyperliquid) Market(symbol any) map[string]any {
 			var unifiedBaseName *string = this.SafeString(spotCurrencyMapping, baseName)
 			var quote *string = this.SafeString(symbolParts, 1)
 			var newSymbol any = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
-			if InOp(this.Markets(), newSymbol) {
-				return MarketTyped(GetValue(this.Markets(), newSymbol))
+			if InOp(this.Markets, newSymbol) {
+				return MarketTyped(GetValue(this.Markets, newSymbol))
 			}
 		}
 	}
@@ -1393,7 +1393,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symb
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1473,7 +1473,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan AsyncResult[map[string]Ticker]
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1620,7 +1620,7 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1801,7 +1801,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol str
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1923,7 +1923,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol an
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchTrades", params), 0)
 	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchTrades", params), 1, map[string]any{})
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2782,7 +2782,7 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2829,7 +2829,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -2925,7 +2925,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders [
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3284,7 +3284,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any,
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3356,7 +3356,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3509,7 +3509,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3630,7 +3630,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3857,7 +3857,7 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[Order], id string, sy
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3901,7 +3901,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[[]Order], orders any
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3984,7 +3984,7 @@ func (this *Hyperliquid) createVaultBody(ch chan AsyncResult[map[string]any], na
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4054,7 +4054,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4166,7 +4166,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optio
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchOpenOrders", params), 0)
 	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchOpenOrders", params), 1, map[string]any{})
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4250,7 +4250,7 @@ func (this *Hyperliquid) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4296,7 +4296,7 @@ func (this *Hyperliquid) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4342,7 +4342,7 @@ func (this *Hyperliquid) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4392,7 +4392,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchOrders", params), 0)
 	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchOrders", params), 1, map[string]any{})
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4505,7 +4505,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, o
 	var params2 any = nil
 	userAddress = this.SafeString(this.HandlePublicAddress("fetchOrder", params), 0)
 	params2 = this.SafeDict(this.HandlePublicAddress("fetchOrder", params), 1, map[string]any{})
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4817,7 +4817,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchMyTrades", params), 0)
 	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchMyTrades", params), 1, map[string]any{})
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4983,7 +4983,7 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchMyLiquidations", params), 0)
 	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchMyLiquidations", params), 1, map[string]any{})
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5067,7 +5067,7 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	// swap ids are asset indexes, so the market is looked up by symbol
-	if (symbol != nil) && (this.Markets() != nil) && (InOp(this.Markets(), symbol)) {
+	if (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol)) {
 		marketResolved = this.Market(symbol)
 	}
 	var side *string = this.SafeString(liquidation, "side")
@@ -5182,7 +5182,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan AsyncResult[[]Position], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5381,7 +5381,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5467,7 +5467,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5593,7 +5593,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan AsyncResult[MarginModifi
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5701,7 +5701,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5980,7 +5980,7 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6118,7 +6118,7 @@ func (this *Hyperliquid) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInter
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6258,7 +6258,7 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6385,7 +6385,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6492,7 +6492,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6588,7 +6588,7 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[map[string]O
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6634,7 +6634,7 @@ func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest]
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var symbolValue any = this.Symbol(symbol)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -6719,7 +6719,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHi
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

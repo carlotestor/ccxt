@@ -1279,8 +1279,8 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		}()
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		if rawMarketsLength > 0 {
-			if this.Markets() == nil {
-				this.PublishMarkets(map[string]any{})
+			if this.Markets == nil {
+				this.Markets = map[string]any{}
 			}
 			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
@@ -1340,8 +1340,8 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var tokenIdsLength int = len(tokenIds)
 	if tokenIdsLength > 0 {
-		if this.Markets() == nil {
-			this.PublishMarkets(map[string]any{})
+		if this.Markets == nil {
+			this.Markets = map[string]any{}
 		}
 		// token ids are ~78 chars each, so cap the batch to keep the URL under common limits
 		var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 50)
@@ -1954,7 +1954,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	}
 	var unsortedCandles []any = []any{}
 	for i := 0; i < len(bucketKeys); i++ {
-		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, bucketKeys[i]))
+		unsortedCandles = append(unsortedCandles, buckets[bucketKeys[i]])
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
@@ -3680,8 +3680,8 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var result []any = []any{}
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
@@ -4948,7 +4948,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
 	// but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id(), tokenId)
+	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
 func (this *Polymarket) ParsePolyTimestamp(raw *string) any {
@@ -5861,20 +5861,6 @@ func (this *Polymarket) FetchClosedOrders(params map[string]any, options ...Fetc
 	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name polymarket#fetchOrders
- * @description fetches the latest known snapshot of up to one hundred orders
- * @see https://docs.polymarket.com/perps/trading
- * @param {string} [symbol] unified market symbol of the market orders were made in
- * @param {int} [since] timestamp in ms of the earliest order
- * @param {int} [limit] not sent to the venue, applied client-side
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.until] timestamp in ms of the latest order
- * @param {string} [params.clientOrderId] fetch the order with this client order id only
- * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
- */
 func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchOrdersOptionsStruct{}

@@ -559,8 +559,8 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 		if !ccxt.IsEqual(response, nil) {
 			var rawMarket any = this.SafeDict(response, "market", response)
 			var parsed any = this.ParseMarket(rawMarket)
-			if this.Markets() == nil {
-				this.PublishMarkets(map[string]any{})
+			if this.Markets == nil {
+				this.Markets = map[string]any{}
 			}
 			if ccxt.IsEqual(parsed, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcome() could not resolve parsed"))
@@ -681,8 +681,8 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			tickers = append(tickers, baseTicker)
 		}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 100)
 	var tickersLength int = len(tickers)
@@ -3085,8 +3085,8 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
 	var rest map[string]any = this.OmitDict(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var eventId *string = this.SafeString2(paramsOmitted, "eventId", "slug")
 	var rawEvents any = []any{}

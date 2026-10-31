@@ -1012,7 +1012,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	markets := r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies(), "numericId")
+		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: markets}
@@ -3888,7 +3888,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if _, ok := this.Currencies()[code]; !ok {
+	if _, ok := this.Currencies[code]; !ok {
 		panic(BadSymbol(this.Id + " fetchDepositAddress(): can not recognize " + code + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })"))
 	}
 	var currency map[string]any = this.Currency(code)

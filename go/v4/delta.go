@@ -541,7 +541,7 @@ func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
-	if isOption && ((this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId))) {
+	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
@@ -827,11 +827,11 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 	markets := r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies())
+		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
 	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
 	if (marketsByNumericId == nil) || (reload == true) {
-		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets())
+		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets)
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: markets}

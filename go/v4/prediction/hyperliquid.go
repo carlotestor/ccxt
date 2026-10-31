@@ -1484,7 +1484,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
 		}
 	}
-	if ((this.Markets() != nil) && (ccxt.InOp(this.Markets(), outcomeInput))) || ((this.Markets_by_id() != nil) && (ccxt.InOp(this.Markets_by_id(), outcomeInput))) {
+	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
 		var market map[string]any = this.SafeMarket(outcomeInput)
 		var sideHintOrDefault any = "YES"
 		if sideHint != nil {
@@ -3465,16 +3465,6 @@ func (this *Hyperliquid) CreateMarketSellOrderWithCost(outcome string, cost floa
 	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name hyperliquid#createOrders
- * @description create a list of trade orders
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
- * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, params map[string]any) ([]ccxt.PredictionOrder, error) {
 	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
 	if r.Err != nil {
@@ -3483,18 +3473,6 @@ func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, para
 	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name hyperliquid#fetchClosedOrders
- * @description fetch all unfilled currently closed orders
- * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
- * @param {int} [limit] the maximum number of open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) FetchClosedOrders(params map[string]any, options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchClosedOrdersOptionsStruct{}
@@ -3509,15 +3487,6 @@ func (this *Hyperliquid) FetchClosedOrders(params map[string]any, options ...Fet
 	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name hyperliquid#fetchOpenInterest
- * @description retrieves the open interest of a contract trading pair
- * @param {string} symbol unified CCXT market symbol
- * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
- */
 func (this *Hyperliquid) FetchOpenInterest(outcome string, params map[string]any) (ccxt.PredictionOpenInterest, error) {
 	r := <-this.FetchOpenInterestAsync(outcome, params)
 	if r.Err != nil {
@@ -3540,17 +3509,6 @@ func (this *Hyperliquid) FetchOrderTrades(id string, params map[string]any, opti
 	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name hyperliquid#fetchPosition
- * @description fetch data on an open position
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
- * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
- */
 func (this *Hyperliquid) FetchPosition(outcome string, params map[string]any) (ccxt.PredictionPosition, error) {
 	r := <-this.FetchPositionAsync(outcome, params)
 	if r.Err != nil {
@@ -3559,17 +3517,6 @@ func (this *Hyperliquid) FetchPosition(outcome string, params map[string]any) (c
 	var res ccxt.PredictionPosition = r.Value
 	return res, nil
 }
-
-/**
- * @method
- * @name hyperliquid#fetchTradingFee
- * @description fetch the trading fees for a market
- * @param {string} symbol unified market symbol
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
- */
 func (this *Hyperliquid) FetchTradingFee(outcome string, params map[string]any) (ccxt.PredictionTradingFee, error) {
 	r := <-this.FetchTradingFeeAsync(outcome, params)
 	if r.Err != nil {

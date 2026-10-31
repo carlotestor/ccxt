@@ -352,8 +352,11 @@ func (this *Bit2c) ParseBalance(response any) map[string]any {
 		"datetime":  nil,
 	}
 	var codes []string = nil
-	for k := range this.Currencies() {
-		codes = append(codes, k)
+	if this.Currencies != nil {
+		codes = make([]string, 0, len(this.Currencies))
+		for objectKey := range this.Currencies {
+			codes = append(codes, objectKey)
+		}
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
@@ -388,7 +391,7 @@ func (this *Bit2c) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -470,7 +473,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -570,7 +573,7 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -618,7 +621,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -691,7 +694,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -778,7 +781,7 @@ func (this *Bit2c) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -891,7 +894,7 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -938,7 +941,7 @@ func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1117,7 +1120,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1139,11 +1142,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["pair"] = market["id"]
 	}
 
-	listEp1073 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
-	if listEp1073.Err != nil {
-		panic(listEp1073.Err)
+	listEp1079 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
+	if listEp1079.Err != nil {
+		panic(listEp1079.Err)
 	}
-	var response []any = listEp1073.Value
+	var response []any = listEp1079.Value
 	//
 	//     [
 	//         {
@@ -1341,7 +1344,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

@@ -4265,8 +4265,8 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(responses, 1, []any{}))
 		}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
 	var result []any = []any{}

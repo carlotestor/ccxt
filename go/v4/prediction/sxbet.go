@@ -632,8 +632,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}()
 		ccxt.AppendToArray(&retRes48412, raw)
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var result []any = []any{}
 	var orderLength int = len(order)

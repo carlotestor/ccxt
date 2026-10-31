@@ -638,7 +638,7 @@ export function hx10G10SelfTest (): string[] {
 
 // the base market/currency accessors (nil-safe maps) and the `&&` operands of a printed condition, shared with the
 // a9f or-hoist and field-index passes
-export const NIL_SAFE_MAP = /^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)\(\)$/;
+export const NIL_SAFE_MAP = /^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)(?:\(\))?$/;
 
 export function hx11w9Terms (line: string, masked: string): string[] | undefined {
     const terms: string[] = [];

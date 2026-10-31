@@ -3865,8 +3865,8 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if this.Events == nil {
 		this.Events = map[string]any{}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them

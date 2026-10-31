@@ -581,8 +581,8 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	}
 	var rawEventsLength int = len(rawEvents)
 	var parsedEvents []any = []any{}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	for i := 0; i < rawEventsLength; i++ {
 		var event map[string]any = this.ParseEvent(rawEvents[i])
@@ -1954,8 +1954,8 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	if ccxt.IsEqual(market, nil) {
 		panic(ccxt.ExchangeError(this.Id + " loadTradeMarket() could not parse market " + idStr))
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var marketHandle string = *this.SafeString(market, "market", "")
 	this.AddMarketsEntry(marketHandle, market)
@@ -2536,16 +2536,19 @@ func (this *Opinion) HandleMessage(client any, message map[string]any) {
  * @returns {object} the outcome object, or undefined
  */
 func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *int64) any {
-	if (marketId == nil) || (this.Markets() == nil) {
+	if (marketId == nil) || (this.Markets == nil) {
 		return nil
 	}
 	var marketKeys []string = nil
-	for k := range this.Markets() {
-		marketKeys = append(marketKeys, k)
+	if this.Markets != nil {
+		marketKeys = make([]string, 0, len(this.Markets))
+		for objectKey := range this.Markets {
+			marketKeys = append(marketKeys, objectKey)
+		}
 	}
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.SafeMapTyped(this.Markets(), marketKeys[i])
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes []any = ccxt.SafeListTyped(market, "outcomes")

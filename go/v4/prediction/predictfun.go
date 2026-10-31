@@ -408,8 +408,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	var slug *string = this.SafeString2(paramsValue, "slug", "eventId")
 	var rest map[string]any = this.OmitDict(paramsValue, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"})
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var rawTopics any = []any{}
 	if slug != nil {
@@ -2302,7 +2302,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	// row - signing with the wrong pair places the order under a different verifying contract
 	// and the venue answers create_order_hash_mismatch
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets(), marketSymbol)
+	var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 	var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
 	var marketFeeRateBps *string = this.SafeString(marketRow, "feeRateBps", "200") // should be at least 200
 	var feeRateBps *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps)
@@ -3412,7 +3412,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		}
 		var outcomeObj map[string]any = this.Outcome(outcome)
 		var marketSymbol *string = this.SafeString(outcomeObj, "market")
-		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets(), marketSymbol)
+		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 		var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
 		isNegRisk = (this.SafeBool(marketRow, "isNegRisk", false) != nil && *this.SafeBool(marketRow, "isNegRisk", false) == true)
 		isYieldBearing = (this.SafeBool(marketRow, "isYieldBearing", false) != nil && *this.SafeBool(marketRow, "isYieldBearing", false) == true)
