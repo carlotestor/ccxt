@@ -3009,8 +3009,8 @@ impl CoinsphCore {
 
     pub fn parse_array_param(&self, mut array: Value, mut key: Value) -> Option<String> {
         let mut stringifiedArray: Value = json_stringify(&array);
-        stringifiedArray = stringifiedArray.as_str().map(|__s| Value::Str(__s.replace("[", "%5B").into())).unwrap_or_else(|| stringifiedArray.clone());
-        stringifiedArray = stringifiedArray.as_str().map(|__s| Value::Str(__s.replace("]", "%5D").into())).unwrap_or_else(|| stringifiedArray.clone());
+        stringifiedArray = (if let Some(__s) = stringifiedArray.as_str() { Value::Str(__s.replace("[", "%5B").into()) } else { stringifiedArray.clone() });
+        stringifiedArray = (if let Some(__s) = stringifiedArray.as_str() { Value::Str(__s.replace("]", "%5D").into()) } else { stringifiedArray.clone() });
         let mut urlEncodedParam: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), stringifiedArray).into());
         return urlEncodedParam.as_str().map(str::to_owned);
 }

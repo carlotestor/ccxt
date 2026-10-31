@@ -3777,10 +3777,10 @@ impl OkxCore {
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
         let mut quote: Value = Value::Str("USD".into());
-        let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
-        let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut optionParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+        let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut base: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
-        if Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if symbol.as_str().unwrap_or("").contains("/") {
             base = self.safe_string(symbolBase, Value::Int(0), &[Value::Str("".into())]);
         }
         let mut expiry: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]);
@@ -3857,7 +3857,7 @@ impl OkxCore {
         let mut marketType = get_arg(optional_args, 3, Value::Null);
         let mut isOption: bool = false;
         if (marketId != Value::Null) {
-            let mut parts: Vec<Value> = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut partsLength: f64 = ((parts.len() as i64) as f64);
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
@@ -4182,13 +4182,13 @@ impl OkxCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut underlying: Option<String> = self.safe_string_k_opt(market.clone(), "uly", &[]);
         if (underlying.is_some()) && !(matches!(&spot, Value::Bool(true))) {
-            let mut parts: Value = Value::Array(underlying.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = underlying.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             quoteId = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]);
         }
         if ((baseId.as_str() == Some("")) || (quoteId.as_str() == Some(""))) && matches!(&spot, Value::Bool(true)) {
             let mut instId: Value = self.safe_string_k(market.clone(), "instId", &[Value::Str("".into())]);
-            let mut parts: Value = Value::Array(instId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = instId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
             quoteId = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
         }
@@ -4524,7 +4524,7 @@ impl OkxCore {
                 // only happens for fiat 'TRY' currency
                 type_var = Value::Str("fiat".into());
             }
-            let mut idParts: Value = Value::Array(networkId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut idParts: Value = Value::Array(if let Some(__s) = networkId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
             let mut chainPart: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
             let mut networkCode: Value = self.network_id_to_code(&[chainPart, code.clone()]);
@@ -5253,7 +5253,7 @@ impl OkxCore {
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (timezone.as_str() == Some("UTC")) && (duration.as_f64().unwrap_or(f64::NAN) >= ((21600i64) as f64)) {
-            bar = Value::Str(format!("{}{}", bar, timezone.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)).into());
+            bar = Value::Str(format!("{}{}", bar, (if let Some(__s) = timezone.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6016,11 +6016,11 @@ impl OkxCore {
                     m.insert("EXPIRE_BOTH".to_string(), Value::Str("cancel_both".into()));
                 m
             });
-            let mut selfTradePreventionUpper: Value = selfTradePrevention.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut selfTradePreventionUpper: Value = (if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             if (selfTradePreventionUpper.as_str() == Some("NONE")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order".into()))));
             }
-            let mut stpMode: Value = self.safe_string(Value::Map(stpModes), selfTradePreventionUpper, &[selfTradePrevention.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)]);
+            let mut stpMode: Value = self.safe_string(Value::Map(stpModes), selfTradePreventionUpper, &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
             let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6528,7 +6528,7 @@ impl OkxCore {
          * @returns {string[]} list of order ids
          */
         if (ids != Value::Null) && matches!(&ids, Value::Str(_)) {
-            return Value::Array(ids.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            return Value::Array(if let Some(__s) = ids.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         }  else {
             return ids;
         }
@@ -8485,7 +8485,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networkUpper: Value = network.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut networkUpper: Value = (if let Some(__s) = network.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut networkKey: Value = self.safe_string(self.networkAliases.clone(), networkUpper.clone(), &[networkUpper.clone()]);
             network = self.safe_string(networks, networkKey, &[network.clone()]); // resolve aliases to the unified key
             request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-".into())).into()), network).into()));
@@ -8936,7 +8936,7 @@ impl OkxCore {
         let mut network: Value = Value::Null;
         let mut chain: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
         if (chain.is_some()) {
-            let mut chainParts: Value = Value::Array(chain.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut chainParts: Value = Value::Array(if let Some(__s) = chain.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
             let mut networkId: Value = Value::Str(networkParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
             network = self.network_id_to_code(&[networkId, code.clone()]);
@@ -10393,7 +10393,7 @@ impl OkxCore {
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
@@ -11534,14 +11534,14 @@ impl OkxCore {
         if (since != Value::Null) {
             // end the window after limit periods, so that the earliest entries from since on come back
             // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            let mut unitPeriod: Value = (if (period.as_str().unwrap_or("").ends_with("utc")) { period.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0);
-                if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null) } else { period });
-            let mut unit: Value = unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 1).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+            let mut unitPeriod: Value = (if (period.as_str().unwrap_or("").ends_with("utc")) { (if let Some(__s) = period.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0);
+                if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null }) } else { period });
+            let mut unit: Value = (if let Some(__s) = unitPeriod.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 1).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null });
             let mut windowDuration: Value = Value::Null;
             if (unit.as_str() == Some("M")) {
                 // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
                 // all entries in it are requested and the caller keeps the earliest limit of them
-                let mut months: Value = self.parse_to_int(unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+                let mut months: Value = self.parse_to_int((if let Some(__s) = unitPeriod.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null }));
                 let mut day: Value = Value::Int(86400000);
                 windowDuration = crate::runtime::Math::min(&(match (&((match (&((match (&(effectiveLimit), &(months)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(31))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -11551,7 +11551,7 @@ impl OkxCore {
                     Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), maxLimit); }
             }  else {
-                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe(unitPeriod.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
@@ -11778,7 +11778,7 @@ impl OkxCore {
                 if (chain.is_none()) {
                     continue;
                 }
-                let mut chainSplit: Value = Value::Array(chain.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                let mut chainSplit: Value = Value::Array(if let Some(__s) = chain.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut networkId: Option<String> = self.safe_string_opt(chainSplit, Value::Int(1), &[]);
                 let mut withdrawFee: Value = self.safe_number_k(feeInfo, "fee", &[]);
                 let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
@@ -12122,7 +12122,7 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
-        let mut optionParts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut optionParts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12226,7 +12226,7 @@ impl OkxCore {
             if (symbolsLength.as_f64() == Some(1.0)) {
                 market = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
-                let mut optionParts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+                let mut optionParts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(market, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12602,9 +12602,9 @@ impl OkxCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("baseCcy".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-                m.insert("quoteCcy".to_string(), toCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-                m.insert("rfqSzCcy".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("baseCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("quoteCcy".to_string(), (if let Some(__s) = toCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("rfqSzCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("rfqSz".to_string(), self.number_to_string(amount));
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m

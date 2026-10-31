@@ -441,7 +441,7 @@ impl BitgetCore {
         let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut instType: Value = instTypeOption.clone();
         if uta && (instTypeOption != Value::Null) {
-            instType = instTypeOption.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            instType = (if let Some(__s) = instTypeOption.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         }
         return Value::from(vec![instType, paramsInstType]);
 
@@ -1150,7 +1150,7 @@ impl BitgetCore {
         let mut isUta: Value = Value::Null;
         if (interval == Value::Null) {
             isUta = Value::Bool(false);
-            interval = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
+            interval = (if let Some(__s) = channel.as_str() { Value::Str(__s.replace("candle", "").into()) } else { channel.clone() });
         }  else {
             isUta = Value::Bool(true);
         }
@@ -2183,9 +2183,9 @@ impl BitgetCore {
             let mut __for_first_120: bool = true;
             while { if !__for_first_120 { i += 1; } __for_first_120 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
@@ -3763,10 +3763,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
-        if Value::Int(topic.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if topic.as_str().unwrap_or("").contains("candle") {
             self.handle_ohlcv(client.clone(), message.clone());
         }
-        if Value::Int(topic.as_str().and_then(|__s| __s.find("books")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if topic.as_str().unwrap_or("").contains("books") {
             self.handle_order_book(client, message.clone());
         }
 }
@@ -3930,7 +3930,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isUta: Value = Value::Null;
         if (interval == Value::Null) {
             isUta = Value::Bool(false);
-            interval = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
+            interval = (if let Some(__s) = channel.as_str() { Value::Str(__s.replace("candle", "").into()) } else { channel.clone() });
         }  else {
             isUta = Value::Bool(true);
         }
@@ -3991,16 +3991,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.len() as i64) } {
             let mut arg: Value = self.safe_dict(argsList.clone(), Value::Int(i), &[]);
             let mut channel: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-            if Value::Int(channel.as_str().and_then(|__s| __s.find("books")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if channel.as_str().unwrap_or("").contains("books") {
                 // for now only unWatchOrderBook is supported
                 self.handle_order_book_un_subscription(client.clone(), message.clone());
-            }  else if (Value::Int(channel.as_str().and_then(|__s| __s.find("trade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("publicTrade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+            }  else if (channel.as_str().unwrap_or("").contains("trade")) || (channel.as_str().unwrap_or("").contains("publicTrade")) {
                 self.handle_trades_un_subscription(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if channel.as_str().unwrap_or("").contains("ticker") {
                 self.handle_ticker_un_subscription(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if channel.as_str().unwrap_or("").contains("candle") {
                 self.handle_ohlcv_un_subscription(client.clone(), message.clone());
-            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("kline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if channel.as_str().unwrap_or("").contains("kline") {
                 self.handle_ohlcv_un_subscription(client.clone(), message.clone());
             }
         }

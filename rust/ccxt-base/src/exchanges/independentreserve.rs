@@ -1020,14 +1020,14 @@ impl IndependentreserveCore {
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".into()), Value::Str("OrderType".into()), &[]);
         let mut side: Value = Value::Null;
         if (orderType != Value::Null) {
-            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if orderType.as_str().unwrap_or("").contains("Bid") {
                 side = Value::Str("buy".into());
-            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if orderType.as_str().unwrap_or("").contains("Offer") {
                 side = Value::Str("sell".into());
             }
-            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if orderType.as_str().unwrap_or("").contains("Market") {
                 orderType = Value::Str("market".into());
-            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if orderType.as_str().unwrap_or("").contains("Limit") {
                 orderType = Value::Str("limit".into());
             }
         }
@@ -1281,9 +1281,9 @@ impl IndependentreserveCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
-            if Value::Int(side.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if side.as_str().unwrap_or("").contains("Bid") {
                 side = Value::Str("buy".into());
-            }  else if Value::Int(side.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if side.as_str().unwrap_or("").contains("Offer") {
                 side = Value::Str("sell".into());
             }
         }
@@ -1727,7 +1727,7 @@ impl IndependentreserveCore {
             });
             query.insert("apiKey".into(), self.apiKey.clone());
             query.insert("nonce".into(), nonce);
-            query.insert("signature".into(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            query.insert("signature".into(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_837: bool = true;

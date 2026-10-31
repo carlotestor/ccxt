@@ -1647,7 +1647,7 @@ impl BittradeCore {
         let mut type_var: Value = Value::Null;
         let mut typeRaw: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         if (typeRaw.is_some()) {
-            let mut typeParts: Value = Value::Array(typeRaw.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut typeParts: Value = Value::Array(if let Some(__s) = typeRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
             type_var = self.safe_string(typeParts, Value::Int(1), &[]);
         }
@@ -2405,7 +2405,7 @@ impl BittradeCore {
         let mut status: Value = Value::Null;
         let mut orderTypeRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         if (orderTypeRaw.is_some()) {
-            let mut orderType: Value = Value::Array(orderTypeRaw.as_deref().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut orderType: Value = Value::Array(if let Some(__s) = orderTypeRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(orderType.clone(), Value::Int(0), &[]);
             type_var = self.safe_string(orderType, Value::Int(1), &[]);
             status = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -2700,7 +2700,7 @@ impl BittradeCore {
         let mut successes: Option<String> = self.safe_string_k_opt(orders.clone(), "successes", &[]);
         let mut success: Value = Value::Null;
         if (successes.is_some()) {
-            success = Value::Array(successes.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            success = Value::Array(if let Some(__s) = successes.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         }  else {
             success = self.safe_list_k(orders.clone(), "success", &[Value::from(vec![])]);
         }

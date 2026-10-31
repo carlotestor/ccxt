@@ -1296,7 +1296,7 @@ impl BtcturkCore {
             request.insert("last".into(), limit.clone());
         }
         if (since != Value::Null) {
-            request.insert("startTime".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
+            request.insert("startTime".into(), (if let Some(__x) = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64() { Value::Float(__x.floor()) } else { Value::Null }));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_all_orders(&[__ws_arg_6]).await;

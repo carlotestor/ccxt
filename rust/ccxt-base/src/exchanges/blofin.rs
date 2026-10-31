@@ -3114,13 +3114,13 @@ impl BlofinCore {
         if (chainId == Value::Null) {
             return None;
         }
-        if Value::Int(chainId.as_str().and_then(|__s| __s.find("(")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+        if chainId.as_str().unwrap_or("").contains("(") {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)
-            let mut parts: Value = Value::Array(chainId.as_str().map(|__s| __s.split("(").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = chainId.as_str() { __s.split("(").map(Value::from).collect() } else { Vec::new() });
             let mut tail: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]);
-            let mut tailParts: Value = Value::Array(tail.as_str().map(|__s| __s.split(")").map(Value::from).collect()).unwrap_or_default());
+            let mut tailParts: Value = Value::Array(if let Some(__s) = tail.as_str() { __s.split(")").map(Value::from).collect() } else { Vec::new() });
             let mut suffix: Value = self.safe_string(tailParts, Value::Int(0), &[]);
             let mut suffixCode: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]);
             if (suffixCode.is_some()) {
@@ -3899,7 +3899,7 @@ impl BlofinCore {
          * @returns {string[]} list of order ids
          */
         if matches!(&ids, Value::Str(_)) {
-            return Value::Array(ids.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            return Value::Array(if let Some(__s) = ids.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         }  else {
             return ids;
         }

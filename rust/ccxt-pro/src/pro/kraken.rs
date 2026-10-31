@@ -1498,7 +1498,7 @@ impl KrakenCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if Value::Int(url.as_str().and_then(|__s| __s.find("v2")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("v2") {
             request.insert("method".into(), Value::Str("ping".into()));
         }  else {
             request.insert("event".into(), Value::Str("ping".into()));
@@ -1737,12 +1737,12 @@ impl KrakenCore {
 }
 
     pub fn format_number(&self, mut data: Value) -> Option<String> {
-        let mut parts: Value = Value::Array(data.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = data.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let integer: String = self.safe_string_opt(parts.clone(), Value::Int(0), &[Value::Str("".into())]).unwrap_or_default();
         let decimals: String = self.safe_string_opt(parts, Value::Int(1), &[Value::Str("".into())]).unwrap_or_default();
         let mut joinedResult: Value = Value::Str(format!("{}{}", integer, decimals).into());
         while (joinedResult.as_str().unwrap_or("").starts_with("0")) {
-            joinedResult = joinedResult.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+            joinedResult = (if let Some(__s) = joinedResult.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null });
         }
         return joinedResult.as_str().map(str::to_owned);
 }

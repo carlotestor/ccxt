@@ -817,18 +817,18 @@ impl DeltaCore {
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
         let mut quote: Value = Value::Str("USDT".into());
-        let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
-        let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
-        let mut hasSlash: bool = Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
+        let mut optionParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+        let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
         let mut partSource: Value = (if hasSlash { symbolBase } else { optionParts.clone() });
         let mut baseIndex: Value = (if hasSlash { Value::Int(0) } else { Value::Int(1) });
         let mut base: Value = self.safe_string(partSource, baseIndex, &[Value::Str("".into())]);
         let mut optionType: Value = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]);
         let mut rawExpiry: Value = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]);
-        let mut expiry: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l;
-            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4);
-            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2);
-            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into());
+        let mut expiry: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", (if let Some(__s) = rawExpiry.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l;
+            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null }), (if let Some(__s) = rawExpiry.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4);
+            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null })).into()), (if let Some(__s) = rawExpiry.as_str() { Value::from({ let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2);
+            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }) } else { Value::Null })).into());
         let mut settle: Value = quote.clone();
         let mut strike: Value = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
@@ -2196,7 +2196,7 @@ impl DeltaCore {
 })]);
         let mut type_var: Value = self.safe_string_k(metaData, "order_type", &[]);
         if (type_var != Value::Null) {
-            type_var = type_var.as_str().map(|__s| Value::Str(__s.replace("_order", "").into())).unwrap_or_else(|| type_var.clone());
+            type_var = (if let Some(__s) = type_var.as_str() { Value::Str(__s.replace("_order", "").into()) } else { type_var.clone() });
         }
         let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
@@ -2656,7 +2656,7 @@ impl DeltaCore {
         let mut createdAt: Option<String> = self.safe_string_k_opt(order.clone(), "created_at", &[]);
         let mut timestamp: Value = Value::Null;
         if (createdAt.is_some()) {
-            if Value::Int(createdAt.as_deref().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if createdAt.as_deref().unwrap_or("").contains("-") {
                 timestamp = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 timestamp = self.safe_integer_product_k(order.clone(), "created_at", Value::Float(0.001), &[]);
@@ -2678,7 +2678,7 @@ impl DeltaCore {
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         if (type_var != Value::Null) {
-            type_var = type_var.as_str().map(|__s| Value::Str(__s.replace("_order", "").into())).unwrap_or_else(|| type_var.clone());
+            type_var = (if let Some(__s) = type_var.as_str() { Value::Str(__s.replace("_order", "").into()) } else { type_var.clone() });
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "limit_price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "size", &[]);

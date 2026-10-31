@@ -375,7 +375,7 @@ impl DeepcoinCore {
 
     pub fn ping(&self, mut client: Value) -> Value {
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
-        if Value::Int(url.as_str().and_then(|__s| __s.find("private")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if url.as_str().unwrap_or("").contains("private") {
             crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
         }
         return Value::Str("ping".into());

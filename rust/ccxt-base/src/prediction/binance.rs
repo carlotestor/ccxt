@@ -2274,8 +2274,8 @@ impl BinanceCore {
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "market", &[]);
         let mut market: Value = self.market(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut typeUpper: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut sideUpper: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut typeUpper: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut wallet: Value = self.fetch_wallet(Value::Str("createOrder".into()), &[params.clone()]).await;
         let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]);
         let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage]);
@@ -2578,8 +2578,8 @@ impl BinanceCore {
             add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".into()), defaultRecvWindow);
         }
         let mut querystring: Value = self.urlencode_nested(extendedParams, &[]);
-        querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5B", "[").into())).unwrap_or_else(|| querystring.clone());
-        querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5D", "]").into())).unwrap_or_else(|| querystring.clone());
+        querystring = (if let Some(__s) = querystring.as_str() { Value::Str(__s.replace("%5B", "[").into()) } else { querystring.clone() });
+        querystring = (if let Some(__s) = querystring.as_str() { Value::Str(__s.replace("%5D", "]").into()) } else { querystring.clone() });
         let mut signature: Value = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
         querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), signature).into());
         let mut headersValue: indexmap::IndexMap<String, Value> = ({

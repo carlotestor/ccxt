@@ -969,7 +969,7 @@ impl AlpacaCore {
         if (type_var == Value::Null) {
             return Value::Null;
         }
-        if Value::Int(type_var.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if type_var.as_str().unwrap_or("").contains("limit") {
             // might be limit or stop-limit
             type_var = Value::Str("limit".into());
         }

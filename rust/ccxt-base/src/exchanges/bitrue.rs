@@ -1525,7 +1525,7 @@ impl BitrueCore {
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         if matches!(&isContract, Value::Bool(true)) {
-            let mut symbolSplit: Value = Value::Array(id.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            let mut symbolSplit: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]);
             quoteId = self.safe_string(symbolSplit, Value::Int(2), &[]);
             if (isLinear.as_bool() == Some(true)) {
@@ -2656,10 +2656,10 @@ impl BitrueCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut uppercaseType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("type".to_string(), uppercaseType.clone());
             m
         });
@@ -3356,12 +3356,12 @@ impl BitrueCore {
         let mut tagFrom: Value = Value::Null;
         if (tagType.is_some()) {
             if (addressTo != Value::Null) {
-                let mut parts: Value = Value::Array(addressTo.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                let mut parts: Value = Value::Array(if let Some(__s) = addressTo.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressTo = self.safe_string(parts.clone(), Value::Int(0), &[]);
                 tagTo = self.safe_string(parts.clone(), Value::Int(1), &[]);
             }
             if (addressFrom != Value::Null) {
-                let mut parts: Value = Value::Array(addressFrom.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+                let mut parts: Value = Value::Array(if let Some(__s) = addressFrom.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressFrom = self.safe_string(parts.clone(), Value::Int(0), &[]);
                 tagFrom = self.safe_string(parts.clone(), Value::Int(1), &[]);
             }
@@ -3380,7 +3380,7 @@ impl BitrueCore {
         let mut network: Value = Value::Null;
         let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("coin".into()), &[]);
         if (currencyId != Value::Null) {
-            let mut parts: Value = Value::Array(currencyId.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = currencyId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut networkId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
             if (networkId.is_some()) {
@@ -3620,7 +3620,7 @@ impl BitrueCore {
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
         if (transferType.is_some()) {
-            let mut accountSplit: Value = Value::Array(transferType.as_deref().map(|__s| __s.split("_to_").map(Value::from).collect()).unwrap_or_default());
+            let mut accountSplit: Value = Value::Array(if let Some(__s) = transferType.as_deref() { __s.split("_to_").map(Value::from).collect() } else { Vec::new() });
             fromAccount = self.safe_string(accountSplit.clone(), Value::Int(0), &[]);
             toAccount = self.safe_string(accountSplit, Value::Int(1), &[]);
         }
@@ -3899,7 +3899,7 @@ impl BitrueCore {
         }
         let mut endpointPath: Value = self.implode_params(path.clone(), params.clone());
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpointPath).into());
-        if !(((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_str() == Some("open")) && Value::Int(path.as_str().and_then(|__s| __s.find("listenKey")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
+        if !(((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_str() == Some("open")) && path.as_str().unwrap_or("").contains("listenKey"))) {
             url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), endpointPath).into());
         }
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
@@ -4002,13 +4002,13 @@ impl BitrueCore {
         // will switch "code" checks eventually, when we know all of them
         let mut statusCode: Value = self.parse_to_int(code);
         if statusCode.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
-            if Value::Int(body.as_str().and_then(|__s| __s.find("Price * QTY is zero or less")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if body.as_str().unwrap_or("").contains("Price * QTY is zero or less") {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".into())).into()), body)));
             }
-            if Value::Int(body.as_str().and_then(|__s| __s.find("LOT_SIZE")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if body.as_str().unwrap_or("").contains("LOT_SIZE") {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".into())).into()), body)));
             }
-            if Value::Int(body.as_str().and_then(|__s| __s.find("PRICE_FILTER")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if body.as_str().unwrap_or("").contains("PRICE_FILTER") {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ".into())).into()), body)));
             }
         }
