@@ -175,6 +175,7 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
         'type': 'map[string]any',
         'freshMapCalls': [ 'extend', 'deepExtend', 'createSafeDictionary', 'indexBy' ],
         'selfCalls': [ 'safeBalance' ],
+        'plainCalls': [ 'iso8601', 'milliseconds', 'seconds', 'microseconds', 'extend', 'deepExtend', 'indexBy', 'createSafeDictionary' ],
         'emptyDefaultCalls': [ 'safeDict', 'safeDictMap', 'safeList' ],
         'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
     },
@@ -6205,8 +6206,6 @@ class NewTranspiler {
                     "userPath": "^(?:setBalanceCache|cleanWsData)$",
                     "asyncUserPath": "^(?:(?:watch|fetch|seed)\\w*|loadBalanceSnapshot)$",
                     "boxedKeys": [ "info", "timestamp", "datetime", "free", "used", "total" ],
-                    // base methods whose Go result is a plain value, never a pointer the helper would unbox
-                    "plainResultCalls": "^iso\\w+$",
                 },
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
