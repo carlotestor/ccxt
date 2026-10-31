@@ -1,4 +1,4 @@
-import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5OG02 } from 'ast-transpiler';
+import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5OG02, installRfmX3SafeDictLocals } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import log from 'ololog'
 
@@ -55,6 +55,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         installCcxtGoSignTyping(cachedTranspiler.goTranspiler);
         installRfGo5OwnedTables(cachedTranspiler.goTranspiler);  // RF-go-5
         installFmGo5OG02(cachedTranspiler.goTranspiler);  // FM-GO5 OG02
+        installRfmX3SafeDictLocals(cachedTranspiler.goTranspiler);  // RFM-X3 M43
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
