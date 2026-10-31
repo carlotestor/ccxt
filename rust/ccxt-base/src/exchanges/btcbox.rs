@@ -822,7 +822,7 @@ impl BtcboxCore {
         //          "type":"buy"
         //      }
         //
-        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "date", &[]);
+        let mut timestamp: Option<i64> = self.safe_timestamp_k_opt(trade.clone(), "date", &[]);
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "tid", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
@@ -834,8 +834,8 @@ impl BtcboxCore {
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1244,8 +1244,8 @@ impl BtcboxCore {
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             return Value::Null;
         }
-        let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
-        if (result == Value::Null) || result.as_bool() == Some(true) {
+        let mut result: Option<bool> = self.safe_bool_k_opt(response.clone(), "result", &[]);
+        if (result.is_none()) || result == Some(true) {
             return Value::Null;
         }
         let mut codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
