@@ -11036,7 +11036,7 @@ function sameFileGuardedStringCall (csharp, node) {
         GUARDED_STRING_RETURN_CACHE.set (declaration, guards);
     }
     if (guards === undefined) {
-        return false;
+        return nonNullLiteralLocalReturns (declaration);
     }
     const parameters = declaration.parameters ?? [];
     for (const guarded of guards) {
@@ -11050,6 +11050,69 @@ function sameFileGuardedStringCall (csharp, node) {
         }
     }
     return true;
+}
+
+// A method whose every `return` is a string literal or a `let/const` local that only ever holds
+// one: initialised with a literal / a read of a literal-valued object-literal const, and written
+// only (a) with a literal or (b) with a const element read under `if (x === 'a' || x === 'b')`.
+// Such a return is never null, so the call is a non-null string (getMarketTypeByUrl,
+// getAccountTypeFromSubscriptions).
+function nonNullLiteralLocalReturns (declaration) {
+    const body = declaration.body;
+    if (body?.kind !== ts.SyntaxKind.Block) {
+        return false;
+    }
+    const locals = new Map ();
+    const writes = [];
+    const returns = [];
+    const visit = (n) => {
+        if (ts.isFunctionLike (n) && n !== declaration) {
+            returns.push (undefined);
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier) {
+            locals.set (n.name.text, locals.has (n.name.text) ? null : n);
+        } else if (n.kind === ts.SyntaxKind.ReturnStatement) {
+            returns.push (n.expression);
+        } else if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && n.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            writes.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    visit (body);
+    const literalDict = (d) => {
+        const init = d?.initializer;
+        return init?.kind === ts.SyntaxKind.ObjectLiteralExpression && init.properties.length > 0
+            && init.properties.every ((p) => p.kind === ts.SyntaxKind.PropertyAssignment && isStringLiteral (stripParens (p.initializer)));
+    };
+    const holdsLiteral = (name) => {
+        const d = locals.get (name);
+        if (!d || d.parent?.declarations?.length !== 1 || !d.initializer) {
+            return false;
+        }
+        const init = stripParens (d.initializer);
+        const read = init.kind === ts.SyntaxKind.ElementAccessExpression && init.expression.kind === ts.SyntaxKind.Identifier
+            && locals.get (init.expression.text)?.parent?.flags & ts.NodeFlags.Const && literalDict (locals.get (init.expression.text));
+        if (!isStringLiteral (init) && !read) {
+            return false;
+        }
+        return writes.filter ((w) => w.left.kind === ts.SyntaxKind.Identifier && w.left.text === name).every ((w) => {
+            const v = stripParens (w.right);
+            if (isStringLiteral (v)) {
+                return true;
+            }
+            const guard = ts.findAncestor (w, (a) => a.kind === ts.SyntaxKind.IfStatement && ts.findAncestor (w, (c) => c === a.thenStatement) !== undefined);
+            const parts = [];
+            const flat = (c) => { c = stripParens (c); (c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.BarBarToken) ? (flat (c.left), flat (c.right)) : parts.push (c); };
+            if (!guard || v.kind !== ts.SyntaxKind.Identifier || w.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !(locals.get (v.text)?.parent?.flags & ts.NodeFlags.Const)) {
+                return false;
+            }
+            flat (guard.expression);
+            return parts.every ((c) => c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken
+                && c.left.kind === ts.SyntaxKind.Identifier && c.left.text === v.text && isStringLiteral (stripParens (c.right)));
+        });
+    };
+    return returns.length > 0 && returns.every ((r) => r !== undefined && (isStringLiteral (stripParens (r)) || (stripParens (r).kind === ts.SyntaxKind.Identifier && holdsLiteral (stripParens (r).text))));
 }
 
 function nonNullStringDefaultCall (csharp, node, context) {
