@@ -3111,7 +3111,7 @@ impl BackpackCore {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), (if let Some(__s) = status.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);

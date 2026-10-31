@@ -2876,7 +2876,8 @@ impl OkxCore {
             while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (data.len() as i64) } {
             let mut rawPosition: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
-            if (self.safe_number_k(position.clone(), "contracts", &[]).as_f64() == Some(0.0)) && (self.safe_string_k(rawPosition, "posSide", &[]).as_str() == Some("net")) {
+            let mut contracts: Option<f64> = self.safe_number_k(position.clone(), "contracts", &[]).as_f64();
+            if (contracts == Some(0.0)) && (self.safe_string_k(rawPosition, "posSide", &[]).as_str() == Some("net")) {
                 if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 let mut shortPosition: Value = self.clone_value(position.clone());
                 add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));

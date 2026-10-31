@@ -4768,7 +4768,7 @@ impl KrakenfuturesCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("maxLeverage".to_string(), leverage);
-                m.insert("symbol".to_string(), marketIdUpper.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), (if let Some(__s) = marketIdUpper.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
@@ -4841,7 +4841,7 @@ impl KrakenfuturesCore {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), marketIdUpper.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), (if let Some(__s) = marketIdUpper.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);

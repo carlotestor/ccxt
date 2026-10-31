@@ -698,8 +698,8 @@ impl HollaexCore {
             let mut market: Value = self.safe_dict(pairs.clone(), key, &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_base", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_2", &[]);
-            let mut baseCode: Value = self.common_currency_code(baseId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
-            let mut quoteCode: Value = self.common_currency_code(quoteId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            let mut baseCode: Value = self.common_currency_code((if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+            let mut quoteCode: Value = self.common_currency_code((if let Some(__s) = quoteId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(market.clone(), "name", &[]));

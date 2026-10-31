@@ -4025,7 +4025,7 @@ impl HtxCore {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".into()))));
                 }
                 id = self.safe_string_k(market.clone(), "contract_code", &[]);
-                lowercaseId = contractId.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                lowercaseId = (if let Some(__s) = contractId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 let mut delivery_date: Option<String> = self.safe_string_k(market.clone(), "delivery_date", &[]).as_str().map(str::to_owned);
                 let mut business_type: Option<String> = self.safe_string_k(market.clone(), "business_type", &[]).as_str().map(str::to_owned);
                 future = Value::Bool(delivery_date.is_some());

@@ -3384,7 +3384,7 @@ impl BitrueCore {
             currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut networkId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
             if (networkId.is_some()) {
-                network = self.network_id_to_code(&[networkId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+                network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
             }
         }
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);

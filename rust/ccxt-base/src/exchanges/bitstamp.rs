@@ -2548,7 +2548,7 @@ impl BitstampCore {
                 while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (currentKey.as_str() != Some("order_id")) && currentKey.as_str().unwrap_or("").contains("_") {
-                    rawMarketId = currentKey;
+                    rawMarketId = currentKey.clone();
                     marketResolved = self.safe_market(&[rawMarketId.clone(), marketResolved.clone(), Value::Str("_".into())]);
                 }
             }

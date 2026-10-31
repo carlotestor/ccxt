@@ -1817,7 +1817,7 @@ impl BitfinexCore {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), networkId.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("id".to_string(), (if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         m.insert("network".to_string(), network.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(dwStatuses.clone(), Value::Int(1), &[]).as_f64() == Some(1.0)));
@@ -3832,7 +3832,7 @@ impl BitfinexCore {
             tag = self.safe_string(data.clone(), Value::Int(3), &[]);
             type_var = Value::Str("withdrawal".into());
             let mut networkId: Option<String> = self.safe_string_opt(data, Value::Int(2), &[]);
-            network = self.network_id_to_code(&[networkId.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), code.clone()]); // withdraw returns in lowercase
+            network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), code.clone()]); // withdraw returns in lowercase
         }  else if (transactionLength == 22.0) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string_opt(transaction.clone(), Value::Int(1), &[]);

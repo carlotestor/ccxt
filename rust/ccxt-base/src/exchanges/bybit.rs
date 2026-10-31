@@ -5815,7 +5815,7 @@ impl BybitCore {
             }
             if (lastLiquidityInd.is_some()) {
                 if (lastLiquidityInd.as_deref() == Some("TAKER")) || (lastLiquidityInd.as_deref() == Some("MAKER")) {
-                    takerOrMaker = lastLiquidityInd.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                    takerOrMaker = (if let Some(__s) = lastLiquidityInd.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 }  else {
                     takerOrMaker = (if (lastLiquidityInd.as_deref() == Some("AddedLiquidity")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
                 }

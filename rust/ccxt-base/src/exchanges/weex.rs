@@ -1706,7 +1706,7 @@ impl WeexCore {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("lowercaseId".to_string(), id.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+        m.insert("lowercaseId".to_string(), (if let Some(__s) = id.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "contractId", &[]));
         m.insert("symbol".to_string(), symbol);
         m.insert("base".to_string(), base);
@@ -5712,7 +5712,7 @@ impl WeexCore {
         let mut message: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
         if (message.is_some()) {
             let mut errorCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            if (errorCode.as_deref() == Some("200")) && (message.as_deref().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str() == Some("success")) {
+            if (errorCode.as_deref() == Some("200")) && ((if let Some(__s) = message.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == Some("success")) {
                 return Value::Null;
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());

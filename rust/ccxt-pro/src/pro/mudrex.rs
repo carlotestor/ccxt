@@ -451,11 +451,11 @@ impl MudrexCore {
             self.handle_error_message(client.clone(), message.clone());
             return;
         }
-        let mut stream: Value = (match __pro_message.get("stream").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (stream != Value::Null) {
-            if stream.as_str().unwrap_or("").contains("kline") || stream.as_str().unwrap_or("").contains("markKline") {
+        let mut stream: Option<String> = match __pro_message.get("stream").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        if (stream.is_some()) {
+            if stream.as_deref().unwrap_or("").contains("kline") || stream.as_deref().unwrap_or("").contains("markKline") {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if stream.as_str().unwrap_or("").contains("ticker") {
+            }  else if stream.as_deref().unwrap_or("").contains("ticker") {
                 self.handle_ticker(client, message);
             }
         }
@@ -495,7 +495,7 @@ impl MudrexCore {
         if (s.is_none()) {
             return;
         }
-        let mut market: Value = self.safe_market(&[s.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+        let mut market: Value = self.safe_market(&[(if let Some(__s) = s.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "t", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -528,7 +528,7 @@ impl MudrexCore {
             if (s.is_none()) {
                 continue;
             }
-            let mut market: Value = self.safe_market(&[s.as_deref().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+            let mut market: Value = self.safe_market(&[(if let Some(__s) = s.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.milliseconds();
             let mut last: Value = self.safe_number_k(t.clone(), "p", &[]);

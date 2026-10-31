@@ -230,7 +230,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
                 let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential).into());
-                let mut credentialEnvName: Value = fullKey.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null); // example: KRAKEN_APIKEY
+                let mut credentialEnvName: Value = (if let Some(__s) = fullKey.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if (credentialValue != Value::Null) && (credentialValue.as_str() != Some("")) {
@@ -349,11 +349,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, isPublic: bool) -> Value {
         // todo: temporary skip for c#
-        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
+        if methodName.as_str().unwrap_or("").contains("OrderBook") && (self.ext.as_str() == Some("cs")) {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("checksum".into()), Value::Bool(false));
         }
         // todo: temporary skip for php
-        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
+        if methodName.as_str().unwrap_or("").contains("OrderBook") && (self.ext.as_str() == Some("php")) {
             return Value::Bool(true);
         }
         let mut skippedPropertiesForMethod: Value = self.get_skips(exchange.clone(), methodName.clone());
@@ -1137,8 +1137,7 @@ if _try_result.is_err() {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         unscopedError = exceptionMessage(e.clone());
                     }
-                    assert((Value::Int(unscopedError.as_str().and_then(|__s| __s.find("requires at least one of")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())),
-                        Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".into())).into()), unscopedError).into())]);
+                    assert((unscopedError.as_str().unwrap_or("").contains("requires at least one of")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".into())).into()), unscopedError).into())]);
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
@@ -1148,7 +1147,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // separators as spaces) so the scoped contract holds even without a pin
                     let mut handleParts: Value = split(&outcomeSymbol, &Value::Str(":".into()));
                     let mut marketPart: Value = get_value(&handleParts, &Value::Int(0));
-                    let mut lowerPart: Value = (match &(marketPart) { Value::Str(__s) => Value::Str(__s.to_lowercase().into()), _ => Value::Null });
+                    let mut lowerPart: Value = (if let Some(__s) = (marketPart).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                     let mut dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".into()), &Value::Str(" ".into()));
                     eventQuery = replace_all_str(&dedashed, &Value::Str("_".into()), &Value::Str(" ".into()));
                 }
@@ -1257,8 +1256,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     tickersError = exceptionMessage(e.clone());
                 }
-                assert((Value::Int(tickersError.as_str().and_then(|__s| __s.find("requires an outcomes argument")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())),
-                    Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".into())).into()), tickersError).into())]);
+                assert((tickersError.as_str().unwrap_or("").contains("requires an outcomes argument")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".into())).into()), tickersError).into())]);
             }
         }
         dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".into()), outcomeSymbol.clone(), Value::Str("| EVENT:".into()), exchange.json(eventId.clone())]);
@@ -1774,7 +1772,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (url == Value::Null) {
             return Value::Null;
         }
-        let mut urlParts: Value = Value::Array(url.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
+        let mut urlParts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut res: Value = Value::Str("".into());
         {
                         let mut i: Value = Value::Int(0);
@@ -1783,9 +1781,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 } __for_first_1629 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
                 let mut current: Value = urlParts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if Value::Int(current.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+                if current.as_str().unwrap_or("").contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    let mut currentParts: Value = Value::Array(current.as_str().map(|__s| __s.split("?").map(Value::from).collect()).unwrap_or_default());
+                    let mut currentParts: Value = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
                     res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
                     res = Value::Str(format!("{}{}", res, currentParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
                     break;
@@ -1805,21 +1803,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut parts: Value = Value::Array(url.as_str().map(|__s| __s.split("&").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("&").map(Value::from).collect() } else { Vec::new() });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1630: bool = true;
             while { if !__for_first_1630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                 } __for_first_1630 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut part: Value = parts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut keyValue: Value = Value::Array(part.as_str().map(|__s| __s.split("=").map(Value::from).collect()).unwrap_or_default());
+            let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_str() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
             let mut keysLength: Value = Value::Int(keyValue.len() as i64);
             if (keysLength.as_f64() != Some(2.0)) {
                 continue;
             }
             let mut key: Value = keyValue.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut value: Value = keyValue.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            if (value != Value::Null) && is_true(&((value.as_str().is_some_and(|__s| __s.starts_with("["))) || (value.as_str().is_some_and(|__s| __s.starts_with("{"))))) {
+            if (value != Value::Null) && is_true(&((value.as_str().unwrap_or("").starts_with("[")) || (value.as_str().unwrap_or("").starts_with("{")))) {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
@@ -1959,7 +1957,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         // if needed convert stringified jsons to objects
-        if (matches!(&storedOutput, Value::Str(_))) && (matches!(&newOutput, Value::Str(_))) && (storedOutput.as_str().is_some_and(|__s| __s.starts_with("{"))) && (newOutput.as_str().is_some_and(|__s| __s.starts_with("{"))) {
+        if (matches!(&storedOutput, Value::Str(_))) && (matches!(&newOutput, Value::Str(_))) && (storedOutput.as_str().unwrap_or("").starts_with("{")) && (newOutput.as_str().unwrap_or("").starts_with("{")) {
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
@@ -2160,8 +2158,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
         if (storedOutput == Value::Null) && (newOutput == Value::Null) {
             if (storedUrl != Value::Null) && (requestUrl != Value::Null) {
-                let mut storedUrlParts: Value = Value::Array(storedUrl.as_str().map(|__s| __s.split("?").map(Value::from).collect()).unwrap_or_default());
-                let mut newUrlParts: Value = Value::Array(requestUrl.as_str().map(|__s| __s.split("?").map(Value::from).collect()).unwrap_or_default());
+                let mut storedUrlParts: Value = Value::Array(if let Some(__s) = storedUrl.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
+                let mut newUrlParts: Value = Value::Array(if let Some(__s) = requestUrl.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
                 let mut storedUrlQuery: Value = exchange.safe_value(storedUrlParts.clone(), Value::Int(1), &[]);
                 let mut newUrlQuery: Value = exchange.safe_value(newUrlParts.clone(), Value::Int(1), &[]);
                 if (storedUrlQuery == Value::Null) && (newUrlQuery == Value::Null) {
@@ -4723,7 +4721,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
             let mut url: Value = get_value(&exchange, &Value::Str("last_request_url".into()));
-            let mut urlParts: Value = Value::Array(url.as_str().map(|__s| __s.split("?").map(Value::from).collect()).unwrap_or_default());
+            let mut urlParts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
             assert((Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str("last_request_url has no query string: ".into()), url).into())]);
             let mut query: Value = self.urlencoded_to_dict(urlParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null));
             clientOrderId = query.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null);
