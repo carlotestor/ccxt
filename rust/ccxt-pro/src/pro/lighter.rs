@@ -484,9 +484,9 @@ impl LighterCore {
         self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
         self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
         orderbook.set_book_meta("nonce", self.safe_integer_k(data, "offset", &[]));
-        let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        orderbook.set_book_meta("timestamp", timestamp.clone());
-        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
+        orderbook.set_book_meta("timestamp", Value::from(timestamp));
+        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         return orderbook;
 
     Value::Null
@@ -972,25 +972,25 @@ impl LighterCore {
         //         "maker_initial_margin_fraction_before": 200
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
-        let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
-        let mut side: Value = Value::Str("sell".into());
-        if (isMakerAsk.as_bool() == Some(true)) {
-            side = Value::Str("buy".into());
+        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
+        let mut side: String = "sell".to_string();
+        if (isMakerAsk == Some(true)) {
+            side = "buy".to_string();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
@@ -1169,12 +1169,12 @@ impl LighterCore {
         //         "maker_initial_margin_fraction_before": 200
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "usd_amount", &[]);
-        let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
+        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
         let mut accountIndex: Value = self.safe_integer_k(trade.clone(), "accountIndex", &[]);
         let mut bidAccountId: Value = self.safe_integer_k(trade.clone(), "bid_account_id", &[]);
         let mut askAccountId: Value = self.safe_integer_k(trade.clone(), "ask_account_id", &[]);
@@ -1186,16 +1186,16 @@ impl LighterCore {
                 // Own trades should use the account's order side
                 side = Value::Str("buy".into());
                 order = self.safe_string_k(trade.clone(), "bid_id", &[]);
-                takerOrMaker = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+                takerOrMaker = (if (isMakerAsk == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
             }  else if (askAccountId.as_f64() == accountIndex.as_f64()) {
                 side = Value::Str("sell".into());
                 order = self.safe_string_k(trade.clone(), "ask_id", &[]);
-                takerOrMaker = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+                takerOrMaker = (if (isMakerAsk == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             }
         }
         // public trades use Lighter's taker-side convention
         if (side == Value::Null) {
-            side = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isMakerAsk == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut fee: Value = Value::Null;
         if (takerOrMaker != Value::Null) {
@@ -1220,8 +1220,8 @@ impl LighterCore {
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -1440,11 +1440,11 @@ impl LighterCore {
         //         "maker_initial_margin_fraction_before": 200
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(liquidation.clone(), "timestamp", &[]);
-        let mut isMakerAsk: Value = self.safe_bool_k(liquidation.clone(), "is_maker_ask", &[]);
-        let mut side: Value = Value::Str("sell".into());
-        if (isMakerAsk.as_bool() == Some(true)) {
-            side = Value::Str("buy".into());
+        let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "timestamp", &[]).as_i64();
+        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(liquidation.clone(), "is_maker_ask", &[]);
+        let mut side: String = "sell".to_string();
+        if (isMakerAsk == Some(true)) {
+            side = "buy".to_string();
         }
         let mut contracts: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);
         let mut contractSize: Option<String> = self.safe_string_k_opt(market.clone(), "contractSize", &[]);
@@ -1461,11 +1461,11 @@ impl LighterCore {
         m.insert("contracts".to_string(), contracts.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("baseValue".to_string(), baseValue);
         m.insert("quoteValue".to_string(), quoteValue);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
 }), &[]);
 
@@ -1713,9 +1713,9 @@ impl LighterCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".into(), stats); }
             balance.insert("USDC".into(), account);
         }
-        let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        balance.insert("timestamp".into(), timestamp.clone());
-        balance.insert("datetime".into(), self.iso8601(timestamp));
+        let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
+        balance.insert("timestamp".into(), Value::from(timestamp));
+        balance.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
         { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, type_var.clone()]).map(Value::from).unwrap_or(Value::Null);
         client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);

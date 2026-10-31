@@ -547,10 +547,10 @@ impl CoinbaseinternationalCore {
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("subscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
-        let mut method: Value = Value::Str("public/subscribe".into());
+        let mut method: String = "public/subscribe".to_string();
         if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
-            method = Value::Str("private/subscribe".into());
+            method = "private/subscribe".to_string();
             self.authenticate(&[]).await;
         }
         if (url == Value::Null) {
@@ -559,7 +559,7 @@ impl CoinbaseinternationalCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), channels.clone());
@@ -601,10 +601,10 @@ impl CoinbaseinternationalCore {
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("unSubscribe".into()), &[params]);
         let mut url: Value = self.get_ws_url(&[Value::Bool(false)]);
-        let mut method: Value = Value::Str("public/unsubscribe".into());
+        let mut method: String = "public/unsubscribe".to_string();
         if isPrivate {
             url = self.get_ws_url(&[Value::Bool(true)]);
-            method = Value::Str("private/unsubscribe".into());
+            method = "private/unsubscribe".to_string();
             self.authenticate(&[]).await;
         }
         let mut unWatchMessageHashes: Value = Value::from(vec![]);
@@ -619,7 +619,7 @@ impl CoinbaseinternationalCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("method".to_string(), method);
+                m.insert("method".to_string(), Value::from(method.clone()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channels".to_string(), channels.clone());
@@ -1552,13 +1552,13 @@ impl CoinbaseinternationalCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument_name", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid_price", &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "best_ask_price", &[]));
@@ -2114,7 +2114,7 @@ impl CoinbaseinternationalCore {
         let mut type_var: Option<String> = self.safe_string_k(data.clone(), "type", &[Value::Str("snapshot".into())]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
         let mut channelParts: Vec<Value> = Value::Array(channel.as_deref().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut channelPartsLength: f64 = ((channelParts.len() as i64) as f64);
@@ -2135,7 +2135,7 @@ impl CoinbaseinternationalCore {
             return;
         }
         if isGrouped {
-            orderbook.reset(self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into())]));
+            orderbook.reset(self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         }  else {
             let mut previousChangeId: Value = self.safe_integer_k(data.clone(), "prev_change_id", &[]);
             if (type_var.as_deref() != Some("snapshot")) && (nonce != Value::Null) && (previousChangeId.as_f64() != nonce.as_f64()) {
@@ -2153,8 +2153,8 @@ impl CoinbaseinternationalCore {
         }
         orderbook.set_book_meta("symbol", symbol.clone());
         orderbook.set_book_meta("nonce", self.safe_integer_k(data, "change_id", &[]));
-        orderbook.set_book_meta("timestamp", timestamp.clone());
-        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        orderbook.set_book_meta("timestamp", Value::from(timestamp));
+        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         if (channel.is_some()) {
             client.resolve(&[orderbook, channel.map(Value::from).unwrap_or(Value::Null)]);
@@ -2509,19 +2509,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             request.insert("price".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
         }
-        let mut postOnly: Value = self.safe_bool2(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
+        let mut postOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            let mut reduceOnly: Value = self.safe_bool2(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
-            if (reduceOnly != Value::Null) {
-                request.insert("reduce_only".into(), reduceOnly);
+            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+            if (reduceOnly.is_some()) {
+                request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
             }
         }
-        if (postOnly != Value::Null) {
-            request.insert("post_only".into(), postOnly.clone());
-            request.insert("reject_post_only".into(), postOnly);
+        if (postOnly.is_some()) {
+            request.insert("post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("reject_post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
         }
-        let mut timeInForce: Value = self.safe_string2(paramsResolved.clone(), Value::Str("timeInForce".into()), Value::Str("tif".into()), &[]);
-        if (timeInForce != Value::Null) {
+        let mut timeInForce: Option<String> = self.safe_string2_opt(paramsResolved.clone(), Value::Str("timeInForce".into()), Value::Str("tif".into()), &[]);
+        if (timeInForce.is_some()) {
             let mut timeInForces: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("GTC".to_string(), Value::Str("good_til_cancelled".into()));
@@ -2530,11 +2530,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("GTD".to_string(), Value::Str("good_til_day".into()));
                 m
             });
-            request.insert("time_in_force".into(), self.safe_string(Value::Map(timeInForces), timeInForce.clone(), &[timeInForce.clone()]));
+            request.insert("time_in_force".into(), self.safe_string(Value::Map(timeInForces), timeInForce.clone().map(Value::from).unwrap_or(Value::Null), &[timeInForce.map(Value::from).unwrap_or(Value::Null)]));
         }
-        let mut clientOrderId: Value = self.safe_string2(paramsResolved.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
-        if (clientOrderId != Value::Null) {
-            request.insert("label".into(), clientOrderId);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsResolved.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
+        if (clientOrderId.is_some()) {
+            request.insert("label".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "brokerId", &[]);
             if (brokerId.is_some()) {
@@ -2670,7 +2670,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("cancelAllOrdersWs".into()), &[params]);
-        let mut method: Value = Value::Str("private/cancel_all".into());
+        let mut method: String = "private/cancel_all".to_string();
         let mut paramsRequest: Value = paramsResolved.clone();
         if (symbol != Value::Null) {
             if (self.markets.clone() == Value::Null) {
@@ -2682,9 +2682,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("instrument_name".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m
             }), &[paramsResolved]);
-            method = Value::Str("private/cancel_all_by_instrument".into());
+            method = "private/cancel_all_by_instrument".to_string();
         }
-        let mut result: Value = self.request_ws(method, &[paramsRequest, Value::Bool(true)]).await;
+        let mut result: Value = self.request_ws(Value::from(method), &[paramsRequest, Value::Bool(true)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result);

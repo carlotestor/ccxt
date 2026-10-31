@@ -629,7 +629,7 @@ impl BitflyerCore {
             let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
             let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
             let mut spot: bool = !(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true)));
-            let mut type_var: Value = Value::Str("spot".into());
+            let mut type_var: String = "spot".to_string();
             let mut settle: Value = Value::Null;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
@@ -638,7 +638,7 @@ impl BitflyerCore {
                 baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
             }  else if matches!(&swap, Value::Bool(true)) {
-                type_var = Value::Str("swap".into());
+                type_var = "swap".to_string();
                 baseId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
                 quoteId = self.safe_string(currencies, Value::Int(2), &[]);
             }  else if matches!(&future, Value::Bool(true)) {
@@ -667,7 +667,7 @@ impl BitflyerCore {
                 if (expiry == Value::Null) {
                     continue;
                 }
-                type_var = Value::Str("future".into());
+                type_var = "future".to_string();
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -697,7 +697,7 @@ impl BitflyerCore {
                     m.insert("baseId".to_string(), baseId);
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), Value::Null);
-                    m.insert("type".to_string(), type_var);
+                    m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), swap);
@@ -1582,7 +1582,7 @@ impl BitflyerCore {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("message_id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("id".into()), Value::Str("message_id".into()), &[]);
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency_code", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -1611,7 +1611,7 @@ impl BitflyerCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

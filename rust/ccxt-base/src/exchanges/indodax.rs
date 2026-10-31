@@ -1180,7 +1180,7 @@ impl IndodaxCore {
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]);
         }
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "submit_time", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
         let mut fee: Value = Value::Null;
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         return self.safe_order(Value::Map({
@@ -1188,8 +1188,8 @@ impl IndodaxCore {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Str("limit".into()));

@@ -827,14 +827,14 @@ impl P2bCore {
         //        change: '3.13'
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k_opt(ticker.clone(), "at", Value::Int(1000), &[]);
         let mut tickerInner: Value = self.safe_dict_k(ticker.clone(), "ticker", &[ticker.clone()]);
         let mut last: Option<String> = self.safe_string_k_opt(tickerInner.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(tickerInner.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(tickerInner.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(tickerInner.clone(), "bid", &[]));
@@ -948,15 +948,15 @@ impl P2bCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut lastId: Value = self.safe_integer_k(params.clone(), "lastId", &[]);
-        if (lastId == Value::Null) {
+        let mut lastId: Option<i64> = self.safe_integer_k(params.clone(), "lastId", &[]).as_i64();
+        if (lastId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades () requires an extra parameter params[\"lastId\"]".into()))));
         }
         let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("lastId".to_string(), lastId);
+                m.insert("lastId".to_string(), Value::from(lastId));
             m
         });
         if (limit != Value::Null) {
@@ -1031,7 +1031,7 @@ impl P2bCore {
         //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product2(trade.clone(), Value::Str("time".into()), Value::Str("deal_time".into()), Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product2_opt(trade.clone(), Value::Str("time".into()), Value::Str("deal_time".into()), Value::Int(1000), &[]);
         let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "role", &[]);
         if (takerOrMaker.as_str() == Some("1")) {
             takerOrMaker = Value::Str("maker".into());
@@ -1042,8 +1042,8 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("deal_id".into()), &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("dealOrderId".into()), Value::Str("deal_order_id".into()), &[]));
         m.insert("type".to_string(), Value::Null);
@@ -1739,7 +1739,7 @@ impl P2bCore {
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product2_opt(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         return self.safe_order(Value::Map({
@@ -1747,8 +1747,8 @@ impl P2bCore {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
@@ -1848,8 +1848,8 @@ impl P2bCore {
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if !(success.as_bool() == Some(true)) {
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !(success) {
             let mut errorCode: Option<String> = self.safe_string_k_opt(response, "errorCode", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());

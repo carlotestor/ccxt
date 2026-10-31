@@ -890,11 +890,11 @@ impl OnetradingCore {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
             }
         }
-        let mut marketType: Value = Value::Str("spot".into());
+        let mut marketType: String = "spot".to_string();
         if matches!(&isPerp, Value::Bool(true)) {
-            marketType = Value::Str("swap".into());
+            marketType = "swap".to_string();
         }  else if matches!(&isFuture, Value::Bool(true)) {
-            marketType = Value::Str("future".into());
+            marketType = "future".to_string();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -906,7 +906,7 @@ impl OnetradingCore {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone());
         m.insert("settleId".to_string(), (if matches!(&isContract, Value::Bool(true)) { quoteId } else { Value::Null }));
-        m.insert("type".to_string(), marketType);
+        m.insert("type".to_string(), Value::from(marketType));
         m.insert("spot".to_string(), Value::Bool(!(matches!(&isContract, Value::Bool(true)))));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isPerp);
@@ -1814,7 +1814,7 @@ impl OnetradingCore {
         let mut side: Option<String> = self.safe_string_lower_k_opt(rawOrder.clone(), "side", &[]);
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(rawOrder.clone(), "type", &[]);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut postOnly: Value = self.safe_bool_k(rawOrder.clone(), "is_post_only", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(rawOrder.clone(), "is_post_only", &[]);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1827,7 +1827,7 @@ impl OnetradingCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(rawOrder, "trigger_price", &[]));
@@ -1908,12 +1908,12 @@ impl OnetradingCore {
         if priceIsRequired {
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
-        if (clientOrderId != Value::Null) {
-            request.insert("client_id".into(), clientOrderId.clone());
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+        if (clientOrderId.is_some()) {
+            request.insert("client_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerKeys: Value = (if (triggerPrice != Value::Null) { Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopPrice".into())]) } else { Value::from(vec![]) });
-        let mut clientOrderIdKeys: Value = (if (clientOrderId != Value::Null) { Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]) } else { Value::from(vec![]) });
+        let mut clientOrderIdKeys: Value = (if (clientOrderId.is_some()) { Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]) } else { Value::from(vec![]) });
         let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(self.array_concat(triggerKeys, clientOrderIdKeys), Value::from(vec![Value::Str("timeInForce".into())])), &[]);
         let mut timeInForce: Value = self.safe_string2(params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("GOOD_TILL_CANCELLED".into())]);
         request.insert("time_in_force".into(), timeInForce);
@@ -1944,21 +1944,21 @@ impl OnetradingCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
-        let mut method: Value = Value::Str("privateDeleteAccountOrdersOrderId".into());
+        let mut method: String = "privateDeleteAccountOrdersOrderId".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (clientOrderId != Value::Null) {
-            method = Value::Str("privateDeleteAccountOrdersClientClientId".into());
-            request.insert("client_id".into(), clientOrderId);
+        if (clientOrderId.is_some()) {
+            method = "privateDeleteAccountOrdersClientClientId".to_string();
+            request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert("order_id".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("privateDeleteAccountOrdersOrderId")) {
+        if (Some(method.as_str()) == Some("privateDeleteAccountOrdersOrderId")) {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await;
         }  else {
@@ -2114,10 +2114,10 @@ impl OnetradingCore {
         if (since != Value::Null) {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        if (until != Value::Null) {
-            request.insert("to".into(), self.iso8601(until));
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        if (until.is_some()) {
+            request.insert("to".into(), self.iso8601(Value::from(until)));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());
@@ -2348,10 +2348,10 @@ impl OnetradingCore {
         if (since != Value::Null) {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        if (until != Value::Null) {
-            request.insert("to".into(), self.iso8601(until));
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        if (until.is_some()) {
+            request.insert("to".into(), self.iso8601(Value::from(until)));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());

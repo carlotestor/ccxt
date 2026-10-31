@@ -1103,7 +1103,7 @@ impl Bit2cCore {
         }
         let mut id: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "id", &[]);
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k_opt(orderUnified.clone(), "created", Value::Int(1000), &[]);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -1155,8 +1155,8 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
@@ -1334,9 +1334,9 @@ impl Bit2cCore {
             let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
             let mut marketByPair: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]);
             tradeMarket = self.safe_market(&[reference_parts.get(0).cloned().unwrap_or(Value::Null), marketByPair]);
-            let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
-            makerOrTaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
-            orderId = (if (isMaker.as_bool() == Some(true)) { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
+            let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+            makerOrTaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            orderId = (if (isMaker == Some(true)) { reference_parts.get(2).cloned().unwrap_or(Value::Null) } else { reference_parts.get(1).cloned().unwrap_or(Value::Null) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
             if (action == Some(0)) {
                 side = Value::Str("buy".into());
@@ -1522,14 +1522,14 @@ impl Bit2cCore {
         //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
         //     { "Error" : "No order found." }
         //
-        let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
-        if (error == Value::Null) {
-            error = self.safe_string_k(response, "Error", &[]);
+        let mut error: Option<String> = self.safe_string_k_opt(response.clone(), "error", &[]);
+        if (error.is_none()) {
+            error = self.safe_string_k_opt(response, "Error", &[]);
         }
-        if (error != Value::Null) {
+        if (error.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
