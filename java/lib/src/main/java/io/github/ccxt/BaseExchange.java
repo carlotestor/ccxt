@@ -1104,7 +1104,7 @@ public class BaseExchange {
         return Encode.numberToBE(n2, size2);
     }
 
-    public Object remove0xPrefix(Object str2) {
+    public String remove0xPrefix(Object str2) {
         return Encode.remove0xPrefix(str2);
     }
 
@@ -1143,7 +1143,7 @@ public class BaseExchange {
 
     public String ethGetAddressFromPrivateKey(Object privateKey) {
         try {
-            String cleanKey = (String) this.remove0xPrefix(privateKey);
+            String cleanKey = this.remove0xPrefix(privateKey);
             java.math.BigInteger privKeyBigInt = new java.math.BigInteger(cleanKey, 16);
             return "0x" + Crypto.secp256k1EthAddress(privKeyBigInt);
         } catch (Exception e) {
