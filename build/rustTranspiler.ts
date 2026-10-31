@@ -9272,11 +9272,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
                 rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
                 rustContent = this.nativeReplaceIflet(rustContent); // closure-free literal replace, last
-||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
                 rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
-||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
                 rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
-||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
                 rustContent = this.nativeFloorIfLet(rustContent); // closure-free floor of a numeric expr, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
@@ -10035,11 +10032,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
         finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
         finalFile = this.nativeReplaceIflet(finalFile); // closure-free literal replace, last
-||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
         finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
-||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
         finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
-||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
         finalFile = this.nativeFloorIfLet(finalFile); // closure-free floor of a numeric expr, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
@@ -13557,7 +13551,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
     // Char-slice of a Str place without closure:
     //   X.as_str().map(|__s| { <slice body> }).map(Value::from).unwrap_or(Value::Null)
     //     -> (if let Some(__s) = X.as_str() { Value::from({ <slice body> }) } else { Value::Null })
@@ -13608,7 +13601,6 @@ impl std::ops::DerefMut for ${coreName} {
         });
     }
 
-||||||| parent of 65ae17a931e (rust printer: floor-iflet-native (hx11 w8 M550))
     // Floor of a numeric expression without a closure (the `|__x|` closure counted as a blob):
     //   (E).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)
     //     -> (if let Some(__x) = (E).as_f64() { Value::Float(__x.floor()) } else { Value::Null })
