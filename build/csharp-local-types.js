@@ -17377,11 +17377,11 @@ export const CSHARP_STRING_PARAMS = {
     'handleTickerAndBidAsk': { 0: 'string' },
     'handleTickersAndBidsAsks': { 2: 'string' },
     'handleTypePostOnlyAndTimeInForce': { 0: 'string?' },
-    'handleUnSubscriptionTrades': { 1: 'string?' },
+    'handleUnSubscriptionTrades': { 1: 'string?', 2: 'string' },
     'handleUnsubscriptionCache': { 0: 'string?' },
     'handleUnsubscriptionOHLCV': { 1: 'string?', 2: 'string?' },
-    'handleUnsubscriptionOrderBook': { 1: 'string?' },
-    'handleUnsubscriptionTicker': { 1: 'string?' },
+    'handleUnsubscriptionOrderBook': { 1: 'string?', 2: 'string' },
+    'handleUnsubscriptionTicker': { 1: 'string?', 2: 'string' },
     'handleUntilOption': { 0: 'string?' },
     'handleUntilOptionString': { 0: 'string' },
     'helperForWatchMultipleConstruct': { 0: 'string' },
@@ -18539,6 +18539,10 @@ function nonNullStringValue (csharp, declaration, node, depth) {
         const binding = resolveReference (csharp, current);
         if (binding?.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
             return false;
+        }
+        // `const o = this.handleOptionStringAndParams (…, '<literal>')[0]` never holds null
+        if (binding.parent?.flags & ts.NodeFlags.Const && tupleElement0LiteralDefault (binding.initializer)) {
+            return true;
         }
         const scope = enclosingFunction (binding);
         return stringValueIsNonNullAtUse (csharp, scope, binding, binding.name.text, current, { scope, stack: new Set (), depth: 0 });
