@@ -197,14 +197,14 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         IList<object> symbolsList = symbolsNormalized;
         Dictionary<string, object> market = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTickers", "uta", false);
@@ -467,14 +467,14 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         IList<object> symbolsList = symbolsNormalized;
         Dictionary<string, object> market = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "uta", false);
@@ -985,7 +985,7 @@ public partial class bitget : ccxt.bitget
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         bool isStockSpot = false;
         if (symbolsLength > 0)
@@ -1284,7 +1284,7 @@ public partial class bitget : ccxt.bitget
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTradesForSymbols", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
@@ -1601,7 +1601,7 @@ public partial class bitget : ccxt.bitget
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         bool hasSymbols = ((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized);
         if (hasSymbols)
         {

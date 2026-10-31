@@ -1600,7 +1600,7 @@ public partial class bitstamp : Exchange
         //     "pair": "BTC/USD"
         // }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, ((IList<object>)symbols)));
     }
 
     public virtual string? getCurrencyIdFromTransaction(object transaction)

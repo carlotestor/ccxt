@@ -699,7 +699,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         string? listenKey = await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized == null))

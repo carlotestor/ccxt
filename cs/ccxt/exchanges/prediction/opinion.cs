@@ -828,8 +828,8 @@ public partial class opinion : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(outcomes);
-        int outcomesLength = (outcomes?.Count ?? 0);
+        await this.loadOutcomes(((IList<object>)outcomes));
+        int outcomesLength = outcomes?.Count ?? 0;
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
@@ -1663,8 +1663,8 @@ public partial class opinion : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = (outcomes?.Count ?? 0);
-            await this.loadOutcomes(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.walletAddress },

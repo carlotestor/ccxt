@@ -1325,7 +1325,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols));
         if ((symbolsResolved == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires a symbols argument")) ;
@@ -2235,7 +2235,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 

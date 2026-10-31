@@ -1792,7 +1792,7 @@ public partial class htx : ccxt.htx
         string messageHash = "";
         if ((!this.isEmpty(symbols)) && ((symbols != null)))
         {
-            market = this.getMarketFromSymbols(symbols);
+            market = this.getMarketFromSymbols(((IList<object>)symbols));
             messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         string? type = null;
@@ -1818,7 +1818,7 @@ public partial class htx : ccxt.htx
             subType = subTypeparamsSubTypeVariable.Item1;
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;

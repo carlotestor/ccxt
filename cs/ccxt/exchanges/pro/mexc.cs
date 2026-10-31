@@ -212,14 +212,14 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null);
         List<object> messageHashes = new List<object>() {};
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
@@ -426,14 +426,14 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, false, true);
         if ((symbolsNormalized == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;

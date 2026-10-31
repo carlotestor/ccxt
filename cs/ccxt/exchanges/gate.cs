@@ -4077,7 +4077,7 @@ public partial class gate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -5670,7 +5670,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        int ordersLength = (orders?.Count ?? 0);
+        int ordersLength = orders?.Count ?? 0;
         if ((ordersLength == 0))
         {
             throw new BadRequest ((this.id + " createOrders() requires at least one order")) ;
@@ -7977,7 +7977,7 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -10255,7 +10255,7 @@ public partial class gate : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -10317,7 +10317,7 @@ public partial class gate : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, ((IList<object>)symbols), paramsValue));
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

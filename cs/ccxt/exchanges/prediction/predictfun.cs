@@ -2255,8 +2255,8 @@ public partial class predictfun : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = (outcomes?.Count ?? 0);
-            await this.loadOutcomes(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         string? address = this.safeString(parameters, "address");
         Dictionary<string, object> response = null;

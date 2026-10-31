@@ -1880,7 +1880,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         bool onlyContractSymbols = true;
         if ((symbolsNormalized != null))
         {
@@ -4635,7 +4635,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
         //
         //     [

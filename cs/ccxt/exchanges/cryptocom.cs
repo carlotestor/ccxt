@@ -1154,7 +1154,7 @@ public partial class cryptocom : Exchange
             object symbol = null;
             if (((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                int symbolsLength = (symbols?.Count ?? 0);
+                int symbolsLength = symbols?.Count ?? 0;
                 if (symbolsLength > 1)
                 {
                     throw new BadRequest ((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
@@ -1194,7 +1194,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, ((IList<object>)symbols)));
     }
 
     /**
@@ -3872,7 +3872,7 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))

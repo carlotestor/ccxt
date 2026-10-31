@@ -960,10 +960,10 @@ public partial class binance : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int outcomesLength = (outcomes?.Count ?? 0);
+        int outcomesLength = outcomes?.Count ?? 0;
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));

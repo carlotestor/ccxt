@@ -169,7 +169,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -186,7 +186,7 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -345,7 +345,7 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -441,8 +441,8 @@ public partial class grvt : ccxt.grvt
         }
         string? symbolValue = this.symbol(symbol);
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
     }
 
     /**
@@ -609,7 +609,7 @@ public partial class grvt : ccxt.grvt
         (Int64?, object) intervalparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
         Int64? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? extraPart = null;
         if (isSnapshot)
         {
@@ -856,7 +856,7 @@ public partial class grvt : ccxt.grvt
             await this.loadMarkets();
         }
         string subAccountId = this.getSubAccountId(parameters);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))

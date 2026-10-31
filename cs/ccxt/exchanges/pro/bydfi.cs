@@ -200,14 +200,14 @@ public partial class bydfi : ccxt.bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "ticker::";
         List<object> channels = new List<object>() {};
@@ -557,7 +557,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string depth = "100";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -681,7 +681,7 @@ public partial class bydfi : ccxt.bydfi
         {
             symbols = new List<object>() {symbol};
         }
-        return await this.WatchOrdersForSymbols(((IList<object>)symbols), since, limit, parameters);
+        return await this.WatchOrdersForSymbols(symbols, since, limit, parameters);
     }
 
     /**
@@ -702,7 +702,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized == null))
         {
@@ -861,7 +861,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
         if ((symbolsNormalized == null))

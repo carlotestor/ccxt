@@ -765,7 +765,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(((IList<object>)outcomes));
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1120,7 +1120,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(((IList<object>)outcomes));
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));

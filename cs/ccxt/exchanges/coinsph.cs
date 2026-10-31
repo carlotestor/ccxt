@@ -1071,7 +1071,7 @@ public partial class coinsph : Exchange
         {
             tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols, parameters));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, ((IList<object>)symbols), parameters));
     }
 
     /**

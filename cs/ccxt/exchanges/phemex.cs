@@ -1984,7 +1984,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, ((IList<object>)symbols)));
     }
 
     /**
@@ -4403,7 +4403,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"currency", "code"}));
         object paramsSettle = paramsOmitted;

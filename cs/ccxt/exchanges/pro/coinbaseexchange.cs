@@ -164,7 +164,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -175,7 +175,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() symbols is required")) ;
         }
-        int symbolsLength = (symbols?.Count ?? 0);
+        int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
             throw new BadSymbol ((this.id + " watchTickers requires a non-empty symbols array")) ;
@@ -246,7 +246,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string name = "matches";
         object trades = await this.subscribeMultiple(name, symbolsNormalized, name, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
@@ -306,7 +306,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<List<ccxt.Trade>> WatchMyTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -342,7 +342,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string name = "user";
         string messageHash = "orders";
         object authentication = this.authenticate();
@@ -413,7 +413,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)

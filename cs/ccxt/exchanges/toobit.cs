@@ -1541,7 +1541,7 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
@@ -1705,7 +1705,7 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -3398,7 +3398,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int length = (symbols?.Count ?? 0);
+            int length = symbols?.Count ?? 0;
             if (length > 1)
             {
                 throw new BadRequest ((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
@@ -3434,7 +3434,7 @@ public partial class toobit : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, ((IList<object>)symbols)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

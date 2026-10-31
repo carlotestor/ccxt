@@ -208,14 +208,14 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
         {
@@ -239,7 +239,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters);
@@ -333,7 +333,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             await this.loadMarkets();
         }
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));

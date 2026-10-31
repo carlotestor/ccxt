@@ -387,14 +387,14 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string channel = "markets_summary";
         string? url = this.getWsUrl();
         List<object> messageHashes = new List<object>() {};
@@ -625,7 +625,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         // one channel carries every market
         string channel = "positions";
         string? url = this.getWsUrl();

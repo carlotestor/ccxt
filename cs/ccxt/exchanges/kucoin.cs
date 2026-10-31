@@ -3481,7 +3481,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true);
         bool uta = false;
         (bool?, object) utaOptionparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "fetchTickers", "uta", uta);
         bool? utaOption = utaOptionparamsUtaVariable.Item1;
@@ -3628,7 +3628,7 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        this.marketSymbols(symbols);
+        this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> response = await this.publicGetMarkPriceAllSymbols(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data));
@@ -5459,10 +5459,10 @@ public partial class kucoin : Exchange
             throw new BadRequest ((this.id + " createOrders() requires all orders to be either spot or contract")) ;
         } else if (isSpot)
         {
-            return await this.CreateSpotOrders(orders, parameters);
+            return await this.CreateSpotOrders(((IList<object>)orders), parameters);
         } else if (isContract)
         {
-            return await this.CreateContractOrders(orders, parameters);
+            return await this.CreateContractOrders(((IList<object>)orders), parameters);
         } else
         {
             throw new NotSupported ((this.id + " createOrders() does not support the markets of the orders provided")) ;
@@ -12086,7 +12086,7 @@ public partial class kucoin : Exchange
             response = await this.futuresPrivateGetPositions(paramsUta);
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, ((IList<object>)symbols)));
     }
 
     /**
@@ -12118,7 +12118,7 @@ public partial class kucoin : Exchange
         paramsRequest = utaparamsRequestVariable.Item2;
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if ((symbolsNormalized != null))
         {
             int length = (symbolsNormalized?.Count ?? 0);

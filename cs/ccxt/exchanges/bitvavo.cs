@@ -880,7 +880,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, ((IList<object>)symbols)));
     }
 
     /**

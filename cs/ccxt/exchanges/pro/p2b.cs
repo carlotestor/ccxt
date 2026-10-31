@@ -162,14 +162,14 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
         (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
@@ -228,7 +228,7 @@ public partial class p2b : ccxt.p2b
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {

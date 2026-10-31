@@ -2505,7 +2505,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
@@ -3113,7 +3113,7 @@ public partial class pacifica : Exchange
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };

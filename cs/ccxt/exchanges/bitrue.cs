@@ -1652,7 +1652,7 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string? first = this.safeString(symbolsNormalized, 0);
         Dictionary<string, object> market = this.market(first);
         object response = null;
@@ -1725,7 +1725,7 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> response = new List<object>() {};
         IList<object> data = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};

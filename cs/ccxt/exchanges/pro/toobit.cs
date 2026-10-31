@@ -217,7 +217,7 @@ public partial class toobit : ccxt.toobit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -482,14 +482,14 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -621,7 +621,7 @@ public partial class toobit : ccxt.toobit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -1165,7 +1165,7 @@ public partial class toobit : ccxt.toobit
         IList<object> symbolsNormalized = symbols;
         if (!this.isEmpty(symbols))
         {
-            IList<object> marketSymbols = this.marketSymbols(symbols);
+            IList<object> marketSymbols = this.marketSymbols(((IList<object>)symbols));
             if ((marketSymbols == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;

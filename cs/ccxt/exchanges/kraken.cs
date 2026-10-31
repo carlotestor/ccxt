@@ -1251,7 +1251,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if ((symbolsNormalized != null))
         {
             List<object> marketIds = new List<object>() {};
@@ -3943,7 +3943,7 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> result = this.safeList(response, "result");
         IList<object> results = this.parsePositions(result, symbolsNormalized);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));

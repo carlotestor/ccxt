@@ -1352,7 +1352,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // resolve the uncached outcomes first, then group by parent market to fetch each
         // market and book only once
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         Dictionary<string, object> outcomesBySlug = new Dictionary<string, object>() {};
         List<object> slugs = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
@@ -3137,11 +3137,11 @@ public partial class limitless : PredictionExchange
         int symbolsLength = 0;
         if ((outcomes != null))
         {
-            symbolsLength = (outcomes?.Count ?? 0);
+            symbolsLength = outcomes?.Count ?? 0;
         }
         if (symbolsLength > 0)
         {
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)

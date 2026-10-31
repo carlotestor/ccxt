@@ -746,7 +746,7 @@ public partial class hollaex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         //
         //     {

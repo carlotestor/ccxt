@@ -5868,7 +5868,7 @@ public partial class bitget : Exchange
         {
             if ((symbols != null))
             {
-                int symbolsLength = (symbols?.Count ?? 0);
+                int symbolsLength = symbols?.Count ?? 0;
                 if ((symbolsLength == 1))
                 {
                     request["symbol"] = this.safeString(market, "id");
@@ -11650,7 +11650,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> parsedPosition = this.parsePosition(position[i], market);
             result.Add(parsedPosition);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -14239,7 +14239,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -14273,7 +14273,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> responseList = this.safeList(data, "list", new List<object>() {});
-        IList<object> positions = this.parsePositions(responseList, symbols, paramsUTA);
+        IList<object> positions = this.parsePositions(responseList, ((IList<object>)symbols), paramsUTA);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

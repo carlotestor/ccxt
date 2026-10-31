@@ -3324,7 +3324,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3430,7 +3430,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -7716,7 +7716,7 @@ public partial class okx : Exchange
         {
             result.Add(this.parsePosition(positions[i]));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(((IList<object>)symbols))));
     }
 
     /**
@@ -11340,7 +11340,7 @@ public partial class okx : Exchange
         };
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
                 Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -11390,7 +11390,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, paramsOmitted);
+        IList<object> positions = this.parsePositions(data, ((IList<object>)symbols), paramsOmitted);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limitResolved));
     }
 

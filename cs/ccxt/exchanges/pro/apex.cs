@@ -87,7 +87,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -235,7 +235,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -431,14 +431,14 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
@@ -723,7 +723,7 @@ public partial class apex : ccxt.apex
             symbolsNormalized2 = symbols;
         } else
         {
-            symbolsNormalized2 = this.marketSymbols(symbols);
+            symbolsNormalized2 = this.marketSymbols(((IList<object>)symbols));
         }
         if (!this.isEmpty(symbols))
         {

@@ -1307,7 +1307,7 @@ public partial class hitbtc : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {

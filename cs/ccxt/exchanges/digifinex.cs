@@ -1257,7 +1257,7 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -4345,7 +4345,7 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         string? marketType = null;

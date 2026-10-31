@@ -229,7 +229,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string channel = this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades").Item1;
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -550,14 +550,14 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -613,7 +613,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -729,14 +729,14 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -1430,7 +1430,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? depthOption = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books").Item1;
         string depth = depthOption;
         if ((limit != null))
@@ -2140,7 +2140,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         await this.authenticate(parameters);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", "ANY" },
         };

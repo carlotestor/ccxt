@@ -1073,7 +1073,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> response = await this.publicGetMarketTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
@@ -3360,7 +3360,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> response = await this.privateGetAccountPositions(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> result = this.parsePositions(data);
@@ -3392,7 +3392,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 0))
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -3439,7 +3439,7 @@ public partial class blofin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, paramsUntil);
+        IList<object> positions = this.parsePositions(data, ((IList<object>)symbols), paramsUntil);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

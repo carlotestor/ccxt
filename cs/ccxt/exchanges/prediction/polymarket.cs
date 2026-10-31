@@ -1401,7 +1401,7 @@ public partial class polymarket : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         List<object> targets = new List<object>() {};
         for (int oi = 0; oi < (outcomes?.Count ?? 0); oi++)
         {
@@ -2140,8 +2140,8 @@ public partial class polymarket : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = (outcomes?.Count ?? 0);
-            await this.loadOutcomes(outcomes);
+            outcomesLength = outcomes?.Count ?? 0;
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)

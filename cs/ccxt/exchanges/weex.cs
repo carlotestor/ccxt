@@ -1294,7 +1294,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1383,7 +1383,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1632,7 +1632,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
         List<object> response = await this.contractGetCapiV3MarketPremiumIndex(parameters);
         //
         //     [
@@ -4254,7 +4254,7 @@ public partial class weex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         List<object> response = null;
         if ((sandboxMode == true))

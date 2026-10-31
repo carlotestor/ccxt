@@ -1716,7 +1716,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? code = this.safeString2(parameters, "code", "currency");
         string? type = null;
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"code"}));
@@ -3379,7 +3379,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result");
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, ((IList<object>)symbols)));
     }
 
     /**

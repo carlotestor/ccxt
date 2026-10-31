@@ -2348,7 +2348,7 @@ public partial class mexc : Exchange
         bool isSingularMarket = false;
         if ((symbols != null))
         {
-            int length = (symbols?.Count ?? 0);
+            int length = symbols?.Count ?? 0;
             isSingularMarket = (length == 1);
             market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
@@ -2406,7 +2406,7 @@ public partial class mexc : Exchange
         {
             tickers = new List<object>() {tickers};
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, ((IList<object>)symbols)));
     }
 
     /**
@@ -2627,7 +2627,7 @@ public partial class mexc : Exchange
         bool isSingularMarket = false;
         if ((symbols != null))
         {
-            int length = (symbols?.Count ?? 0);
+            int length = symbols?.Count ?? 0;
             isSingularMarket = (length == 1);
             market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
@@ -2647,7 +2647,7 @@ public partial class mexc : Exchange
         {
             tickers = new List<object>() {tickers};
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, ((IList<object>)symbols)));
     }
 
     /**
@@ -5942,7 +5942,7 @@ public partial class mexc : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, ((IList<object>)symbols)));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -6852,7 +6852,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
                 Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -6905,7 +6905,7 @@ public partial class mexc : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, parameters);
+        IList<object> positions = this.parsePositions(data, ((IList<object>)symbols), parameters);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

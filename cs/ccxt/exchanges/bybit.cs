@@ -8146,7 +8146,7 @@ public partial class bybit : Exchange
         IList<object> symbolsNormalized = null;
         if (((symbols != null)) && ((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 1)
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
@@ -8154,7 +8154,7 @@ public partial class bybit : Exchange
             {
                 symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             }
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         } else if ((symbols != null))
         {
             symbol = symbols;
@@ -10986,7 +10986,7 @@ public partial class bybit : Exchange
         int symbolsLength = 0;
         if ((symbols != null))
         {
-            symbolsLength = (symbols?.Count ?? 0);
+            symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -11057,7 +11057,7 @@ public partial class bybit : Exchange
         {
             rawPositionsList = rawPositions;
         }
-        IList<object> positions = this.parsePositions(rawPositionsList, symbols, paramsOmitted);
+        IList<object> positions = this.parsePositions(rawPositionsList, ((IList<object>)symbols), paramsOmitted);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

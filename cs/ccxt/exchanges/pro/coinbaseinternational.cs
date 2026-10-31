@@ -434,7 +434,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -532,7 +532,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols));
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -771,7 +771,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
@@ -779,7 +779,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -922,7 +922,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
@@ -930,7 +930,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -1041,8 +1041,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         string? symbolResolved = this.symbol(symbol);
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
+        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolResolved), timeframeVar));
     }
 
     /**
@@ -1218,7 +1218,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
@@ -2179,7 +2179,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols));
         object result = await this.requestWs("private/get_positions", paramsResolved, true);
         IList<object> positions = this.parsePositions(((IList<object>)result));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsResolved));

@@ -406,14 +406,14 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
         {

@@ -801,7 +801,7 @@ public partial class bullish : ccxt.bullish
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {

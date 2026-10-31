@@ -2739,7 +2739,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2795,7 +2795,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -2914,7 +2914,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -3363,7 +3363,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
         IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);

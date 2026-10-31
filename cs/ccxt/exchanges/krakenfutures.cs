@@ -816,7 +816,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> tickers = this.safeList(response, "tickers");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, ((IList<object>)symbols)));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -3595,7 +3595,7 @@ public partial class krakenfutures : Exchange
         {
             throw new ExchangeNotAvailable ((this.id + " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, ((IList<object>)symbols)));
     }
 
     /**
@@ -3628,7 +3628,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
@@ -3693,7 +3693,7 @@ public partial class krakenfutures : Exchange
                 updates.Add(update);
             }
         }
-        IList<object> positions = this.parsePositions(updates, symbols);
+        IList<object> positions = this.parsePositions(updates, ((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

@@ -93,14 +93,14 @@ public partial class mudrex : ccxt.mudrex
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> messageHashes = new List<object>() {};
         List<object> assets = new List<object>() {};
         if ((symbolsNormalized != null))

@@ -398,14 +398,14 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.speed] '1s' (default), or '3s'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IList<object> methodNameparamsMethodVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTickers");
         string? methodName = (string)methodNameparamsMethodVariable[0];
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodNameparamsMethodVariable[1]); // watchTicker passes its own name, so options.watchTicker still applies to it
@@ -580,14 +580,14 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         IDictionary<string, object> options = this.safeDict(this.options, "watchBidsAsks");
         string? defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
         string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);

@@ -217,14 +217,14 @@ public partial class deribit : ccxt.deribit
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string? interval = this.safeString(parameters, "interval", "100ms");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
@@ -315,14 +315,14 @@ public partial class deribit : ccxt.deribit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -906,8 +906,8 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) ? ohlcvs[symbolValue] : null), timeframeVar));
+        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolValue), timeframeVar));
     }
 
     /**

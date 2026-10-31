@@ -1215,7 +1215,7 @@ public partial class kalshi : PredictionExchange
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
         List<object> tickers = new List<object>() {};
@@ -1854,11 +1854,11 @@ public partial class kalshi : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = (outcomes?.Count ?? 0);
+            outcomesLength = outcomes?.Count ?? 0;
         }
         if (outcomesLength > 0)
         {
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)

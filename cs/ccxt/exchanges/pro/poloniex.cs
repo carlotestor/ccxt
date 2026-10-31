@@ -521,7 +521,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -529,7 +529,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         string name = "ticker";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         object newTickers = await this.subscribe(name, name, false, symbolsNormalized, parameters);
         if (this.newUpdates)
         {
@@ -573,7 +573,7 @@ public partial class poloniex : ccxt.poloniex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         string name = "trades";
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public", "");
         IList<object> marketIds = this.marketIds(symbolsNormalized);

@@ -1417,7 +1417,7 @@ public partial class bingx : ccxt.bingx
         await this.authenticate();
         IDictionary<string, object> market = null;
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);

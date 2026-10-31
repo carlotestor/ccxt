@@ -406,7 +406,7 @@ public partial class xt : ccxt.xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -423,7 +423,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
+            market = this.market(getValue(symbols, 0));
         }
         if ((name != null))
         {
@@ -769,7 +769,7 @@ public partial class xt : ccxt.xt
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && this.isEmpty(cache))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, ((IList<object>)symbols), since, limit, true));
         }
         string name = "position";
         object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
@@ -777,7 +777,7 @@ public partial class xt : ccxt.xt
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, ((IList<object>)symbols), since, limit, true));
     }
 
     /**

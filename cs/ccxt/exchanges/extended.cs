@@ -943,7 +943,7 @@ public partial class extended : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -2584,7 +2584,7 @@ public partial class extended : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            IList<object> marketIds = this.marketIds(symbols);
+            IList<object> marketIds = this.marketIds(((IList<object>)symbols));
             request["market"] = marketIds;
         }
         Dictionary<string, object> response = await this.v1PrivateGetUserPositions(this.extend(request, parameters));
@@ -2619,7 +2619,7 @@ public partial class extended : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, ((IList<object>)symbols)));
     }
 
     /**

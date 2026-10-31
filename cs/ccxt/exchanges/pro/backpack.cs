@@ -475,7 +475,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchTickers", symbols, parameters));
@@ -663,7 +663,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, unavailable prices remain undefined
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWsTickers("watchBidsAsks", symbols, parameters, true));
@@ -1033,7 +1033,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1241,7 +1241,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1844,7 +1844,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         if ((symbolsNormalized != null))

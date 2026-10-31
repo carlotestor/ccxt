@@ -830,7 +830,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
         if ((((firstMarket != null && firstMarket.ContainsKey("option") ? firstMarket["option"] : null) as bool?) == true))
@@ -1430,7 +1430,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         string streamHash = "multipleTrades";
         if ((symbolsNormalized != null))
         {
@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
     }
 
     /**
@@ -2516,7 +2516,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchTickers", "stock", false);
@@ -2529,7 +2529,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchTickers() with stock stream requires symbols")) ;
             }
-            symbolsNormalized = this.marketSymbols(symbols, null, false, false, true);
+            symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, false, true);
             object stockResult = await this.watchStockMarketStream(new List<object>() {"price"}, new List<object>() {"stock:price"}, paramsStock);
             if (this.newUpdates)
             {
@@ -2672,7 +2672,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2688,7 +2688,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchBidsAsks() with stock stream requires symbols")) ;
             }
-            IList<object> stockSymbols = this.marketSymbols(symbols, null, false, false, true);
+            IList<object> stockSymbols = this.marketSymbols(((IList<object>)symbols), null, false, false, true);
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
             for (int i = 0; i < (stockSymbols?.Count ?? 0); i++)
@@ -2704,7 +2704,7 @@ public partial class binance : ccxt.binance
             }
             return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", stockSymbols));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbolsNormalized, paramsStock);
         if (this.newUpdates)
         {
@@ -4017,7 +4017,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), "swap", true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -5830,7 +5830,7 @@ public partial class binance : ccxt.binance
         }
         IDictionary<string, object> market = null;
         object messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         if (!this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);

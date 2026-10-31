@@ -142,14 +142,14 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string channel = "ticker24h";
         object tickers = await this.watchPublicMultiple(channel, channel, symbolsNormalized, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsNormalized));
@@ -209,14 +209,14 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string channel = "ticker24h";
         object tickers = await this.watchPublicMultiple("bidask", channel, symbolsNormalized, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsNormalized));
@@ -333,7 +333,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -717,7 +717,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};

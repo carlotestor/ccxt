@@ -3203,7 +3203,7 @@ public partial class myriad : PredictionExchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // resolve the uncached outcomes first, then group by parent market to fetch each market only once
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         Dictionary<string, object> outcomesByMarket = new Dictionary<string, object>() {};
         List<object> marketKeys = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
@@ -4034,28 +4034,28 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        int symbolsLength = (outcomes?.Count ?? 0);
+        int symbolsLength = getArrayLength(outcomes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
-        await this.loadOutcomes(outcomes);
+        await this.loadOutcomes(((IList<object>)outcomes));
         var client = this.client(url);
         Dictionary<string, object> seenChannels = new Dictionary<string, object>() {};
         List<object> resolvedSymbols = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
+            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? networkId = this.safeString(info, "networkId", "");
             string? marketId = this.safeString(info, "marketId", "");
             string channel = ((("prices:" + networkId) + ":") + marketId);
-            resolvedSymbols.Add(this.safeOutcomeSymbol((outcomes != null && i < outcomes.Count ? outcomes[i] : null), outcomeObj));
+            resolvedSymbols.Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
             if (!(seenChannels.ContainsKey(channel)))
             {
                 seenChannels[(string)channel] = true;
@@ -4254,7 +4254,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if ((outcomes != null))
         {
-            await this.loadOutcomes(outcomes);
+            await this.loadOutcomes(((IList<object>)outcomes));
         }
         string trader = this.walletAddressFromKeys();
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
@@ -4282,7 +4282,7 @@ public partial class myriad : PredictionExchange
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, ((IList<object>)outcomes), since, limit, true));
     }
 
     public async virtual Task seedPositionBalances(string? trader)

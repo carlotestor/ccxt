@@ -2725,7 +2725,7 @@ public partial class woo : Exchange
         }
         if ((symbols != null))
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
                 // the type gate throws NotSupported rather than letting marketSymbols raise
@@ -2739,7 +2739,7 @@ public partial class woo : Exchange
                 }
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), "swap", true, true);
         object paramsRequest = parameters;
         if ((symbolsNormalized == null))
         {
@@ -4635,7 +4635,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {

@@ -1681,12 +1681,12 @@ public partial class backpack : Exchange
         int symbolsLength = 0;
         if ((symbols != null))
         {
-            symbolsLength = (symbols?.Count ?? 0);
+            symbolsLength = symbols?.Count ?? 0;
         }
         IList<object> symbolsResolved = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         if ((symbolsLength != 0))
         {
-            symbolsResolved = this.marketSymbols(symbols, null, false);
+            symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         }
         bool hasRfqSymbol = false;
         bool hasStockSymbol = false;
@@ -3786,7 +3786,7 @@ public partial class backpack : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(response));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbolsNormalized));
     }
 

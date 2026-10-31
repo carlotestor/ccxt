@@ -141,7 +141,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -251,7 +251,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         List<object> markets = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -480,11 +480,11 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "ticker";
         string streamType = "all_bbo";
@@ -557,11 +557,11 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         IDictionary<string, object> market = null;
         string messageHash = "bidask";
         string streamType = "all_bbo";
@@ -830,7 +830,7 @@ public partial class nado : ccxt.nado
         this.checkRequiredCredentials();
         await this.loadMarkets();
         await this.authenticate(this.extend(new Dictionary<string, object>() {}, parameters));
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         string messageHash = "positions";
         Int64? productId = null;
         if ((symbolsNormalized != null))

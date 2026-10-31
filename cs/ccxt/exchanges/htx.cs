@@ -3129,7 +3129,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -9612,7 +9612,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {

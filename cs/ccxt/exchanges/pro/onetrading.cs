@@ -197,14 +197,14 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IList<object> symbolsList = ((symbolsNormalized == null)) ? new List<object>() {} : symbolsNormalized;
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = "tickers";

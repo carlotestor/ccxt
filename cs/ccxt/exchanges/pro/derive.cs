@@ -219,14 +219,14 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
@@ -996,7 +996,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsResolved = this.marketSymbols(((IList<object>)symbols), null, true);
         (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
         IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);

@@ -646,7 +646,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, ((IList<object>)symbols)));
     }
 
     /**

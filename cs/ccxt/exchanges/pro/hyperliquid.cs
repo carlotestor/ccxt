@@ -437,14 +437,14 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true);
         string messageHash = "tickers";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1501,7 +1501,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {

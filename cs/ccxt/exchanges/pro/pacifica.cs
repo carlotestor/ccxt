@@ -671,7 +671,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
@@ -679,7 +679,7 @@ public partial class pacifica : ccxt.pacifica
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true);
         string messageHash = "tickers";
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";

@@ -220,14 +220,14 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "ticker";
@@ -453,7 +453,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "trade";
@@ -935,7 +935,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
@@ -1104,14 +1104,14 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         if ((this.safeBool(firstMarket, "contract", false) == true))
         {
@@ -2006,7 +2006,7 @@ public partial class weex : ccxt.weex
         string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "contract", "") + "/private");
         this.authenticate(url);
         var client = this.client(url);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), "swap", true);
         string messageHash = "positions";
         string subscriptionHash = messageHash;
         if ((symbolsNormalized != null))

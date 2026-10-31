@@ -778,11 +778,11 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)
         {
@@ -806,11 +806,11 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         ((IDictionary<string,object>)parameters)["event_trigger"] = "bbo";
         object ticker = await this.watchMultiHelper("bidask", "ticker", symbolsNormalized, null, parameters);
         if (this.newUpdates)

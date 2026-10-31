@@ -6444,7 +6444,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         if ((symbolsNormalized != null))
         {
             this.checkNoStockSymbols(symbolsNormalized, "fetchBidsAsks");
@@ -6604,7 +6604,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         if ((symbolsNormalized != null))
         {
             this.checkNoStockSymbols(symbolsNormalized, "fetchTickers");
@@ -6745,7 +6745,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -14924,7 +14924,7 @@ public partial class binance : Exchange
                 result.Add(this.parsePositionRisk(rawPosition));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 

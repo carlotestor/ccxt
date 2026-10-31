@@ -265,11 +265,11 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -346,11 +346,11 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -951,7 +951,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);

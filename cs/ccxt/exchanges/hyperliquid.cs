@@ -1348,7 +1348,7 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         object response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
@@ -4364,7 +4364,7 @@ public partial class hyperliquid : Exchange
         }
         string? userAddress = this.safeString(this.handlePublicAddress("fetchPositions", parameters), 0);
         IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchPositions", parameters), 1, new Dictionary<string, object>() {});
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "clearinghouseState" },
             { "user", userAddress },

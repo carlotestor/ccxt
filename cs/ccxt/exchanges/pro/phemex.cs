@@ -598,14 +598,14 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         string? first = ((string)(symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         Dictionary<string, object> market = this.market(first);
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));

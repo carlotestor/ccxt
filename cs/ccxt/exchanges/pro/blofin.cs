@@ -328,7 +328,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -395,14 +395,14 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false);
         IList<object> symbolsList = symbolsNormalized;
         Dictionary<string, object> firstMarket = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         string channel = "tickers";
@@ -802,7 +802,7 @@ public partial class blofin : ccxt.blofin
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, ((IList<object>)symbols), since, limit));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)

@@ -1807,7 +1807,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> response = await this.publicGetQuoteV1Ticker24hr(parameters);
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
@@ -4058,7 +4058,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument with one single market symbol")) ;
         } else
         {
-            int symbolsLength = (symbols?.Count ?? 0);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength != 1))
             {
                 throw new NotSupported ((((this.id + " ") + methodName) + "() is supported for a symbol argument with one single market symbol only")) ;

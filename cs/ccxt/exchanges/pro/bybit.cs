@@ -431,14 +431,14 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsValue = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsValue = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = await this.getUrlByMarketType((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null), false, "watchTickers", parameters);
         object paramsValue = this.cleanParams(parameters);
@@ -683,14 +683,14 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsValue = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsValue = this.marketSymbols(((IList<object>)symbols), null, false);
         List<object> messageHashes = new List<object>() {};
         string? url = await this.getUrlByMarketType((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null), false, "watchBidsAsks", parameters);
         object paramsValue = this.cleanParams(parameters);
@@ -992,7 +992,7 @@ public partial class bybit : ccxt.bybit
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         string? url = await this.getUrlByMarketType((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null), false, "watchOrderBook", parameters);
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
@@ -1219,7 +1219,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1722,7 +1722,7 @@ public partial class bybit : ccxt.bybit
         IList<object> symbolsNormalized = symbols;
         if (((symbols != null)) && !this.isEmpty(symbols))
         {
-            symbolsNormalized = this.marketSymbols(symbols);
+            symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         }
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {

@@ -124,7 +124,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -135,7 +135,7 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, true);
         int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
         if (isGenerationTwo && ((symbolsLength == 0)))
         {

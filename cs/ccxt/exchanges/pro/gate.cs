@@ -906,7 +906,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {             { "method", "tickers" },         }, parameters)));
@@ -946,7 +946,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {             { "method", "book_ticker" },         }, parameters)));
@@ -1111,7 +1111,7 @@ public partial class gate : ccxt.gate
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string messageType = this.getTypeByMarket(market);
@@ -1680,7 +1680,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> payload = new List<object>() {("!" + "all")};
         if (!this.isEmpty(symbolsNormalized))
         {

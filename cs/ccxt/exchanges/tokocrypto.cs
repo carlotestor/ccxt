@@ -1429,9 +1429,9 @@ public partial class tokocrypto : Exchange
             // a user-supplied symbol param makes the endpoint answer a single
             // ticker object, the unified fetchTickers contract returns a
             // symbol-keyed dict either way
-            return ccxt.BaseExchange.ToTickers(this.parseTickers(new List<object>() {response}, symbols));
+            return ccxt.BaseExchange.ToTickers(this.parseTickers(new List<object>() {response}, ((IList<object>)symbols)));
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, ((IList<object>)symbols)));
     }
 
     /**
@@ -1520,7 +1520,7 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.binanceGetTickerBookTicker(parameters);
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, ((IList<object>)symbols)));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
