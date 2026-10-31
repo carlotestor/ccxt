@@ -5437,13 +5437,14 @@ class BaseExchange {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits(symbols);
                 const symbolsArray = this.requireValue(symbols, 'loadTradingLimits() requires a symbols argument');
-                const markets = this.markets;
-                if (markets === undefined) {
+                if (this.markets === undefined) {
                     throw new errors.ExchangeError(this.id + ' markets not loaded');
                 }
+                // read the loaded table, write through the field: a published table is replaced, not edited in place
+                const markets = this.markets;
                 for (let i = 0; i < symbolsArray.length; i++) {
                     const symbol = symbolsArray[i];
-                    markets[symbol] = this.deepExtend(markets[symbol], response[symbol]);
+                    this.markets[symbol] = this.deepExtend(markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds();
             }
