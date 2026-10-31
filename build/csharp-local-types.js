@@ -2975,8 +2975,34 @@ function typedCoreFunnelType (csharp, declaration) {
         if (helper !== undefined) {
             return table.get (helper);
         }
+        // identity From* (FromInt64 / FromStringValue / FromDict) add no funnel line: the awaited
+        // core's own declared Task<T> IS the box, when every same-name declaration here agrees
+        const own = csharpIdentityCoreBox (content, core, table);
+        if (own !== undefined) {
+            return own;
+        }
     }
     return undefined;
+}
+
+const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
+function csharpIdentityCoreBox (content, core, table) {
+    const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
+    const signature = new RegExp ('^[ \\t]*public async (?:virtual |override )+Task<([^\\n]+)> ' + core + '\\(', 'i');
+    const objectSignature = new RegExp ('^[ \\t]*public [^\\n(]*\\b' + core + '\\(', 'i');
+    const found = new Set ();
+    for (const text of content.split ('\n')) {
+        if (!objectSignature.test (text)) {
+            continue;
+        }
+        const match = signature.exec (text);
+        found.add (match === null ? '?' : match[1]);
+    }
+    if (found.size !== 1) {
+        return undefined;
+    }
+    const [ box ] = found;
+    return boxes.has (box) ? box : undefined;
 }
 
 // The generated implicit-api wrappers (cs/ccxt/api/<id>.cs + cs/ccxt/api/prediction/<id>.cs)
