@@ -5861,6 +5861,20 @@ func (this *Polymarket) FetchClosedOrders(params map[string]any, options ...Fetc
 	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name polymarket#fetchOrders
+ * @description fetches the latest known snapshot of up to one hundred orders
+ * @see https://docs.polymarket.com/perps/trading
+ * @param {string} [symbol] unified market symbol of the market orders were made in
+ * @param {int} [since] timestamp in ms of the earliest order
+ * @param {int} [limit] not sent to the venue, applied client-side
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest order
+ * @param {string} [params.clientOrderId] fetch the order with this client order id only
+ * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchOrdersOptionsStruct{}
