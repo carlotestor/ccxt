@@ -775,7 +775,7 @@ impl BittradeCore {
         let mut messageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "messageHash", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
-            let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
+            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[]).as_i64();
             let mut params: indexmap::IndexMap<String, Value> = self.safe_dict_k(subscription, "params", &[]).as_map().cloned().unwrap_or_default();
             let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
             let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -810,7 +810,7 @@ impl BittradeCore {
                     m.insert("id".to_string(), requestId.clone());
                     m.insert("messageHash".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("limit".to_string(), limit.clone());
+                    m.insert("limit".to_string(), Value::from(limit));
                     m.insert("params".to_string(), Value::Map(params));
                     m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
                 m

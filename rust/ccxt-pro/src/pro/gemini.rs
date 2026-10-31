@@ -396,10 +396,10 @@ impl GeminiCore {
         //        "makerSide": "bid"
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        let mut id: Value = self.safe_string2(trade.clone(), Value::Str("event_id".into()), Value::Str("tid".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+        let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("event_id".into()), Value::Str("tid".into()), &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("quantity".into()), Value::Str("amount".into()), &[]);
+        let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("quantity".into()), Value::Str("amount".into()), &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         if (side == Value::Null) {
             let mut marketSide: Option<String> = self.safe_string_lower_k(trade.clone(), "makerSide", &[]).as_str().map(str::to_owned);
@@ -413,18 +413,18 @@ impl GeminiCore {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[market]);
@@ -524,7 +524,7 @@ impl GeminiCore {
 }
 
     pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
-        let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+        let mut tradesLimit: Option<i64> = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64();
         let mut storesForSymbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -542,7 +542,7 @@ impl GeminiCore {
             if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
-                stored = ArrayCache::new(tradesLimit.clone());
+                stored = ArrayCache::new(Value::from(tradesLimit));
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             stored.append(trade);
@@ -1091,8 +1091,8 @@ impl GeminiCore {
             market = self.market(symbol);
         }
         let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]) } else { Value::Null });
-        let mut messageHash: Value = Value::Str("orders".into());
-        let mut orders: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
+        let mut messageHash: String = "orders".to_string();
+        let mut orders: Value = self.watch(url, Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1148,7 +1148,7 @@ impl GeminiCore {
         //         }
         //     ]
         //
-        let mut messageHash: Value = Value::Str("orders".into());
+        let mut messageHash: String = "orders".to_string();
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit);
@@ -1162,7 +1162,7 @@ impl GeminiCore {
             orders.append(order);
         }
         }
-        client.resolve(&[self.orders.clone(), messageHash]);
+        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1188,19 +1188,19 @@ impl GeminiCore {
         //         "socket_sequence": 139
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestampms", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestampms", &[]).as_i64();
         let mut status: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut typeId: Option<String> = self.safe_string_k_opt(order.clone(), "order_type", &[]);
         let mut behavior: Option<String> = self.safe_string_k(order.clone(), "behavior", &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = Value::Str("GTC".into());
+        let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: Value = Value::Bool(false);
         if (behavior.as_deref() == Some("immediate-or-cancel")) {
-            timeInForce = Value::Str("IOC".into());
+            timeInForce = "IOC".to_string();
         }  else if (behavior.as_deref() == Some("fill-or-kill")) {
-            timeInForce = Value::Str("FOK".into());
+            timeInForce = "FOK".to_string();
         }  else if (behavior.as_deref() == Some("maker-or-cancel")) {
-            timeInForce = Value::Str("PO".into());
+            timeInForce = "PO".to_string();
             postOnly = Value::Bool(true);
         }
         return self.safe_order(Value::Map({
@@ -1208,13 +1208,13 @@ impl GeminiCore {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("info".to_string(), order.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
         m.insert("type".to_string(), self.parse_ws_order_type(typeId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));

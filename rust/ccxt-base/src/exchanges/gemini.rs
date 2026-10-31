@@ -1172,9 +1172,9 @@ impl GeminiCore {
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut fiatFlag: Option<String> = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut isFiat: bool = (fiatFlag.is_some()) && (fiatFlag.as_deref() != Some(""));
-        let mut type_var: Value = Value::Str("crypto".into());
+        let mut type_var: String = "crypto".to_string();
         if isFiat {
-            type_var = Value::Str("fiat".into());
+            type_var = "fiat".to_string();
         }
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -1226,7 +1226,7 @@ impl GeminiCore {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("precision".to_string(), precision);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1681,9 +1681,9 @@ impl GeminiCore {
             linear = Value::Bool(true); // always linear
             inverse = Value::Bool(false);
         }
-        let mut type_var: Value = Value::Str("spot".into());
+        let mut type_var: String = "spot".to_string();
         if swap {
-            type_var = Value::Str("swap".into());
+            type_var = "swap".to_string();
         }
         let mut isSpot: Value = Value::Bool(!(swap));
         return self.safe_market_structure(&[Value::Map({
@@ -1696,7 +1696,7 @@ impl GeminiCore {
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(swap.clone()));
@@ -1926,7 +1926,7 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_k(volume.clone(), "timestamp", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(volume.clone(), "timestamp", &[]).as_i64();
         let mut symbol: Value = Value::Null;
         let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
@@ -1963,8 +1963,8 @@ impl GeminiCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
@@ -2063,7 +2063,7 @@ impl GeminiCore {
         //          "client_order_id":"1638891171610"
         //      }
         //
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestampms", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestampms", &[]).as_i64();
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "tid", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "order_id", &[]);
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_currency", &[]);
@@ -2083,8 +2083,8 @@ impl GeminiCore {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2365,16 +2365,16 @@ impl GeminiCore {
         //          "remaining_amount":"0.01"
         //      }
         //
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestampms", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestampms", &[]).as_i64();
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "original_amount", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "remaining_amount", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executed_amount", &[]);
-        let mut status: Value = Value::Str("closed".into());
+        let mut status: String = "closed".to_string();
         if matches!(self.safe_bool_k(order.clone(), "is_live", &[Value::Bool(false)]), Value::Bool(true)) {
-            status = Value::Str("open".into());
+            status = "open".to_string();
         }
         if matches!(self.safe_bool_k(order.clone(), "is_cancelled", &[Value::Bool(false)]), Value::Bool(true)) {
-            status = Value::Str("canceled".into());
+            status = "canceled".to_string();
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "avg_execution_price", &[]);
@@ -2394,15 +2394,15 @@ impl GeminiCore {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_order_id", &[]);
         let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
         let mut option: Option<String> = self.safe_string(optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = Value::Str("GTC".into());
+        let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: Value = Value::Bool(false);
         if (option.is_some()) {
             if (option.as_deref() == Some("immediate-or-cancel")) {
-                timeInForce = Value::Str("IOC".into());
+                timeInForce = "IOC".to_string();
             }  else if (option.as_deref() == Some("fill-or-kill")) {
-                timeInForce = Value::Str("FOK".into());
+                timeInForce = "FOK".to_string();
             }  else if (option.as_deref() == Some("maker-or-cancel")) {
-                timeInForce = Value::Str("PO".into());
+                timeInForce = "PO".to_string();
                 postOnly = Value::Bool(true);
             }
         }
@@ -2411,13 +2411,13 @@ impl GeminiCore {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -2566,19 +2566,19 @@ impl GeminiCore {
             m
         });
         let mut typeValue: Value = self.safe_string_k(params.clone(), "type", &[type_var]);
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_n_opt(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]), &[]);
         // timeInForce and postOnly are consumed only by non-trigger orders
         let mut omitKeys: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
         let mut optionKeys: Value = Value::from(vec![]);
-        if (triggerPrice == Value::Null) {
+        if (triggerPrice.is_none()) {
             optionKeys = Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
         }
         let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]);
         if (typeValue.as_str() == Some("stopLimit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), typeValue).into()), Value::Str(" orders".into()))));
         }
-        if (triggerPrice != Value::Null) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice));
+        if (triggerPrice.is_some()) {
+            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("type".into(), Value::Str("exchange stop limit".into()));
         }  else {
             // No options can be applied to stop-limit orders at this time.
@@ -2592,8 +2592,8 @@ impl GeminiCore {
                     request.insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())]));
                 }
             }
-            let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-            if postOnly.as_bool() == Some(true) {
+            let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
+            if postOnly {
                 request.insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())]));
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -2819,7 +2819,7 @@ impl GeminiCore {
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestampms", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestampms", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "destination", &[]);
@@ -2841,8 +2841,8 @@ impl GeminiCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("eid".into()), Value::Str("withdrawalId".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txHash", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), Value::Null);

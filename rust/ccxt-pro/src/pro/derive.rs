@@ -966,9 +966,9 @@ impl DeriveCore {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = client.reusable_future(messageHash.clone());
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
             let mut now: Value = self.number_to_string(self.nonce());
@@ -995,7 +995,7 @@ impl DeriveCore {
             //     'params': params,
             // }
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), message.clone()]).await;
+            self.watch(url, Value::from(messageHash.clone()), &[message.clone(), Value::from(messageHash.clone()), message.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

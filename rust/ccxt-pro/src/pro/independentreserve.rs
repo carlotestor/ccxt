@@ -477,7 +477,7 @@ impl IndependentreserveCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut receivedSnapshot: Value = self.safe_bool_k(subscription.clone(), "receivedSnapshot", &[Value::Bool(false)]);
+        let mut receivedSnapshot: bool = self.safe_bool_k_opt(subscription.clone(), "receivedSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: Value = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -506,7 +506,7 @@ impl IndependentreserveCore {
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if (checksum).as_bool() == Some(true) && receivedSnapshot.as_bool() == Some(true) {
+        if (checksum).as_bool() == Some(true) && receivedSnapshot {
             let mut storedAsks: Value = orderbook.book_field("asks");
             let mut storedBids: Value = orderbook.book_field("bids");
             let mut asksLength: Value = get_array_length(&storedAsks);
@@ -540,7 +540,7 @@ impl IndependentreserveCore {
                 return;
             }
         }
-        if receivedSnapshot.as_bool() == Some(true) {
+        if receivedSnapshot {
             client.resolve(&[orderbook, messageHash]);
         }
 }

@@ -1444,7 +1444,7 @@ impl CryptomusCore {
         //         "stopLossPrice": "101.12"
         //     }
         //
-        let mut id: Value = self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("id".into()), &[]);
+        let mut id: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_id".into()), Value::Str("id".into()), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut dateTime: Option<String> = self.safe_string_k_opt(order.clone(), "createdAt", &[]);
@@ -1478,7 +1478,7 @@ impl CryptomusCore {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOrderId", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

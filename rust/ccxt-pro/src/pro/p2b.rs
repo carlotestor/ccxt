@@ -564,12 +564,12 @@ impl P2bCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut name: Value = Value::Str("depth.subscribe".into());
+        let mut name: String = "depth.subscribe".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
         let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut request: Value = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limitResolved, interval]);
-        let mut orderbook: Value = self.subscribe(name, messageHash, request, &[params]).await;
+        let mut orderbook: Value = self.subscribe(Value::from(name), messageHash, request, &[params]).await;
         return orderbook.limit();
 
     Value::Null
@@ -770,7 +770,7 @@ impl P2bCore {
         //    }
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut isFullUpdate: Value = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]);
+        let mut isFullUpdate: bool = self.safe_bool_opt(params.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[]);
         let mut bids: Value = self.safe_list_k(data, "bids", &[]);
@@ -791,7 +791,7 @@ impl P2bCore {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             orderbook = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
-        if isFullUpdate.as_bool() == Some(true) {
+        if isFullUpdate {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

@@ -1354,11 +1354,11 @@ impl CoinspotCore {
             let mut audGst: Option<String> = self.safe_string_k_opt(trade.clone(), "audGst", &[]);
             // The transaction fee which consumers pay is inclusive of GST by default
             let mut feeCost: Value = crate::precise::Precise::stringAdd(&audfeeExGst.clone().map(Value::from).unwrap_or(Value::Null), &audGst.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut feeCurrencyId: Value = Value::Str("AUD".into());
+            let mut feeCurrencyId: String = "AUD".to_string();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId, &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(Value::from(feeCurrencyId), &[]));
                 m
             });
         }
