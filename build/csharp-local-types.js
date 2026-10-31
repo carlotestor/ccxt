@@ -14549,6 +14549,40 @@ function installCsharpDictionaryIndexWriteCastElision (csharp) {
     csharp.csharpDictionaryIndexWriteNeedsNoCast = (node) => csharpDictionaryIndexWriteNeedsNoCast (csharp, node);
 }
 
+// RF-cs-1 c03 (was build/hx10w3-C03.js): the string-keyed dictionary members of hand-written C#
+// classes that the printer reads natively. cs/ccxt/ws/Client.cs backs the TS ws `Client` class:
+//   public IDictionary<string, Future> futures;  public IDictionary<string, object> subscriptions;
+// with the typed accessors getFuture(string) / getSubscription(string), which answer null for a
+// missing key, a null key and (subscriptions) a null or empty value, like the safeValue helper.
+// Keyed on the file that declares the property (ts/src/base/ws/Client.ts, so every subclass
+// receiver such as WsClient resolves the same way) and the member name; the printer (ast
+// csharpDeclaredDictMember) turns `recv.member[key]` into the key-tested indexer read and
+// `this.safeValue (recv.member, key)` into `recv.<getter>(key)`.
+const CSHARP_DECLARED_DICT_MEMBER_FILE = /(?:^|\/)base\/ws\/Client\.ts$/
+const CSHARP_DECLARED_DICT_MEMBERS = {
+    'futures': { 'getter': 'getFuture' },
+    'subscriptions': { 'getter': 'getSubscription' },
+}
+
+function installCsharpDeclaredDictMembers (csharp) {
+    if (csharp._declaredDictMembersPatched) {
+        return
+    }
+    csharp.csharpDeclaredDictMember = (node) => {
+        if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || !Object.prototype.hasOwnProperty.call (CSHARP_DECLARED_DICT_MEMBERS, node.name.text)) {
+            return undefined
+        }
+        try {
+            const declarations = (csharp.getChecker ().getSymbolAtLocation (node.name)?.declarations ?? []).map ((handle) => handle.resolve ())
+            const declared = declarations.length > 0 && declarations.every ((d) => CSHARP_DECLARED_DICT_MEMBER_FILE.test (d.getSourceFile ().fileName.replace (/\\/g, '/')))
+            return declared ? CSHARP_DECLARED_DICT_MEMBERS[node.name.text] : undefined
+        } catch (e) {
+            return undefined // no checker (in-memory transpile): the helper stays
+        }
+    }
+    csharp._declaredDictMembersPatched = true
+}
+
 // wrap printVariableDeclarationList on a Transpiler's C# printer. Idempotent. Everything
 // the upstream printer already typed (or printed in another shape) is returned untouched;
 // only an exact `<iden>object <name> = ` prefix is rewritten.
@@ -14557,6 +14591,7 @@ export function installCsharpLocalTypes (transpiler) {
     if (!csharp || typeof csharp.printVariableDeclarationList !== 'function') {
         return;
     }
+    installCsharpDeclaredDictMembers (csharp); // RF-cs-1 c03
     installRedundantAddCasts (csharp);
     installCsharpListCastSkips (csharp);
     installCsharpElementAccessCastSkips (csharp);
@@ -14643,7 +14678,9 @@ export function installCsharpLocalTypes (transpiler) {
                 value = boxed[1];
             }
         }
-        if (info.cast !== undefined) {
+        // RF-cs-1 c03: the printer printed the initializer as a typed member read (its own type is the
+        // declaration's), so there is no `object` box to cast back
+        if (info.cast !== undefined && !(typeof csharp.csharpIsDeclaredDictMemberRead === 'function' && csharp.csharpIsDeclaredDictMemberRead (declaration.initializer))) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
             // the cast's closing paren on a second line; the ws row-builder family keeps `object`
             // there, so every retyped declaration stays a single declaration-type-only line
