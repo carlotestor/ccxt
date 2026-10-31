@@ -10,7 +10,6 @@ import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler } from "./transpile.js";
-import { hx11w8BasePinnedListParams } from './hx11w8-base-pinned-list-params.js';
 import { hx11w8ObjectValuesListLocals } from './hx11w8-objectvalues-list-local.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
@@ -7594,7 +7593,6 @@ function j20ParamCompareSelfTest (): string[] {
 function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
-    content = hx11w8BasePinnedListParams(content);
     content = hx11w8ObjectValuesListLocals(content);
     content = nativeJavaDeclaredElementReads(content);
     content = nativeJavaJ03ElementReads(content);
