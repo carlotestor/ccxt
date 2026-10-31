@@ -1001,12 +1001,13 @@ class BaseExchange(SyncExchange):
             if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
                 symbolsArray = self.require_value(symbols, 'loadTradingLimits() requires a symbols argument')
-                markets = self.markets
-                if markets is None:
+                if self.markets is None:
                     raise ExchangeError(self.id + ' markets not loaded')
+                # read the loaded table, write through the field: a published table is replaced, not edited in place
+                markets = self.markets
                 for i in range(0, len(symbolsArray)):
                     symbol = symbolsArray[i]
-                    markets[symbol] = self.deep_extend(markets[symbol], response[symbol])
+                    self.markets[symbol] = self.deep_extend(markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
