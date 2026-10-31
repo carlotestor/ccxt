@@ -5341,6 +5341,132 @@ function goGofmtLayoutSelfTest (): string[] {
     return problems;
 }
 
+// hx11 w8: a generated line over 400 bytes breaks after a top-level `, ` of its outermost
+// {...} / (...) list, or after a `||` / `&&` of an if-condition, in gofmt's layout (the
+// continuation is indented one tab per open bracket). String/rune literals and comments
+// are never entered; the joined text is the original line.
+function goSplitLongLines (content: string, max = 400): string {
+    const size = (t: string) => Buffer.byteLength (t);
+    const splitLine = (line: string): string[] => {
+        if (size (line) <= max) {
+            return [ line ];
+        }
+        const m = /^\t*/.exec (line);
+        const tabs = m ? m[0].length : 0;
+        const body = line.slice (tabs);
+        if (body.startsWith ('//') || body.startsWith ('/*') || body.startsWith ('*')) {
+            return [ line ];
+        }
+        const cond = /^(?:\} else )?if /.test (body);
+        const cands: { at: number, depth: number, skip: number }[] = [];
+        const stack: string[] = [];
+        let i = 0;
+        let end = body.length;
+        while (i < body.length) {
+            const c = body[i];
+            if (c === '"' || c === "'") {
+                let j = i + 1;
+                while (j < body.length && body[j] !== c) {
+                    j += (body[j] === '\\') ? 2 : 1;
+                }
+                if (j >= body.length) {
+                    return [ line ];
+                }
+                i = j + 1;
+                continue;
+            }
+            if (c === '`') {
+                const j = body.indexOf ('`', i + 1);
+                if (j < 0) {
+                    return [ line ];
+                }
+                i = j + 1;
+                continue;
+            }
+            if (c === '/' && (body[i + 1] === '/' || body[i + 1] === '*')) {
+                if (body[i + 1] === '*') {
+                    return [ line ];
+                }
+                end = i;
+                break;
+            }
+            if (c === '{' || c === '(' || c === '[') {
+                stack.push (c);
+            } else if (c === '}' || c === ')' || c === ']') {
+                if (stack.length === 0) {
+                    return [ line ];  // continuation of a multi-line expression: gofmt owns its indent
+                }
+                stack.pop ();
+            } else if (c === ',' && body[i + 1] === ' ' && stack.length > 0 && stack[stack.length - 1] !== '[') {
+                cands.push ({ at: i + 1, depth: stack.length, skip: 1 });
+            } else if (cond && stack.length === 0 && body[i + 2] === ' ' && body[i - 1] === ' ' && (c === '|' || c === '&') && body[i + 1] === c) {
+                cands.push ({ at: i + 2, depth: 0, skip: 1 });
+                i += 1;
+            }
+            i += 1;
+        }
+        const openBlock = cond && stack.length === 1 && stack[0] === '{' && body.endsWith (' {');
+        if (stack.length !== 0 && end === body.length && !openBlock) {
+            return [ line ];
+        }
+        for (let level = 0; level <= 6; level++) {
+            const usable = cands.filter (x => Math.max (x.depth, level === 0 ? 0 : 0) <= level);
+            if (usable.length === 0) {
+                continue;
+            }
+            const out: string[] = [];
+            let start = 0;
+            let indent = tabs;
+            let ok = true;
+            while (start < body.length) {
+                const room = max - indent;
+                if (size (body.slice (start)) <= room) {
+                    out.push ('\t'.repeat (indent) + body.slice (start));
+                    break;
+                }
+                let pick = -1;
+                for (const x of usable) {
+                    if (x.at > start && size (body.slice (start, x.at)) <= room) {
+                        pick = usable.indexOf (x);
+                    }
+                }
+                if (pick < 0) {
+                    ok = false;
+                    break;
+                }
+                const x = usable[pick];
+                out.push ('\t'.repeat (indent) + body.slice (start, x.at));
+                start = x.at + x.skip;
+                indent = tabs + Math.max (x.depth, 1);
+            }
+            if (ok) {
+                return out;
+            }
+        }
+        return [ line ];
+    };
+    if (!/[^\n]{401}/.test (content) && !/[^\x00-\x7f]/.test (content)) {
+        return content;
+    }
+    const split = content.split ('\n').flatMap (splitLine).join ('\n');
+    if (split === content) {
+        return content;
+    }
+    // gofmt re-indents the continuation lines and re-aligns the key columns the split broke;
+    // it only runs on a file that is gofmt-clean before the split, so nothing else moves
+    const gofmt = resolveGofmt ();
+    if (gofmt === null) {
+        return content;
+    }
+    const run = (text: string) => spawnSync (gofmt, [], { 'input': text, 'encoding': 'utf8', 'maxBuffer': 1 << 30, 'windowsHide': true });
+    const before = run (content);
+    const after = run (split);
+    if (before.status !== 0 || before.stdout !== content || after.status !== 0) {
+        return content;
+    }
+    return after.stdout;
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -5411,6 +5537,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         console.error ('[layout] ' + path + ' oneline-before=' + before + ' after=' + after + ' same=' + (laid === content));
     }
     content = path.endsWith ('.go') ? goGofmtLayout (content, hx4G36Aligner ()) : content;
+    content = path.endsWith ('.go') ? goSplitLongLines (content) : content;  // hx11 w8: long400 composite-literal / condition split, after the final layout
     overwriteFile (path, content);
 }
 
