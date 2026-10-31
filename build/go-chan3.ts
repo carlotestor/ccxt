@@ -329,7 +329,24 @@ function goChan3ResolvedOk (want: string | undefined, method: string, receiver?:
 }
 
 // `var <v> T` + a type switch over `expr` + the typed send, as statements at indent `ind` (first line unindented)
-function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string): string {
+// RF-go-4 (was hx10w10-GP27): the value of a shared watch receive is a dictionary or a list by type. Watch /
+// WatchMultiple (hand-written, `args ...any`) are the only producers, so the shape belongs to the channel:
+// WatchMap / WatchMultipleMap / WatchList / WatchMultipleList apply the coercion once and the core sends `rN.Value`.
+// text of the receive (`<-this.Watch(..)`) -> the typed twin's name suffix for the wanted carrier, else undefined
+// A struct carrier (the table type is a unified struct, only shadowed as map[string]any here) is rebuilt by its
+// `<T>FromMap`, which takes the box, so its receive keeps Watch.
+function goChan3WatchTwinSuffix (receive: string, want: string, structCarrier: boolean): { 'at': number, 'suffix': string } | undefined {
+    const m = /^<-(?:ccxt\.)?this\.(Watch|WatchMultiple)\(/.exec (receive);
+    if (structCarrier || (m === null) || ((want !== 'map[string]any') && (want !== '[]any'))) {
+        return undefined;
+    }
+    return { 'at': m[0].length - 1, 'suffix': (want === 'map[string]any') ? 'Map' : 'List' };
+}
+
+function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
+    if (direct) {
+        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + expr + '}';
+    }
     if (want === 'OrderBookInterface') {
         return 'var ' + v + ' ' + q + 'OrderBookInterface = ' + q + 'OrderBookTyped(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'OrderBookInterface]{Value: ' + v + '}';
     }
@@ -378,9 +395,11 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
         ];
         return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
     }
+    // RF-go-4 (was hx10w9-GO05): a map[string]any coercion has no `case *sync.Map:` arm. No *sync.Map producer is
+    // left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
     const conv = (want === '[]any')
         ? [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ]
-        : [ 'case *sync.Map:', '\t' + v + ' = ' + q + 'SafeMapToMap(' + box + ')' ];
+        : [];
     const lines = [
         'var ' + v + ' ' + want,
         'switch ' + box + ' := ' + swExpr + '.(type) {',  // struct fields are concrete
@@ -769,6 +788,8 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
         if ((want === undefined) && (audit === undefined)) {
             continue;
         }
+        const realType = goChan3Lookup (goChan3Table (), receiver, method);
+        const structCarrier = (realType !== undefined) && goChan3StructTypes ().has (goChan3BaseType (realType));
         const types = new Set<string> ();
         const reasons: string[] = [];
         const fail = (reason: string) => { reasons.push (reason); };
@@ -809,8 +830,13 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     if ((ft === undefined) && goChan3ResolvedOk (want, method, receiver)) {
                         const rn = goChan3FreshName (fnText, freshTaken);
                         const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
-                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, goChan3ResolvedName (fnText, freshTaken));
-                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + fnText.substring (at, lineEnd) + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
+                        let receive = fnText.substring (at, lineEnd);
+                        const twin = goChan3WatchTwinSuffix (receive, want as string, structCarrier);
+                        if (twin !== undefined) {
+                            receive = receive.substring (0, twin.at) + twin.suffix + receive.substring (twin.at);
+                        }
+                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), twin !== undefined);
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
                         types.add (want as string);
                         continue;
                     }
@@ -860,7 +886,16 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     }
                     if ((type === undefined) && (fm === undefined) && (bind !== null) && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
                         const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
-                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                        // the receive is bound once in this core and the coercion is its only reader: it reads the typed twin
+                        const recvAt = bind.index + bind[0].length - 2;
+                        const twin = goChan3WatchTwinSuffix (fnMasked.substring (recvAt), want as string, structCarrier);
+                        const bound = fnMasked.match (new RegExp ('\\n\\t*' + (fwdVal as RegExpExecArray)[1] + ' := ', 'g')) ?? [];
+                        if ((twin !== undefined) && (bound.length === 1)) {
+                            edits.push ({ 'start': bodyStart + recvAt + twin.at, 'end': bodyStart + recvAt + twin.at, 'text': twin.suffix });
+                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, '', true) });
+                        } else {
+                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken)) });
+                        }
                         types.add (want as string);
                         continue;
                     }
@@ -872,8 +907,10 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                 } else if (expr.startsWith ('<-') && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
                     const rn = goChan3FreshName (fnText, freshTaken);
                     const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
-                    const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, goChan3ResolvedName (fnText, freshTaken));
-                    edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': rn + ' := ' + expr + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
+                    const twin = goChan3WatchTwinSuffix (expr, want as string, structCarrier);
+                    const receive = (twin === undefined) ? expr : (expr.substring (0, twin.at) + twin.suffix + expr.substring (twin.at));
+                    const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), twin !== undefined);
+                    edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
                     types.add (want as string);
                     continue;
                 } else if (goChan3EndpointRawType (expr, fnMasked) !== undefined) {
@@ -2351,8 +2388,8 @@ export function goChan3SelfTest (): string[] {
     // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
     goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
     const w = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.Watch(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tif a == nil {\n\t\tch <- <-this.WatchMultiple(a)\n\t\treturn nil\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'WatchX', 'ccxt.'), goChan3Table ());
-    ok (w.includes ('\tvar resolved1 map[string]any\n\tswitch resolved1Box := r.Value.(type) {\n\tcase map[string]any:\n\t\tresolved1 = resolved1Box\n\tcase *sync.Map:\n\t\tresolved1 = ccxt.SafeMapToMap(resolved1Box)\n\tcase nil:\n\tdefault:\n\t\tpanic(ccxt.ExchangeError("resolved value is not map[string]any"))\n\t}\n\tch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}\n')
-        && w.includes ('\t\tr1 := <-this.WatchMultiple(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tvar resolved map[string]any\n') && w.includes ('import "sync"\n') && (w.indexOf ('ResolvedAs') < 0), 'ws2 boundary: ' + w);
+    ok (w.includes ('\tr := <-this.WatchMap(a)\n') && w.includes ('\tch <- ccxt.AsyncResult[map[string]any]{Value: r.Value}\n') && (w.indexOf ('resolved') < 0) && (w.indexOf ('sync.Map') < 0) && (w.indexOf ('import "sync"') < 0)
+        && w.includes ('\t\tr1 := <-this.WatchMultipleMap(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}\n'), 'ws2 boundary: ' + w);
     ok (run (w, goChan3Table ()) === w, 'ws2 idempotent');
     // WS2 bool + per-receiver table + nullable value type bool?
     goChan3SetTableForTest (new Map ([ [ 'UnWatchX', 'bool' ], [ 'InitX', 'bool?' ], [ 'A.HelperX', 'map[string]any' ], [ 'B.HelperX', '[]any' ] ]), new Set ([ 'UnWatchX' ]));
