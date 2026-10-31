@@ -17134,6 +17134,141 @@ export function installCsharpGuardedMinMax (transpiler) {
     csharp._guardedMinMaxPatched = true;
 }
 
+// ===== RFM-C1 C05: native mod / Math.Min / Math.Max on declared integral operands =====
+//
+// Replaces the final-text pass hx10w2-C05 with printer-time rules keyed on the operands' declared
+// C# kinds (nativeArithmeticOperandKind: the retyped declaration, the narrowed core parameter, the
+// literal's own type). A call is printed natively only when the C# operator computes what the helper
+// answers for every value the kinds allow:
+//   a % b            both operands Int64 / Int64? / an integer literal (not two literals, divisor not
+//                    the literal 0): the lifted `%` is null exactly where mod's null branch is.
+//   Math.min/max     both operands int / Int64 (an integer literal widens to the other side); an
+//                    Int64? identifier only under a dominating, unbroken null test (-> `.Value`).
+//                    double keeps the helper (NaN, signed-zero tie); a mixed int / Int64 pair keeps
+//                    it where the receiving declaration is a narrower int.
+// The result must be consumed as a plain value (csharpMinMaxResultIsPlainValue).
+const C05_KINDS = [ 'int', 'Int64', 'Int64?' ];
+
+function c05Operand (csharp, node) {
+    let inner = nativeComparisonUnwrap (node);
+    let negative = false;
+    if ((inner?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (inner.operator === ts.SyntaxKind.MinusToken)) {
+        negative = true;
+        inner = nativeComparisonUnwrap (inner.operand);
+    }
+    if (inner?.kind === ts.SyntaxKind.NumericLiteral) {
+        return /^\d{1,15}$/.test (inner.text) ? { kind: 'intlit', literal: true, zero: !negative && (Number (inner.text) === 0) } : undefined;
+    }
+    if (negative || (inner?.kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    const kind = nativeArithmeticOperandKind (csharp, inner);
+    return C05_KINDS.includes (kind) ? { kind, identifier: inner } : undefined;
+}
+
+function c05ModExpression (csharp, node) {
+    if (node.operatorToken?.kind !== ts.SyntaxKind.PercentToken || typeof csharp.csharpMinMaxResultIsPlainValue !== 'function') {
+        return undefined;
+    }
+    const left = c05Operand (csharp, node.left);
+    const right = c05Operand (csharp, node.right);
+    if (left === undefined || right === undefined || (left.literal && right.literal) || right.zero) {
+        return undefined;
+    }
+    const allowed = (o) => o.literal || (o.kind === 'Int64') || (o.kind === 'Int64?');
+    if (!allowed (left) || !allowed (right) || !csharp.csharpMinMaxResultIsPlainValue (node)) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0).trim () + ' % ' + csharp.printNode (node.right, 0).trim () + ')';
+}
+
+// the non-nullable operand text of one Math.min/max argument, or undefined when it cannot be proven
+function c05MinMaxOperandText (csharp, call, operand, printed) {
+    if (operand.kind !== 'Int64?') {
+        return printed;
+    }
+    const identifier = operand.identifier;
+    if (typeof csharp.csharpNullGuardAdmitsRead !== 'function') {
+        return undefined;
+    }
+    if (!c05SameExpressionGuard (csharp, call, identifier)
+        && (nativeSubtractOperandIsRebound (csharp, identifier) || !csharp.csharpNullGuardAdmitsRead (call, identifier))) {
+        return undefined;
+    }
+    return printed + '.Value';
+}
+
+// the null test sits in the SAME expression as the read (`x == null ? a : f(x)`, `x != null && f(x)`):
+// nothing can write the binding between the test and the read, so later writes elsewhere are moot
+function c05SameExpressionGuard (csharp, call, identifier) {
+    let symbol;
+    try {
+        symbol = csharp.getChecker ().getSymbolAtLocation (identifier);
+    } catch (e) {
+        return false;
+    }
+    if (symbol === undefined || typeof csharp.csharpTestIsNonNullCheck !== 'function') {
+        return false;
+    }
+    let current = call;
+    while (current.parent !== undefined) {
+        const parent = current.parent;
+        if (parent.kind === ts.SyntaxKind.ConditionalExpression && parent.condition !== current
+            && csharp.csharpTestIsNonNullCheck (parent.condition, symbol, parent.whenTrue === current)) {
+            return true;
+        }
+        if (parent.kind === ts.SyntaxKind.BinaryExpression && parent.operatorToken?.kind === ts.SyntaxKind.AmpersandAmpersandToken
+            && parent.right === current && csharp.csharpTestIsNonNullCheck (parent.left, symbol, true)) {
+            return true;
+        }
+        if (ts.isStatement?.(parent) || parent.kind === ts.SyntaxKind.Block || parent.kind === ts.SyntaxKind.VariableDeclarationList) {
+            return false;
+        }
+        current = parent;
+    }
+    return false;
+}
+
+function c05MinMaxExpression (csharp, node, name, parsedArg1, parsedArg2) {
+    const args = node?.arguments;
+    if (args?.length !== 2 || typeof csharp.csharpMinMaxResultIsPlainValue !== 'function' || !csharp.csharpMinMaxResultIsPlainValue (node)) {
+        return undefined;
+    }
+    const left = c05Operand (csharp, args[0]);
+    const right = c05Operand (csharp, args[1]);
+    if (left === undefined || right === undefined || (left.literal && right.literal)) {
+        return undefined;
+    }
+    const base = (o) => nativeArithmeticBaseKind (o.kind);
+    if (!left.literal && !right.literal && base (left) !== base (right)) {
+        // `int x = mathMin(anInt64, anInt)` would receive the pair's `long` result
+        const declaration = node.parent?.kind === ts.SyntaxKind.VariableDeclaration ? node.parent : undefined;
+        const sink = (declaration !== undefined) ? referenceDeclaredType (csharp, declaration) : undefined;
+        if ([ 'int', 'uint', 'short', 'byte' ].includes (sink)) {
+            return undefined;
+        }
+    }
+    const l = c05MinMaxOperandText (csharp, node, left, parsedArg1);
+    const r = c05MinMaxOperandText (csharp, node, right, parsedArg2);
+    return (l === undefined || r === undefined) ? undefined : 'Math.' + name + '(' + l + ', ' + r + ')';
+}
+
+export function installCsharpRfmC1C05 (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || typeof csharp.csharpNativeMathMinMax !== 'function' || csharp._rfmC1C05Patched) {
+        return;
+    }
+    const upstreamBinary = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        const native = (node?.kind === ts.SyntaxKind.BinaryExpression) ? c05ModExpression (csharp, node) : undefined;
+        return native ?? upstreamBinary (node, identation);
+    };
+    const upstreamMinMax = csharp.csharpNativeMathMinMax.bind (csharp);
+    csharp.csharpNativeMathMinMax = (node, name, parsedArg1, parsedArg2) => upstreamMinMax (node, name, parsedArg1, parsedArg2)
+        ?? c05MinMaxExpression (csharp, node, name, parsedArg1, parsedArg2);
+    csharp._rfmC1C05Patched = true;
+}
+
 // ===== string parameters =====
 //
 // Positions every ts/src declaration of the method annotates `Str`/`string`, that no body writes,

@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeAddHx4C02, installCsharpHx4C10NonNullConcat } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeAddHx4C02, installCsharpHx4C10NonNullConcat, installCsharpRfmC1C05 } from './csharp-local-types.js';
 import log from 'ololog'
 import './hx10w3-C07.js' // hx10 wave3 C07: narrowed handleErrors code + ws boolean flags (tables)
 
@@ -171,6 +171,7 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     installCsharpDeclaredCollectionLocals (transpiler);
     installCsharpNativeAddHx4C02 (transpiler); // hx4 C02
     installCsharpHx4C10NonNullConcat (transpiler); // hx4 C10
+    installCsharpRfmC1C05 (transpiler); // RFM-C1 C05: native mod / Math.Min / Math.Max
 }
 
 // bare helper calls whose hand-written C# signature returns `bool` and whose printed form IS

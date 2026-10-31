@@ -9,7 +9,6 @@ import { hx10C08PromiseAll, hx10C08SnippetChecks, hx11w8PromiseAllSlots } from '
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
-import { hx10C05NativeCompareMath, hx10C05SelfTest } from './hx10w2-C05.js'
 import { hx10C05NativeArithmeticEquality } from './hx10w7-C05.js' // hx10 wave7 C05: isEqual over native arithmetic
 import { hx10C05TupleSlotTypes, hx10C05SnippetChecks } from './hx10w3-C05.js' // hx10 wave3 C05: destructured tuple slots
 // the positional core-argument type tables live in the classifier module so the pooled
@@ -9183,7 +9182,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9767,7 +9766,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true, c31 = true): string {
-    const baseOut = hx10C05NativeCompareMath (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (hx10C05TupleSlotTypes (hxC08NativeRuntimeStateReads (content)), objectNull)))))))))))))))))); // hx10w2 C05, C08
+    const baseOut = (hx4C29NativeGetValue (hx4C28NativeHelperCalls (objectNull, hx4C27NativeCompare (hx4C26NativeMath (hx4C22NativeMath (hx4C21NativeHelperCalls (hx4C19NativeMath (hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (hx4C23NativeHelperCalls (hx4C25NativeGetValue (nativeDeclaredHelperCallsBase (hx10C05TupleSlotTypes (hxC08NativeRuntimeStateReads (content)), objectNull)))))))))))))))))); // hx10w2 C08
     const c04Out = hx10W2C04NativeHelperCalls (baseOut); // hx10w2 C04
     const c33Out = hx4C33NativeHelperCalls (objectNull, c04Out);
     const c30Out = hx4C30NativeMath (objectNull, c33Out);
@@ -10223,7 +10222,6 @@ export function csharpHx4SelfTest (): string[] {
         check ('guarded Int64? request field', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((since != null))\n        {\n            request["before"] = mathMax((since - 1), 0);\n        }', 'request["before"] = Math.Max((since.Value - 1), 0);');
         check ('unguarded Int64? request field keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        request["before"] = mathMax((since - 1), 0);', 'mathMax((since - 1), 0)');
         check ('ternary-guarded box-neutral local', '        int maxLimit = 300;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        request["limit"] = v;\n        object d = multiply(v, 2);', 'object v = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);');
-        check ('ternary-guarded local returned emits Math.Min (C05)', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'Math.Min(limit.Value, maxLimit)');
         check ('C20 !(x == null) guard', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(limit == null))\n        {\n            request["size"] = mathMin(limit, 2000); // max\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 && guard', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) && (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 guard with statements between brace and call', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'request[\"size\"] = Math.Min(limit.Value, 2000);');
@@ -10232,8 +10230,21 @@ export function csharpHx4SelfTest (): string[] {
         check ('C20 || guard keeps helper', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) || (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('C20 guard on other name keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(since == null))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('ternary on another name keeps helper', '        int maxLimit = 300;\n        object v = ((since == null)) ? maxLimit : mathMin(limit, maxLimit);\n        object d = multiply(v, 2);', 'mathMin(limit, maxLimit)');
-        check ('C05 mod on Int64 operands', '        Int64? b = this.safeInteger(since0, \"b\");\n        bool r = this.isRoundNumber(mod(1000, b));', '(1000 % b)');
-        check ('C05 comparison against a countguard', '        List<object> xs = this.stringToCharsArray(since0);\n        for (Int64 i = 0; isLessThan(i, (xs?.Count ?? 0)); i++)\n        {\n        }', '(i < (xs?.Count ?? 0))');
+    }
+    // RFM-C1 C05: printer-time native mod / Math.Min / Math.Max (installCsharpRfmC1C05)
+    {
+        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } };
+        const transpiler = new Transpiler (config);
+        setupCsharpPrinter (transpiler);
+        const check = (name: string, body: string, expected: string, forbidden?: string) => {
+            const src = 'type Int = number | undefined; class Test {\n' + body + '\n}';
+            const out: string = (transpiler as any).transpileCSharp (src).content;
+            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) problems.push (`rfm-c1 C05 ${name}\n${out}`);
+        };
+        check ('ternary-guarded Int64? param', 'async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined) { const m = 300; const v = (limit === undefined) ? m : Math.min (limit, m); return v; }', 'Math.Min(limit.Value, m)');
+        check ('if-guarded Int64? param', 'async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined) { const r = {}; if (limit !== undefined) { r[\'l\'] = Math.min (limit, 100); } return r; }', 'Math.Min(limit.Value, 100)');
+        check ('unguarded Int64? param keeps helper', 'async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined) { const r = {}; r[\'l\'] = Math.min (limit, 100); return r; }', 'mathMin(limit, 100)');
+        check ('mod of two Int64 locals', 'f () { const x = this.milliseconds (); const y = this.seconds (); const r = x % y; return r; }', '(x % y)', 'mod(');
     }
     problems.push (...hx4C18SelfTest ());
     problems.push (...hx4C19SelfTest ()); // hx4 C19
