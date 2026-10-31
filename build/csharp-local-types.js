@@ -11573,6 +11573,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         cast = 'string';
         safe = true;
     }
+    // `this.handleOptionStringAndParams (p, m, k, '<literal>')[0]`: checkOptionString hands back the
+    // option string or the literal default, never null — retried only after `string?` was rejected
+    if (!safe && csharpType === 'string?' && tupleElement0LiteralDefault (declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
     // a `string?` candidate whose initializer is a proven non-null string (and whose every write
     // the scan accepts as one): the non-null spelling binds add(string, *) on its `+` reads
     // (see nonNullStringValue)
@@ -13119,6 +13126,14 @@ function destructuredStringHelperElement0 (call, helper, csharp) {
     // or a local the printer declares string / string? (destructuredStringElementProof's rule)
     const local = (csharp !== undefined && argument.kind === ts.SyntaxKind.Identifier) ? localIdentifierType (csharp, argument) : undefined;
     return STRING_TYPES.includes (local) ? 'string?' : undefined;
+}
+
+// `this.handleOptionStringAndParams[2] (…, '<literal>')[0]`: the default is the last argument
+function tupleElement0LiteralDefault (initializer) {
+    const call = initializer?.kind === ts.SyntaxKind.ElementAccessExpression ? initializer.expression : undefined;
+    const name = (call?.kind === ts.SyntaxKind.CallExpression && call.expression?.expression?.kind === ts.SyntaxKind.ThisKeyword) ? call.expression.name?.text : undefined;
+    const arity = (name === 'handleOptionStringAndParams') ? 4 : (name === 'handleOptionStringAndParams2') ? 5 : 0;
+    return arity > 0 && call.arguments?.length === arity && isStringLiteral (call.arguments[arity - 1]);
 }
 
 // `this.<helper> (...)[0]`, or `t[0]` of a local `t` holding that call and never rewritten or
