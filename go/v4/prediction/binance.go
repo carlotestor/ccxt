@@ -356,12 +356,12 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
  * @param {object} [params] extra params forwarded verbatim to the detail endpoint
  * @returns {object} the raw market topic object
  */
-func (this *Binance) FetchRawTopicDetailAsync(topicId any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Binance) FetchRawTopicDetailAsync(topicId string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchRawTopicDetailBody(ch, topicId, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchRawTopicDetailBody(ch chan ccxt.AsyncResult[map[string]any], topicId any, optionalArgs ...any) any {
+func (this *Binance) fetchRawTopicDetailBody(ch chan ccxt.AsyncResult[map[string]any], topicId string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -413,7 +413,7 @@ func (this *Binance) completeRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string
 			var topicId *string = this.SafeString(rawTopic, "marketTopicId")
 			if topicId != nil {
 
-				r := <-this.FetchRawTopicDetailAsync(topicId)
+				r := <-this.FetchRawTopicDetailAsync(*topicId)
 				if r.Err != nil {
 					panic(r.Err)
 				}
@@ -504,7 +504,7 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 		}
 	} else if eventId != nil {
 
-		r1 := <-this.FetchRawTopicDetailAsync(eventId, rest)
+		r1 := <-this.FetchRawTopicDetailAsync(*eventId, rest)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

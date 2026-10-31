@@ -3938,13 +3938,13 @@ func (this *Woo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Woo) GetCurrencyFromChaincode(networkizedCode *string, optionalArgs ...any) any {
+func (this *Woo) GetCurrencyFromChaincode(networkizedCode string, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	if currency != nil {
 		return currency
 	} else {
-		var parts []string = strings.Split(*networkizedCode, "_")
+		var parts []string = strings.Split(networkizedCode, "_")
 		var partsLength int = len(parts)
 		var firstPart *string = this.SafeString(parts, 0)
 		var currencyId any
@@ -4114,7 +4114,7 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var networkizedCode *string = this.SafeString(transaction, "token", "")
+	var networkizedCode string = *this.SafeString(transaction, "token", "")
 	var currencyDefined map[string]any = MapTyped(this.GetCurrencyFromChaincode(networkizedCode, currency))
 	var code *string = this.SafeString(currencyDefined, "code")
 	var movementDirection *string = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})

@@ -288,12 +288,12 @@ func (this *Kucoin) subscribeBody(ch chan ccxt.AsyncResult[any], url any, messag
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Kucoin) SubscribePublicUtaAsync(messageHash string, channel string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Kucoin) SubscribePublicUtaAsync(messageHash string, channel string, symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicUtaBody(ch, messageHash, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3593,7 +3593,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		url = r3.Value
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, uniformType)
+	this.SetBalanceCache(client, *uniformType)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
@@ -3639,15 +3639,15 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		return nil
 	}
 }
-func (this *Kucoin) SetBalanceCache(client any, typeVar *string) {
-	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (this.WsCacheHas("Balance", typeVar)) {
+func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
+	if _, ok := this.WsCacheSnapshot("Balance")[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
-		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -4388,7 +4388,7 @@ func (this *Kucoin) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRa
 	var channel string = "funding-fee"
 	var messageHash string = "fundingRate:" + *symbolValue
 
-	r1 := <-this.SubscribePublicUtaAsync(messageHash, channel, symbolValue, params)
+	r1 := <-this.SubscribePublicUtaAsync(messageHash, channel, *symbolValue, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4434,7 +4434,7 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbo
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	r1 := <-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbolValue, params, subscription)
+	r1 := <-this.SubscribePublicUtaAsync(unSubMessageHash, channel, *symbolValue, params, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4548,7 +4548,7 @@ func (this *Kucoin) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	var channel string = "mark-price"
 	var messageHash string = "uta:ticker:" + *symbolValue
 
-	r1 := <-this.SubscribePublicUtaAsync(messageHash, channel, symbolValue, params)
+	r1 := <-this.SubscribePublicUtaAsync(messageHash, channel, *symbolValue, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4594,7 +4594,7 @@ func (this *Kucoin) unWatchMarkPriceBody(ch chan ccxt.AsyncResult[bool], symbol 
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	r1 := <-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbolValue, params, subscription)
+	r1 := <-this.SubscribePublicUtaAsync(unSubMessageHash, channel, *symbolValue, params, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

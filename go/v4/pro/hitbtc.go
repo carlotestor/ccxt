@@ -156,12 +156,12 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
  * @param {string[]} [symbols] unified CCXT symbol(s)
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-func (this *Hitbtc) SubscribePublicAsync(name any, messageHashPrefix string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Hitbtc) SubscribePublicAsync(name string, messageHashPrefix string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, name, messageHashPrefix, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any, messageHashPrefix string, optionalArgs ...any) any {
+func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name string, messageHashPrefix string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -176,7 +176,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any,
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
+	var isBatch bool = (strings.Index(name, "batch") >= 0)
 	var resolvedPerSymbol bool = !isBatch || (messageHashPrefix == "orderbooks") // handleOrderBook resolves only per-symbol hashes, also on the batch channels
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
 	var url *string = this.SafeString(wsUrls, "public")
@@ -358,7 +358,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		},
 	}
 
-	r := <-this.SubscribePublicAsync(name, "orderbooks", []any{symbol}, this.DeepExtend(request, paramsOmitted))
+	r := <-this.SubscribePublicAsync(*name, "orderbooks", []any{symbol}, this.DeepExtend(request, paramsOmitted))
 	if r.Err != nil {
 		panic(r.Err)
 	}

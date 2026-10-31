@@ -5303,7 +5303,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan AsyncResult[Order], symbol strin
 	marginMode, _ := this.HandleMarginModeAndParams("createOrder", paramsSync)
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
 	// don't omit anything before calling createOrderRequest
-	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsSync)
+	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, paramsSync)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
 		if isMarginOrder {
@@ -5387,12 +5387,12 @@ func (this *Kucoin) createSpotOrderBody(ch chan AsyncResult[Order], symbol strin
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if typeVar == nil {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	if side == nil {
@@ -5413,7 +5413,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar *string, side 
 	var costString string
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("createOrder", paramsOmitted)
-	if typeVar != nil && *typeVar == "market" {
+	if typeVar == "market" {
 		if quoteAmount != nil {
 			paramsOmitted = this.Omit(paramsOmitted, []any{"cost", "funds"})
 			// kucoin uses base precision even for quote values
@@ -5475,7 +5475,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar *string, side 
 		}
 	}
 	var postOnly any = nil
-	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, paramsOmitted)
+	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0]
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
@@ -5554,7 +5554,7 @@ func (this *Kucoin) createContractOrderBody(ch chan AsyncResult[Order], symbol s
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var hasTpOrSlOrder bool = (!IsEqual(this.SafeDict(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeDict(paramsOmitted, "takeProfit"), nil))
-	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsOmitted)
+	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, paramsOmitted)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
 
@@ -5593,12 +5593,12 @@ func (this *Kucoin) createContractOrderBody(ch chan AsyncResult[Order], symbol s
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if typeVar == nil {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	if side == nil {
@@ -5703,7 +5703,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar *string, s
 		request["reduceOnly"] = true
 		request["stopPriceType"] = triggerPriceTypeValue
 	}
-	var uppercaseType string = strings.ToUpper(*typeVar)
+	var uppercaseType string = strings.ToUpper(typeVar)
 	var timeInForce *string = this.SafeStringUpper(paramsOmitted, "timeInForce")
 	if uppercaseType == "LIMIT" {
 		if price == nil {
@@ -5716,7 +5716,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar *string, s
 		}
 	}
 	var postOnly any = nil
-	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, paramsOmitted)
+	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0]
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
@@ -6281,7 +6281,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan AsyncResult[[]Order], orders an
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.CreateSpotOrderRequest(*marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateSpotOrderRequest(*marketId, *typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	if symbol == nil {
@@ -6390,7 +6390,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan AsyncResult[[]Order], order
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar *string = this.SafeString(rawOrder, "type", "")
+		var typeVar string = *this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")

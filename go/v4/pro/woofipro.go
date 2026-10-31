@@ -79,7 +79,7 @@ func (this *Woofipro) Describe() map[string]any {
 		},
 	})
 }
-func (this *Woofipro) RequestId(url *string) int64 {
+func (this *Woofipro) RequestId(url string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
@@ -100,7 +100,7 @@ func (this *Woofipro) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 		id = this.AccountId
 	}
 	var url *string = ccxt.SafeStringPtr(*this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "public", "") + "/" + id)
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
@@ -868,7 +868,7 @@ func (this *Woofipro) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 		panic(r.Err)
 	}
 	var url string = *this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "private", "") + "/" + this.AccountId
-	var requestId int64 = this.RequestId(ccxt.SafeStringPtr(url))
+	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
@@ -897,7 +897,7 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any], 
 		panic(r.Err)
 	}
 	var url string = *this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "private", "") + "/" + this.AccountId
-	var requestId int64 = this.RequestId(ccxt.SafeStringPtr(url))
+	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}

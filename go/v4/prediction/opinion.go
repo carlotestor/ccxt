@@ -2213,7 +2213,7 @@ func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 func (this *Opinion) SignMessage(message any, privateKey string) any {
 	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
-func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp *string) string {
+func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp string) string {
 	// EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
 	var domain map[string]any = map[string]any{
 		"name":    "Opinion OpenAPI",
@@ -2480,12 +2480,12 @@ func (this *Opinion) Ping(client any) any {
  * @param {int} marketId the numeric binary market id
  * @returns {any} the first resolved payload
  */
-func (this *Opinion) SubscribeOpinionChannelAsync(messageHash any, channel string, marketId any) <-chan ccxt.AsyncResult[any] {
+func (this *Opinion) SubscribeOpinionChannelAsync(messageHash string, channel string, marketId any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeOpinionChannelBody(ch, messageHash, channel, marketId)
 	return ch
 }
-func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], messageHash any, channel string, marketId any) any {
+func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, marketId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2731,7 +2731,7 @@ func (this *Opinion) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 
-	r1 := <-this.SubscribeOpinionChannelAsync(messageHash, "market.last.price", marketId)
+	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.price", marketId)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2809,7 +2809,7 @@ func (this *Opinion) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
 
-	r1 := <-this.SubscribeOpinionChannelAsync(messageHash, "market.last.trade", marketId)
+	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.trade", marketId)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3185,7 +3185,7 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 			var timestamp *string = this.NumberToString(this.Seconds())
 			headersExtended["OPINION_ADDRESS"] = this.WalletAddress
-			headersExtended["OPINION_SIGNATURE"] = this.SignApiKeyAuth(this.WalletAddress, *this.SafeString(actionByMethod, method, "get"), timestamp)
+			headersExtended["OPINION_SIGNATURE"] = this.SignApiKeyAuth(this.WalletAddress, *this.SafeString(actionByMethod, method, "get"), *timestamp)
 			headersExtended["OPINION_TIMESTAMP"] = timestamp
 		} else {
 			// an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the

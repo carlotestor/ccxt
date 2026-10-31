@@ -68,12 +68,12 @@ func (this *Derive) RequestId(url *string) int64 {
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
-func (this *Derive) WatchPublicAsync(messageHash any, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[any] {
+func (this *Derive) WatchPublicAsync(messageHash string, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, messageHash, message, subscription)
 	return ch
 }
-func (this *Derive) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any, message map[string]any, subscription map[string]any) any {
+func (this *Derive) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
@@ -145,7 +145,7 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		"params": params,
 	}
 
-	r1 := <-this.WatchPublicAsync(topic, request, subscription)
+	r1 := <-this.WatchPublicAsync(*topic, request, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1381,7 +1381,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.SafeValue(this.WsCacheObjGet("Positions"), subaccountIdKey), symbolsResolved, since, limit, true))}
 	return nil
 }
-func (this *Derive) HandlePositionDelta(subaccountIdKey any, entry map[string]any) any {
+func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string]any) any {
 	var marketId *string = this.SafeString(entry, "name")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -1465,7 +1465,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		if strings.Index(*name, "-") >= 0 {
 			// position deltas carry instrument names and do not belong into the balance structure
 			if (this.Positions != nil) && (ccxt.InOp(this.Positions, subaccountIdKey)) {
-				var position any = this.HandlePositionDelta(subaccountIdKey, entry)
+				var position any = this.HandlePositionDelta(*subaccountIdKey, entry)
 				positionUpdates = append(positionUpdates, position)
 			}
 			continue

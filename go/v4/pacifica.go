@@ -807,8 +807,8 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool]) an
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01")
+			var builder string = *this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0.01")
 
 			r := <-this.ApproveBuilderCodeAsync(builder, maxFeeRate)
 			if r.Err != nil {
@@ -5044,12 +5044,12 @@ func (this *Pacifica) fetchApiKeysBody(ch chan AsyncResult[map[string]any], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Pacifica) ApproveBuilderCodeAsync(builderCode string, maxFeeRate string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[map[string]any], builderCode any, maxFeeRate any, optionalArgs ...any) any {
+func (this *Pacifica) approveBuilderCodeBody(ch chan AsyncResult[map[string]any], builderCode string, maxFeeRate string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

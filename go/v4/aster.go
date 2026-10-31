@@ -1129,11 +1129,11 @@ func (this *Aster) IsInverse(typeVar any, optionalArgs ...any) bool {
 		return (subType != nil && *subType == "inverse")
 	}
 }
-func (this *Aster) IsLinear(typeVar *string, optionalArgs ...any) bool {
+func (this *Aster) IsLinear(typeVar string, optionalArgs ...any) bool {
 	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	if subType == nil {
-		return (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "swap")
+		return (typeVar == "future") || (typeVar == "swap")
 	} else {
 		return (subType != nil && *subType == "linear")
 	}
@@ -3483,7 +3483,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType)
 	var response any = nil
-	if this.IsLinear(marketType, subType) {
+	if this.IsLinear(*marketType, subType) {
 
 		r1 := <-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
 		if r1.Err != nil {

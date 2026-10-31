@@ -2580,7 +2580,7 @@ func (this *Bybit) GetPrice(symbol any, price *string) *string {
 	}
 	return price
 }
-func (this *Bybit) GetCost(symbol *string, cost any) any {
+func (this *Bybit) GetCost(symbol string, cost any) any {
 	var market map[string]any = this.Market(symbol)
 	var emptyPrecisionPrice bool = (this.SafeNumber(market["precision"], "price") == nil)
 	if !emptyPrecisionPrice {
@@ -5877,7 +5877,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
 				orderCost = quoteAmount
 			}
-			request["qty"] = this.GetCost(symbolValue, orderCost)
+			request["qty"] = this.GetCost(*symbolValue, orderCost)
 		} else {
 			request["marketUnit"] = "baseCoin"
 			request["qty"] = amountString
@@ -5896,13 +5896,13 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 				if cost != nil {
 					costRequest = cost
 				}
-				request["qty"] = this.GetCost(symbolValue, costRequest)
+				request["qty"] = this.GetCost(*symbolValue, costRequest)
 			}
 		} else {
 			if cost != nil {
-				request["qty"] = this.GetCost(symbolValue, this.NumberToString(cost))
+				request["qty"] = this.GetCost(*symbolValue, this.NumberToString(cost))
 			} else if price != nil {
-				request["qty"] = this.GetCost(symbolValue, Precise.StringMul(amountString, priceString))
+				request["qty"] = this.GetCost(*symbolValue, Precise.StringMul(amountString, priceString))
 			} else {
 				request["qty"] = amountString
 			}

@@ -2426,7 +2426,7 @@ func (this *Modetrade) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
-func (this *Modetrade) CreateOrderRequest(symbol string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Modetrade) CreateOrderRequest(symbol string, typeVar string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2434,7 +2434,7 @@ func (this *Modetrade) CreateOrderRequest(symbol string, typeVar *string, side *
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	if typeVar == nil {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	/**
@@ -2451,7 +2451,7 @@ func (this *Modetrade) CreateOrderRequest(symbol string, typeVar *string, side *
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType string = strings.ToUpper(*typeVar)
+	var orderType string = strings.ToUpper(typeVar)
 	var market map[string]any = this.Market(symbol)
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
@@ -2599,7 +2599,7 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[Order], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateOrderRequest(symbol, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
@@ -2663,7 +2663,7 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar *string = this.SafeString(rawOrder, "type", "")
+		var typeVar string = *this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")

@@ -863,7 +863,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
  * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
  * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
  */
-func (this *Sxbet) RoundOddsToLadder(probability any, oddsLadderStepSize *string) string {
+func (this *Sxbet) RoundOddsToLadder(probability any, oddsLadderStepSize string) string {
 	var tickSize *string = ccxt.Precise.StringDiv(oddsLadderStepSize, "100000", 10)
 	return this.DecimalToPrecision(probability, ccxt.ROUND, tickSize, ccxt.TICK_SIZE)
 }
@@ -1251,7 +1251,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
 	var oddsLadderStepSize *string = this.NumberToString(this.SafeInteger(obv3, "oddsLadderStepSize", 125))
-	var roundedProbability string = this.RoundOddsToLadder(probability, oddsLadderStepSize)
+	var roundedProbability string = this.RoundOddsToLadder(probability, *oddsLadderStepSize)
 	var percentageOdds string = this.DecimalToPrecision(ccxt.Precise.StringMul(roundedProbability, "100000000000000000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
 	var amountStr *string = this.NumberToString(amount)
 	var totalBetSize string = this.DecimalToPrecision(ccxt.Precise.StringMul(amountStr, "1000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
@@ -3008,9 +3008,9 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[st
 		"asks": this.SortBy(asks, 0),
 	}
 }
-func (this *Sxbet) SetWsOption(group string, key *string, value any) {
+func (this *Sxbet) SetWsOption(group string, key string, value any) {
 	var entry map[string]any = map[string]any{}
-	ccxt.AddElementToObject(entry, key, value)
+	entry[key] = value
 	ccxt.AddElementToObject(this.Options, group, this.Extend(this.SafeDict(this.Options, group, map[string]any{}), entry))
 }
 func (this *Sxbet) RequestId(url any) int64 {
@@ -3038,7 +3038,7 @@ func (this *Sxbet) RequestId(url any) int64 {
  */
 func (this *Sxbet) RegisterSxbetWsRequest(requestId int64, messageHash string, subscription string) {
 	var requestIdString *string = this.NumberToString(requestId)
-	this.SetWsOption("wsPendingRequests", requestIdString, map[string]any{
+	this.SetWsOption("wsPendingRequests", *requestIdString, map[string]any{
 		"messageHash":  messageHash,
 		"subscription": subscription,
 	})
@@ -3340,7 +3340,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
 	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
-		this.SetWsOption("wsWatchedBooks", sym, marketHash)
+		this.SetWsOption("wsWatchedBooks", *sym, marketHash)
 
 		r2 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 		if r2.Err != nil {
@@ -3400,7 +3400,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	if (held == nil || *held != "") && (ccxt.IsLessThanOrEqual(version, held)) {
 		return refreshed
 	}
-	this.SetWsOption("wsBookVersions", marketHash, version)
+	this.SetWsOption("wsBookVersions", *marketHash, version)
 	var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
 	var watchedSyms []string = nil
 	if watchedBooks != nil {
@@ -3487,7 +3487,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var sym *string = this.SafeString(outcomeObj, "outcome", "")
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var messageHash string = "ticker::" + *sym
-	this.SetWsOption("wsWatchedTickers", sym, marketHash)
+	this.SetWsOption("wsWatchedTickers", *sym, marketHash)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r1 := <-this.ConnectSxbetCentrifugoAsync(url)

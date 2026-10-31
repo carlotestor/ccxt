@@ -2979,7 +2979,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders [
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersToBeParsed))}
 	return nil
 }
-func (this *Hyperliquid) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3123,7 +3123,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		var hasStopLoss bool = (stopLoss != nil)
 		var hasTakeProfit bool = (takeProfit != nil)
 		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
-		var mainOrderObj map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
+		var mainOrderObj map[string]any = this.CreateOrderRequest(*symbol, typeVar, side, amount, price, orderParams)
 		if hasStopLoss || hasTakeProfit {
 			// grouping opposed orders for sl/tp
 			var stopLossOrderTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
@@ -3150,14 +3150,14 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 				triggerOrderSide = "buy"
 			}
 			if hasTakeProfit {
-				var orderObj map[string]any = this.CreateOrderRequest(symbol, takeProfitOrderType, SafeStringPtr(triggerOrderSide), amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				var orderObj map[string]any = this.CreateOrderRequest(*symbol, takeProfitOrderType, SafeStringPtr(triggerOrderSide), amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"takeProfitPrice": takeProfitOrderTriggerPrice,
 					"reduceOnly":      true,
 				}))
 				orderReq = append(orderReq, orderObj)
 			}
 			if hasStopLoss {
-				var orderObj map[string]any = this.CreateOrderRequest(symbol, stopLossOrderType, SafeStringPtr(triggerOrderSide), amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				var orderObj map[string]any = this.CreateOrderRequest(*symbol, stopLossOrderType, SafeStringPtr(triggerOrderSide), amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"stopLossPrice": stopLossOrderTriggerPrice,
 					"reduceOnly":    true,
 				}))

@@ -341,7 +341,7 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 	}
 	var message map[string]any = this.DeepExtend(request, params)
 	if unwatch == true {
-		this.HandleUnsubscriptions(url, messageHashes, message)
+		this.HandleUnsubscriptions(*url, messageHashes, message)
 
 		return nil
 	}
@@ -387,7 +387,7 @@ func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any
 	}
 	var message map[string]any = this.DeepExtend(request, params)
 	if unwatch == true {
-		this.HandleUnsubscriptions(url, messageHashes, message)
+		this.HandleUnsubscriptions(*url, messageHashes, message)
 
 		return nil
 	}
@@ -399,7 +399,7 @@ func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message map[string]any) {
+func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, message map[string]any) {
 	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, message, messageHashes)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {

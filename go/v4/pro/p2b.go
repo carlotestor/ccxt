@@ -81,12 +81,12 @@ func (this *P2b) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the p2b api
  * @returns {object} data from the websocket stream
  */
-func (this *P2b) SubscribeAsync(name string, messageHash any, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *P2b) SubscribeAsync(name string, messageHash string, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, name, messageHash, request, optionalArgs...)
 	return ch
 }
-func (this *P2b) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messageHash any, request any, optionalArgs ...any) any {
+func (this *P2b) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messageHash string, request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -151,7 +151,7 @@ func (this *P2b) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	var request []any = []any{market["id"], channel}
 	var messageHash *string = ccxt.SafeStringPtr("kline::" + market["symbol"].(string))
 
-	r1 := <-this.SubscribeAsync("kline.subscribe", messageHash, request, params)
+	r1 := <-this.SubscribeAsync("kline.subscribe", *messageHash, request, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -412,7 +412,7 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}()
 	var request []any = []any{market["id"], limitResolved, interval}
 
-	r1 := <-this.SubscribeAsync(name, messageHash, request, params)
+	r1 := <-this.SubscribeAsync(name, *messageHash, request, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

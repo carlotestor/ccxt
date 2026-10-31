@@ -1854,7 +1854,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var orderType *string = this.SafeString(paramsOmitted, "type", typeVar)
-	orderType = this.EncodeOrderType(orderType)
+	orderType = this.EncodeOrderType(*orderType)
 	var paramsType map[string]any = this.OmitDict(paramsOmitted, "type")
 	var paramsQuote any = nil
 	var orderSide *string = this.EncodeOrderSide(side)
@@ -2364,7 +2364,7 @@ func (this *Coinsph) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) EncodeOrderType(status *string) *string {
+func (this *Coinsph) EncodeOrderType(status string) *string {
 	var statuses map[string]any = map[string]any{
 		"market":            "MARKET",
 		"limit":             "LIMIT",

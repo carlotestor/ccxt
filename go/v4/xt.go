@@ -3412,7 +3412,7 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 			panic(NotSupported(this.Id + " createOrder() trailing orders are only supported on swap markets"))
 		}
 
-		r1 := <-this.CreateSpotOrderAsync(symbolValue, typeVar, side, amount, price, params)
+		r1 := <-this.CreateSpotOrderAsync(*symbolValue, typeVar, side, amount, price, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -3420,7 +3420,7 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		return nil
 	} else {
 
-		r2 := <-this.CreateContractOrderAsync(symbolValue, typeVar, side, amount, price, params)
+		r2 := <-this.CreateContractOrderAsync(*symbolValue, typeVar, side, amount, price, params)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -3428,12 +3428,12 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		return nil
 	}
 }
-func (this *Xt) CreateSpotOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Xt) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3533,12 +3533,12 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol any, type
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
-func (this *Xt) CreateContractOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Xt) CreateContractOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

@@ -3166,8 +3166,8 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 	if negRisk != nil && *negRisk {
 		exchangeAddress = negRiskExchangeV2
 	}
-	var domainVersion *string = this.SafeString(this.Options, "ctfExchangeVersion", "2")
-	var signature string = this.SignClobOrder(message, exchangeAddress, domainVersion, signatureType)
+	var domainVersion string = *this.SafeString(this.Options, "ctfExchangeVersion", "2")
+	var signature string = this.SignClobOrder(message, *exchangeAddress, domainVersion, signatureType)
 	var owner *string = this.SafeString(this.Options, "l2ApiKey", this.ApiKey)
 	var orderBody map[string]any = map[string]any{
 		"deferExec": false,
@@ -3300,7 +3300,7 @@ func (this *Polymarket) PolymarketOrderRawAmounts(side string, size any, price a
 		"takerAmount": takerAmount,
 	}
 }
-func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress *string, domainVersion *string, sigType any) string {
+func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress string, domainVersion string, sigType any) string {
 	// param is sigType, not signatureType: the php regex transpiler would rewrite the
 	// substring "signatureType" inside the orderTypeString literal below into the local
 	// var '$signatureType', corrupting the EIP-712 type hash

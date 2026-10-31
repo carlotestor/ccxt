@@ -2637,7 +2637,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 			request["triggerOrderType"] = triggerOrderType
 			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPriceToSend)
 			var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
-			request["triggerPriceType"] = this.EncodeTriggerPriceType(triggerPriceType)
+			request["triggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 			query = this.Omit(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
 		} else {
 			request["orderType"] = typeValue
@@ -2654,7 +2654,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 					request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
-				request["stopLossTriggerPriceType"] = this.EncodeTriggerPriceType(triggerPriceType)
+				request["stopLossTriggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 				query = this.Omit(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
 			} else if typeValue == "PEG" {
 				// the required stealth and optional deviation params pass through
@@ -2670,7 +2670,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 					request["trailValueType"] = "PERCENTAGE"
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
-				request["triggerPriceType"] = this.EncodeTriggerPriceType(triggerPriceType)
+				request["triggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 				query = this.Omit(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
 			}
 		}
@@ -2817,14 +2817,14 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			request["takeProfitTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
 			var takeProfitTriggerPriceType *string = this.SafeString(takeProfit, "priceType")
 			if takeProfitTriggerPriceType != nil {
-				request["takeProfitTriggerType"] = this.EncodeTriggerPriceType(takeProfitTriggerPriceType)
+				request["takeProfitTriggerType"] = this.EncodeTriggerPriceType(*takeProfitTriggerPriceType)
 			}
 		}
 		if stopLossTriggerPrice != nil {
 			request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
 			var stopLossTriggerPriceType *string = this.SafeString(stopLoss, "priceType")
 			if stopLossTriggerPriceType != nil {
-				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(stopLossTriggerPriceType)
+				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*stopLossTriggerPriceType)
 			}
 		}
 		query = this.Omit(query, []any{"takeProfit", "stopLoss"})
@@ -2879,7 +2879,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			}
 			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPriceToSend)
 			var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
-			request["triggerType"] = this.EncodeTriggerPriceType(triggerPriceType)
+			request["triggerType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 			if isLimitOrder {
 				request["orderPrice"] = this.PriceToPrecision(symbol, price)
 			}
@@ -2899,7 +2899,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 					request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
-				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(triggerPriceType)
+				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 				query = this.Omit(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
 			} else if typeValue == "PEG" {
 				// the required deviation and stealth params pass through, the
@@ -2918,7 +2918,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 					request["trailValueType"] = "PERCENTAGE"
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
-				request["trailTriggerPriceType"] = this.EncodeTriggerPriceType(triggerPriceType)
+				request["trailTriggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 				query = this.Omit(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
 			}
 		}
@@ -2939,7 +2939,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
-func (this *Btse) EncodeTriggerPriceType(priceType *string) *string {
+func (this *Btse) EncodeTriggerPriceType(priceType string) *string {
 	var priceTypes map[string]any = map[string]any{
 		"last":       "LAST_PRICE",
 		"mark":       "MARK_PRICE",

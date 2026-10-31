@@ -1400,7 +1400,7 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 		"nonce":         nonce,
 		"expiration":    expiration,
 	}
-	var signature string = this.SignClobOrder(order, networkId)
+	var signature string = this.SignClobOrder(order, *networkId)
 	return map[string]any{
 		"order":       order,
 		"signature":   signature,
@@ -1670,12 +1670,12 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[cc
  * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[string]any, networkId *string) string {
+func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[string]any, networkId string) string {
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, networkId)
 	var exchangeAddress *string = this.SafeString(chainConfig, "obExchangeAddress")
 	if exchangeAddress == nil {
-		panic(ccxt.NotSupported(this.Id + " order book trading is not configured for network " + *networkId))
+		panic(ccxt.NotSupported(this.Id + " order book trading is not configured for network " + networkId))
 	}
 	var domainName *string = this.SafeString(this.Options, "obDomainName", "MyriadCTFExchange")
 	var domainVersion *string = this.SafeString(this.Options, "obDomainVersion", "1")
@@ -1704,7 +1704,7 @@ func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[str
  * @description EIP-712 signs the order-book ccxt.Order struct
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignClobOrder(message map[string]any, networkId *string) string {
+func (this *Myriad) SignClobOrder(message map[string]any, networkId string) string {
 	var orderStruct []any = []any{map[string]any{
 		"name": "trader",
 		"type": "address",
@@ -1745,7 +1745,7 @@ func (this *Myriad) SignClobOrder(message map[string]any, networkId *string) str
  * @description EIP-712 signs the order-book CancelAll struct
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignCancelAll(message map[string]any, networkId *string) string {
+func (this *Myriad) SignCancelAll(message map[string]any, networkId string) string {
 	var cancelStruct []any = []any{map[string]any{
 		"name": "trader",
 		"type": "address",
@@ -2231,7 +2231,7 @@ func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 		networkId = this.SafeString(this.Options, "defaultNetworkId", "56")
 	}
 	var message map[string]any = this.ClobOrderMessage(rawOrder)
-	var signature string = this.SignClobOrder(message, networkId)
+	var signature string = this.SignClobOrder(message, *networkId)
 	var request map[string]any = map[string]any{
 		"hash":       id,
 		"order":      message,
@@ -2318,7 +2318,7 @@ func (this *Myriad) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		"marketId":  marketId,
 		"timestamp": timestamp,
 	}
-	var signature string = this.SignCancelAll(message, networkId)
+	var signature string = this.SignCancelAll(message, *networkId)
 	var request map[string]any = map[string]any{
 		"trader":     trader,
 		"market_id":  this.ParseToInt(marketId),
@@ -2413,7 +2413,7 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 			networkId = fetchedNetworkId
 		}
 		var message map[string]any = this.ClobOrderMessage(rawOrder)
-		var signature string = this.SignClobOrder(message, networkId)
+		var signature string = this.SignClobOrder(message, *networkId)
 		signedOrders = append(signedOrders, map[string]any{
 			"order":     message,
 			"signature": signature,
@@ -4492,12 +4492,12 @@ func (this *Myriad) pongBody(ch chan ccxt.AsyncResult[bool], client any, optiona
 	}
 	return nil
 }
-func (this *Myriad) SubscribeMyriadChannelAsync(messageHash any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Myriad) SubscribeMyriadChannelAsync(messageHash string, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeMyriadChannelBody(ch, messageHash, channel, optionalArgs...)
 	return ch
 }
-func (this *Myriad) subscribeMyriadChannelBody(ch chan ccxt.AsyncResult[any], messageHash any, channel string, optionalArgs ...any) any {
+func (this *Myriad) subscribeMyriadChannelBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4768,7 +4768,7 @@ func (this *Myriad) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var channel string = "trades:" + networkId + ":" + marketId
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
 
-	r1 := <-this.SubscribeMyriadChannelAsync(messageHash, channel, params)
+	r1 := <-this.SubscribeMyriadChannelAsync(*messageHash, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4983,7 +4983,7 @@ func (this *Myriad) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	var channel string = "prices:" + networkId + ":" + marketId
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 
-	r1 := <-this.SubscribeMyriadChannelAsync(messageHash, channel, params)
+	r1 := <-this.SubscribeMyriadChannelAsync(*messageHash, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

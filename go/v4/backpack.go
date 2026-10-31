@@ -1347,19 +1347,19 @@ func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], sy
  * @param {string} toCode destination currency code
  * @returns {object} resolved stock RFQ market
  */
-func (this *Backpack) RfqConversionMarket(fromCode *string, toCode *string) any {
-	var fromIsStock bool = strings.HasSuffix(*fromCode, ".US") || strings.HasSuffix(*fromCode, ".HK")
-	var toIsStock bool = strings.HasSuffix(*toCode, ".US") || strings.HasSuffix(*toCode, ".HK")
+func (this *Backpack) RfqConversionMarket(fromCode string, toCode string) any {
+	var fromIsStock bool = strings.HasSuffix(fromCode, ".US") || strings.HasSuffix(fromCode, ".HK")
+	var toIsStock bool = strings.HasSuffix(toCode, ".US") || strings.HasSuffix(toCode, ".HK")
 	if fromIsStock == toIsStock {
 		panic(NotSupported(this.Id + " conversion requires exactly one stock currency"))
 	}
-	var stockCode *string = fromCode
-	var quoteCode *string = toCode
+	var stockCode string = fromCode
+	var quoteCode string = toCode
 	if !fromIsStock {
 		stockCode = toCode
 		quoteCode = fromCode
 	}
-	var symbol string = *stockCode + ".RFQ/" + *quoteCode
+	var symbol string = stockCode + ".RFQ/" + quoteCode
 	var market any = this.SafeDict(this.Markets(), symbol)
 	if (market == nil) || (this.SafeString(market, "executionModel") == nil || *this.SafeString(market, "executionModel") != "rfq") || !(*this.SafeBool(market, "stock", false)) {
 		panic(BadSymbol(this.Id + " conversion requires a listed stock RFQ market: " + symbol))
@@ -1387,7 +1387,7 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	if (fromCode == nil) || (toCode == nil) {
 		panic(ArgumentsRequired(this.Id + " parseConversion() requires source and destination currencies"))
 	}
-	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
+	var market map[string]any = MapTyped(this.RfqConversionMarket(*fromCode, *toCode))
 	var fromIsBase bool = (fromCode == this.SafeString(market, "base") || (fromCode != nil && this.SafeString(market, "base") != nil && *fromCode == *this.SafeString(market, "base")))
 	var filled *float64 = this.SafeNumber(order, "filled")
 	var cost *float64 = this.SafeNumber(order, "cost")
@@ -1450,7 +1450,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = MapTyped(this.RfqConversionMarket(SafeStringPtr(fromCode), SafeStringPtr(toCode)))
+	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
 	var side string = func() string {
 		if fromIsBase {
@@ -1590,14 +1590,14 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market any = this.RfqConversionMarket(SafeStringPtr(fromCode), SafeStringPtr(toCode))
+	var market any = this.RfqConversionMarket(fromCode, toCode)
 	var selection []any = this.HandleStockParams("createConvertTrade", params, market)
 	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
 	var quoteId *string = this.SafeString(query, "quoteId")
 	if quoteId != nil {
 		var acceptParams map[string]any = this.OmitDict(query, []any{"quoteId", "price", "baseAmount", "clientOrderId"})
 
-		r1 := <-this.AcceptRfqQuoteAsync(id, quoteId, this.SafeSymbol(nil, market), acceptParams)
+		r1 := <-this.AcceptRfqQuoteAsync(id, *quoteId, this.SafeSymbol(nil, market), acceptParams)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -3547,12 +3547,12 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId any, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId string, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.acceptRfqQuoteBody(ch, id, quoteId, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId any, symbol any, optionalArgs ...any) any {
+func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4630,16 +4630,16 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 		var optionInstructions map[string]any = SafeMapTyped(this.Options, "instructions")
 		var optionPathInstructions map[string]any = SafeMapTyped(optionInstructions, path)
-		var instruction *string = this.SafeString(optionPathInstructions, method, "")
+		var instruction string = *this.SafeString(optionPathInstructions, method, "")
 		var payload string = ""
 		if (path == "api/v1/orders") && (method == "POST") {
-			payload = this.GenerateBatchPayload(sortedParams, ts, recvWindow, instruction)
+			payload = this.GenerateBatchPayload(sortedParams, *ts, *recvWindow, instruction)
 		} else {
 			var queryString string = this.Urlencode(sortedParams)
 			if len(queryString) > 0 {
 				queryString += "&"
 			}
-			payload = "instruction=" + *instruction + "&" + queryString + "timestamp=" + *ts + "&window=" + *recvWindow
+			payload = "instruction=" + instruction + "&" + queryString + "timestamp=" + *ts + "&window=" + *recvWindow
 		}
 		var secretBytes []byte = this.Base64ToBinary(this.Secret)
 		var seed []any = this.ArraySlice(secretBytes, 0, 32)
@@ -4681,16 +4681,16 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Backpack) GenerateBatchPayload(params any, ts *string, recvWindow *string, instruction *string) string {
+func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow string, instruction string) string {
 	var payload string = ""
 	var paramsLength int = GetArrayLength(params)
 	for i := 0; i < paramsLength; i++ {
 		var order map[string]any = this.SafeDictMap(params, i, map[string]any{})
 		var sortedOrder map[string]any = this.Keysort(order)
 		var orderQuery string = this.Urlencode(sortedOrder)
-		payload += "instruction=" + *instruction + "&" + orderQuery + "&"
+		payload += "instruction=" + instruction + "&" + orderQuery + "&"
 		if i == (paramsLength - 1) {
-			payload += "timestamp=" + *ts + "&window=" + *recvWindow
+			payload += "timestamp=" + ts + "&window=" + recvWindow
 		}
 	}
 	return payload
