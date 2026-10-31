@@ -17157,7 +17157,7 @@ function c05Operand (csharp, node) {
         inner = nativeComparisonUnwrap (inner.operand);
     }
     if (inner?.kind === ts.SyntaxKind.NumericLiteral) {
-        return /^\d{1,15}$/.test (inner.text) ? { kind: 'intlit', literal: true, zero: !negative && (Number (inner.text) === 0) } : undefined;
+        return /^\d{1,15}$/.test (inner.text) ? { kind: 'intlit', literal: true, zero: !negative && (Number (inner.text) === 0), small: !negative && /^[1-9]\d{0,8}$/.test (inner.text) } : undefined;
     }
     if (negative || (inner?.kind !== ts.SyntaxKind.Identifier)) {
         return undefined;
@@ -17174,6 +17174,9 @@ function c05ModExpression (csharp, node) {
     const right = c05Operand (csharp, node.right);
     if (left === undefined || right === undefined || (left.literal && right.literal) || right.zero) {
         return undefined;
+    }
+    if (right.small) {
+        return undefined; // `x % 2` over Int64 / Int64?: the double-remainder twin (hx4 mod by a positive literal) owns it
     }
     const allowed = (o) => o.literal || (o.kind === 'Int64') || (o.kind === 'Int64?');
     if (!allowed (left) || !allowed (right) || !csharp.csharpMinMaxResultIsPlainValue (node)) {
@@ -17253,6 +17256,47 @@ function c05MinMaxExpression (csharp, node, name, parsedArg1, parsedArg2) {
     return (l === undefined || r === undefined) ? undefined : 'Math.' + name + '(' + l + ', ' + r + ')';
 }
 
+// `i < xs.length` over a list the printer reads through its count guard `(xs?.Count ?? 0)`: an int,
+// never null, so an integral non-nullable partner makes the lifted operator the helper's answer
+const C05_COMPARISON_TOKENS = {
+    [ts.SyntaxKind.LessThanToken]: '<', [ts.SyntaxKind.GreaterThanToken]: '>',
+    [ts.SyntaxKind.LessThanEqualsToken]: '<=', [ts.SyntaxKind.GreaterThanEqualsToken]: '>=',
+};
+
+function c05CountSide (csharp, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind !== ts.SyntaxKind.PropertyAccessExpression || inner.name?.text !== 'length') {
+        return undefined;
+    }
+    // the printed `.length` of a list is an int that is never null: the count guard, `.Count`, or
+    // getArrayLength (`public static int`, null -> 0); a string receiver prints other text and stays out
+    let printed;
+    try {
+        printed = csharp.printNode (inner, 0).trim ();
+    } catch (e) {
+        return undefined;
+    }
+    return /^(?:getArrayLength\([A-Za-z_]\w*\)|\([A-Za-z_]\w*\?\.Count \?\? 0\)|[A-Za-z_]\w*\.Count)$/.test (printed) ? printed : undefined;
+}
+
+function c05CountComparison (csharp, node) {
+    const token = C05_COMPARISON_TOKENS[node.operatorToken?.kind];
+    if (token === undefined) {
+        return undefined;
+    }
+    const leftCount = c05CountSide (csharp, node.left);
+    const rightCount = (leftCount === undefined) ? c05CountSide (csharp, node.right) : undefined;
+    if ((leftCount === undefined) === (rightCount === undefined)) {
+        return undefined;
+    }
+    const other = c05Operand (csharp, (leftCount !== undefined) ? node.right : node.left);
+    if (other === undefined || other.kind === 'Int64?') {
+        return undefined;
+    }
+    const otherText = csharp.printNode ((leftCount !== undefined) ? node.right : node.left, 0).trim ();
+    return (leftCount !== undefined) ? '(' + leftCount + ' ' + token + ' ' + otherText + ')' : '(' + otherText + ' ' + token + ' ' + rightCount + ')';
+}
+
 export function installCsharpRfmC1C05 (transpiler) {
     const csharp = transpiler?.csharpTranspiler;
     if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || typeof csharp.csharpNativeMathMinMax !== 'function' || csharp._rfmC1C05Patched) {
@@ -17260,8 +17304,14 @@ export function installCsharpRfmC1C05 (transpiler) {
     }
     const upstreamBinary = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
-        const native = (node?.kind === ts.SyntaxKind.BinaryExpression) ? c05ModExpression (csharp, node) : undefined;
-        return native ?? upstreamBinary (node, identation);
+        const mod = (node?.kind === ts.SyntaxKind.BinaryExpression) ? c05ModExpression (csharp, node) : undefined;
+        if (mod !== undefined) {
+            return mod;
+        }
+        const printed = upstreamBinary (node, identation);
+        // a comparison the printer still leaves on the isLessThan family may take the count form
+        const helperPrinted = (typeof printed === 'string') && /^(?:isLessThan|isGreaterThan)(?:OrEqual)?\(/.test (printed);
+        return (helperPrinted ? c05CountComparison (csharp, node) : undefined) ?? printed;
     };
     const upstreamMinMax = csharp.csharpNativeMathMinMax.bind (csharp);
     csharp.csharpNativeMathMinMax = (node, name, parsedArg1, parsedArg2) => upstreamMinMax (node, name, parsedArg1, parsedArg2)
