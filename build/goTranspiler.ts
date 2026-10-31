@@ -72,7 +72,6 @@ import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
 import { hx11w8Int64TupleLocals, hx11w8Int64TupleLocalsCheck } from './hx11w8-int64-tuple-local.js';
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
 import { g01SubsHandOff, g01SubsCheck } from './hx10w3-G01.js';  // hx10w3 G01
-import { hx10w10GP24BaseImports, hx10w10GP24PruneImports, installHx10w10GP24BaseImportSeam, hx10w10GP24Check, hx10w10GP24Wired } from './hx10w10-GP24.js';  // hx10 w10 GP24: base-file stdlib import seam
 import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
 import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
 import { hx10w9GB10BalanceWrites, hx10w9GB10Check, hx10w9GB10Wired } from './hx10w9-GB10.js';  // hx10 wave9 GB10: Balance stores
@@ -80,7 +79,6 @@ import { g01UrlsViews, g01Check } from './hx10w5-G01.js';  // hx10w5 G01: urls v
 import { g04BookSides, g04BookSidesCheck, g04NativeBookReads, g04NativeBookReadsCheck } from './hx10w6-G04.js';  // hx10w6 G04: typed order-book side reads
 import { hx10G15Pass, hx10G15Check } from './hx10w5-G15.js';  // hx10 wave5 G15
 import { g21Pass, g21Check } from './hx10w5-G21.js';  // hx10 w5 G21: prediction-tier boxed locals
-import { og03w6pass, og03w6SelfCheck, og03w6Wired } from './hx10w6-OG03.js';  // hx10 w6 OG03: registry reads ask the owner
 import { gb08Pass, gb08Check } from './hx10w8-GB08.js';  // hx10 w8 GB08: prediction-tier dead bounds guards
 import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
 import { hx10w8GO04Pass, hx10w8GO04Check } from './hx10w8-GO04.js';
@@ -3716,7 +3714,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10OG02Pass (content);  // hx10 wave-4 OG02: markets book owned by the load path
     content = hx10OG05Pass (content);  // hx10 w7 OG05: base/quote currencies + transactions published
     content = hx10w4OG03Pass (content);  // hx10w4 OG03: ticker caches + positions owned by the dispatch loop
-    content = og03w6pass (content);  // hx10w6 OG03: ws client registry reads ask the owner
     content = hx4G39TupleSlotDerefs (content);  // hx4 G39
     content = hx10w3G07Pass (content);  // hx10 w3 G07
     content = hx11w8Int64TupleLocals (content);  // hx11 w8: until := h[0] of an int64 tuple -> *int64 local
@@ -5367,12 +5364,37 @@ function goGofmtLayoutSelfTest (): string[] {
     return problems;
 }
 
+// ===== RF-go-6-E =====
+// ccxt-only knowledge the ast Go printer is configured with (config.go.ownedFields / skipRegionMarkers,
+// goBaseFileStdlibImportSeamPaths); the printer applies it by checker type, not by text.
+// The ws client registry (BaseExchange.clients) belongs to the exchange's ws dispatch loop: user-path
+// code reads it through the owner-answered copy and drops entries with the owner's delete op, while
+// handlers (and the helper they call) run on the loop and keep the field.
+const GO_OWNED_FIELDS = {
+    'fields': {
+        'clients': { 'owner': 'BaseExchange', 'snapshot': 'WsClientsSnapshot', 'remove': 'WsClientRemove' },
+    },
+    'loopMethods': '^(?:handle\\w*|isOrderBookDeltaInSequence)$',
+};
+// base tests cut these regions out of the printed file (transpileBaseTests), so they ask for no import
+const GO_SKIP_REGION_MARKERS = [ '@SKIP_START_GO', '@SKIP_END_GO' ];
+// the two base sources whose printed body is spliced behind a hand-written header: the build
+// declares the imports the printer reports for them (goPlaceReportedStdlibImports)
+const GO_BASE_FILE_IMPORT_SEAM_PATHS = /(?:base\/Exchange(?:\.nooverloads\.\d+)?|base\/PredictionExchange)\.ts$/;
+
+function goPlaceReportedStdlibImports (content: string, reported: string[] | undefined): string {
+    let text = content;
+    for (const pkg of (reported ?? [])) {
+        text = hx4G36AddImport (text, pkg);
+    }
+    return text;
+}
+// ===== end RF-go-6-E =====
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    // an import whose printed text a later rewrite deleted is unused; drop it before formatting
-    content = path.endsWith ('.go') ? hx10w10GP24PruneImports (content) : content;  // hx10w10 GP24
     // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the
     // printer reproduces that itself (ast-transpiler `alignGoTrailingComments`), and this second
     // pass covers the text assembled here (hand-written emitters and sections concatenated after
@@ -6178,6 +6200,8 @@ class NewTranspiler {
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
+                "ownedFields": GO_OWNED_FIELDS,  // RF-go-6-E
+                "skipRegionMarkers": GO_SKIP_REGION_MARKERS,  // RF-go-6-E
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
@@ -6308,7 +6332,7 @@ class NewTranspiler {
         installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
-        installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
+        this.transpiler.goTranspiler.goBaseFileStdlibImportSeamPaths = GO_BASE_FILE_IMPORT_SEAM_PATHS;  // RF-go-6-E
     }
 
     createGeneratedHeader() {
@@ -7495,7 +7519,7 @@ ${constStatements.join('\n')}
             const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, hx10w10GP24BaseImports (hx4G20BaseNativePasses (hx11w9BookDeltaParams (hx11w8BaseMapLocals (retypeGoDescribe (file), 'go/v4/exchange_generated.go')))));
+            this.writeGeneratedOnce (goExchangeBase, goPlaceReportedStdlibImports (hx4G20BaseNativePasses (hx11w9BookDeltaParams (hx11w8BaseMapLocals (retypeGoDescribe (file), 'go/v4/exchange_generated.go'))), baseFile.goStdlibImports));
         }
     }
 
@@ -7614,7 +7638,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (hx10w10GP24BaseImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase)))));  // hx10 w9 GP19: this base file bypasses formatGoSource
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (goPlaceReportedStdlibImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase)))));  // hx10 w9 GP19: this base file bypasses formatGoSource
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -10133,7 +10157,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (g01SubsCheck ()).concat (hx11w9a9fSelfTest ()).concat (hx11w9StrKeySelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8EthEncodeBytesCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (g01SubsCheck ()).concat (hx11w9a9fSelfTest ()).concat (hx11w9StrKeySelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og05Check ()).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8EthEncodeBytesCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11128,7 +11152,7 @@ function h2kG08TypedBoolCompareText (fn: string): string {
 // Credential fields stay: prediction writes a *string into ApiKey.
 function h2kG08FieldNilCompares (content: string): string {
     // Balance is a Go map[string]any (exchange.go): the field compares natively
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 // BaseExchange.Id (string) and .RateLimit (float64) can never be nil, so the helper is constant.
@@ -14301,7 +14325,7 @@ function hx4G05SelfTest (): string[] {
 // `if _, ok := this.<F>[k]; ...`: a nil map reads ok=false like the helper; lone call in an if header,
 // literal or declared-string key, `ok` unused in the func. Any other shape keeps the helper.
 function hx4G07FieldInOp (content: string): string {
-    const fieldRx = /(?<![\w.])(?:ccxt\.)?InOp\(this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients), /;
+    const fieldRx = /(?<![\w.])(?:ccxt\.)?InOp\(this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\)), /;
     if (!fieldRx.test (content)) {
         return content;
     }
@@ -14342,7 +14366,7 @@ function hx4G07FieldInOp (content: string): string {
             continue;
         }
         const at = calls[0].index;
-        const call = /^(?:ccxt\.)?InOp\((this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        const call = /^(?:ccxt\.)?InOp\((this\.(?:Urls|HttpExceptions|Timeframes|Has|Features|Clients|WsClientsSnapshot\(\))), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
         if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
             continue;
         }
