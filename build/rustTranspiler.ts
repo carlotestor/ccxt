@@ -9271,6 +9271,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeSplitLiteralArray(rustContent); // closure-free literal split
                 rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
                 rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
+                rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10027,6 +10028,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeSplitLiteralArray(finalFile); // closure-free literal split
         finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
         finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
+        finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13522,6 +13524,23 @@ impl std::ops::DerefMut for ${coreName} {
             i = end;
         }
         return out;
+    }
+
+    // Char-slice of a Str place without closure:
+    //   X.as_str().map(|__s| { <slice body> }).map(Value::from).unwrap_or(Value::Null)
+    //     -> (if let Some(__s) = X.as_str() { Value::from({ <slice body> }) } else { Value::Null })
+    // Body text is kept verbatim; X is a pure place path (evaluated once either way). Skips lines that would cross 400.
+    nativeSliceSubstring(content: string): string {
+        if (!content.includes('let __c: Vec<char> = __s.chars().collect();')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const body = '\\{ let __c: Vec<char> = __s\\.chars\\(\\)\\.collect\\(\\); let __l = __c\\.len\\(\\) as i64; let __i = [^;{}]+; let __j = [^;{}]+; if __i <= __j \\{ __c\\[__i as usize\\.\\.__j as usize\\]\\.iter\\(\\)\\.collect::<String>\\(\\) \\} else \\{ String::new\\(\\) \\} \\}';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:)\\]])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| (${body})\\)\\.map\\(Value::from\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        return content.replace(re, (m: string, x: string, b: string, off: number, whole: string) => {
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const text = `(if let Some(__s) = ${x}.as_str() { Value::from(${b}) } else { Value::Null })`;
+            return (le - ls) <= 400 && (le - ls) - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // Int-cast of a literal: `(match &(Value::Int(N)) { <Int/Float/Str/Bool arms>, _ => None }).unwrap_or(0)` -> `Ni64`
