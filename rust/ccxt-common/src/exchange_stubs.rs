@@ -1921,6 +1921,28 @@ impl Exchange {
         }
     }
 
+    /// `safe_timestamp_k` without the box (no default): same float read, `None` when absent.
+    #[inline]
+    pub fn safe_timestamp_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<i64> {
+        match self.safe_float_k(obj, key, &[]) {
+            Value::Float(f) => Some((f * 1000.0) as i64),
+            Value::Int(n) => Some(n * 1000),
+            _ => None,
+        }
+    }
+
+    /// `safe_timestamp2` without the box (no default): first key yielding a number, times 1000.
+    pub fn safe_timestamp2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
+        self.safe_integer_product(obj.clone(), k1, Value::Int(1000), &[]).as_i64()
+            .or_else(|| self.safe_integer_product(obj, k2, Value::Int(1000), &[]).as_i64())
+    }
+
+    /// `safe_timestamp_n` without the box (no default): first key in `keys` yielding a number, times 1000.
+    pub fn safe_timestamp_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<i64> {
+        let Value::Arr(ks) = keys else { return None };
+        ks.iter().find_map(|k| self.safe_integer_product(obj.clone(), k.clone(), Value::Int(1000), &[]).as_i64())
+    }
+
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
