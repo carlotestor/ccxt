@@ -30,7 +30,6 @@ import { hx10w2C02ListHelpers, hx10w2C02SnippetChecks } from './hx10w2-c02.js'
 import { c04Apply, c04SnippetChecks } from './hx10w3-C04.js' // hx10 wave3 C04
 import { bf01Apply, bf01SnippetChecks } from './hx10w4-BF01.js' // hx10 wave4 BF01
 import { hx10w10Bs04Apply, hx10w10SnippetChecks } from './hx10w10-BS04.js' // hx10 wave10 BS04
-import { c12CoreArgPassThrough, c12RequiredDoubleNative, c12SnippetChecks } from './hx10w5-C12.js' // hx10 wave5 C12: ToInt64Arg twins
 import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
 import { platform } from 'process'
 import os from 'os'
@@ -5982,6 +5981,35 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    // RFM-C1 C12 (core-argument identity twins). `ToInt64Arg` / `ToInt64ArgRequired` /
+    // `ToDoubleArg` / `ToDoubleArgRequired` convert a boxed operand into the parameter's numeric
+    // box; on a bare identifier the enclosing declaration already types with that box the
+    // conversion is the identity (null stays null, an Int64/double is returned unchanged), so the
+    // operand is passed through. The proof is the declared type `coreArgCallSiteDeclaredType`
+    // reads for the string family, compared with the position's own target type (`T` and `T?`
+    // both convert to a `T?` target; only `T` to a `T` target). Returns the operand text to print
+    // (the operand itself = pass through), or '' when the helper wrap stays.
+    // `ToDoubleArgRequired(x)` on `double? x` is `(x ?? 0d)` (null surfaces as 0, as the helper
+    // does) and on `(-x)` of a `double x` the negation already is the required double.
+    coreArgIdentityOperand (content: string, at: number, targetType: string, operand: string): string {
+        if (targetType !== 'Int64?' && targetType !== 'Int64' && targetType !== 'double?' && targetType !== 'double') {
+            return '';
+        }
+        const negated = (targetType === 'double') ? /^\(-([A-Za-z_]\w*)\)$/.exec (operand) : null;
+        const ident = (negated !== null) ? negated[1] : operand;
+        if (!/^[A-Za-z_]\w*$/.test (ident)) {
+            return '';
+        }
+        const declared = this.coreArgCallSiteDeclaredType (content, at, ident);
+        if (negated !== null) {
+            return (declared === 'double') ? operand : '';
+        }
+        if (declared === targetType || (targetType.endsWith ('?') && declared === targetType.slice (0, -1))) {
+            return operand;
+        }
+        return (targetType === 'double' && declared === 'double?') ? '(' + operand + ' ?? 0d)' : '';
+    }
+
     // narrowing a core parameter to `string` breaks every intra-core call site that still
     // holds the value in an `object` local, so each such argument gets an explicit
     // `((string)expr)`. The value is a string by contract (the TS signature says so); the
@@ -6072,13 +6100,14 @@ class NewTranspiler {
                         continue;
                     }
                     // C12: an operand already declared in the parameter's own box passes through bare
-                    if (c12CoreArgPassThrough (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), helper, trimmed)) {
+                    // (the twin is the identity on `T`/`T?` for a `T?` target); M358: a `double?`
+                    // operand is the required double as `(x ?? 0d)`, a negated `double` as itself
+                    const c12Native = this.coreArgIdentityOperand (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), targetType, trimmed);
+                    if (c12Native === trimmed) {
                         continue;
                     }
-                    // M358: a `double?` operand or a negated `double` is the required double natively
-                    const m358native = c12RequiredDoubleNative (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), helper, trimmed)
-                    if (m358native !== '') {
-                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + m358native
+                    if (c12Native !== '') {
+                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + c12Native
                         changed = true;
                         continue;
                     }
@@ -9183,7 +9212,9 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...cp04SnippetChecks (), ...csharpTypedCoreConversionSelfTest (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+||||||| parent of ac96b7f5b49 (RFM-C1 C12: fold hx10w5-C12 (ToInt64Arg/ToDoubleArg identity pass-through) into castCoreArgCallSites)
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx11w8TupleSlotSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
