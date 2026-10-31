@@ -20,16 +20,11 @@ import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { hx11w9BookDeltaParams, hx11w9BookDeltaCheck } from './hx11w9-bookdelta-param.js';  // hx11 w9: book param of handleBookDelta(s)
 import { hx11w9OrderBookCachePass, hx11w9OrderBookAssertPass, hx11w9OrderBookCacheCheck } from './hx11w9-orderbook-cache.js';  // hx11 w9: typed ws order book cache
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
-import { hx11w9A9fFieldIndexInOpPass, hx11w9A9fSelfTest } from './hx11w9-a9f-fieldindex.js';
-import { hx11w9A9fOrHoistPass, hx11w9A9fOrHoistSelfTest } from './hx11w9-a9f-orhoist.js';
 import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
 import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
 import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
-import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
-import { hx11w9SafeStringDefaultLocals, hx11w9SafeStringDefaultLocalsCheck } from './hx11w9-safestring-default-local.js';  // hx11 w9: defaulted SafeString locals are strings
 import { hx11w8AnySliceToList, hx11w8AnySliceToListCheck } from './hx11w8-anyslice-tolist.js';  // hx11 w8: ToList-fed locals are []any
 import { hx11w8JsonOrigin, hx11w8JsonOriginCheck } from './hx11w8-json-origin.js';  // hx11 w8: DerefScalar on JSON-origin list elements
-import { hx11w8TickerReadPass, hx11w8TickerReadCheck } from './hx11w8-tickercache-typed-read.js';  // hx11 w8: typed ws ticker cache read
 import { hx11w9OrdersCachePass, hx11w9OrdersCacheCheck } from './hx11w9-orders-cache.js';  // hx11 w9: typed ws orders cache
 import { hx11w9LiquidationsCachePass, hx11w9LiquidationsCacheCheck } from './hx11w9-liquidations-cache.js';  // hx11 w9: typed ws liquidation caches
 import { hx11w9TradesCachePass, hx11w9TradesCacheCheck } from './hx11w9-trades-cache.js';  // hx11 w9: typed ws trades cache
@@ -52,9 +47,6 @@ import { hx10w2G05, hx10w2G05Check } from './hx10w2-G05.js';  // hx10w2 G05
 import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
 import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
-import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
-import { hx10G15Pass, hx10G15Check } from './hx10w5-G15.js';  // hx10 wave5 G15
-import { g21Pass, g21Check } from './hx10w5-G21.js';  // hx10 w5 G21: prediction-tier boxed locals
 import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
 import { hx10w8GO04Pass, hx10w8GO04Check } from './hx10w8-GO04.js';
 import { hx11w8WT01Pass, hx11w8WT01Check } from './hx11w8-WT01.js';  // hx11 w8 WT01: watchTickerBody reads the typed ticker map
@@ -3657,7 +3649,6 @@ export function formatGoSource (filePath: string, content: string): string {
     // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
     content = retypeGoProvenParseMethods (content);
     content = goOmitTupleMapReturns (content);  // hx11 w8 m464
-    content = g21Pass (content, filePath);  // hx10 w5 G21, first: the prediction tier's boxed locals
     content = g05Locals (content);  // hx10w3 G05: typed locals from generated return types
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
@@ -3706,16 +3697,13 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
     content = hx11w9OrderBookCachePass (content);  // hx11 w9: the order book cache's own methods, book locals typed
     content = hx11w9BookDeltaParams (content);  // hx11 w9: handleBookDelta(s) take the book itself, its side reads print accessors
-    content = hx10w6G01BalanceOwner (content);  // hx10 wave6 G01: typed balance field and account views
     content = goBalanceEntryNilCompares (content);  // this.Balance[k] is printed by the owner passes above
     content = hx10OG02Pass (content);  // hx10 wave-4 OG02: markets book owned by the load path
-    content = hx10w4OG03Pass (content);  // hx10w4 OG03: ticker caches + positions owned by the dispatch loop
     content = hx4G39TupleSlotDerefs (content);  // hx4 G39
     content = hx10w3G07Pass (content);  // hx10 w3 G07
     content = hx10G03Pass (content);  // hx10 G03, last: the passes above are what type these receivers
     content = hx10G08TupleReads (content);  // hx10 G08
     content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
-    content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
     content = hx11m36MarketsByIdInOp (content);  // hx11 m36: after OG02 prints the Markets_by_id() accessor
     content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
     content = hx10w8GO04Pass (content);  // hx10 w8 GO04: a coercion feeding one typed FromMap builder goes, the builder takes the box
@@ -3723,10 +3711,8 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = hx11w9OrderBookAssertPass (content);  // hx11 w9: after the setters used it as proof, a typed book needs no assertion
-    content = hx11w8TickerReadPass (content);  // hx11 w8: TickerMapFromMap(snapshot) sends read the typed cache
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     content = hx11w8WT01Pass (content);  // hx11 w8 WT01: watchTickerBody indexes the typed ticker map
-    content = hx11w9A9fOrHoistPass (content);  // hx11 w9 a9f: negated lookup under || hoists a comma-ok flag
     content = hx11w9OrdersCachePass (content);  // hx11 w9: Orders locals typed WsArrayCache, Append assertion dropped
     content = hx11w9LiquidationsCachePass (content);  // hx11 w9: Liquidations locals typed WsArrayCache
     content = hx11w9TradesCachePass (content);  // hx11 w9: Trades cache methods, locals typed WsArrayCache
@@ -5389,8 +5375,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (path.endsWith ('.go')) {
         content = hx4G36Inline (content, hx4G36Aligner ());  // hx4 G36
         content = hx5X26CaseAffix (content);  // hx5 X26
-        content = hx11w9SafeStringDefaultLocals (content);  // hx11 w9: defaulted SafeString locals are `string`, before the native Add/compare passes
-        content = hx11w9A9fFieldIndexInOpPass (content);  // hx11 w9 a9f: indexed ohlcv book / ws snapshot, after the defaulted locals are typed
         content = hx5X27StringHelpers (hx11w8JoinStringLocals (content));  // hx5 X27, hx11 w8 r18: string-only []any locals are []string first
         content = goNativeStringAdds (hx11w8StringAnyLocals (content));  // hx11 w8: string-only `any` locals are strings, their Add chains native
         content = g10kStrNativeStringHelpers (path, content);  // the Add chains are `+` sums only from here: StartsWith/EndsWith of one go native
@@ -6191,6 +6175,33 @@ class NewTranspiler {
                     "snapshot": "WsClientsSnapshot",
                     "remove": "WsClientRemove",
                     "ownerSideMethods": [ "^handle", "^isOrderBookDeltaInSequence$" ],
+                },
+                // hx10w4 OG03: the ws ticker / bidask maps and the positions cache of BaseExchange are owned by the
+                // dispatch loop; async watch/load/subscribe bodies and the listed sync methods go through the owner ops.
+                "ownedCaches": {
+                    "declaredIn": "BaseExchange",
+                    "maps": { "tickers": "Tickers", "bidsasks": "Bidsasks" },
+                    "objects": { "positions": "Positions" },
+                    "mapLiteral": "TickerCache{}",
+                    "asyncUserPath": "^(?:watch|load|subscribe)",
+                    "syncUserPath": "^(?:setPositionsCache|getCurrentPosition|cleanWsData)$",
+                    "typedMapRead": "WsCacheTickerMap",
+                    "ops": { "set": "WsCacheSet", "get": "WsCacheGet", "has": "WsCacheHas", "delete": "WsCacheDelete", "keys": "WsCacheKeys",
+                        "reset": "WsCacheReset", "snapshot": "WsCacheSnapshot", "objGet": "WsCacheObjGet", "objSet": "WsCacheObjSet" },
+                },
+                // BaseExchange.balance is the map[string]any field Balance, owned by the same loop: its methods
+                // read and write it as a plain map through the owner's entry views; the user-path methods
+                // (async watch/fetch/seed bodies, the balance snapshot loader, the cache seeder, the
+                // cleanup) keep the helper calls. An entry key in boxedKeys holds a scalar the helper unboxes.
+                "ownedBalance": {
+                    "field": "balance",
+                    "declaredIn": "BaseExchange",
+                    "entryRead": "WsBalanceEntry",
+                    "entryWrite": "WsBalanceEntryForWrite",
+                    "replace": "WsBalanceReplace",
+                    "userPath": "^(?:setBalanceCache|cleanWsData)$",
+                    "asyncUserPath": "^(?:(?:watch|fetch|seed)\\w*|loadBalanceSnapshot)$",
+                    "boxedKeys": [ "info", "timestamp", "datetime", "free", "used", "total" ],
                 },
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
@@ -10139,7 +10150,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (og03selfcheck ()).concat (g05check ()).concat (hx10G15Check ()).concat (g21Check (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (hx10G03Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (hx10OG02Check ()).concat (g05check ()).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gp19Check ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w10Gp26Check ()).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11134,7 +11145,7 @@ function h2kG08TypedBoolCompareText (fn: string): string {
 // Credential fields stay: prediction writes a *string into ApiKey.
 function h2kG08FieldNilCompares (content: string): string {
     // Balance is a Go map[string]any (exchange.go): the field compares natively
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|WsCacheObjGet\("Positions"\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
 }
 
 // BaseExchange.Id (string) and .RateLimit (float64) can never be nil, so the helper is constant.

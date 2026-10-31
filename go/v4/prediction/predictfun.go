@@ -315,7 +315,7 @@ func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 	var eventsLength int = len(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
-		var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+		var eventMarkets []any = ccxt.SafeListTyped(events[ei], "markets")
 		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
 			markets = append(markets, eventMarkets[mi])
@@ -2526,10 +2526,8 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	var wantedOutcomes []any = this.ToArray(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(this.SafeString(wantedOutcomes, i))
-		var wantedId *string = this.SafeString(outcomeObj, "outcomeId", "")
-		if wantedId != nil {
-			wanted[*wantedId] = true
-		}
+		var wantedId string = *this.SafeString(outcomeObj, "outcomeId", "")
+		wanted[wantedId] = true
 	}
 	var result []any = []any{}
 	var parsedLength int = len(parsed)

@@ -2848,7 +2848,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan AsyncResult[bool], optionalA
 	defer ReturnPanicError(ch)
 	var force bool = GetArgBool(optionalArgs, 0, false)
 	_ = force
-	if _, hx15ok := this.Options["hf"]; !hx15ok || (IsEqual(this.Options["hf"], nil)) || (force == true) {
+	if _, ok := this.Options["hf"]; !ok || (IsEqual(this.Options["hf"], nil)) || (force == true) {
 
 		r := <-this.PrivateGetHfAccountsOpened()
 		if r.Err != nil {
@@ -6389,12 +6389,12 @@ func (this *Kucoin) createContractOrdersBody(ch chan AsyncResult[[]Order], order
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar string = *this.SafeString(rawOrder, "type", "")
+		var typeVar *string = this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.CreateContractOrderRequest(*symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateContractOrderRequest(*symbol, *typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 

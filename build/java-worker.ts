@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaExpressionTypeResolver, installJavaOwnerStores } from './javaTranspiler.js';
+import { installJavaExpressionTypeResolver, installJavaOwnerStores, installJavaRepoMethodUses } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
@@ -13,8 +13,6 @@ import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
-import { installJ03BooleanConditions } from './hx10w2-J03.js'; // hx10 wave-2 J03
-import { installJ06TupleAsyncLocals } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -150,11 +148,10 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ11MapLocals (cachedTranspiler); // hx4 J11
         installJ12ParamTypes (cachedTranspiler); // hx4 J12
         installJavaMapArgAlreadyTyped (cachedTranspiler); // hx11 r43
+        installJavaRepoMethodUses (cachedTranspiler); // hx11 FJ4-A2
         installJ13ListLocals (cachedTranspiler); // hx4 J13
         installJ14ScalarLocals (cachedTranspiler); // hx4 J14
         installJ17StringReturns (cachedTranspiler); // hx4 J17
-        installJ03BooleanConditions (cachedTranspiler); // hx10 wave-2 J03
-        installJ06TupleAsyncLocals (cachedTranspiler); // hx10 wave-3 J06
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

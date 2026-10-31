@@ -2289,7 +2289,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	var subscribeHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString *string = this.SafeString(symAndTf, 0, "")
+		var symbolString string = *this.SafeString(symAndTf, 0, "")
 		var timeframeString *string = this.SafeString(symAndTf, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		var market map[string]any = this.Market(symbolString)
@@ -2406,7 +2406,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString *string = this.SafeString(symAndTf, 0, "")
+		var symbolString string = *this.SafeString(symAndTf, 0, "")
 		var timeframeString *string = this.SafeString(symAndTf, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		var market map[string]any = this.Market(symbolString)
@@ -4988,7 +4988,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	//        "T": 1581557507268          // ccxt.Transaction Time
 	//    }
 	//
-	var wallet *string = this.SafeString(this.Options, "wallet", "wb") // cw for cross wallet
+	var wallet string = *this.SafeString(this.Options, "wallet", "wb") // cw for cross wallet
 	// each account is connected to a different endpoint
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
@@ -5007,7 +5007,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
 		if (code != nil) && (ccxt.InOp(this.Balance[accountType], code)) {
-			var previousValue any = this.SafeValue(ccxt.GetValue(this.Balance[accountType], code), "free")
+			var previousValue any = this.SafeValue(this.WsBalanceEntry(accountType)[*code], "free")
 			if !ccxt.IsString(previousValue) {
 				previousValue = ccxt.DerefScalar(this.NumberToString(previousValue))
 			}
@@ -5016,7 +5016,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["free"] = delta
 		}
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance[accountType], code, account)
+			this.WsBalanceEntryForWrite(accountType)[*code] = account
 		}
 	} else {
 		var B []any = ccxt.SafeListTyped(balanceMessage, "B")
@@ -5032,7 +5032,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["used"] = this.SafeString(entry, "l")
 			account["total"] = this.SafeString(entry, wallet)
 			if code != nil {
-				ccxt.AddElementToObject(this.Balance[accountType], code, account)
+				this.WsBalanceEntryForWrite(accountType)[*code] = account
 			}
 		}
 	}

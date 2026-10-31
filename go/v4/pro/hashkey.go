@@ -315,8 +315,8 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
-	var symbol *string = this.SafeString(ticker, "symbol", "")
-	var messageHash string = "ticker:" + *symbol
+	var symbol string = *this.SafeString(ticker, "symbol", "")
+	var messageHash string = "ticker:" + symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 }
@@ -1119,7 +1119,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "info", message)
+	this.WsBalanceEntryForWrite(typeVar)["info"] = message
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
