@@ -6,7 +6,6 @@ import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLo
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
-import { installHx10J04StringHelpers } from './hx10w2-J04.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
@@ -146,7 +145,6 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installH2kJ11StringArgs (cachedTranspiler);
         installJavaNativePadStartFirst (cachedTranspiler);
         installJ08NativeReplace (cachedTranspiler);
-        installHx10J04StringHelpers (cachedTranspiler); // hx10 J04
         installJ10Types (cachedTranspiler); // hx4 J10
         installJ11MapLocals (cachedTranspiler); // hx4 J11
         installJ12ParamTypes (cachedTranspiler); // hx4 J12

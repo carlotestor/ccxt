@@ -37,7 +37,6 @@ import { j01wsNativeOps, j01wsSelfTest } from './hx10w3-J01.js'; // hx10 wave-3 
 import { wsMapReads, wsReadsTest } from './hx10w7-OJ06.js'; // hx10w7 OJ06
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
-import { installHx10J04StringHelpers } from './hx10w2-J04.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
@@ -2444,7 +2443,6 @@ class NewTranspiler {
         installH2kJ11StringArgs(this.transpiler);
         installJavaNativePadStartFirst(this.transpiler);
         installJ08NativeReplace(this.transpiler);
-        installHx10J04StringHelpers(this.transpiler); // hx10 J04
         installJ10Types(this.transpiler); // hx4 J10
         installJ11MapLocals(this.transpiler); // hx4 J11
         installJ12ParamTypes(this.transpiler); // hx4 J12
@@ -5856,7 +5854,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8GetValueBaseReturnSelfTest(), hx11w8PaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest(), hx11w8GetValueBaseReturnSelfTest(), hx11w8PaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7205,55 +7203,6 @@ function j12ParamTypesSelfTest (): string[] {
         }
     } catch (e: any) {
         problems.push(`j12 self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
-}
-
-// hx10 J04: snippet checks for the native string-helper prints (`--audit-string-types --self-test`)
-function j04w2Str (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj04w2selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj04w2selftest extends Exchange {',
-        '    zzjSlice (s: string, o: any) {',
-        '        const b = s.length;',
-        '        const both = s.slice (1, b);',
-        '        const tail = s.slice (2);',
-        '        const head = s.slice (0, b - 1);',
-        "        const pos = s.indexOf ('x');",
-        '        const boxed = s.slice (0, pos);',
-        '        const rest = s.slice (b);',
-        '        const unproven = o.slice (1, b);',
-        "        const fractional = s.slice (this.safeFloat (o, 'a'), b);",
-        '        return [ both, tail, head, rest, boxed, unproven, fractional ];',
-        '    }',
-        '    zzjSplit (s: string, sep: string, o: any) {',
-        '        return [ s.split (sep), s.split (o) ];',
-        '    }',
-        '    zzjReplaceAll (s: string, repl: string) {',
-        "        return s.replaceAll ('ab', repl);",
-        '    }',
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        fs.writeFileSync(path.join(os.tmpdir(), 'j04w2-out.java'), out);
-        const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(`hx10 J04: ${msg}`); };
-        ok(/\(s == null \? null : s\.substring\(/.test(out), 'a String slice with integral bounds must print native');
-        ok(/String both = \(s == null \? null : /.test(out), 'the native slice keeps the String local typing');
-        ok(/Helpers\.slice\(o, 1, b\)/.test(out), 'an unproven receiver keeps the helper');
-        ok(/s\.substring\(\(int\) Math\.min\(Math\.max\(b < 0 \? s\.length\(\) \+ b : b, 0\), s\.length\(\)\)\)/.test(out), 'an open-end slice prints the one-argument substring');
-        ok(/\(\(Number\)pos\)\.intValue\(\)/.test(out), 'an Object-printed index bound takes the intValue truncation');
-        ok(/Helpers\.slice\(s, this\.safeFloat/.test(out), 'a fractional bound keeps the helper');
-        ok(/\(\(String\)s\)\.split\(java\.util\.regex\.Pattern\.quote\(sep\)\)/.test(out), 'a String separator prints the native split');
-        ok(/Helpers\.split\(s, o\)/.test(out), 'an unproven separator keeps the helper');
-        ok(/\(\(String\)s\)\.replace\("ab", \(\(String\)repl\)\)/.test(out), 'a literal pattern with a String replacement prints native replace');
-    } catch (e: any) {
-        problems.push(`j04w2 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }

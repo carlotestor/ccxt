@@ -1827,7 +1827,8 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
     'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], match: /^(\(\(String\)\w+\)|\w+)\.replaceFirst\("/, args: [ 1, 2 ], nonNull: false },
     'replaceAll':  { type: 'String', prefixes: [ 'Helpers.replaceAll(' ], match: /^(\(\(String\)\w+\)|\w+)\.replace\("/, args: [ 1, 2 ], nonNull: false },
-    'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], args: [ 1, 2 ], nonNull: false },
+    // the printer's native slice (`(x == null ? null : ((String)x).substring(..))`) is a String too
+    'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], match: /^\w+(?:\.\w+)* == null \? null : \(\(String\)/, args: [ 1, 2 ], nonNull: false },
     'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
     'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
     'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(' ], args: [ 1, 2 ] },
@@ -20090,15 +20091,4 @@ function x21BaseOnlyDispatch (call) {
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
-}
-
-// hx10 J04: a native print of a receiver method carries the same type the helper's entry names,
-// so `String x = <native>` keeps its local typing (see build/hx10w2-J04.js)
-export function registerJavaReceiverMethodMatch (name, match) {
-    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
-    if (entry === undefined || match === undefined) {
-        return;
-    }
-    const previous = entry.match;
-    entry.match = previous === undefined ? match : { test: (value) => previous.test (value) || match.test (value) };
 }
