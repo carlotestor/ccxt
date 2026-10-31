@@ -887,7 +887,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $this->clean_unsubscription($client, $subHash, $unsubHash);
     }
 
-    public function prune_cached_by_symbols(mixed $newCache, mixed $cache, array $symbols) {
+    public function prune_cached_by_symbols(ArrayCacheBySymbolById $newCache, ArrayCache $cache, array $symbols): ArrayCache {
         /**
          * @ignore
          * refills a fresh ArrayCacheBySymbolById with the $entries of the old $cache except the given $symbols, so unsubscribing one market keeps the cached $entries of the others

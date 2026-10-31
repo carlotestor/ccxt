@@ -9203,7 +9203,10 @@ class BaseExchange {
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
-            $uniqValue = $fallbackToTimestamp ? $this->safe_string_n($entry, array( 'id', 'timestamp', 0 )) : $this->safe_string($entry, 'id');
+            $uniqValue = $this->safe_string($entry, 'id');
+            if ($fallbackToTimestamp) {
+                $uniqValue = $this->safe_string_n($entry, array( 'id', 'timestamp', 0 ));
+            }
             if ($uniqValue !== null && !(is_array($uniqueDic) && array_key_exists($uniqValue ?? '', $uniqueDic))) {
                 $uniqueDic[$uniqValue] = 1;
                 $uniqueResult[] = $entry;
