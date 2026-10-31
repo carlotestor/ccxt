@@ -774,7 +774,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             self.clean_cache(subscription)
         self.clean_unsubscription(client, subHash, unsubHash)
 
-    def prune_cached_by_symbols(self, newCache: object, cache: object, symbols: list[str]):
+    def prune_cached_by_symbols(self, newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: list[str]) -> ArrayCache:
         """
  @ignore
         refills a fresh ArrayCacheBySymbolById with the entries of the old cache except the given symbols, so unsubscribing one market keeps the cached entries of the others

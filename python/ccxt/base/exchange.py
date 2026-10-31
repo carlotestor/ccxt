@@ -7753,7 +7753,9 @@ class BaseExchange(object):
         uniqueResult = []
         for i in range(0, len(input)):
             entry = input[i]
-            uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0]) if fallbackToTimestamp else self.safe_string(entry, 'id')
+            uniqValue = self.safe_string(entry, 'id')
+            if fallbackToTimestamp:
+                uniqValue = self.safe_string_n(entry, ['id', 'timestamp', 0])
             if uniqValue is not None and not (uniqValue in uniqueDic):
                 uniqueDic[uniqValue] = 1
                 uniqueResult.append(entry)

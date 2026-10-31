@@ -1858,7 +1858,8 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            if self.safe_number(position, 'contracts') == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
+            contracts = self.safe_number(position, 'contracts')
+            if contracts == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
                 position['side'] = 'long'
                 shortPosition = self.clone(position)
                 shortPosition['side'] = 'short'
