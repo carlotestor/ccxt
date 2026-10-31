@@ -596,7 +596,7 @@ impl BingxCore {
 }) });
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
         // const marketId = messageHash.split('@')[0];
-        let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
         let mut marketType: Value = Value::Str("spot".into());
         if isSwap {
             marketType = Value::Str("swap".into());
@@ -897,9 +897,9 @@ impl BingxCore {
         //
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::from(vec![]) });
         let mut rawHash: Value = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut hashParts: Value = Value::Array(rawHash.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
+        let mut hashParts: Value = Value::Array(if let Some(__s) = rawHash.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(hashParts, Value::Int(0), &[]);
-        let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
         let mut marketType: Value = Value::Str("spot".into());
         if isSwap {
             marketType = Value::Str("swap".into());
@@ -1126,11 +1126,11 @@ impl BingxCore {
     m
 }) });
         let mut dataType: Value = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = Value::Array(dataType.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = dataType.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
         let mut firstPart: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
         let mut isAllEndpoint: bool = firstPart.as_deref() == Some("all");
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
-        let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
         let mut marketType: Value = Value::Str("spot".into());
         if isSwap {
             marketType = Value::Str("swap".into());
@@ -1270,9 +1270,9 @@ impl BingxCore {
         //         }
         //     }
         //
-        let mut isSwap: bool = Value::Int(__ch.url.clone().as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
         let mut dataType: Value = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = Value::Array(dataType.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = dataType.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
         let mut firstPart: Value = self.safe_string(parts, Value::Int(0), &[]);
         let mut isAllEndpoint: bool = firstPart.as_str() == Some("all");
         let mut marketId: Value = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => firstPart });
@@ -1306,7 +1306,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut timeframeParts: Value = Value::Array(dataType.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut timeframeParts: Value = Value::Array(if let Some(__s) = dataType.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut rawTimeframe: Option<String> = self.safe_string_opt(timeframeParts, Value::Int(1), &[]);
         let mut marketOptions: Value = self.safe_dict(self.options.clone(), marketType, &[]);
         let mut timeframes: Value = self.safe_dict_k(marketOptions, "timeframes", &[Value::Map({
@@ -2029,9 +2029,9 @@ impl BingxCore {
             let mut __for_first_95: bool = true;
             while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut filteredSymbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
+            let mut filteredSymbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[filteredSymbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[positions, messageHash]);
@@ -2523,23 +2523,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut dataType: Value = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        if Value::Int(dataType.as_str().and_then(|__s| __s.find("@depth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if dataType.as_str().unwrap_or("").contains("@depth") {
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        if Value::Int(dataType.as_str().and_then(|__s| __s.find("@ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if dataType.as_str().unwrap_or("").contains("@ticker") {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }
-        if Value::Int(dataType.as_str().and_then(|__s| __s.find("@trade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if dataType.as_str().unwrap_or("").contains("@trade") {
             self.handle_trades(client.clone(), message.clone());
             return;
         }
-        if Value::Int(dataType.as_str().and_then(|__s| __s.find("@kline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if dataType.as_str().unwrap_or("").contains("@kline") {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
-        if Value::Int(dataType.as_str().and_then(|__s| __s.find("executionReport")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if dataType.as_str().unwrap_or("").contains("executionReport") {
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

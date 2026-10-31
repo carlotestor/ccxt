@@ -1107,7 +1107,7 @@ impl HibachiCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
-        let mut uppercaseStatus: Value = (if (status == Value::Null) { Value::Null } else { status.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) });
+        let mut uppercaseStatus: Value = (if (status == Value::Null) { Value::Null } else { (if let Some(__s) = status.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) });
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
@@ -1376,14 +1376,14 @@ impl HibachiCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market, "id", &[]));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("side".to_string(), sideInternal);
-                m.insert("orderType".to_string(), type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("orderType".to_string(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol, amount));
                 m.insert("price".to_string(), priceInternal);
                 m.insert("signature".to_string(), signature);
                 m.insert("maxFeesPercent".to_string(), self.number_to_string(feeRate));
             m
         });
-        let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null).as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);

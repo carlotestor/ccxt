@@ -2243,14 +2243,14 @@ impl BitstampCore {
             if (description.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".into()))));
             }
-            let mut descriptionParts: Value = Value::Array(description.as_deref().map(|__s| __s.split(" / ").map(Value::from).collect()).unwrap_or_default());
+            let mut descriptionParts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" / ").map(Value::from).collect() } else { Vec::new() });
             let mut baseDescription: Option<String> = self.safe_string_opt(descriptionParts.clone(), Value::Int(0), &[]);
             let mut quoteDescription: Option<String> = self.safe_string_opt(descriptionParts, Value::Int(1), &[]);
             let mut minimumOrder: Option<String> = self.safe_string_k_opt(market.clone(), "minimum_order_value", &[]);
             if (minimumOrder.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".into()))));
             }
-            let mut parts: Value = Value::Array(minimumOrder.as_deref().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(if let Some(__s) = minimumOrder.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut cost: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
             if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Value = self.safe_integer_k(market.clone(), "base_decimals", &[]);
@@ -2454,7 +2454,7 @@ impl BitstampCore {
             let mut __for_first_430: bool = true;
             while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(id.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
+            if !id.as_str().unwrap_or("").contains("_") {
                 let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone(), &[]).as_i64();
                 if (value.is_some()) && (value != Some(0)) {
                     return id.as_str().map(str::to_owned);
@@ -2547,7 +2547,7 @@ impl BitstampCore {
                 let mut __for_first_431: bool = true;
                 while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                if (currentKey.as_str() != Some("order_id")) && Value::Int(currentKey.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                if (currentKey.as_str() != Some("order_id")) && currentKey.as_str().unwrap_or("").contains("_") {
                     rawMarketId = currentKey;
                     marketResolved = self.safe_market(&[rawMarketId.clone(), marketResolved.clone(), Value::Str("_".into())]);
                 }
@@ -2587,7 +2587,7 @@ impl BitstampCore {
         let mut datetimeString: Value = self.safe_string2(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Value = Value::Null;
         if (datetimeString != Value::Null) {
-            if Value::Int(datetimeString.as_str().and_then(|__s| __s.find(" ")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if datetimeString.as_str().unwrap_or("").contains(" ") {
                 // iso8601
                 timestamp = self.parse8601(datetimeString.clone());
             }  else {
@@ -3735,7 +3735,7 @@ impl BitstampCore {
         let mut addressRaw: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         if (addressRaw.is_some()) {
             // dt (destination tag) is embedded into the address field
-            let mut addressParts: Value = Value::Array(addressRaw.as_deref().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
+            let mut addressParts: Value = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
                 tag = self.safe_string(addressParts, Value::Int(1), &[]);
@@ -3960,8 +3960,8 @@ impl BitstampCore {
                 let mut __for_first_436: bool = true;
                 while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                if Value::Int(currentKey.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    let mut marketId: Value = currentKey.as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| currentKey.clone());
+                if currentKey.as_str().unwrap_or("").contains("_") {
+                    let mut marketId: Value = (if let Some(__s) = currentKey.as_str() { Value::Str(__s.replace("_", "").into()) } else { currentKey.clone() });
                     market = self.safe_market(&[marketId, market.clone()]);
                 }
             }
@@ -4181,7 +4181,7 @@ impl BitstampCore {
 }
 
     pub fn get_currency_name(&self, mut code: Value) -> Option<String> {
-        return code.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = code.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
     pub fn is_fiat(&self, mut code: Value) -> Value {
@@ -4448,8 +4448,8 @@ impl BitstampCore {
             if isPrivatePost && (postBody.as_str() != Some("")) {
                 authBody = postBody;
             }
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into()),
-                contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody).into());
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), (if let Some(__s) = url.as_str() { Value::Str(__s.replace("https://",
+                "").into()) } else { url.clone() })).into()), contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), signature); }
         }

@@ -1091,7 +1091,7 @@ impl CoinspotCore {
         let mut market: Value = self.market(symbol);
         let mut response: Value = self.public_get_latest(&[params]).await;
         let mut id: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
-        id = id.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        id = (if let Some(__s) = id.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut prices: Value = self.safe_dict_k(response, "prices", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1406,7 +1406,7 @@ impl CoinspotCore {
             self.load_markets(&[]).await;
         }
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut sideUpper: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }

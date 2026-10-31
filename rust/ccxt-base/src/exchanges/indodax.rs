@@ -966,7 +966,7 @@ impl IndodaxCore {
             while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rawTicker: Value = tickers.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = key.as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| key.clone());
+            let mut marketId: Value = (if let Some(__s) = key.as_str() { Value::Str(__s.replace("_", "").into()) } else { key.clone() });
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTicker, &[market]).as_map().cloned().unwrap_or_default();
             parsedTickers.insert(crate::runtime::stringify_param(&marketId), Value::Map(parsed));
@@ -1986,26 +1986,26 @@ impl IndodaxCore {
                     if (networkId.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                     }
-                    if Value::Int(networkId.as_deref().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                    if networkId.as_deref().unwrap_or("").contains(",") {
                         network = Value::from(vec![]);
                         if (networkId.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                         }
-                        let mut networkIds: Vec<Value> = Value::Array(networkId.as_deref().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                        let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
                             let mut __for_first_844: bool = true;
                             while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone()]);
                             if (_netIdTmp != Value::Null) {
-                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push(_netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); };
+                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };
                             }
                         }
                         }
                     }  else {
                         let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                         if (_netIdTmp != Value::Null) {
-                            network = _netIdTmp.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+                            network = (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
                         }
                     }
                 }

@@ -1617,7 +1617,7 @@ impl HitbtcCore {
             let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string2(rawNetwork.clone(), Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let mut rawNetworkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut networkCodeUpper: Value = (if (rawNetworkCode != Value::Null) { rawNetworkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+            let mut networkCodeUpper: Value = (if (rawNetworkCode != Value::Null) { (if let Some(__s) = rawNetworkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
             let mut networkCode: Value = Value::Null;
             if (networkCodeUpper != Value::Null) {
                 networkCode = self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]);
@@ -3684,8 +3684,8 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromAccountValue: Value = fromAccount.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut toAccountValue: Value = toAccount.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut fromAccountValue: Value = (if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut toAccountValue: Value = (if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccountValue.clone(), &[fromAccountValue.clone()]);
         let mut toId: Value = self.safe_string(accountsByType, toAccountValue.clone(), &[toAccountValue.clone()]);
         if (fromId.as_str() == toId.as_str()) {
@@ -3740,8 +3740,8 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromNetworkUpper: Value = fromNetwork.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        let mut toNetworkUpper: Value = toNetwork.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut fromNetworkUpper: Value = (if let Some(__s) = fromNetwork.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut toNetworkUpper: Value = (if let Some(__s) = toNetwork.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut fromNetworkValue: Value = self.safe_string(self.networkAliases.clone(), fromNetworkUpper.clone(), &[fromNetworkUpper.clone()]);
         let mut toNetworkValue: Value = self.safe_string(self.networkAliases.clone(), toNetworkUpper.clone(), &[toNetworkUpper.clone()]);
         let mut fromNetworkValue2: Value = self.safe_string(networks.clone(), fromNetworkValue, &[]); // unified code to exchange id
@@ -4827,7 +4827,7 @@ impl HitbtcCore {
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "network", &[]);
             let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut rawNetworkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code]);
-            let mut networkCodeUpper: Value = (if (rawNetworkCode != Value::Null) { rawNetworkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
+            let mut networkCodeUpper: Value = (if (rawNetworkCode != Value::Null) { (if let Some(__s) = rawNetworkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
             let mut networkCode: Value = Value::Null;
             if (networkCodeUpper != Value::Null) {
                 networkCode = self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]);

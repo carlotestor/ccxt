@@ -1654,7 +1654,7 @@ impl ToobitCore {
         let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[Value::Str("".into())]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
-        let mut baseParts: Value = Value::Array(baseId.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+        let mut baseParts: Value = Value::Array(if let Some(__s) = baseId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut baseIdClean: Option<String> = self.safe_string_opt(baseParts, Value::Int(0), &[]);
         let mut base: Value = self.safe_currency_code(baseIdClean.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2566,7 +2566,7 @@ impl ToobitCore {
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), id.clone());
-                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         };
         if (price != Value::Null) {
@@ -2589,7 +2589,7 @@ impl ToobitCore {
         if isPostOnly.as_bool() == Some(true) {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }  else {
-            request.insert("type".into(), type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
         return Value::from(vec![Value::Map(request), paramsPostOnly]);
 
@@ -2629,7 +2629,7 @@ impl ToobitCore {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if self.in_array(type_var.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())])).as_bool() == Some(true) {
-            request.insert("type".into(), type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+            request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }  else if (type_var.as_str() == Some("market")) {
             request.insert("type".into(), Value::Str("LIMIT".into()));; // weird, but exchange works this way
@@ -2760,7 +2760,7 @@ impl ToobitCore {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            let mut sideParts: Value = Value::Array(rawSideLower.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut sideParts: Value = Value::Array(if let Some(__s) = rawSideLower.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
                 reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
@@ -3876,7 +3876,7 @@ impl ToobitCore {
         if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
-        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

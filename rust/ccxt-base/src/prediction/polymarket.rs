@@ -1278,7 +1278,7 @@ impl PolymarketCore {
  * @returns {string} the gamma tag slug
  */
     pub fn tag_to_slug(&self, mut tag: Value) -> Option<String> {
-        let mut lower: Value = tag.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut lower: Value = (if let Some(__s) = tag.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".into());
         let mut chars: Vec<Value> = self.string_to_chars_array(lower.clone()).as_array().cloned().unwrap_or_default();
         let mut slug: Value = Value::Str("".into());
@@ -1685,7 +1685,7 @@ impl PolymarketCore {
         // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if (Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
+        if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
             let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
@@ -1747,7 +1747,7 @@ impl PolymarketCore {
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if (Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
+            if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
                 if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(outcomeSymbol); }
             }
         }
@@ -3235,7 +3235,7 @@ impl PolymarketCore {
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcomeId", &[]);
-        let mut sideStr: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
@@ -3589,7 +3589,7 @@ impl PolymarketCore {
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
             let mut eoaSignature: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(eoaSig.get("r").cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(eoaSig.get("s").cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(eoaSig.get("v").cloned().unwrap_or(Value::Null), &[])).into());
-            return eoaSignature.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+            return (if let Some(__s) = eoaSignature.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
@@ -3665,7 +3665,7 @@ impl PolymarketCore {
         let mut lenHex: Value = ctLenHex.as_str().map(|__s| Value::Str(format!("{:0>4}", __s).into())).unwrap_or(Value::Null);
         let mut orderTypeStringHex: Value = self.binary_to_base16(self.encode(orderTypeString), &[]);
         let mut wrappedSignature: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), innerSig).into()), self.remove0x_prefix(appDomainSep)).into()), self.remove0x_prefix(contentsHash)).into()), orderTypeStringHex).into()), lenHex).into());
-        return wrappedSignature.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = wrappedSignature.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
 /*
@@ -3955,7 +3955,7 @@ impl PolymarketCore {
     m
 }));
         let mut response: Value = Value::Null;
-        if Value::Int(id.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if id.as_str().unwrap_or("").contains("-") {
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("slug".to_string(), id.clone());
@@ -4296,13 +4296,13 @@ impl PolymarketCore {
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                let mut plusSecret: Value = secret.as_str().map(|__s| Value::Str(__s.replace("-", "+").into())).unwrap_or_else(|| secret.clone());
-                let mut normalizedSecret: Value = plusSecret.as_str().map(|__s| Value::Str(__s.replace("_", "/").into())).unwrap_or_else(|| plusSecret.clone());
+                let mut plusSecret: Value = (if let Some(__s) = secret.as_str() { Value::Str(__s.replace("-", "+").into()) } else { secret.clone() });
+                let mut normalizedSecret: Value = (if let Some(__s) = plusSecret.as_str() { Value::Str(__s.replace("_", "/").into()) } else { plusSecret.clone() });
                 let mut secretBytes: Value = self.base64_to_binary(normalizedSecret, &[]);
                 let mut signature: Value = self.hmac(self.encode(auth), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = signature.as_str().map(|__s| Value::Str(__s.replace("+", "-").into())).unwrap_or_else(|| signature.clone());
-                signature = signature.as_str().map(|__s| Value::Str(__s.replace("/", "_").into())).unwrap_or_else(|| signature.clone());
+                signature = (if let Some(__s) = signature.as_str() { Value::Str(__s.replace("+", "-").into()) } else { signature.clone() });
+                signature = (if let Some(__s) = signature.as_str() { Value::Str(__s.replace("/", "_").into()) } else { signature.clone() });
                 headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address);
@@ -4346,7 +4346,7 @@ impl PolymarketCore {
             let mut ch: Value = addrChars.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut hashCh: Value = hashChars.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(upperNibbles.as_str().zip(hashCh.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                result = Value::Str(format!("{}{}", result, ch.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)).into());
+                result = Value::Str(format!("{}{}", result, (if let Some(__s) = ch.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into());
             }  else {
                 result = Value::Str(format!("{}{}", result, ch).into());
             }

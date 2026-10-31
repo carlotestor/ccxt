@@ -1578,7 +1578,7 @@ impl BitvavoCore {
                 continue;
             }
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), key.clone(), &[]);
-            let mut subHash: Value = key.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| key.clone());
+            let mut subHash: Value = (if let Some(__s) = key.as_str() { Value::Str(__s.replace("unsubscribe:", "").into()) } else { key.clone() });
             self.clean_cache(subscription);
             self.clean_unsubscription(client.clone(), subHash.clone(), key, &[]);
             // bitvavo resolves-and-deletes the data futures on every message, so at

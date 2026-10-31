@@ -878,7 +878,7 @@ impl LbankCore {
             timestamp = self.parse8601(datetime.clone());
         }
         let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
-        let mut parts: Value = Value::Array(rawSide.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(if let Some(__s) = rawSide.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut firstPart: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut side: Value = firstPart.map(Value::from).unwrap_or(Value::Null);
@@ -1039,7 +1039,7 @@ impl LbankCore {
             m
         })]);
         let mut rawType: Value = self.safe_string_k(orderUpdate.clone(), "type", &[Value::Str("".into())]);
-        let mut typeParts: Value = Value::Array(rawType.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+        let mut typeParts: Value = Value::Array(if let Some(__s) = rawType.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut side: Option<String> = self.safe_string_opt(typeParts.clone(), Value::Int(0), &[]);
         let mut exchangeType: Option<String> = self.safe_string(typeParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
