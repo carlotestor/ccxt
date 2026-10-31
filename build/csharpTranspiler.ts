@@ -7513,11 +7513,9 @@ class NewTranspiler {
                 i = j - 1;
                 continue;
             }
-            // a `<` / `>` after a space (or `=>`) is a comparison or arrow: a generic bracket never follows one
-            const spaced = ((ch === '<') || (ch === '>')) && ((plist[i - 1] === ' ') || (plist[i - 1] === '='));
-            if (!spaced && (ch === '<' || ch === '(' || ch === '[' || ch === '{')) {
+            if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
                 depth++;
-            } else if (!spaced && (ch === '>' || ch === ')' || ch === ']' || ch === '}')) {
+            } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
                 depth--;
             }
             if (ch === ',' && depth === 0) {
