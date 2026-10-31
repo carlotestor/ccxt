@@ -14562,6 +14562,7 @@ const CSHARP_DECLARED_DICT_MEMBER_FILE = /(?:^|\/)base\/ws\/Client\.ts$/
 const CSHARP_DECLARED_DICT_MEMBERS = {
     'futures': { 'getter': 'getFuture' },
     'subscriptions': { 'getter': 'getSubscription' },
+    'rejections': {},
 }
 
 function installCsharpDeclaredDictMembers (csharp) {
