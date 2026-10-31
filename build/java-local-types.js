@@ -9513,6 +9513,10 @@ function redundantCastsOperandIsString (printer, node, stringDecls) {
                 if (name === 'numberToString' || name === 'iso8601') {
                     return true; // BaseExchange `public String` (zero venue overrides)
                 }
+                if (name === 'remove0xPrefix') {
+                    const file = resolvedSignatureFile (printer, node);
+                    return file !== undefined && HELPER_SOURCE_FILE.test (file); // base `public String`
+                }
                 if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
                     // the signature hook retypes these declarations to String; async
                     // declarations are skipped by the hook, so a call to one is not proven
