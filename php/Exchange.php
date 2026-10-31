@@ -6361,13 +6361,14 @@ class BaseExchange {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded' ?? '', $this->options))) {
                 $response = $this->fetch_trading_limits($symbols);
                 $symbolsArray = $this->require_value($symbols, 'loadTradingLimits() requires a symbols argument');
-                $markets = $this->markets;
-                if ($markets === null) {
+                if ($this->markets === null) {
                     throw new ExchangeError($this->id . ' markets not loaded');
                 }
+                // read the loaded table, write through the field: a published table is replaced, not edited in place
+                $markets = $this->markets;
                 for ($i = 0; $i < count($symbolsArray); $i++) {
                     $symbol = $symbolsArray[$i];
-                    $markets[$symbol] = $this->deep_extend($markets[$symbol], $response[$symbol]);
+                    $this->markets[$symbol] = $this->deep_extend($markets[$symbol], $response[$symbol]);
                 }
                 $this->options['limitsLoaded'] = $this->milliseconds();
             }
