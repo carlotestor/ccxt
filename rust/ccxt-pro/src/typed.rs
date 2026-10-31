@@ -360,7 +360,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchSpotOHLCV`.
@@ -368,7 +368,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_spot_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchContractOHLCV`.
@@ -376,7 +376,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_contract_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `watchOHLCV`.
@@ -384,7 +384,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchBorrowInterest`.
@@ -808,7 +808,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_mark_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchIndexOHLCV`.
@@ -816,7 +816,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_index_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchPremiumIndexOHLCV`.
@@ -824,7 +824,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_premium_index_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchTransactions`.

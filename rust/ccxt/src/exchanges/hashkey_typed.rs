@@ -446,19 +446,19 @@ impl Hashkey {
     /// Typed wrapper around `fetchOHLCV`.
     pub async fn fetch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchSpotOHLCV`.
     pub async fn fetch_spot_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_spot_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchContractOHLCV`.
     pub async fn fetch_contract_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_contract_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchBorrowInterest`.
@@ -770,19 +770,19 @@ impl Hashkey {
     /// Typed wrapper around `fetchMarkOHLCV`.
     pub async fn fetch_mark_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_mark_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchIndexOHLCV`.
     pub async fn fetch_index_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_index_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchPremiumIndexOHLCV`.
     pub async fn fetch_premium_index_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_premium_index_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchTransactions`.
