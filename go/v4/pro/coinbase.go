@@ -504,8 +504,8 @@ func (this *Coinbase) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ticker := r1.Value
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		var symbol *string = this.SafeString(ticker, "symbol", "")
-		ccxt.AddElementToObject(tickers, symbol, ticker)
+		var symbol string = *this.SafeString(ticker, "symbol", "")
+		tickers[symbol] = ticker
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
 		return nil
@@ -1145,9 +1145,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCacheBySymbolById(tradesLimit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesArray
-		}
+		this.Trades[*symbol] = tradesArray
 	}
 	for i := 0; i < len(events); i++ {
 		var currentEvent map[string]any = ccxt.SafeMapTyped(events, i)

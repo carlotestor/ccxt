@@ -7523,7 +7523,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 	}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode *string = this.SafeString(networkCodes, i, "")
+			var networkCode string = *this.SafeString(networkCodes, i, "")
 			var network map[string]any = SafeMapTyped(networks, networkCode)
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
@@ -8579,7 +8579,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 	var version string = section[1]
 	var access string = section[2]
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var url string = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
+	var url string = this.ImplodeHostname(this.UrlsApi[typeVar])
 	if (isSandbox != nil && *isSandbox) && IsEqual(url, nil) {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + typeVar + " endpoints"))
 	}

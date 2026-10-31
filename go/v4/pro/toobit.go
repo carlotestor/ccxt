@@ -301,20 +301,18 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeString(market, "symbol", "")
-	if symbol != nil {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if _, ok := this.Trades[*symbol]; !ok {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(ccxt.DerefScalar(parsedTrades[i]))
 	}
-	var messageHash string = "trade::" + *symbol
+	var messageHash string = "trade::" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Toobit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -414,7 +412,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var selectedTimeframe any = nil
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolStr *string = this.SafeString(data, 0, "")
+		var symbolStr string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolStr)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1m")
@@ -425,7 +423,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 			selectedTimeframe = rawTimeframe
 		}
 		marketIds = append(marketIds, marketId)
-		messageHashes = append(messageHashes, "ohlcv::"+*symbolStr+"::"+*unfiedTimeframe)
+		messageHashes = append(messageHashes, "ohlcv::"+symbolStr+"::"+*unfiedTimeframe)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
@@ -1715,9 +1713,9 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 	return nil
 }
 func (this *Toobit) GetUserStreamUrl() string {
-	var wsBaseUrl *string = this.SafeString(this.UrlsApi["ws"], "common", "")
+	var wsBaseUrl string = *this.SafeString(this.UrlsApi["ws"], "common", "")
 	var listenKey string = *this.SafeString(this.Options["ws"], "listenKey", "")
-	return *wsBaseUrl + "/api/v1/ws/" + listenKey
+	return wsBaseUrl + "/api/v1/ws/" + listenKey
 }
 func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//

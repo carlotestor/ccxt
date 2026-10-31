@@ -430,7 +430,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 		}
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		tradesCache.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -3468,7 +3468,7 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	_ = isFeed
 	var isV5 bool = ccxt.GetArgBool(optionalArgs, 3, false)
 	_ = isV5
-	var api *string = this.SafeString(this.Options, "api", "api")
+	var api string = *this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}

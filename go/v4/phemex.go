@@ -960,14 +960,14 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 	var makerFeeRateEr *string = this.SafeString(market, "makerFeeRateEr")
 	var takerFeeRateEr *string = this.SafeString(market, "takerFeeRateEr")
 	var status *string = this.SafeString(market, "status")
-	var contractSizeString *string = this.SafeString(market, "contractSize", " ")
+	var contractSizeString string = *this.SafeString(market, "contractSize", " ")
 	var contractSize *float64 = nil
 	if settle != nil && *settle == "USDT" {
 		contractSize = this.ParseNumber("1")
-	} else if strings.Index(*contractSizeString, " ") != -1 {
+	} else if strings.Index(contractSizeString, " ") != -1 {
 		// "1 USD"
 		// "0.005 ETH"
-		var parts []string = strings.Split(*contractSizeString, " ")
+		var parts []string = strings.Split(contractSizeString, " ")
 		contractSize = this.ParseNumber(parts[0])
 	} else {
 		// "1.0"
@@ -4994,7 +4994,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var positions []any = SafeListTyped(data, "positions")
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = DerefScalar(positions[i])
+		var position any = positions[i]
 		result = append(result, PositionToMap(this.ParsePosition(position)))
 	}
 
@@ -5361,7 +5361,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	var rows []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))

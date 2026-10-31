@@ -1119,7 +1119,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	var parsedTickers []any = []any{}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var info any = ccxt.DerefScalar(data[i])
+		var info any = data[i]
 		var marketId *string = this.SafeString(info, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1173,7 +1173,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 		return
 	}
 	for i := 0; i < len(data); i++ {
-		var rawTrade any = ccxt.DerefScalar(data[i])
+		var rawTrade any = data[i]
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -2042,7 +2042,7 @@ func (this *Pacifica) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	var postType *string = this.SafeString(message, "type")
-	var topic *string = this.SafeString(message, "channel", "")
+	var topic string = *this.SafeString(message, "channel", "")
 	var methods map[string]any = map[string]any{
 		"pong":                  this.HandlePong,
 		"trades":                this.HandleTrades,
@@ -2072,7 +2072,7 @@ func (this *Pacifica) HandleMessage(client any, message map[string]any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if strings.Index(*topic, keys[i]) >= 0 {
+		if strings.Index(topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

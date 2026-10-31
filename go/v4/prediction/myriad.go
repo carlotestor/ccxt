@@ -868,7 +868,7 @@ func (this *Myriad) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var data []any = ccxt.SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position any = this.ParsePredictionPosition(ccxt.DerefScalar(data[i]))
+		var position any = this.ParsePredictionPosition(data[i])
 		if (outcomes == nil) || this.InArray(ccxt.GetValue(position, "outcome"), outcomes) {
 			result = append(result, position)
 		}
@@ -1432,7 +1432,7 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	var ordersLength int = len(orders)
 	var orderOutcomes []any = []any{}
 	for i := 0; i < ordersLength; i++ {
-		var __oc *string = this.SafeString(ccxt.GetValue(orders, i), "outcome")
+		var __oc *string = this.SafeString(orders[i], "outcome")
 		if __oc != nil {
 			orderOutcomes = append(orderOutcomes, __oc)
 		}
@@ -2821,7 +2821,7 @@ func (this *Myriad) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var trades []any = []any{}
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
-		var order any = ccxt.GetValue(orders, i)
+		var order any = orders[i]
 		trades = append(trades, this.OrderToTrade(order))
 	}
 
@@ -3834,7 +3834,7 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var outcomes []any = ccxt.SafeListTyped(response, "outcomes")
 	var selectedOutcome any = nil
 	for i := 0; i < len(outcomes); i++ {
-		var oc any = ccxt.DerefScalar(outcomes[i])
+		var oc any = outcomes[i]
 		var currentId *string = this.SafeString(oc, "id", this.SafeString(oc, "outcomeId"))
 		var currentTitle *string = this.SafeString(oc, "title", this.SafeString(oc, "label"))
 		if (outcomeId != nil) && (currentId == outcomeId || (currentId != nil && outcomeId != nil && *currentId == *outcomeId)) {
@@ -4299,7 +4299,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.DerefScalar(rawMarkets[i])
+		var raw any = rawMarkets[i]
 		var m any = this.ParseMyriadMarket(raw)
 		var marketHandle *string = this.SafeString(m, "market")
 		if marketHandle != nil {
@@ -4941,7 +4941,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			}
 			var myStored ccxt.WsArrayCache = this.MyTrades
 			for k := 0; k < myLegsLength; k++ {
-				myStored.Append(ccxt.DerefScalar(myLegs[k]))
+				myStored.Append(myLegs[k])
 			}
 			client.(ccxt.ClientInterface).Resolve(myStored, "myTrades")
 		}

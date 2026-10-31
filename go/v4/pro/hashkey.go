@@ -315,8 +315,8 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
-	var symbol *string = this.SafeString(ticker, "symbol", "")
-	var messageHash string = "ticker:" + *symbol
+	var symbol string = *this.SafeString(ticker, "symbol", "")
+	var messageHash string = "ticker:" + symbol
 	this.Tickers.Store(symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(this.Tickers.Get(symbol), messageHash)
 }
@@ -1024,7 +1024,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		}
 	}
 	var typeVar string = "spot"
-	var typeMarketType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)), 0))
+	typeMarketType, _ := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	var messageHash string = "balance:" + *typeMarketType
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)

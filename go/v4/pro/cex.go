@@ -311,9 +311,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
-	if symbol != nil {
-		this.Trades[*symbol] = stored
-	}
+	this.Trades[*symbol] = stored
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -1156,7 +1154,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var symbol *string = this.SafeString(message, "oid", "") // symbol is set as requestId in watchOrders
+	var symbol string = *this.SafeString(message, "oid", "") // symbol is set as requestId in watchOrders
 	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1170,7 +1168,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 		order["status"] = "open"
 		myOrders.Append(order)
 	}
-	var messageHash string = "orders:" + *symbol
+	var messageHash string = "orders:" + symbol
 	var ordersLength int = ccxt.GetArrayLength(myOrders)
 	if ordersLength > 0 {
 		client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)
@@ -1524,7 +1522,7 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	// const stored = this.safeValue (this.ohlcvs, symbol)
 	var stored any = this.Ohlcvs[symbol]["unknown"]
 	for i := 0; i < len(data); i++ {
-		var ohlcv []any = []any{this.SafeTimestamp(ccxt.DerefScalar(data[i]), 0), this.SafeNumber(ccxt.DerefScalar(data[i]), 1), this.SafeNumber(ccxt.DerefScalar(data[i]), 2), this.SafeNumber(ccxt.DerefScalar(data[i]), 3), this.SafeNumber(ccxt.DerefScalar(data[i]), 4), this.SafeNumber(ccxt.DerefScalar(data[i]), 5)}
+		var ohlcv []any = []any{this.SafeTimestamp(data[i], 0), this.SafeNumber(data[i], 1), this.SafeNumber(data[i], 2), this.SafeNumber(data[i], 3), this.SafeNumber(data[i], 4), this.SafeNumber(data[i], 5)}
 		stored.(ccxt.Appender).Append(ohlcv)
 	}
 	var dataLength int = len(data)

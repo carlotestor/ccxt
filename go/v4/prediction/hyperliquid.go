@@ -1451,7 +1451,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if ccxt.IsEqual(outcomeInput, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
-	if this.Outcomes == nil || this.Outcomes_by_id == nil {
+	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
@@ -1605,7 +1605,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	if clientOrderId != nil {
 		orderObj["c"] = clientOrderId
 	}
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
@@ -1793,7 +1793,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 	}
 	cancelAction["cancels"] = cancelReq
-	var vaultAddressOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")), 0))
+	vaultAddressOption, _ := this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
@@ -1824,7 +1824,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var status any = ccxt.DerefScalar(statuses[i])
+		var status any = statuses[i]
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
@@ -2918,10 +2918,10 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+			var builder string = *this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 			// the default feeRate is '0%': the builder is approved and attached for statistics
 			// purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0%")
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0%")
 
 			r1 := <-this.ApproveBuilderFeeAsync(builder, maxFeeRate)
 			if r1.Err != nil {

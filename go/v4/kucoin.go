@@ -2848,7 +2848,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan AsyncResult[bool], optionalA
 	defer ReturnPanicError(ch)
 	var force bool = GetArgBool(optionalArgs, 0, false)
 	_ = force
-	if _, hx15ok := this.Options["hf"]; !hx15ok || (IsEqual(this.Options["hf"], nil)) || (force == true) {
+	if _, ok := this.Options["hf"]; !ok || (IsEqual(this.Options["hf"], nil)) || (force == true) {
 
 		r := <-this.PrivateGetHfAccountsOpened()
 		if r.Err != nil {
@@ -3117,7 +3117,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalAr
 	}
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var account any = DerefScalar(data[i])
+		var account any = data[i]
 		var accountId *string = this.SafeString(account, "id")
 		var currencyId *string = this.SafeString(account, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -6389,12 +6389,12 @@ func (this *Kucoin) createContractOrdersBody(ch chan AsyncResult[[]Order], order
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar string = *this.SafeString(rawOrder, "type", "")
+		var typeVar *string = this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = this.CreateContractOrderRequest(*symbol, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateContractOrderRequest(*symbol, *typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -8016,8 +8016,8 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7430, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes592515 []any = listRecv7430
+	listRecv7420, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes592515 []any = listRecv7420
 	if retRes592515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -8096,8 +8096,8 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7498, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes596315 []any = listRecv7498
+	listRecv7488, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes596315 []any = listRecv7488
 	if retRes596315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -9142,8 +9142,8 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv8465, _ := TradesToList(r.Value), r.Value != nil
-	var retRes678115 []any = listRecv8465
+	listRecv8455, _ := TradesToList(r.Value), r.Value != nil
+	var retRes678115 []any = listRecv8455
 	if retRes678115 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
@@ -11312,7 +11312,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		var data map[string]any = SafeMapTyped(response, "data")
 		var accounts []any = SafeListTyped(data, "accounts")
 		for i := 0; i < len(accounts); i++ {
-			var balance any = DerefScalar(accounts[i])
+			var balance any = accounts[i]
 			var currencyId *string = this.SafeString(balance, "currency")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
 			if codeInner != nil {

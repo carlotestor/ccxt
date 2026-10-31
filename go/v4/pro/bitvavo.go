@@ -258,7 +258,7 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 	var tickers []any = ccxt.SafeListTyped(message, "data")
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var data any = ccxt.DerefScalar(tickers[i])
+		var data any = tickers[i]
 		var marketId *string = this.SafeString(data, "market")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
 		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
@@ -323,10 +323,10 @@ func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
 	for i := 0; i < len(tickers); i++ {
 		var data any = tickers[i]
 		var ticker any = this.ParseWsBidAsk(data)
-		var symbol *string = this.SafeString(ticker, "symbol", "")
+		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Bidsasks.Store(symbol, ticker)
 		result = append(result, ticker)
-		var messageHash string = event + ":" + *symbol
+		var messageHash string = event + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, event)

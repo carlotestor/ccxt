@@ -140,18 +140,14 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbolValue != nil {
-			this.Trades[*symbolValue] = stored
-		}
+		this.Trades[*symbolValue] = stored
 	}
 	for i := 0; i < len(rawTrades); i++ {
 		var rawTrade any = rawTrades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade, market))
 		stored.Append(trade)
 	}
-	if symbolValue != nil {
-		this.Trades[*symbolValue] = stored
-	}
+	this.Trades[*symbolValue] = stored
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) ccxt.Trade {
@@ -283,22 +279,22 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol string = *this.SafeString(subscription, "symbol", "")
-	var messageHash string = "orderbook:" + symbol
+	var symbol *string = this.SafeString(subscription, "symbol", "")
+	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if _, ok := this.Orderbooks[symbol]; !ok {
-		this.Orderbooks[symbol] = this.IndexedOrderBook(map[string]any{})
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
-		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
+		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, *symbol)
 		if !inSequence {
 			return
 		}
 	}
 	if asks != nil {
-		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
+		var snapshot any = this.CustomParseOrderBook(message, *symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		orderbook.Reset(snapshot)
 	} else {
 		this.HandleBookDelta(orderbook, message)
@@ -539,7 +535,7 @@ func (this *Luno) HandleMessage(client any, message map[string]any) {
 	}
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; j < len(handlers); j++ {
-		var handler any = ccxt.DerefScalar(handlers[j])
+		var handler any = handlers[j]
 		ccxt.CallDynamically(handler, client, message, func() any {
 			if 0 >= 0 && 0 < len(subscriptions) {
 				return ccxt.DerefScalar(subscriptions[0])

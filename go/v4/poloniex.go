@@ -2701,8 +2701,8 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	var market map[string]any = nil
 	var isContract bool = false
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
-		var symbol *string = this.SafeString(rawOrder, "symbol", "")
+		var rawOrder map[string]any = MapTyped(orders[i])
+		var symbol string = *this.SafeString(rawOrder, "symbol", "")
 		var marketInner map[string]any = this.Market(symbol)
 		var marketInnerType *string = this.SafeString(marketInner, "type")
 		var marketType *string = this.SafeString(market, "type")
@@ -4832,7 +4832,7 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	}
 	var request map[string]any = map[string]any{
 		"lever":   leverage,
-		"mgnMode": ToUpper(marginMode),
+		"mgnMode": strings.ToUpper(*marginMode),
 		"symbol":  market["id"],
 	}
 
@@ -4878,7 +4878,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol an
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
 	}
-	request["mgnMode"] = ToUpper(marginMode)
+	request["mgnMode"] = strings.ToUpper(*marginMode)
 
 	r1 := <-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, paramsMarginMode))
 	if r1.Err != nil {

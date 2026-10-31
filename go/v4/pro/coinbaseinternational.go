@@ -442,7 +442,7 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string
 	var trades []any = this.ParseTrades(data)
 	var tradesLength int = len(trades)
 	for i := 0; i < tradesLength; i++ {
-		this.MyTrades.Append(ccxt.DerefScalar(trades[i]))
+		this.MyTrades.Append(trades[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 }
@@ -773,7 +773,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		this.Positions.(ccxt.Appender).Append(ccxt.DerefScalar(positions[i]))
+		this.Positions.(ccxt.Appender).Append(positions[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }
@@ -1808,7 +1808,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 		if _, ok := this.Trades[*symbol]; !ok {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArrayCache := ccxt.NewArrayCache(limit)
-			this.Trades[*symbol] = tradesArrayCache
+			this.Trades.Store(symbol, tradesArrayCache)
 		}
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
@@ -1817,9 +1817,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		tradesArray.Append(trade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades[*symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
 	return message
 }

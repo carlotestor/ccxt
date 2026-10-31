@@ -295,7 +295,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -368,7 +368,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -484,7 +484,7 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i])))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i]))
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -877,7 +877,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -954,7 +954,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(ccxt.DerefScalar(data[i])))
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i]))
 		this.Tickers.Store(symbol, ticker)
 		if symbol != nil {
 			newTickers[*symbol] = ticker
@@ -1865,7 +1865,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")), 0))
+	depthOption, _ := this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	var depth *string = depthOption
 	if limit != nil {
 		if limit != nil && *limit == 1 {
@@ -2612,20 +2612,20 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	var messageHash any = channel + "::myTrades"
 	var market map[string]any = nil
 	var symbolResolved any = nil
-	var typeVar any = typeOption
+	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
 	}
-	if ccxt.IsEqual(typeVar, "future") {
-		typeVar = "futures"
+	if typeVar != nil && *typeVar == "future" {
+		typeVar = ccxt.SafeStringPtr("futures")
 	}
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() type is required"))
 	}
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(*typeVar)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchMyTrades", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
@@ -2823,7 +2823,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var cache any = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var rawPosition any = ccxt.DerefScalar(data[i])
+		var rawPosition any = data[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var contracts *float64 = this.SafeNumber(position, "contracts")
 		if (contracts != nil && *contracts == 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
@@ -2897,7 +2897,7 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	}
 	var market map[string]any = nil
 	var symbolResolved any = nil
-	var typeVar any = typeOption
+	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
 		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
@@ -2907,13 +2907,13 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		}
 		typeVar = this.SafeString(market, "type")
 	}
-	if ccxt.IsEqual(typeVar, "future") {
-		typeVar = "futures"
+	if typeVar != nil && *typeVar == "future" {
+		typeVar = ccxt.SafeStringPtr("futures")
 	}
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() type is required"))
 	}
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(*typeVar)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsOmitted)
 	if uppercaseType == "SPOT" {
 		if marginMode != nil {
@@ -3018,7 +3018,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
 			stored.Append(order)
-			var symbol *string = this.SafeString(order, "symbol", "")
+			var symbol string = *this.SafeString(order, "symbol", "")
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
 		}

@@ -901,7 +901,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var ticker any = ccxt.DerefScalar(data[i])
+		var ticker any = data[i]
 		var parsed map[string]any = this.ParseWsTicker(ticker, market)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -1033,11 +1033,11 @@ func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker)
-	var symbol *string = this.SafeString(parsedTicker, "symbol", "")
-	if symbol == nil || *symbol != "" {
+	var symbol string = *this.SafeString(parsedTicker, "symbol", "")
+	if symbol != "" {
 		this.Bidsasks.Store(symbol, parsedTicker)
 	}
-	var messageHash string = "bidask." + *symbol
+	var messageHash string = "bidask." + symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {

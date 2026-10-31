@@ -6136,7 +6136,7 @@ public Map<String, Object> describe()
 
     public Object featuresMapper(Map<String, Object> initialFeatures, String marketType, String subType)
     {
-        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue(Helpers.GetValue(initialFeatures, ((String)marketType)), subType) : (initialFeatures == null || marketType == null ? null : initialFeatures.get(((String)marketType)));
+        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue((initialFeatures == null || marketType == null ? null : initialFeatures.get(((String)marketType))), subType) : (initialFeatures == null || marketType == null ? null : initialFeatures.get(((String)marketType)));
         // if exchange does not have that market-type (eg. future>inverse)
         if (java.util.Objects.equals(featuresObj, null))
         {
@@ -7445,7 +7445,7 @@ public Map<String, Object> describe()
         Integer length = ((List<?>)arr).size();
         for (var i = 0; (length != null && i < length); i++)
         {
-            Object current = (arr == null || i < 0 || i >= ((List<?>)arr).size() ? null : ((List<?>)arr).get(i));
+            Object current = (arr == null || i < 0 || i >= arr.size() ? null : arr.get(i));
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(providedValue, current))
             {
                 return current;
@@ -7703,70 +7703,49 @@ public Map<String, Object> describe()
     public CompletableFuture<Object> fetchBorrowRate(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")));
 
     }
 
     public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayCrossMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayIsolatedMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowCrossMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowIsolatedMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> repayMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead"))).thenApply(MarginLoan::new);
 
     }
 
@@ -7788,20 +7767,14 @@ public Map<String, Object> describe()
     public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchSpotOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchSpotOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchContractOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchContractOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -7823,10 +7796,7 @@ public Map<String, Object> describe()
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -9422,30 +9392,21 @@ public Map<String, Object> describe()
     public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBorrowInterest() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBorrowInterest() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLedger() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLedger() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLedgerEntry() is not supported yet")) ;
-        }).thenApply(LedgerEntry::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLedgerEntry() is not supported yet"))).thenApply(LedgerEntry::new);
 
     }
 
@@ -9626,20 +9587,14 @@ public Map<String, Object> describe()
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBalance() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBalance() is not supported yet"))).thenApply(Balances::new);
 
     }
 
     public CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBalanceWs() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBalanceWs() is not supported yet"))).thenApply(Balances::new);
 
     }
 
@@ -9651,10 +9606,7 @@ public Map<String, Object> describe()
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchBalance() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchBalance() is not supported yet"))).thenApply(Balances::new);
 
     }
 
@@ -9702,10 +9654,7 @@ public Map<String, Object> describe()
     public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchStatus() is not supported yet")) ;
-        }).thenApply(Status::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchStatus() is not supported yet"))).thenApply(Status::new);
 
     }
 
@@ -9726,20 +9675,14 @@ public Map<String, Object> describe()
     public CompletableFuture<Object> fetchTransactionFees(Object codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransactionFees() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransactionFees() is not supported yet")));
 
     }
 
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositWithdrawFees() is not supported yet")) ;
-        }).thenApply(DepositWithdrawFees::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositWithdrawFees() is not supported yet"))).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -12088,7 +12031,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object sortCursorPaginatedResult(Object result)
+    public Object sortCursorPaginatedResult(List<Object> result)
     {
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
         if (!java.util.Objects.equals(first, null))
@@ -12522,70 +12465,49 @@ public Map<String, Object> describe()
     public CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransfer () is not supported yet")) ;
-        }).thenApply(TransferEntry::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransfer () is not supported yet"))).thenApply(TransferEntry::new);
 
     }
 
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransfers () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransfers () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOHLCV () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOHLCV () is not supported yet")));
 
     }
 
     public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " withdrawWs () is not supported yet")) ;
-        }).thenApply(Transaction::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " withdrawWs () is not supported yet"))).thenApply(Transaction::new);
 
     }
 
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchMyTrades () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchMyTrades () is not supported yet")));
 
     }
 
     public CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrdersByStatusWs () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrdersByStatusWs () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchBidsAsks () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchBidsAsks () is not supported yet")));
 
     }
 

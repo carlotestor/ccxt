@@ -1557,16 +1557,14 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 	}
 	var parsedTrades []any = this.ParseTrades(result)
 	for i := 0; i < len(parsedTrades); i++ {
-		var trade any = ccxt.DerefScalar(parsedTrades[i])
+		var trade any = parsedTrades[i]
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		var cachedTrades ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if cachedTrades == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			cachedTrades = ccxt.NewArrayCache(limit)
 			if symbol != nil {
-				if symbol != nil {
-					this.Trades[*symbol] = cachedTrades
-				}
+				this.Trades[*symbol] = cachedTrades
 			}
 		}
 		cachedTrades.Append(trade)
@@ -1763,8 +1761,8 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
 		var ohlcv any = ccxt.DerefScalar(result[i])
-		var subscription *string = this.SafeString(ohlcv, "n", "")
-		var parts []string = strings.Split(*subscription, "_")
+		var subscription string = *this.SafeString(ohlcv, "n", "")
+		var parts []string = strings.Split(subscription, "_")
 		var timeframeId *string = this.SafeString(parts, 0)
 		var timeframe *string = this.FindTimeframe(timeframeId)
 		var prefix *string = ccxt.SafeStringPtr(ccxt.Add(timeframe, "_"))
@@ -1921,7 +1919,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	var parsed []any = this.ParseTrades(result)
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(parsed); i++ {
-		var trade any = ccxt.DerefScalar(parsed[i])
+		var trade any = parsed[i]
 		cachedTrades.Append(trade)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
 		if symbol != nil {
@@ -2064,7 +2062,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(result); i++ {
 		var rawBalance map[string]any = ccxt.SafeMapTyped(result, i)
 		var account map[string]any = this.Account()
-		var currencyId *string = this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
+		var currencyId string = *this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)

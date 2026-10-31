@@ -306,8 +306,8 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	}
 	for i := 0; i < len(tickers); i++ {
 		var ticker any = tickers[i]
-		var symbol *string = this.SafeString(ticker, "symbol", "")
-		var messageHash string = "ticker:" + *symbol
+		var symbol string = *this.SafeString(ticker, "symbol", "")
+		var messageHash string = "ticker:" + symbol
 		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -476,14 +476,12 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)
 	for i := 0; i < len(parsed); i++ {
-		stored.Append(ccxt.DerefScalar(parsed[i]))
+		stored.Append(parsed[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -539,7 +537,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 		for i := 0; i < len(ohlcvs); i++ {
-			var candle any = ccxt.DerefScalar(ohlcvs[i])
+			var candle any = ohlcvs[i]
 			stored.(ccxt.Appender).Append(candle)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1474,7 +1472,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var typeVar any = nil
 	var stored ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(parsedOrders); i++ {
-		var parsed any = ccxt.DerefScalar(parsedOrders[i])
+		var parsed any = parsedOrders[i]
 		stored.Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market map[string]any = this.Market(symbol)
@@ -1775,7 +1773,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	//       }
 	//     ]
 	// }
-	var id *string = this.SafeString(message, "id", "")
+	var id string = *this.SafeString(message, "id", "")
 	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
 		var method any = client.(ccxt.ClientInterface).SubscriptionSafe(id)
 		client.(ccxt.ClientInterface).SubscriptionDel(id)

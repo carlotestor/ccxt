@@ -247,7 +247,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 		if isSpot == true {
 			url = accessibilityUrls["spot"]
 		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
-			var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(methodValue, market, params, "linear")), 0))
+			subType, _ := this.HandleSubTypeAndParams(methodValue, market, params, "linear")
 			url = ccxt.GetValue(accessibilityUrls, subType)
 		} else {
 			// option
@@ -3219,7 +3219,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		account = "spot"
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {
-			var B []any = ccxt.SafeListTypedDefault(ccxt.DerefScalar(data[i]), "B", []any{})
+			var B []any = ccxt.SafeListTypedDefault(data[i], "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
 		}
 		info = rawBalances

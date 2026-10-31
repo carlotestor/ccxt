@@ -189,14 +189,12 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var parts []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
-	var symbol *string = this.SafeString(market, "symbol", "")
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
 	var length int = len(trades)
 	for j := 0; j < length; j++ {
@@ -204,7 +202,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 		var parsed map[string]any = this.ParseWsTrade(this.SafeDict(trades, index, map[string]any{}), market)
 		stored.Append(parsed)
 	}
-	var messageHash string = "trade" + ":" + *symbol
+	var messageHash string = "trade" + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1171,7 +1169,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
-			cache.(ccxt.Appender).Append(ccxt.DerefScalar(positions[ii]))
+			cache.(ccxt.Appender).Append(positions[ii])
 		}
 	}
 	// don't remove the future from the .futures cache

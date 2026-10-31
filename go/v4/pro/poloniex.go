@@ -572,7 +572,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var orders []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order any = ccxt.DerefScalar(data[i])
+		var order any = data[i]
 		var parsedOrder map[string]any = this.ParseWsOrder(order)
 		orders = append(orders, parsedOrder)
 	}
@@ -961,7 +961,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var watchOrderBookOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
-	var name *string = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
+	var name string = *this.SafeString(watchOrderBookOptions, "name", "book_lv2")
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchOrderBook", "name", name)
 
 	r1 := <-this.SubscribeAsync(nameOption, nameOption, false, []any{symbol}, paramsName)
@@ -1533,7 +1533,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 		if marketId != nil {
 			var symbol *string = this.SafeSymbol(marketId)
 			var orderId *string = this.SafeString(order, "orderId", "")
-			var clientOrderId *string = this.SafeString(order, "clientOrderId", "")
+			var clientOrderId string = *this.SafeString(order, "clientOrderId", "")
 			if (eventType != nil && *eventType == "place") || (eventType != nil && *eventType == "canceled") {
 				var parsed map[string]any = this.ParseWsOrder(order)
 				orders.Append(parsed)
@@ -1709,7 +1709,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var item any = ccxt.DerefScalar(data[i])
+		var item any = data[i]
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(item))

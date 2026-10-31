@@ -3439,7 +3439,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((this.id + " fetchEvents() missing m")) ;
             }
-            ((IDictionary<string,object>)this.markets)[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
+            this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             if (((eventKey != null)) && (eventKey != ""))
             {
                 if (!(((eventKey != null) && (eventGroups?.ContainsKey(eventKey) == true))))
@@ -3708,9 +3708,9 @@ public partial class limitless : PredictionExchange
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
         }
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

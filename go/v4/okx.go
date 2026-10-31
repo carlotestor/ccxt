@@ -2411,7 +2411,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 		base = this.SafeString(symbolBase, 0, "")
 	}
 	var expiry *string = this.SafeString(optionParts, 2, "")
-	var strike *string = this.SafeString(optionParts, 3, "")
+	var strike string = *this.SafeString(optionParts, 3, "")
 	var optionType string = *this.SafeString(optionParts, 4, "")
 	var datetime any = func() any {
 		if expiry != nil && *expiry == "" {
@@ -2421,8 +2421,8 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 	}()
 	var timestamp *int64 = this.Parse8601(datetime)
 	return map[string]any{
-		"id":             *base + "-" + quote + "-" + *expiry + "-" + *strike + "-" + optionType,
-		"symbol":         *base + "/" + quote + ":" + *base + "-" + *expiry + "-" + *strike + "-" + optionType,
+		"id":             *base + "-" + quote + "-" + *expiry + "-" + strike + "-" + optionType,
+		"symbol":         *base + "/" + quote + ":" + *base + "-" + *expiry + "-" + strike + "-" + optionType,
 		"base":           base,
 		"quote":          quote,
 		"settle":         base,
@@ -3531,7 +3531,7 @@ func (this *Okx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 	if marketType != nil && *marketType == "option" {
-		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var defaultUnderlying string = *this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(paramsMarketType, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchTickers() requires an underlying uly or marketId parameter for options markets"))
@@ -3668,7 +3668,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], opt
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 	if marketType != nil && *marketType == "option" {
-		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var defaultUnderlying string = *this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(paramsMarketType, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets"))
@@ -4975,11 +4975,11 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 			"EXPIRE_TAKER": "cancel_taker",
 			"EXPIRE_BOTH":  "cancel_both",
 		}
-		var selfTradePreventionUpper string = ToUpper(selfTradePrevention)
+		var selfTradePreventionUpper string = strings.ToUpper(*selfTradePrevention)
 		if selfTradePreventionUpper == "NONE" {
 			panic(NotSupported(this.Id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order"))
 		}
-		var stpMode *string = this.SafeString(stpModes, selfTradePreventionUpper, ToLower(selfTradePrevention))
+		var stpMode *string = this.SafeString(stpModes, selfTradePreventionUpper, strings.ToLower(*selfTradePrevention))
 		var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 		var requestOrdType *string = this.SafeString(request, "ordType")
 		if requestOrdType != nil {
@@ -5139,13 +5139,13 @@ func (this *Okx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, op
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
-		var typeVar string = *this.SafeString(rawOrder, "type", "")
+		var typeVar *string = this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, typeVar, side, amount, price, extendedParams)
+		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, *typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -7676,7 +7676,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	}
 	// if the network is not specified, return the first address
 	var keys []string = ObjectKeys(response)
-	var first *string = this.SafeString(keys, 0, "")
+	var first string = *this.SafeString(keys, 0, "")
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(response, first))}
 	return nil
@@ -9608,7 +9608,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var instId *string = this.SafeString(entry, "instId")
 		var marketInner map[string]any = this.SafeMarket(instId)
@@ -11030,9 +11030,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	// handle unified currency code or symbol
 	var currencyId *string = nil
 	var market map[string]any = nil
-	_, inMarkets := this.Markets()[symbol]
-	_, inMarketsById := this.Markets_by_id()[symbol]
-	if inMarkets || inMarketsById {
+	if ((this.Markets() != nil) && (InOp(this.Markets(), symbol))) || ((this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), symbol))) {
 		market = this.Market(symbol)
 		currencyId = this.SafeString(market, "baseId")
 	} else {
@@ -11815,7 +11813,7 @@ func (this *Okx) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, opt
 	//
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var entryMarketId *string = this.SafeString(entry, "instId")
 		if entryMarketId == marketId || (entryMarketId != nil && marketId != nil && *entryMarketId == *marketId) {
 

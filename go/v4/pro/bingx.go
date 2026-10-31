@@ -704,12 +704,10 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	for j := 0; j < len(trades); j++ {
-		stored.Append(ccxt.DerefScalar(trades[j]))
+		stored.Append(trades[j])
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

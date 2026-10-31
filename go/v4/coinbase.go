@@ -1271,8 +1271,8 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]Tran
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1212, _ := r.Value, r.Value != nil
-	var requestparamsValueVariable []any = listRecv1212
+	listRecv1207, _ := r.Value, r.Value != nil
+	var requestparamsValueVariable []any = listRecv1207
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	if this.Markets() == nil {
@@ -1881,8 +1881,8 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv1776, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
-		var retRes138819 []any = listRecv1776
+		listRecv1771, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
+		var retRes138819 []any = listRecv1771
 		if retRes138819 == nil {
 			ch <- AsyncResult[[]MarketInterface]{Value: nil}
 		} else {
@@ -1895,8 +1895,8 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv1785, _ := MarketInterfacesToList(r2.Value), r2.Value != nil
-	var retRes139015 []any = listRecv1785
+	listRecv1780, _ := MarketInterfacesToList(r2.Value), r2.Value != nil
+	var retRes139015 []any = listRecv1780
 	if retRes139015 == nil {
 		ch <- AsyncResult[[]MarketInterface]{Value: nil}
 	} else {
@@ -1946,7 +1946,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface],
 		// https://github.com/ccxt/ccxt/issues/6066
 		if typeVar == "crypto" {
 			for j := 0; j < len(data); j++ {
-				var quoteCurrency any = DerefScalar(data[j])
+				var quoteCurrency any = data[j]
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
 				var quote *string = this.SafeCurrencyCode(quoteId)
 				if (quote == nil) || (quoteId == nil) {
@@ -2183,7 +2183,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	var data []any = SafeListTyped(spot, "products")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var spotMarket map[string]any = this.ParseSpotMarket(DerefScalar(data[i]), feeTier)
+		var spotMarket map[string]any = this.ParseSpotMarket(data[i], feeTier)
 		if spotMarket != nil {
 			result = append(result, spotMarket)
 		}
@@ -2867,10 +2867,8 @@ func (this *Coinbase) fetchTickersV2Body(ch chan AsyncResult[map[string]Ticker],
 		var baseId string = baseIds[i]
 		var marketId string = baseId + delimiter + quoteId
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol *string = this.SafeString(market, "symbol", "")
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTicker(rates[baseId], market))
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		result[symbol] = TickerToMap(this.ParseTicker(rates[baseId], market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -2966,13 +2964,11 @@ func (this *Coinbase) fetchTickersV3Body(ch chan AsyncResult[map[string]Ticker],
 	var data []any = SafeListTyped(response, "products")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var marketId *string = this.SafeString(entry, "product_id")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var symbol *string = this.SafeString(market, "symbol", "")
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTicker(entry, market))
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		result[symbol] = TickerToMap(this.ParseTicker(entry, market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -3597,8 +3593,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3435, _ := r2.Value, r2.Value != nil
-	var requestparamsValueVariable []any = listRecv3435
+	listRecv3401, _ := r2.Value, r2.Value != nil
+	var requestparamsValueVariable []any = listRecv3401
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	// for pagination use parameter 'starting_after'
@@ -5445,10 +5441,13 @@ func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
-	until := untilparamsUntilVariable[0]
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
-	if !IsEqual(until, nil) {
-		request["end"] = this.NumberToString(this.ParseToInt(float64(*until.(*int64)) / 1000))
+	if until != nil {
+		request["end"] = this.NumberToString(this.ParseToInt(float64(*until) / 1000))
 	} else if since != nil {
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a `until` parameter when you use `since` argument"))
 	}
@@ -5915,8 +5914,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5590, _ := r1.Value, r1.Value != nil
-	var requestparamsValueVariable []any = listRecv5590
+	listRecv5554, _ := r1.Value, r1.Value != nil
+	var requestparamsValueVariable []any = listRecv5554
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
@@ -7019,18 +7018,18 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) []any {
 	for i := 0; i < len(spotPositions); i++ {
 		var position map[string]any = MapTyped(spotPositions[i])
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
-		var availableBalanceStr *string = this.SafeString(position, "available_to_trade_fiat", "0")
+		var availableBalanceStr string = *this.SafeString(position, "available_to_trade_fiat", "0")
 		var availableBalance *float64 = this.ParseNumber(availableBalanceStr)
-		var totalBalanceFiatStr *string = this.SafeString(position, "total_balance_fiat", "0")
+		var totalBalanceFiatStr string = *this.SafeString(position, "total_balance_fiat", "0")
 		var totalBalanceFiat *float64 = this.ParseNumber(totalBalanceFiatStr)
 		var holdAmount any = 0
 		if (totalBalanceFiat != nil) && (availableBalance != nil) && (*totalBalanceFiat > *availableBalance) {
 			holdAmount = (*totalBalanceFiat - *availableBalance)
 		}
 		var costBasisDict map[string]any = SafeMapTyped(position, "cost_basis")
-		var costBasisStr *string = this.SafeString(costBasisDict, "value", "0")
+		var costBasisStr string = *this.SafeString(costBasisDict, "value", "0")
 		var averageEntryPriceDict map[string]any = SafeMapTyped(position, "average_entry_price")
-		var averageEntryPriceStr *string = this.SafeString(averageEntryPriceDict, "value", "0")
+		var averageEntryPriceStr string = *this.SafeString(averageEntryPriceDict, "value", "0")
 		var positionData map[string]any = map[string]any{
 			"currency":                     currencyCode,
 			"available_balance":            availableBalance,

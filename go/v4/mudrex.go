@@ -581,7 +581,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var resultTickers map[string]any = map[string]any{}
 	for i := 0; i < len(rows); i++ {
-		var t any = DerefScalar(rows[i])
+		var t any = rows[i]
 		var sym *string = this.SafeString(t, "symbol")
 		if sym == nil {
 			continue
@@ -685,12 +685,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			break
 		}
 		for i := 0; i < numItems; i++ {
-			aggregated = append(aggregated, func() any {
-				if i >= 0 && i < len(items) {
-					return DerefScalar(items[i])
-				}
-				return nil
-			}())
+			aggregated = append(aggregated, items[i])
 		}
 		if numItems < pageLimit {
 			paging = false
@@ -725,8 +720,8 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	if base != nil {
 		symbol = SafeStringPtr(*base + "/" + quote + ":" + settle)
 	}
-	var priceStep *string = this.SafeString(asset, "price_step", "0.01")
-	var qtyStep *string = this.SafeString(asset, "quantity_step", "0.001")
+	var priceStep string = *this.SafeString(asset, "price_step", "0.01")
+	var qtyStep string = *this.SafeString(asset, "quantity_step", "0.001")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             ms,
 		"lowercaseId":    nil,
@@ -845,7 +840,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 }
 func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "data")
-	var currency *string = this.SafeString(response, "currency", "USDT")
+	var currency string = *this.SafeString(response, "currency", "USDT")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -860,9 +855,7 @@ func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
 		account["total"] = this.SafeString(data, "total")
 		account["free"] = this.SafeString(data, "withdrawable")
 	}
-	if currency != nil {
-		result[*currency] = account
-	}
+	result[currency] = account
 	return this.SafeBalance(result).(map[string]any)
 }
 
@@ -1997,7 +1990,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var transactions []any = []any{}
 	var transactionKeys []string = []string{}
 	for i := 0; i < len(allRows); i++ {
-		var entry any = DerefScalar(allRows[i])
+		var entry any = allRows[i]
 		var feeType *string = this.SafeString(entry, "fee_type")
 		var pairKey string = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
 		if feeType != nil && *feeType == "TRANSACTION" {
@@ -2020,9 +2013,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			}
 		}
 		if rebate == nil {
-			rows = append(rows, DerefScalar(transactions[i]))
+			rows = append(rows, transactions[i])
 		} else {
-			rows = append(rows, this.Extend(DerefScalar(transactions[i]), map[string]any{
+			rows = append(rows, this.Extend(transactions[i], map[string]any{
 				"rebate_amount": rebate,
 			}))
 		}

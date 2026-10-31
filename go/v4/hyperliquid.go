@@ -2438,12 +2438,12 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool])
 				}
 			}()
 			// try block:
-			var builder *string = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+			var builder string = *this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 			// when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
 			// but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
-			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01%")
+			var maxFeeRate string = *this.SafeString(this.Options, "feeRate", "0.01%")
 			if !(buildFee != nil && *buildFee) {
-				maxFeeRate = SafeStringPtr("0%")
+				maxFeeRate = "0%"
 			}
 
 			r := <-this.ApproveBuilderFeeAsync(builder, maxFeeRate)
@@ -5067,10 +5067,8 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	// swap ids are asset indexes, so the market is looked up by symbol
-	if symbol != nil {
-		if _, ok := this.Markets()[*symbol]; ok {
-			marketResolved = this.Market(symbol)
-		}
+	if (symbol != nil) && (this.Markets() != nil) && (InOp(this.Markets(), symbol)) {
+		marketResolved = this.Market(symbol)
 	}
 	var side *string = this.SafeString(liquidation, "side")
 	if side != nil {
@@ -5799,8 +5797,8 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5477, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5477
+		listRecv5467, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5467
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = isUnifiedqueryVariable[1]
 		useSendAsset = (isUnified == true)
@@ -6452,7 +6450,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 	}
 	var deposits []any = []any{}
 	for i := 0; i < len(records); i++ {
-		var record any = DerefScalar(records[i])
+		var record any = records[i]
 		if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultDeposit" {
 			var delta map[string]any = SafeMapTyped(record, "delta")
 			if IsEqual(this.SafeString(delta, "vault", ""), Add("0x", vaultAddress)) {
@@ -6556,7 +6554,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	}
 	var withdrawals []any = []any{}
 	for i := 0; i < len(records); i++ {
-		var record any = DerefScalar(records[i])
+		var record any = records[i]
 		if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultWithdraw" {
 			var delta map[string]any = SafeMapTyped(record, "delta")
 			if IsEqual(this.SafeString(delta, "vault", ""), Add("0x", vaultAddress)) {
