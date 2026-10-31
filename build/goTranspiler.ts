@@ -29,7 +29,6 @@ import { hx11w9A9fOrHoistPass, hx11w9A9fOrHoistSelfTest } from './hx11w9-a9f-orh
 import { hx10G02Pass, hx10w3G02SelfCheck } from './hx10w3-G02.js';
 import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
 import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
-import { gp18Pass, gp18SetTableForTest, hx10w9Gp18SelfTest } from './hx10w9-GP18.js';  // hx10 wave-9 GP18: endpoint receive reads its typed view
 import { hx10w8Gp08TuplePairBinds, hx10w8Gp08SelfTest } from './hx10w8-GP08.js';
 import { gp28Stores, hx10w10Gp28Check, hx10w10Gp28Wired } from './hx10w10-GP28.js';  // hx10 wave-10 GP28: trades/orderbooks map-field stores
 import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
@@ -70,7 +69,6 @@ import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
 import { hx11w8Int64TupleLocals, hx11w8Int64TupleLocalsCheck } from './hx11w8-int64-tuple-local.js';
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
 import { g01SubsHandOff, g01SubsCheck } from './hx10w3-G01.js';  // hx10w3 G01
-import { hx10w10GP24BaseImports, hx10w10GP24PruneImports, installHx10w10GP24BaseImportSeam, hx10w10GP24Check, hx10w10GP24Wired } from './hx10w10-GP24.js';  // hx10 w10 GP24: base-file stdlib import seam
 import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
 import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
 import { hx10w9GB10BalanceWrites, hx10w9GB10Check, hx10w9GB10Wired } from './hx10w9-GB10.js';  // hx10 wave9 GB10: Balance stores
@@ -3276,19 +3274,6 @@ function hx10G04Wired (): string[] {
     return out.includes ('\tthis.Markets_by_id["k"] = 1\n') ? [] : [ 'hx10 G04: not wired into formatGoSource: ' + out ];
 }
 
-// hx10w9 GP18: the pass has to run inside formatGoSource, not only in its own self-test
-function hx10w9Gp18Wired (): string[] {
-    const src = 'package ccxt\n\nfunc (this *X) f(id any) any {\n\tr1 := <-this.PrivateGetOrdersId(id)\n\tif r1.Err != nil {\n\t\tpanic(r1.Err)\n\t}\n\tvar response map[string]any = MapTyped(r1.Raw)\n\treturn response\n}\n';
-    gp18SetTableForTest (new Map ([ [ 'X.PrivateGetOrdersId', 'map[string]any' ] ]));
-    let out = '';
-    try {
-        out = formatGoSource ('selftest.go', src);
-    } finally {
-        gp18SetTableForTest (undefined);
-    }
-    return out.includes ('var response map[string]any = r1.Value') ? [] : [ 'hx10w9 GP18: not wired into formatGoSource: ' + out ];
-}
-
 // ------------------------------------------------------------------------------------
 // hx11 w4 P2 -- the bounds-guard func literal around a typed element read
 // ------------------------------------------------------------------------------------
@@ -3695,7 +3680,6 @@ export function formatGoSource (filePath: string, content: string): string {
     content = g10kLenNative (content);
     content = goErrValuePass (goEndpointCheckedReceives (content));  // G10K-err-a
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
-    content = gp18Pass (content);  // hx10 w9 GP18: EndpointResult[T] receive reads .Value, MapTyped(Raw) drops
     content = hx4G12TupleSlotReads (content, filePath);  // hx4 G12, again: async []any producers are received as rN.Value only after GOCHAN3
     content = hx11w8PromiseAllSlotReads (content);  // hx11 w8 M40: promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = hx11w8PromiseAllLoopReads (content);  // hx11 w8 r16: loop-built task lists read back under the same len() bound
@@ -5366,8 +5350,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    // an import whose printed text a later rewrite deleted is unused; drop it before formatting
-    content = path.endsWith ('.go') ? hx10w10GP24PruneImports (content) : content;  // hx10w10 GP24
     // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the
     // printer reproduces that itself (ast-transpiler `alignGoTrailingComments`), and this second
     // pass covers the text assembled here (hand-written emitters and sections concatenated after
@@ -6173,6 +6155,10 @@ class NewTranspiler {
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
+                // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
+                // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
+                "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',
+                "excisedSpanMarkers": [ '@SKIP_START_GO', '@SKIP_END_GO' ],
                 // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
@@ -6303,7 +6289,13 @@ class NewTranspiler {
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
         installRfGo5OwnedTables (this.transpiler.goTranspiler);  // RF-go-5
-        installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
+    }
+
+    // The base files are assembled from the part of the printed body after its delimiter, which cuts
+    // off the leading import clause: declare the stdlib packages the printer recorded for the file
+    // (ITranspiledFile.stdlibImports) right behind the generated header.
+    declareBaseFileStdlibImports (file: string, packages: string[] | undefined): string {
+        return (packages ?? []).reduce ((text, pkg) => hx4G36AddImport (text, pkg), file);
     }
 
     createGeneratedHeader() {
@@ -7490,7 +7482,7 @@ ${constStatements.join('\n')}
             const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, hx10w10GP24BaseImports (hx4G20BaseNativePasses (hx11w9BookDeltaParams (hx11w8BaseMapLocals (retypeGoDescribe (file), 'go/v4/exchange_generated.go')))));
+            this.writeGeneratedOnce (goExchangeBase, this.declareBaseFileStdlibImports (hx4G20BaseNativePasses (hx11w9BookDeltaParams (hx11w8BaseMapLocals (retypeGoDescribe (file), 'go/v4/exchange_generated.go'))), baseFile.stdlibImports));
         }
     }
 
@@ -7609,7 +7601,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (hx10w10GP24BaseImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase)))));  // hx10 w9 GP19: this base file bypasses formatGoSource
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase)), baseFile.stdlibImports)));  // hx10 w9 GP19: this base file bypasses formatGoSource
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -10128,7 +10120,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (g01SubsCheck ()).concat (hx11w9a9fSelfTest ()).concat (hx11w9StrKeySelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (hx11w8NonceInt64Check ()).concat (hx11w8NonceLocalsCheck ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx11w9OrderBookCacheCheck ()).concat (hx11w9BookDeltaCheck ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10G08Check ()).concat (hx10G10SelfTest ()).concat (hx11w9A9fSelfTest ()).concat (hx11w9A9fOrHoistSelfTest ()).concat (g01SubsCheck ()).concat (hx11w9a9fSelfTest ()).concat (hx11w9StrKeySelfTest ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (hx11w8Int64TupleLocalsCheck ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w8GO04Check ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11w8PromiseAllLoopSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8WT01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ()).concat (hx11w8BaseMapLocalsCheck ()).concat (hx11w8JsonStringCheck ()).concat (hx11w8JoinStringLocalsCheck ()).concat (hx11w8M308JoinNativeCheck ()).concat (hx11w8AnySliceToListCheck ()).concat (hx11w8AsyncInt64ValueCheck ()).concat (hx11w8StringAnyLocalsCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ()).concat (hx11w9TradesCacheCheck ()).concat (hx11w9MyTradesCacheCheck ()).concat (hx11w9TriggerOrdersCacheCheck ()).concat (hx11w9TradesNilLocalsCheck ()).concat (hx11w9LiquidationsCacheCheck ()).concat (hx11w9SafeStringDefaultLocalsCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
