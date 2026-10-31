@@ -78,7 +78,7 @@ public partial class paradex : ccxt.paradex
      * @param {string} channel the channel to subscribe to
      * @returns {object} the subscribe request
      */
-    public virtual object subscribeRequest(object channel)
+    public virtual Dictionary<string, object> subscribeRequest(object channel)
     {
         return new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -191,9 +191,9 @@ public partial class paradex : ccxt.paradex
             messageHash = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         string? url = this.getWsUrl();
-        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> request = this.subscribeRequest(messageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
@@ -268,9 +268,9 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> market = this.market(symbol);
         string? messageHash = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null));
         string? url = this.getWsUrl();
-        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> request = this.subscribeRequest(messageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
@@ -370,9 +370,9 @@ public partial class paradex : ccxt.paradex
         string channel = ("markets_summary." + ((market.ContainsKey("id") ? market["id"] : null)));
         string? url = this.getWsUrl();
         string messageHash = ("markets_summary." + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
@@ -409,9 +409,9 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
         };
         object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)
@@ -456,9 +456,9 @@ public partial class paradex : ccxt.paradex
             messageHash = ("orders:" + (symbolResolved));
         }
         string? url = this.getWsUrl();
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
@@ -547,9 +547,9 @@ public partial class paradex : ccxt.paradex
             messageHash = ("myTrades:" + (symbolResolved));
         }
         string? url = this.getWsUrl();
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
@@ -645,9 +645,9 @@ public partial class paradex : ccxt.paradex
                 messageHashes.Add(((channel + ":") + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
             }
         }
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", messageHashes },
         };
         object newPositions = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {channel}, subscription);
@@ -739,9 +739,9 @@ public partial class paradex : ccxt.paradex
         string channel = "account";
         string? url = this.getWsUrl();
         string messageHash = "balance";
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
@@ -884,9 +884,9 @@ public partial class paradex : ccxt.paradex
         string channel = "funding_data";
         string? url = this.getWsUrl();
         string messageHash = ((channel + ".") + symbolValue);
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {messageHash} },
         };
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
@@ -930,9 +930,9 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> request = this.subscribeRequest(channel);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
         };
         object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)

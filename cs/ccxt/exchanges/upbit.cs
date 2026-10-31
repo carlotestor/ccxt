@@ -1064,7 +1064,7 @@ public partial class upbit : Exchange
         //         }
         //
         string? id = this.safeString2(trade, "sequential_id", "uuid");
-        object orderId = null;
+        string? orderId = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         if ((timestamp == null))
         {
@@ -1990,8 +1990,8 @@ public partial class upbit : Exchange
         //         "krw_amount": "80420.0"
         //     }
         //
-        object address = null; // not present in the data structure received from the exchange
-        object tag = null; // not present in the data structure received from the exchange
+        string? address = null; // not present in the data structure received from the exchange
+        string? tag = null; // not present in the data structure received from the exchange
         string? updatedRaw = this.safeString(transaction, "done_at");
         Int64? timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         string? type = this.safeString(transaction, "type");

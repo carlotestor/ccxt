@@ -2619,7 +2619,7 @@ public partial class kalshi : PredictionExchange
         } else if ((eventId != null))
         {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
-            object fullEvent = await this.FetchRawEventByTicker(eventId, rest);
+            Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker(eventId, rest);
             rawEvents = new List<object>() {fullEvent};
         } else
         {
@@ -2710,7 +2710,7 @@ public partial class kalshi : PredictionExchange
             }
             try
             {
-                object fullEvent = await this.FetchRawEventByTicker((eventTickers != null && ei < eventTickers.Count ? eventTickers[ei] : null), rest);
+                Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker((eventTickers != null && ei < eventTickers.Count ? eventTickers[ei] : null), rest);
                 rawEvents.Add(fullEvent);
             } catch(Exception e)
             {
@@ -2915,7 +2915,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fullEvent = await this.FetchRawEventByTicker(id, parameters);
+        Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker(id, parameters);
         Dictionary<string, object> eventVar = this.parseEvent(fullEvent);
         this.indexEventOutcomes(eventVar);
         return ccxt.BaseExchange.ToPredictionEvent(eventVar);

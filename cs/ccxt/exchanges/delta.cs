@@ -2730,10 +2730,10 @@ public partial class delta : Exchange
         //
         string? id = this.safeString(item, "uuid");
         string? direction = null;
-        object account = null;
+        string? account = null;
         IDictionary<string, object> metaData = this.safeDict(item, "meta_data", new Dictionary<string, object>() {});
         string? referenceId = this.safeString(metaData, "transaction_id");
-        object referenceAccount = null;
+        string? referenceAccount = null;
         string? type = this.safeString(item, "transaction_type");
         if ((type == "deposit") || (type == "commission_rebate") || (type == "referral_bonus") || (type == "pnl") || (type == "withdrawal_cancellation") || (type == "promo_credit"))
         {

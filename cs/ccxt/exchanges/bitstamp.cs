@@ -1713,7 +1713,7 @@ public partial class bitstamp : Exchange
         string? side = null;
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
-        object type = null;
+        string? type = null;
         string? costString = this.safeString(trade, "cost");
         string? rawMarketId = null;
         // resolved in the key scan below, falling back to the passed market

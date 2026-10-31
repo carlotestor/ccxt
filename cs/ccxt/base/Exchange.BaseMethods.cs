@@ -3969,7 +3969,7 @@ public partial class BaseExchange
         {
             if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
-                object response = await this.FetchTradingLimits(symbols);
+                Dictionary<string, object> response = await this.FetchTradingLimits(symbols);
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
                 IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
                 if ((markets == null))
@@ -3979,7 +3979,7 @@ public partial class BaseExchange
                 for (int i = 0; i < getArrayLength(symbolsArray); i++)
                 {
                     object symbol = getValue(symbolsArray, i);
-                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), getValue(response, symbol));
+                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), (response != null && symbol != null && response.ContainsKey((string)symbol) ? response[(string)symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
             }
@@ -6284,13 +6284,13 @@ public partial class BaseExchange
     public async virtual Task<object> loadTimeDifference(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object serverTime = await this.FetchTime(parameters);
+        Int64 serverTime = await this.FetchTime(parameters);
         Int64 after = this.milliseconds();
-        if ((serverTime == null))
+        if ((((object)(serverTime)) == null))
         {
             throw new ExchangeError ((this.id + " loadTimeDifference() missing serverTime")) ;
         }
-        this.options["timeDifference"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(after, serverTime);
+        this.options["timeDifference"] = (after - serverTime);
         return this.parseToInt((this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
     }
 
@@ -7681,8 +7681,12 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(input); i++)
         {
             object entry = getValue(input, i);
-            string? uniqValue = fallbackToTimestamp == true ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
-            if ((uniqValue != null) && !(((uniqValue != null) && (uniqueDic?.ContainsKey(uniqValue) == true))))
+            string? uniqValue = this.safeString(entry, "id");
+            if (fallbackToTimestamp == true)
+            {
+                uniqValue = this.safeStringN(entry, new List<object>() {"id", "timestamp", 0});
+            }
+            if ((uniqValue != null) && !(((uniqValue != null) && uniqueDic.ContainsKey(uniqValue))))
             {
                 uniqueDic[(string)uniqValue] = 1;
                 uniqueResult.Add(entry);

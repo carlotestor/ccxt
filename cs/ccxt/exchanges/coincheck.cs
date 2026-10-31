@@ -493,7 +493,7 @@ public partial class coincheck : Exchange
         string? amount = this.safeString(order, "pending_amount");
         string? remaining = this.safeString(order, "pending_amount");
         string? price = this.safeString(order, "rate");
-        object status = null;
+        string? status = null;
         string? marketId = this.safeString(order, "pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new Dictionary<string, object>() {

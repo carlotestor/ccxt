@@ -1808,7 +1808,7 @@ public partial class gemini : Exchange
         {
             type = this.safeString(order, "type");
         }
-        object fee = null;
+        string? fee = null;
         string? marketId = this.safeString(order, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         string? id = this.safeString(order, "order_id");

@@ -423,12 +423,12 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (id.IndexOf(":", StringComparison.Ordinal) < 0)
         {
-            object rawQuestion = await this.FetchRawQuestionById(id, parameters);
+            Dictionary<string, object> rawQuestion = await this.FetchRawQuestionById(id, parameters);
             Dictionary<string, object> orderBookEvent = this.parseEvent(rawQuestion);
             this.indexEventOutcomes(orderBookEvent);
             return ccxt.BaseExchange.ToPredictionEvent(orderBookEvent);
         }
-        object response = await this.FetchRawMarketById(id, parameters);
+        Dictionary<string, object> response = await this.FetchRawMarketById(id, parameters);
         Dictionary<string, object> market = this.parseMyriadMarket(response);
         Dictionary<string, object> eventVar = this.parseMarketToEvent(response, market);
         this.indexEventOutcomes(eventVar);
@@ -3413,11 +3413,11 @@ public partial class myriad : PredictionExchange
         {
             if (eventId.IndexOf(":", StringComparison.Ordinal) > -1)
             {
-                object rawMarket = await this.FetchRawMarketById(eventId, rest);
+                Dictionary<string, object> rawMarket = await this.FetchRawMarketById(eventId, rest);
                 rawMarkets = new List<object>() {rawMarket};
             } else
             {
-                object rawQuestion = await this.FetchRawQuestionById(eventId, rest);
+                Dictionary<string, object> rawQuestion = await this.FetchRawQuestionById(eventId, rest);
                 rawQuestions = new List<object>() {rawQuestion};
             }
         } else

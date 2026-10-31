@@ -230,13 +230,13 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object channel = this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades").Item1;
+        string channel = this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades").Item1;
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            messageHashes.Add(add(add(channel, ":"), symbol));
+            messageHashes.Add(((channel + ":") + symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -249,7 +249,7 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string access = "public";
-        if ((channel is "trades-all"))
+        if (channel == "trades-all")
         {
             access = "business";
             await this.authenticate(new Dictionary<string, object>() {
@@ -1432,7 +1432,7 @@ public partial class okx : ccxt.okx
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? depthOption = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books").Item1;
-        object depth = depthOption;
+        string depth = depthOption;
         if ((limit != null))
         {
             if ((limit == 1))
@@ -1449,7 +1449,7 @@ public partial class okx : ccxt.okx
                 depth = "books";
             }
         }
-        if (((((object)(depth)) is "books-l2-tbt")) || ((((object)(depth)) is "books50-l2-tbt")))
+        if ((depth == "books-l2-tbt") || (depth == "books50-l2-tbt"))
         {
             if (!this.checkRequiredCredentials(false))
             {
@@ -1464,7 +1464,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            messageHashes.Add(add(add(depth, ":"), symbol));
+            messageHashes.Add(((depth + ":") + symbol));
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", depth },
                 { "instId", this.marketId(symbol) },
@@ -2254,7 +2254,8 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if ((this.safeNumber(position, "contracts") == 0) && (this.safeString(rawPosition, "posSide") == "net"))
+            double? contracts = this.safeNumber(position, "contracts");
+            if ((contracts == 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -3098,10 +3099,10 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnSubscriptionTrades(WebSocketClient client, string? symbol, object channel)
+    public virtual void handleUnSubscriptionTrades(WebSocketClient client, string? symbol, string channel)
     {
-        object subMessageHash = add(add(channel, ":"), symbol);
-        string messageHash = ("unsubscribe:" + (subMessageHash));
+        string subMessageHash = ((channel + ":") + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
         {
@@ -3109,9 +3110,9 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, string? symbol, object channel)
+    public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, string? symbol, string channel)
     {
-        object subMessageHash = add(add(channel, ":"), symbol);
+        string subMessageHash = ((channel + ":") + symbol);
         string messageHash = ("unsubscribe:orderbook:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
@@ -3139,9 +3140,9 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnsubscriptionTicker(WebSocketClient client, string? symbol, object channel)
+    public virtual void handleUnsubscriptionTicker(WebSocketClient client, string? symbol, string channel)
     {
-        object subMessageHash = add(add(channel, "::"), symbol);
+        string subMessageHash = ((channel + "::") + symbol);
         string messageHash = ("unsubscribe:ticker:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))

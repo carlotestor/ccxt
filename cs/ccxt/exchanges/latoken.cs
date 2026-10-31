@@ -1137,7 +1137,7 @@ public partial class latoken : Exchange
         //         "makerBuyer":false
         //     }
         //
-        object type = null;
+        string? type = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "quantity");

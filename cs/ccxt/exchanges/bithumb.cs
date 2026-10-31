@@ -1634,7 +1634,7 @@ public partial class bithumb : Exchange
                 }
             }
         }
-        object type = null;
+        string? type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
         if (side == "bid")
         {

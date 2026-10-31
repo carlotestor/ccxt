@@ -1969,10 +1969,10 @@ public partial class hollaex : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         string? address = this.safeString(transaction, "address");
         string? addressTo = null;
-        object addressFrom = null;
+        string? addressFrom = null;
         string? tag = null;
         string? tagTo = null;
-        object tagFrom = null;
+        string? tagFrom = null;
         if ((address != null))
         {
             List<object> parts = address.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();

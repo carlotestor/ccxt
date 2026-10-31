@@ -563,7 +563,7 @@ public partial class btcbox : Exchange
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
-        object type = null;
+        string? type = null;
         string? side = this.safeString(trade, "type");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -740,7 +740,7 @@ public partial class btcbox : Exchange
                 status = "closed";
             }
         }
-        object trades = null; // todo: this.parseTrades (order['trades']);
+        string? trades = null; // todo: this.parseTrades (order['trades']);
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {

@@ -828,9 +828,9 @@ public partial class blofin : Exchange
         {
             symbol = ((((bs + "/") + quote) + ":") + settle);
         }
-        object expiry = null;
-        object strikePrice = null;
-        object optionType = null;
+        string? expiry = null;
+        string? strikePrice = null;
+        string? optionType = null;
         string? tickSize = this.safeString(market, "tickSize");
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         double? taker = this.safeNumber(fees, "taker");

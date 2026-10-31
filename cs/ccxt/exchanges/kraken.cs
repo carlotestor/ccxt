@@ -1425,9 +1425,9 @@ public partial class kraken : Exchange
         //
         string? id = this.safeString(item, "id");
         string? direction = null;
-        object account = null;
+        string? account = null;
         string? referenceId = this.safeString(item, "refid");
-        object referenceAccount = null;
+        string? referenceAccount = null;
         string? type = this.parseLedgerEntryType(this.safeString(item, "type"));
         string? currencyId = this.safeString(item, "asset");
         string? code = this.safeCurrencyCode(currencyId, currency);

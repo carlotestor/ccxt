@@ -1910,8 +1910,8 @@ public partial class binance : ccxt.binance
             paramsStock["stock"] = true;
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolValue), timeframeVar));
     }
 
     /**
@@ -4252,13 +4252,13 @@ public partial class binance : ccxt.binance
         // each account is connected to a different endpoint
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
-        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        string? messageHash = ((string)add(accountType, ":balance"));
-        if ((((object)((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))) == null))
+        string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        string messageHash = (accountType + ":balance");
+        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
-            this.balance[(string)accountType] = new Dictionary<string, object>() {};
+            this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         string? eventVar = this.safeString(message, "e");
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         IDictionary<string, object> balanceMessage = this.safeDict(message, "a", message);
@@ -4268,9 +4268,9 @@ public partial class binance : ccxt.binance
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? delta = this.safeString(message, "d");
-            if (((code != null)) && (inOp((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code)))
+            if (((code != null)) && (inOp((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code)))
             {
-                object previousValue = this.safeValue(getValue((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code), "free");
+                object previousValue = this.safeValue(getValue((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), code), "free");
                 if (!(previousValue is string))
                 {
                     previousValue = this.numberToString(previousValue);
@@ -4282,7 +4282,7 @@ public partial class binance : ccxt.binance
             }
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         } else
         {
@@ -4302,15 +4302,15 @@ public partial class binance : ccxt.binance
                 account["total"] = this.safeString(entry, wallet);
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
+                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
                 }
             }
         }
         Int64? timestamp = this.safeInteger(balanceMessage, "E");
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[(string)accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null));
-        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
     public virtual string? getAccountTypeFromSubscriptions(IList<object> subscriptions)
@@ -5992,16 +5992,16 @@ public partial class binance : ccxt.binance
         // and has exactly one subscriptionhash which is the account type
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
-        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (!((((IDictionary<string,object>)this.positions) != null && accountType is string hx10w3Key1 && ((IDictionary<string,object>)this.positions).ContainsKey(hx10w3Key1))))
+        if (!((((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType))))
         {
-            ((IDictionary<string,object>)this.positions)[(string)accountType] = new ArrayCacheBySymbolBySide();
+            ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)accountType) ? ((IDictionary<string,object>)this.positions)[(string)accountType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
@@ -6015,7 +6015,7 @@ public partial class binance : ccxt.binance
             newPositions.Add(position);
             cache.append(position);
         }
-        List<object> messageHashes = this.findMessageHashes(client, add(accountType, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = ((string)messageHashes[i]);
@@ -6028,7 +6028,7 @@ public partial class binance : ccxt.binance
                 client.resolve(positions, messageHash);
             }
         }
-        client.resolve(newPositions, add(accountType, ":positions"));
+        client.resolve(newPositions, (accountType + ":positions"));
     }
 
     public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)

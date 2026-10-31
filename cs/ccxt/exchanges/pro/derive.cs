@@ -1055,7 +1055,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true));
     }
 
-    public virtual object handlePositionDelta(object subaccountIdKey, object entry)
+    public virtual IDictionary<string, object> handlePositionDelta(object subaccountIdKey, object entry)
     {
         string? marketId = this.safeString(entry, "name");
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1139,7 +1139,7 @@ public partial class derive : ccxt.derive
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (((this.positions != null)) && ((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey))))
                 {
-                    object position = this.handlePositionDelta(subaccountIdKey, entry);
+                    IDictionary<string, object> position = this.handlePositionDelta(subaccountIdKey, entry);
                     positionUpdates.Add(position);
                 }
                 continue;

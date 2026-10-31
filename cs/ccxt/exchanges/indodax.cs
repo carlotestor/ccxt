@@ -913,7 +913,7 @@ public partial class indodax : Exchange
             filled = this.safeString(order, ("receive_" + baseId));
         }
         Int64? timestamp = this.safeInteger(order, "submit_time");
-        object fee = null;
+        string? fee = null;
         string? id = this.safeString(order, "order_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

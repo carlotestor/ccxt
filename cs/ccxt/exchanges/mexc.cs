@@ -2012,7 +2012,7 @@ public partial class mexc : Exchange
         string? orderId = null;
         string? symbol = null;
         Dictionary<string, object> fee = null;
-        object type = null;
+        string? type = null;
         string? side = null;
         string? takerOrMaker = null;
         string? priceString = null;
@@ -4351,7 +4351,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.FetchAccountHelper(marketType, query);
+        Dictionary<string, object> response = await this.FetchAccountHelper(marketType, query);
         List<object> data = this.safeList(response, "balances", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)

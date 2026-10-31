@@ -930,7 +930,7 @@ public partial class woofipro : ccxt.woofipro
         }
         string? rawStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(rawStatus);
-        object trades = null;
+        string? trades = null;
         string? clientOrderId = this.safeString(order, "clientOrderId");
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {

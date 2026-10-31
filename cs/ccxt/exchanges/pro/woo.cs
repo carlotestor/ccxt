@@ -1292,7 +1292,7 @@ public partial class woo : ccxt.woo
         string? filled = this.safeString2(order, "totalExecutedQuantity", "executed");
         string? rawStatus = this.safeString2(order, "status", "algoStatus");
         string? status = this.parseOrderStatus(rawStatus);
-        object trades = null;
+        string? trades = null;
         string? clientOrderId = this.safeString(order, "clientOrderId");
         string? triggerPrice = this.safeString(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {

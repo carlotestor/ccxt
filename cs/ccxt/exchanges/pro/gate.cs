@@ -1813,9 +1813,9 @@ public partial class gate : ccxt.gate
         //        }]
         //    }
         //
-        object type = this.getMarketTypeByUrl(client.url);
+        string type = this.getMarketTypeByUrl(client.url);
         List<object> data = this.safeList(message, "result", new List<object>() {});
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
@@ -1857,7 +1857,7 @@ public partial class gate : ccxt.gate
                 cache.append(position);
             }
         }
-        List<object> messageHashes = this.findMessageHashes(client, add(type, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client, (type + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = ((string)messageHashes[i]);
@@ -1870,7 +1870,7 @@ public partial class gate : ccxt.gate
                 client.resolve(positions, messageHash);
             }
         }
-        client.resolve(newPositions, add(type, ":positions"));
+        client.resolve(newPositions, (type + ":positions"));
     }
 
     /**

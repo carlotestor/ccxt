@@ -1476,7 +1476,7 @@ public partial class coinsph : Exchange
         Int64? timestamp = this.safeInteger(trade, "time");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
-        object type = null;
+        string? type = null;
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? feeCost = this.safeString(trade, "commission");
         if ((feeCost != null))
@@ -2418,7 +2418,7 @@ public partial class coinsph : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        object updated = null;
+        string? updated = null;
         string? type = null;
         string? withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         string? depositOrderId = this.safeString(transaction, "depositOrderId");

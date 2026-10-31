@@ -4331,7 +4331,7 @@ public partial class phemex : Exchange
         //
         string? id = this.safeString(transaction, "id");
         string? address = this.safeString(transaction, "address");
-        object tag = null;
+        string? tag = null;
         string? txid = this.safeString(transaction, "txHash");
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);

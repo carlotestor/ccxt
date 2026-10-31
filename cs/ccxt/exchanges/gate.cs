@@ -2519,7 +2519,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
-        List<string> underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
+        List<string> underlyings = await this.FetchOptionUnderlyings();
         for (int i = 0; i < (underlyings?.Count ?? 0); i++)
         {
             string? underlying = ((string)(underlyings != null && i < underlyings.Count ? underlyings[i] : null));

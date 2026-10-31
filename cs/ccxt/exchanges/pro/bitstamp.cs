@@ -945,7 +945,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    public virtual ccxt.pro.ArrayCache pruneCachedBySymbols(object newCache, object cache, IList<object> symbols)
+    public virtual ccxt.pro.ArrayCache pruneCachedBySymbols(ccxt.pro.ArrayCacheBySymbolById newCache, ccxt.pro.ArrayCache cache, IList<object> symbols)
     {
         IList<object> entries = this.toArray(cache);
         for (int i = 0; i < (entries?.Count ?? 0); i++)
@@ -954,10 +954,10 @@ public partial class bitstamp : ccxt.bitstamp
             string? entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {
-                ccxt.pro.BaseCache.appendTo(newCache, entry);
+                newCache.append(entry);
             }
         }
-        return ((ccxt.pro.ArrayCache)((object)(newCache)));
+        return newCache;
     }
 
     public virtual void handleSubject(WebSocketClient client, object message)
