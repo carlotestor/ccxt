@@ -1795,6 +1795,19 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
             if (JAVA_STRING_CAST_METHODS.has (name) && (current.arguments?.length ?? 0) === 0) {
                 return 'String';
             }
+            // padStart the printer emits as its native `(len >= n ? ..substring(..) : String.format(..)
+            // .replace(..) + recv)` ternary: both arms are Strings; the Helpers.padStart form is not claimed
+            if (name === 'padStart' && current.arguments?.length === 2) {
+                try {
+                    const printed = printer.printNode (current, 0);
+                    if (typeof printed === 'string' && printed.startsWith ('(') && printed.includes ('.length() >= ')
+                        && printed.includes ('String.format(') && !printed.includes ('Helpers.')) {
+                        return 'String';
+                    }
+                } catch (e) {
+                    return undefined;
+                }
+            }
             const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
             if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
                 return 'String';
