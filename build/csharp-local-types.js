@@ -2444,6 +2444,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // is the write producer that blocks the walletAddress family: lighter/myriad assign
     // `walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey)` into the local.
     'ethGetAddressFromPrivateKey': 'string',
+    // zaif#customNonce: sole declaration tree-wide, ts `: string`, prints `string? customNonce()`
+    'customNonce': 'string?',
 };
 
 // Families whose declarations in the PREDICTION tree belong to another unit of the same
