@@ -4252,6 +4252,7 @@ func (this *BaseExchange) LoadTradingLimitsAsync(optionalArgs ...any) <-chan Asy
 func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	// read the loaded table, write through the field: a published table is replaced, not edited in place
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var reload bool = GetArgBool(optionalArgs, 1, false)
@@ -4270,9 +4271,10 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[map[string]a
 			if this.Markets == nil {
 				panic(ExchangeError(this.Id + " markets not loaded"))
 			}
+			var markets map[string]any = this.Markets
 			for i := 0; i < GetArrayLength(symbolsArray); i++ {
 				var symbol any = GetValue(symbolsArray, i)
-				this.AddMarketsEntry(symbol, this.DeepExtend(GetValue(this.Markets, symbol), GetValue(response, symbol)))
+				this.AddMarketsEntry(symbol, this.DeepExtend(GetValue(markets, symbol), GetValue(response, symbol)))
 			}
 			this.Options["limitsLoaded"] = this.Milliseconds()
 		}
@@ -5663,11 +5665,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706915 map[string]any = r.Value
-	if retRes706915 == nil {
+	var retRes707115 map[string]any = r.Value
+	if retRes707115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706915}
+		ch <- AsyncResult[map[string]any]{Value: retRes707115}
 	}
 	return nil
 }
@@ -11537,12 +11539,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11154, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048615 []any = listRecv11154
-	if retRes1048615 == nil {
+	listRecv11156, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048815 []any = listRecv11156
+	if retRes1048815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
 	}
 	return nil
 }

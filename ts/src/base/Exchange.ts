@@ -6103,9 +6103,11 @@ export class BaseExchange {
                 if (this.markets === undefined) {
                     throw new ExchangeError (this.id + ' markets not loaded');
                 }
+                // read the loaded table, write through the field: a published table is replaced, not edited in place
+                const markets = this.markets;
                 for (let i = 0; i < symbolsArray.length; i++) {
                     const symbol = symbolsArray[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
+                    this.markets[symbol] = this.deepExtend (markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
