@@ -4713,16 +4713,17 @@ pub trait ExchangeBase:
             if reload.as_bool() == Some(true) || !(matches!(&self.options, Value::Dict(__d) if __d.contains_key("limitsLoaded"))) {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
                 let mut symbolsArray: Value = self.require_value(symbols, &[Value::Str("loadTradingLimits() requires a symbols argument".into())]);
-                let mut markets: Value = self.markets.clone();
-                if (markets == Value::Null) {
+                if (self.markets.clone() == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
                 }
+                // read the loaded table, write through the field: a published table is replaced, not edited in place
+                let mut markets: Value = self.markets.clone();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_122: bool = true;
                     while { if !__for_first_122 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_122 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
                     let mut symbol: Value = get_value(&symbolsArray, &i);
-                    { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); };
+                    { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
                 }
                 }
                 { let __be_tmp = self.milliseconds(); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("limitsLoaded".into(), __be_tmp); } }
