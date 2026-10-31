@@ -8386,15 +8386,16 @@ public Map<String, Object> describe()
                 {
                     Map<String, Object> response = (Map<String, Object>) (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Map<String, Object> markets = this.markets;
-                    if (java.util.Objects.equals(markets, null))
+                    if (java.util.Objects.equals(this.markets, null))
                     {
                         throw new ExchangeError((this.id + " markets not loaded")) ;
                     }
+                    // read the loaded table, write through the field: a published table is replaced, not edited in place
+                    Map<String, Object> markets = this.markets;
                     for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v34 -> j39v34.size(); case String j39v35 -> j39v35.length(); case Object j39v36 -> j39v36.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v36) : 0; }); i++)
                     {
                         Object symbol = Helpers.GetValue(symbolsArray, i);
-                        Helpers.addElementToObject(markets, symbol, this.deepExtend((markets == null || !(symbol instanceof String) ? null : markets.get(symbol)), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
+                        Helpers.addElementToObject(this.markets, symbol, this.deepExtend((markets == null || !(symbol instanceof String) ? null : markets.get(symbol)), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
                     }
                     this.options.put("limitsLoaded", BaseExchange.this.milliseconds());
                 }
