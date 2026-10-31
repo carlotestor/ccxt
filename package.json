@@ -323,7 +323,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "github:ccxt/ast-transpiler#19ec0699703f38a991c20ac1061f9f719f62d8c9",
+    "ast-transpiler": "github:ccxt/ast-transpiler#4580051cfe939ff427d90251e77267571477e2fd",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
