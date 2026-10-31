@@ -9021,7 +9021,10 @@ export class BaseExchange {
         const uniqueResult: Dict[] = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
+            let uniqValue = this.safeString (entry, 'id');
+            if (fallbackToTimestamp) {
+                uniqValue = this.safeStringN (entry, [ 'id', 'timestamp', 0 ]);
+            }
             if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
                 uniqueDic[uniqValue] = 1;
                 uniqueResult.push (entry);
