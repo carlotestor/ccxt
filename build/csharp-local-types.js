@@ -13203,6 +13203,17 @@ export function installCsharpJsonParseStringCalls (csharp) {
         }
         return upstream (node, identation, parsedArg);
     };
+    // the source-level spelling `this.parseJson (<call>)` is the same hand-written wrapper
+    const upstreamCall = csharp.printCallExpression.bind (csharp);
+    csharp.printCallExpression = (node, identation) => {
+        const callee = node?.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && callee.name?.text === 'parseJson' && node.arguments?.length === 1
+                && jsonParseArgumentIsStringCall (csharp, node.arguments[0]) && csharp.csharpCalleeResolves (node)) {
+            return 'JsonHelper.Deserialize((string)' + csharp.printNode (node.arguments[0], 0).trim () + ')';
+        }
+        return upstreamCall (node, identation);
+    };
     csharp._jsonParseStringCallsPatched = true;
 }
 
