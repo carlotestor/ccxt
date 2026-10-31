@@ -5868,7 +5868,7 @@ public partial class bitget : Exchange
         {
             if ((symbols != null))
             {
-                int symbolsLength = symbols?.Count ?? 0;
+                int symbolsLength = (symbols?.Count ?? 0);
                 if ((symbolsLength == 1))
                 {
                     request["symbol"] = this.safeString(market, "id");
@@ -6964,7 +6964,7 @@ public partial class bitget : Exchange
         {
             candles = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)candles), market,timeframeVar, since, limitResolved));
     }
 
     /**
@@ -11309,7 +11309,7 @@ public partial class bitget : Exchange
             List<object> fills = this.safeList(data, "fills", new List<object>() {});
             return this.parseTrades(fills, market, since, limit);
         }
-        return this.parseTrades(data, market, since, limit);
+        return this.parseTrades(((IList<object>)data), market, since, limit);
     }
 
     /**
@@ -13184,7 +13184,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14239,7 +14239,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));

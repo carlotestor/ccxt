@@ -1880,7 +1880,7 @@ public partial class btse : Exchange
             //
             response = await this.privateGetFuturesApiV3TradeTradeHistory(this.extend(request, paramsMarketType));
         }
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         return this.parseTrades(rows, market, since, limit);
     }
 
@@ -2911,7 +2911,7 @@ public partial class btse : Exchange
         }
         // the endpoints have no server side time filters, accept a bare array
         // and a data envelope and filter client-side
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         return this.parseOrders(rows, market, since, limit);
     }
 
@@ -3116,7 +3116,7 @@ public partial class btse : Exchange
         //         }
         //     ]
         //
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         List<object> responseList = this.arrayConcat(new List<object>() {}, rows);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (responseList?.Count ?? 0); i++)
@@ -3208,7 +3208,7 @@ public partial class btse : Exchange
         //         "success": true
         //     }
         //
-        List<object> rawRows = this.safeList(response, "data", ((object)response));
+        List<object> rawRows = this.safeList(response, "data", ((IList<object>)((object)response)));
         // the requested types are also filtered client side over both the legacy
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
@@ -3435,7 +3435,7 @@ public partial class btse : Exchange
         //         }
         //     ]
         //
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
@@ -3562,7 +3562,7 @@ public partial class btse : Exchange
             // api has no fees route
             response = await this.privateGetFuturesApiV23UserFees(this.extend(request, parameters));
         }
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         IDictionary<string, object> feeInfo = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         double? makerFee = this.safeNumber(feeInfo, "makerFee");
         double? takerFee = this.safeNumber(feeInfo, "takerFee");
@@ -3587,7 +3587,7 @@ public partial class btse : Exchange
         //
         // the response is a bare array of position rows
         //
-        List<object> rows = this.safeList(response, "data", ((object)response));
+        List<object> rows = this.safeList(response, "data", ((IList<object>)((object)response)));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(rows, symbolsNormalized));
     }
 

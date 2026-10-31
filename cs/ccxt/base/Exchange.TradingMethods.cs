@@ -129,7 +129,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchMarkPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchBidsAsks() is not supported yet")) ;
@@ -769,7 +769,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " fetchTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchTickers() is not supported yet")) ;
@@ -1112,7 +1112,7 @@ public partial class Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> CancelOrdersWithClientOrderIds(object clientOrderIds, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelOrdersWithClientOrderIds(IList<object> clientOrderIds, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {

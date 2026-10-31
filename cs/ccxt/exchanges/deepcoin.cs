@@ -1394,7 +1394,7 @@ public partial class deepcoin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
         }
-        int length = codes?.Count ?? 0;
+        int length = (codes?.Count ?? 0);
         if ((length != 1))
         {
             throw new NotSupported ((this.id + " fetchDepositAddresses requires a list with one currency code")) ;

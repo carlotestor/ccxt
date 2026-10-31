@@ -3628,7 +3628,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if ((symbolsLength == 1))
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));

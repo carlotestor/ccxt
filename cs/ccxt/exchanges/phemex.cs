@@ -3739,7 +3739,7 @@ public partial class phemex : Exchange
             response = await this.privateGetApiDataSpotsOrders(this.extend(request, parameters));
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        List<object> rows = this.safeList(data, "rows", data);
+        List<object> rows = this.safeList(data, "rows", ((IList<object>)data));
         return this.parseOrders(rows, market, since, limit);
     }
 

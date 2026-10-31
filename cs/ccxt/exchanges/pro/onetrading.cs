@@ -197,7 +197,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -464,7 +464,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, IList<object> deltas)
     {
         //
         //    [
@@ -472,9 +472,9 @@ public partial class onetrading : ccxt.onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleBookDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1228,7 +1228,7 @@ public partial class onetrading : ccxt.onetrading
         {
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -1443,7 +1443,7 @@ public partial class onetrading : ccxt.onetrading
             marketIds = new List<object>(marketsById.Keys);
         } else
         {
-            marketIds = this.marketIds(symbols);
+            marketIds = this.marketIds(((IList<object>)symbols));
         }
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));

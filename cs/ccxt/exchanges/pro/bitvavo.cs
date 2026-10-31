@@ -98,7 +98,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -142,7 +142,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -209,7 +209,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -282,7 +282,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -360,7 +360,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -456,7 +456,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleFetchOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -584,7 +584,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(((IList<object>)candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
@@ -1464,7 +1464,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const action = this.safeString (message, 'action');
         List<object> response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades((IList<object>)(response), null, null, null));
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(((IList<object>)(IList<object>)(response)), null, null, null));
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         string? messageHash = this.safeString(message, "requestId");
         client.resolve(trades, messageHash);
@@ -1562,7 +1562,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         List<object> response = this.safeList(message, "response");
         string? messageHash = this.safeString(message, "requestId");
-        IList<object> withdrawals = this.parseTransactions((IList<object>)(response), null, null, null, new Dictionary<string, object>() {
+        IList<object> withdrawals = this.parseTransactions(((IList<object>)(IList<object>)(response)), null, null, null, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
         client.resolve(withdrawals, messageHash);
@@ -1592,7 +1592,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> request = this.fetchOHLCVRequest(symbol,timeframeVar, since, limit, parameters);
         string action = "getCandles";
         object ohlcv = await this.watchRequest(action, request);
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limit, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limit, 0, true));
     }
 
     /**

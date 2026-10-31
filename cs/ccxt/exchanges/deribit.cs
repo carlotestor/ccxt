@@ -3701,7 +3701,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3989,7 +3989,7 @@ public partial class deribit : Exchange
         string? cursor = this.safeString(result, "continuation");
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(((IList<object>)settlementsWithCursor), market, since, limit));
     }
 
     public virtual object addPaginationCursorToResult(object cursor, IList<object> data)

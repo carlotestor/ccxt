@@ -1772,7 +1772,7 @@ public partial class weex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         List<object> response = await this.publicGetApiV3MarketKlines(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
     }
 
     /**
@@ -1901,7 +1901,7 @@ public partial class weex : Exchange
                 response = await this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limitResolved));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2365,7 +2365,7 @@ public partial class weex : Exchange
             { "info", response },
         };
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        List<object> balances = this.safeList(response, "balances", response);
+        List<object> balances = this.safeList(response, "balances", ((IList<object>)response));
         for (int i = 0; i < balances.Count; i++)
         {
             IDictionary<string, object> entry = this.safeDict(balances, i);
@@ -4618,7 +4618,7 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(((IList<object>)this.toArray(response)), symbolsNormalized, "symbol", "swap"));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -4727,7 +4727,7 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(((IList<object>)this.toArray(response)), symbolsNormalized, "symbol", "swap"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)

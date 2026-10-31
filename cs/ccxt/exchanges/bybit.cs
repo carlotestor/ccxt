@@ -8146,7 +8146,7 @@ public partial class bybit : Exchange
         IList<object> symbolsNormalized = null;
         if (((symbols != null)) && ((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if (symbolsLength > 1)
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
@@ -9832,7 +9832,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -10986,7 +10986,7 @@ public partial class bybit : Exchange
         int symbolsLength = 0;
         if ((symbols != null))
         {
-            symbolsLength = symbols?.Count ?? 0;
+            symbolsLength = (symbols?.Count ?? 0);
             if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));

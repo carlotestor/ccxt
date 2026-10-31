@@ -134,7 +134,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
         bool resolvedPerSymbol = !isBatch || ((messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         IDictionary<string, object> wsUrls = this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -398,7 +398,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.speed] '1s' (default), or '3s'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -580,7 +580,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -708,7 +708,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp"));
     }
 
     public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -766,7 +766,7 @@ public partial class hitbtc : ccxt.hitbtc
                 stored = new ArrayCache(tradesLimit);
                 this.trades[(string)symbol] = stored;
             }
-            IList<object> trades = this.parseWsTrades((data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            IList<object> trades = this.parseWsTrades(((IList<object>)(data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null)), market);
             for (int j = 0; j < (trades?.Count ?? 0); j++)
             {
                 stored.append(trades[j]);
@@ -857,7 +857,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0));
     }
 
     public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -918,7 +918,7 @@ public partial class hitbtc : ccxt.hitbtc
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
-            List<object> ohlcvs = this.parseWsOHLCVs((data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            List<object> ohlcvs = this.parseWsOHLCVs(((IList<object>)(data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null)), market);
             for (int j = 0; j < (ohlcvs?.Count ?? 0); j++)
             {
                 stored.append(ohlcvs[j]);
@@ -985,7 +985,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(((IList<object>)orders), since, limitResolved, "timestamp"));
     }
 
     public virtual object handleOrder(WebSocketClient client, Dictionary<string, object> message)

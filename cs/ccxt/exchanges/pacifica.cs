@@ -4245,7 +4245,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");

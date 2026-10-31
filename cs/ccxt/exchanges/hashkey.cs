@@ -1542,7 +1542,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(((IList<object>)response), market, since, limit);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -4058,7 +4058,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument with one single market symbol")) ;
         } else
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if ((symbolsLength != 1))
             {
                 throw new NotSupported ((((this.id + " ") + methodName) + "() is supported for a symbol argument with one single market symbol only")) ;

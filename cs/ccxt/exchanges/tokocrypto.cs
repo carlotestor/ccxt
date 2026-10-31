@@ -1675,7 +1675,7 @@ public partial class tokocrypto : Exchange
                 data = this.safeList(dataDict, "list", new List<object>() {});
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)data), market,timeframeVar, since, limitValue));
     }
 
     /**
@@ -3103,7 +3103,7 @@ public partial class tokocrypto : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsDict = this.extend(new Dictionary<string, object>() {}, parameters);

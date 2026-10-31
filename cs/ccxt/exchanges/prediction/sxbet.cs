@@ -2902,7 +2902,7 @@ public partial class sxbet : PredictionExchange
         string? sym = this.safeString(outcomeObj, "outcome", "");
         string messageHash = ("trades::" + sym);
         object trades = await this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limit, "timestamp", true));
     }
 
     /**
@@ -3014,7 +3014,7 @@ public partial class sxbet : PredictionExchange
         }
         string channel = ("account:fills_v3_#" + this.walletAddress);
         object trades = await this.subscribeSxbetChannel(messageHash, channel);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limit, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object rows)
@@ -3073,7 +3073,7 @@ public partial class sxbet : PredictionExchange
         }
         string channel = ("account:orders_v3_#" + this.walletAddress);
         object orders = await this.subscribeSxbetChannel(messageHash, channel);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(((IList<object>)orders), since, limit, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, object rows)

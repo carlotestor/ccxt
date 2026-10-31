@@ -1957,7 +1957,7 @@ public partial class polymarket : PredictionExchange
         }
         Dictionary<string, object> response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
         object rawTrades = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(rawTrades, outcomeObj, since, limit));
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(((IList<object>)rawTrades), outcomeObj, since, limit));
     }
 
     /**
@@ -2140,7 +2140,7 @@ public partial class polymarket : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = outcomes?.Count ?? 0;
+            outcomesLength = (outcomes?.Count ?? 0);
             await this.loadOutcomes(outcomes);
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
@@ -3886,7 +3886,7 @@ public partial class polymarket : PredictionExchange
         };
         object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         object trades = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limit, "timestamp", true));
     }
 
     /**

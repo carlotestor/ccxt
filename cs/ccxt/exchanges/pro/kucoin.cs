@@ -473,7 +473,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -552,7 +552,7 @@ public partial class kucoin : ccxt.kucoin
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
-        Dictionary<string, object> market = this.getMarketFromSymbols(symbols);
+        Dictionary<string, object> market = this.getMarketFromSymbols(((IList<object>)symbols));
         bool? isContract = this.safeBool(market, "contract", false);
         string urlType = "spot";
         if ((isContract == true))
@@ -571,7 +571,7 @@ public partial class kucoin : ccxt.kucoin
             { "action", action },
             { "channel", channel },
             { "tradeType", tradeType },
-            { "symbols", this.marketIds(symbols) },
+            { "symbols", this.marketIds(((IList<object>)symbols)) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
@@ -591,7 +591,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true);
         string messageHash = "uta:ticker";
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -836,7 +836,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -872,7 +872,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols), null, false, true, false);
         int length = symbolsNormalized?.Count ?? 0;
         if (length > 100)
         {
@@ -1037,7 +1037,7 @@ public partial class kucoin : ccxt.kucoin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0, true));
     }
 
     /**
@@ -1256,7 +1256,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
             }
-            return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+            return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
         }
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, paramsUta);
     }
@@ -1313,7 +1313,7 @@ public partial class kucoin : ccxt.kucoin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -2006,7 +2006,7 @@ public partial class kucoin : ccxt.kucoin
                 return i;
             }
         }
-        return cache?.Count ?? 0;
+        return (cache?.Count ?? 0);
     }
 
     public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)

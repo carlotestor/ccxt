@@ -2854,7 +2854,7 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)getValue(rawTrades, ids[i]))["id"] = ids[i];
             }
-            IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, null, since, limit));
+            IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(((IList<object>)rawTrades), null, since, limit));
             IList<object> tradesFilteredBySymbol = this.filterBySymbol(trades, symbolResolved);
             result = this.arrayConcat(result, tradesFilteredBySymbol);
         }

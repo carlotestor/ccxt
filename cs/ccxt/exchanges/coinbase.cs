@@ -2376,7 +2376,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.v2PublicGetExchangeRates(this.extend(request, parameters));
         //
@@ -2415,7 +2415,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -2754,8 +2754,8 @@ public partial class coinbase : Exchange
             return this.safeBalance(balanceResult);
         }
         List<object> balances = this.safeList2(response, "data", "accounts", new List<object>() {});
-        List<object> accounts = this.safeList(parameters, "type", (this.options.ContainsKey("accounts") ? this.options["accounts"] : null));
-        List<object> v3Accounts = this.safeList(parameters, "type", (this.options.ContainsKey("v3Accounts") ? this.options["v3Accounts"] : null));
+        List<object> accounts = this.safeList(parameters, "type", ((IList<object>)(this.options.ContainsKey("accounts") ? this.options["accounts"] : null)));
+        List<object> v3Accounts = this.safeList(parameters, "type", ((IList<object>)(this.options.ContainsKey("v3Accounts") ? this.options["v3Accounts"] : null)));
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };

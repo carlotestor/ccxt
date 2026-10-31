@@ -41,7 +41,7 @@ public partial class upbit : ccxt.upbit
             await this.loadMarkets();
         }
         object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
-        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbolsRequested));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -104,7 +104,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object newTickers = await this.watchPublicMultiple(symbols, "ticker");
@@ -160,7 +160,7 @@ public partial class upbit : ccxt.upbit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
     }
 
     /**

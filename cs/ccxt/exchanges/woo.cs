@@ -2725,7 +2725,7 @@ public partial class woo : Exchange
         }
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if (symbolsLength > 0)
             {
                 // the type gate throws NotSupported rather than letting marketSymbols raise

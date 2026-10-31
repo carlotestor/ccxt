@@ -1553,7 +1553,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -3614,7 +3614,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(((IList<object>)this.toArray(response)), symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -3701,7 +3701,7 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(((IList<object>)this.toArray(response)), symbols, "symbol", "swap"));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -3790,7 +3790,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        List<object> modifications = this.parseMarginModifications(this.toArray(response));
+        List<object> modifications = this.parseMarginModifications(((IList<object>)this.toArray(response)));
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
@@ -4639,7 +4639,7 @@ public partial class aster : Exchange
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
         bool? filterClosed = this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 

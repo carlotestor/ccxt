@@ -2348,7 +2348,7 @@ public partial class mexc : Exchange
         bool isSingularMarket = false;
         if ((symbols != null))
         {
-            int length = symbols?.Count ?? 0;
+            int length = (symbols?.Count ?? 0);
             isSingularMarket = (length == 1);
             market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
@@ -2627,7 +2627,7 @@ public partial class mexc : Exchange
         bool isSingularMarket = false;
         if ((symbols != null))
         {
-            int length = symbols?.Count ?? 0;
+            int length = (symbols?.Count ?? 0);
             isSingularMarket = (length == 1);
             market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
@@ -6211,7 +6211,7 @@ public partial class mexc : Exchange
             IDictionary<string, object> data = this.safeDict(response, "data");
             resultList = this.safeValue(data, "resultList");
         }
-        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(resultList, currency, since, limit));
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(((IList<object>)resultList), currency, since, limit));
     }
 
     /**
@@ -6518,7 +6518,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6629,7 +6629,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6852,7 +6852,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if ((symbolsLength == 1))
             {
                 Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));

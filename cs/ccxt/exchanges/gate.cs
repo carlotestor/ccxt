@@ -3462,7 +3462,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTransactionFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3534,7 +3534,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4548,7 +4548,7 @@ public partial class gate : Exchange
         {
             response = await this.publicSpotGetCandlesticks(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limitValue));
     }
 
     public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -4567,7 +4567,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         List<object> response = await this.publicOptionsGetCandlesticks(this.extend(request, paramsValue));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
     }
 
     /**
@@ -5670,7 +5670,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        int ordersLength = orders?.Count ?? 0;
+        int ordersLength = (orders?.Count ?? 0);
         if ((ordersLength == 0))
         {
             throw new BadRequest ((this.id + " createOrders() requires at least one order")) ;
@@ -9618,7 +9618,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(((IList<object>)this.toArray(response)), market, since, limit));
     }
 
     /**
@@ -9709,7 +9709,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(((IList<object>)this.toArray(response)), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -10013,7 +10013,7 @@ public partial class gate : Exchange
         {
             response = await this.publicMarginGetCurrencyPairs(paramsOmitted); // deprecated
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, marketIdRequest, "spot"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(((IList<object>)this.toArray(response)), symbolsNormalized, marketIdRequest, "spot"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -10158,7 +10158,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(response), null, "name"));
+        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(((IList<object>)this.toArray(response)), null, "name"));
     }
 
     public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
@@ -10255,7 +10255,7 @@ public partial class gate : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if ((symbolsLength == 1))
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));

@@ -1681,7 +1681,7 @@ public partial class backpack : Exchange
         int symbolsLength = 0;
         if ((symbols != null))
         {
-            symbolsLength = symbols?.Count ?? 0;
+            symbolsLength = (symbols?.Count ?? 0);
         }
         IList<object> symbolsResolved = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         if ((symbolsLength != 0))
@@ -3326,7 +3326,7 @@ public partial class backpack : Exchange
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(((IList<object>)this.sortBy(orders, "timestamp")), since, limit));
     }
 
     /**
@@ -3581,7 +3581,7 @@ public partial class backpack : Exchange
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(((IList<object>)this.sortBy(orders, "timestamp")), since, limit));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)

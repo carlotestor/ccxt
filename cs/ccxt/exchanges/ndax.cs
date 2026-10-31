@@ -2673,7 +2673,7 @@ public partial class ndax : Exchange
         //
         if ((response is string))
         {
-            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(parseJson(response), currency, since, limit));
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(((IList<object>)parseJson(response)), currency, since, limit));
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }

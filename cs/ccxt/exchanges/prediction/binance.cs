@@ -963,7 +963,7 @@ public partial class binance : PredictionExchange
         await this.loadOutcomes(outcomes);
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int outcomesLength = outcomes?.Count ?? 0;
+        int outcomesLength = (outcomes?.Count ?? 0);
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));

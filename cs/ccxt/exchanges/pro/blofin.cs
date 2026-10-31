@@ -115,7 +115,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, firstSymbol, limit));
         }
-        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -328,7 +328,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
@@ -395,7 +395,7 @@ public partial class blofin : ccxt.blofin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -522,7 +522,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
-        IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        IList<object> filtered = this.filterBySinceLimit(((IList<object>)candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,timeframe, filtered));
     }
 
@@ -738,7 +738,7 @@ public partial class blofin : ccxt.blofin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(((IList<object>)orders), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -912,7 +912,7 @@ public partial class blofin : ccxt.blofin
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         bool isOHLCV = ((channelName is "candle"));
         object symbolsRaw = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        IList<object> symbols = this.marketSymbols(symbolsRaw, null, true, true);
+        IList<object> symbols = this.marketSymbols(((IList<object>)symbolsRaw), null, true, true);
         IDictionary<string, object> firstMarket = null;
         string? firstSymbol = this.safeString(symbols, 0);
         if ((firstSymbol != null))
@@ -992,10 +992,10 @@ public partial class blofin : ccxt.blofin
         IList<object> symbols = new List<object>() {};
         if (isOHLCV)
         {
-            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), null, false, true);
+            symbols = this.marketSymbols(((IList<object>)this.getListFromObjectValues(symbolsArray, 0)), null, false, true);
         } else
         {
-            symbols = this.marketSymbols(symbolsArray, null, false, true);
+            symbols = this.marketSymbols(((IList<object>)symbolsArray), null, false, true);
         }
         Dictionary<string, object> firstMarket = this.market(this.safeString(symbols, 0));
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);

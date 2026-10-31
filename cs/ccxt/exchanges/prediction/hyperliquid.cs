@@ -1021,7 +1021,7 @@ public partial class hyperliquid : PredictionExchange
         {
             candles = response;
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)candles), market,timeframeVar, since, limit));
     }
 
     /**
@@ -1995,7 +1995,7 @@ public partial class hyperliquid : PredictionExchange
         {
             trades = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(((IList<object>)trades), outcomeObj, since, limit));
     }
 
     /**
@@ -2056,7 +2056,7 @@ public partial class hyperliquid : PredictionExchange
         }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        IList<object> parsedTrades = this.parsePredictionTrades(fills, null);
+        IList<object> parsedTrades = this.parsePredictionTrades(((IList<object>)fills), null);
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
@@ -2659,7 +2659,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))

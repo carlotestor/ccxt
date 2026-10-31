@@ -577,7 +577,7 @@ public partial class kalshi : PredictionExchange
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        int outcomeSymbolsLength = (outcomeSymbols?.Count ?? 0);
+        int outcomeSymbolsLength = outcomeSymbols?.Count ?? 0;
         for (int i = 0; i < outcomeSymbolsLength; i++)
         {
             object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
@@ -1854,7 +1854,7 @@ public partial class kalshi : PredictionExchange
         int outcomesLength = 0;
         if ((outcomes != null))
         {
-            outcomesLength = outcomes?.Count ?? 0;
+            outcomesLength = (outcomes?.Count ?? 0);
         }
         if (outcomesLength > 0)
         {

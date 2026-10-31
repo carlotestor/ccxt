@@ -392,7 +392,7 @@ public partial class limitless : PredictionExchange
                     {
                         responseRows = response;
                     }
-                    List<object> page_markets = this.safeList(response, "data", responseRows);
+                    List<object> page_markets = this.safeList(response, "data", ((IList<object>)responseRows));
                     int pageMarketsLength = page_markets.Count;
                     if ((pageMarketsLength == 0))
                     {
@@ -1640,7 +1640,7 @@ public partial class limitless : PredictionExchange
         {
             responseRows = response;
         }
-        List<object> rawHistory = this.safeList(response, "data", this.safeList(response, "prices", responseRows));
+        List<object> rawHistory = this.safeList(response, "data", this.safeList(response, "prices", ((IList<object>)responseRows)));
         List<object> history = rawHistory;
         int rawHistoryLength = rawHistory.Count;
         if (rawHistoryLength > 0)
@@ -1799,7 +1799,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(this.toArray(response), null, since, limit));
+        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(((IList<object>)this.toArray(response)), null, since, limit));
     }
 
     /**
@@ -3137,7 +3137,7 @@ public partial class limitless : PredictionExchange
         int symbolsLength = 0;
         if ((outcomes != null))
         {
-            symbolsLength = outcomes?.Count ?? 0;
+            symbolsLength = (outcomes?.Count ?? 0);
         }
         if (symbolsLength > 0)
         {

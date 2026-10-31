@@ -1516,7 +1516,7 @@ public partial class toobit : Exchange
         {
             candles = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)candles), market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1740,7 +1740,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             results.Add(ticker);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(((IList<object>)symbols));
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
@@ -1930,7 +1930,7 @@ public partial class toobit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        List<object> balances = this.safeList(response, "balances", response);
+        List<object> balances = this.safeList(response, "balances", ((IList<object>)response));
         for (int i = 0; i < balances.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
@@ -3398,7 +3398,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int length = symbols?.Count ?? 0;
+            int length = (symbols?.Count ?? 0);
             if (length > 1)
             {
                 throw new BadRequest ((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;

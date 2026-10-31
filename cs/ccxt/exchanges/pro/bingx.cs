@@ -448,7 +448,7 @@ public partial class bingx : ccxt.bingx
         {
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true);
         if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
@@ -584,7 +584,7 @@ public partial class bingx : ccxt.bingx
         IList<object> trades = null;
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
+            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(((IList<object>)data), market));
         } else
         {
             trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(data, market))};
@@ -1051,7 +1051,7 @@ public partial class bingx : ccxt.bingx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0, true));
     }
 
     /**

@@ -3131,7 +3131,7 @@ public partial class myriad : PredictionExchange
             IDictionary<string, object> chartsDict = this.safeDict(selectedOutcome, "price_charts", new Dictionary<string, object>() {});
             chart = this.safeDict(chartsDict, bucketKey);
         }
-        List<object> pointsList = this.safeList(chart, "prices", this.safeList(chart, "data", ((object)chart)));
+        List<object> pointsList = this.safeList(chart, "prices", this.safeList(chart, "data", ((IList<object>)((object)chart))));
         IList<object> points = ((pointsList != null)) ? pointsList : new List<object>() {};
         int pointsLength = (points?.Count ?? 0);
         if ((pointsLength == 0))
@@ -3841,7 +3841,7 @@ public partial class myriad : PredictionExchange
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = ("trades::" + sym);
         object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limit, "timestamp", true));
     }
 
     /**
@@ -3871,7 +3871,7 @@ public partial class myriad : PredictionExchange
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = "myTrades";
         object trades = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(((IList<object>)trades), "outcome", sym, since, limit, "timestamp", true));
     }
 
     public virtual string? walletAddressOrUndefined()
@@ -4034,14 +4034,14 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> WatchTickers(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        int symbolsLength = getArrayLength(outcomes);
+        int symbolsLength = (outcomes?.Count ?? 0);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
         await this.loadOutcomes(outcomes);
@@ -4050,12 +4050,12 @@ public partial class myriad : PredictionExchange
         List<object> resolvedSymbols = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? networkId = this.safeString(info, "networkId", "");
             string? marketId = this.safeString(info, "marketId", "");
             string channel = ((("prices:" + networkId) + ":") + marketId);
-            resolvedSymbols.Add(this.safeOutcomeSymbol(getValue(outcomes, i), outcomeObj));
+            resolvedSymbols.Add(this.safeOutcomeSymbol((outcomes != null && i < outcomes.Count ? outcomes[i] : null), outcomeObj));
             if (!(seenChannels.ContainsKey(channel)))
             {
                 seenChannels[(string)channel] = true;
@@ -4092,7 +4092,7 @@ public partial class myriad : PredictionExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome, since, limit, parameters));
-        List<object> ohlcvc = this.buildOHLCVC(((object)trades),timeframeVar, 0, 2147483647);
+        List<object> ohlcvc = this.buildOHLCVC(((IList<object>)((object)trades)),timeframeVar, 0, 2147483647);
         List<object> result = new List<object>() {};
         int ohlcvcLength = (ohlcvc?.Count ?? 0);
         for (int i = 0; i < ohlcvcLength; i++)
@@ -4184,7 +4184,7 @@ public partial class myriad : PredictionExchange
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
         object orders = await this.subscribeMyriadChannel(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(((IList<object>)orders), "outcome", outcomeResolved, since, limit, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)
