@@ -6964,7 +6964,7 @@ public partial class bitget : Exchange
         {
             candles = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)candles), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitResolved));
     }
 
     /**

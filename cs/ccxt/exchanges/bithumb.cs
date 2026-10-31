@@ -1539,7 +1539,7 @@ public partial class bithumb : Exchange
             //
             data = this.safeList(response, "data", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)data), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

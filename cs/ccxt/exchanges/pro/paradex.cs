@@ -202,7 +202,7 @@ public partial class paradex : ccxt.paradex
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)

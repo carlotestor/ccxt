@@ -1772,7 +1772,7 @@ public partial class weex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         List<object> response = await this.publicGetApiV3MarketKlines(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
     /**
@@ -1901,7 +1901,7 @@ public partial class weex : Exchange
                 response = await this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)

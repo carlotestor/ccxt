@@ -6990,7 +6990,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

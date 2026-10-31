@@ -3899,7 +3899,7 @@ public partial class BaseExchange
         });
     }
 
-    public virtual IList<object> parseOHLCVs(IList<object> ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -3909,9 +3909,9 @@ public partial class BaseExchange
             return new List<object>() {};
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
-            results.Add(this.parseOHLCV((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), market));
+            results.Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
         List<object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);

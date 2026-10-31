@@ -1675,7 +1675,7 @@ public partial class tokocrypto : Exchange
                 data = this.safeList(dataDict, "list", new List<object>() {});
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)data), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitValue));
     }
 
     /**

@@ -180,7 +180,7 @@ public partial class mudrex : ccxt.mudrex
         {
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(((IList<object>)ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

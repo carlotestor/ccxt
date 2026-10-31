@@ -1652,7 +1652,7 @@ public partial class hyperliquid : Exchange
         {
             candles = response;
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)candles), market,timeframeVar, originalSince, limit, useTail));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, originalSince, limit, useTail));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)

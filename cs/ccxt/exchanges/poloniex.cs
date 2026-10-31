@@ -924,7 +924,7 @@ public partial class poloniex : Exchange
             //           ],
             //
             List<object> data = this.safeList(responseRaw, "data");
-            return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)data), market,timeframeVar, since, limit));
+            return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
         }
         List<object> response = await this.publicGetMarketsSymbolCandles(this.extend(requestUntil, paramsUntil));
         //

@@ -4548,7 +4548,7 @@ public partial class gate : Exchange
         {
             response = await this.publicSpotGetCandlesticks(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
     }
 
     public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -4567,7 +4567,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         List<object> response = await this.publicOptionsGetCandlesticks(this.extend(request, paramsValue));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
     /**

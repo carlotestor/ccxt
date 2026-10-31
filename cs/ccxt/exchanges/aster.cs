@@ -1553,7 +1553,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(((IList<object>)this.toArray(response)), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

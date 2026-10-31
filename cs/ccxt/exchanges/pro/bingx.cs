@@ -448,7 +448,7 @@ public partial class bingx : ccxt.bingx
         {
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        IList<object> result = this.filterBySinceLimit(((IList<object>)trades), since, limitResolved, "timestamp", true);
+        IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
