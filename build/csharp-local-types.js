@@ -11482,6 +11482,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // annotation with every write along the box-identical edges before the scan.
             ? typeFromValueOrWrites (csharp, scope, declaration, sourceName, annotated, ctx, NULL_DECLARED_WIDENING_EDGES)
             : (annotated ?? typeFromValueOrWrites (csharp, scope, declaration, sourceName, 'null', ctx, NULL_DECLARED_WIDENING_EDGES));
+        // hx11 w9: `const x = undefined` with no write whose only reads are dict-literal values
+        // holds null on every path: `string?` boxes the same null as the `object` declaration
+        if (csharpType === undefined && annotated === undefined && hx11w9ConstNullDictValueOnly (csharp, scope, declaration, sourceName)) {
+            csharpType = 'string?';
+        }
         if (collectionAnnotation && csharpType === undefined) {
             // the annotation disagrees with EVERY later write (a stale `let response: Dict`
             // whose endpoints are all Endpoint<List>, gate#fetchFundingHistory): the writes are
@@ -12750,6 +12755,28 @@ function selfReadWriteType (csharp, context, declaration, runningType, node) {
     } finally {
         selfReadStack.pop ();
     }
+}
+
+function hx11w9ConstNullDictValueOnly (csharp, scope, declaration, varName) {
+    const init = declaration.initializer;
+    if (scope === undefined || init === undefined || declaration.type !== undefined || (declaration.parent?.flags & ts.NodeFlags.Const) === 0
+        || !(init.kind === ts.SyntaxKind.NullKeyword || (init.kind === ts.SyntaxKind.Identifier && init.text === 'undefined'))) {
+        return false;
+    }
+    let reads = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (varName) ?? [])) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        const isDictValue = parent?.kind === ts.SyntaxKind.PropertyAssignment && parent.initializer === n && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        const isShorthand = parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment && parent.name === n && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        if (!isDictValue && !isShorthand) {
+            return false;
+        }
+        reads++;
+    }
+    return reads > 0;
 }
 
 // the declared type from the initializer (`initial` — a proven type, or 'null' for a
