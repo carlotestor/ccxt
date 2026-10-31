@@ -8247,6 +8247,8 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
     'safeInteger2': 'Long',
     'safeIntegerN': 'Long',
     'safeIntegerProduct': 'Long',
+    'safeIntegerProduct2': 'Long',
+    'safeIntegerProductN': 'Long',
     'safeFloat': 'Double',
     'safeFloat2': 'Double',
     'safeFloatN': 'Double',
@@ -8271,7 +8273,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
 // milliseconds / seconds / parse8601 / parseTimeframe were already concrete in the
 // hand-written Java, so their arms keep exactly the baseline behaviour.
 const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
-    'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct',
+    'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct', 'safeIntegerProduct2', 'safeIntegerProductN',
     'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
     'safeTimestamp', 'safeTimestamp2', 'safeTimestampN',
 ]);
@@ -18218,13 +18220,11 @@ export function installJ13ListLocals (transpiler) {
 // comparison for String/Boolean. Published to javaDeclaredLocalTypeResolver so J04/J05/J08/J09 fire.
 const J14_TYPES = [ 'Long', 'Double', 'String', 'Boolean' ];
 // base accessors declared `Object` in Java whose box is fixed when the default argument is absent/null
-// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero / safeIntegerProduct2/N hand the
-// default back, so only a nullish default proves them)
+// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero hands the
+// default back, so only a nullish default proves it)
 const J14_CAST_ACCESSORS = {
     'safeIntegerOmitZero': { type: 'Long', defaultAt: -1 },
     'safeNumberOmitZero': { type: 'Double', defaultAt: 2 },
-    'safeIntegerProduct2': { type: 'Long', defaultAt: 4 },
-    'safeIntegerProductN': { type: 'Long', defaultAt: 3 },
     // hx5 X21: base `: Str` methods printed `public Object` whose hand-written/generated Java body returns a
     // String, null or throws on every path (no ts/src venue override; j14ResolvesToBase rejects any that appears):
     // currencyToPrecision -> forceString (String|null) | decimalToPrecision (String); forceString -> numberToString

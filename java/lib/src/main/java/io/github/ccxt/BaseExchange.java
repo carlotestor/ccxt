@@ -1413,11 +1413,11 @@ public class BaseExchange {
         return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
-    public Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multipler, Object... defaultValue) {
+    public Long safeIntegerProduct2(Object obj, Object key1, Object key2, Object multipler, Object... defaultValue) {
         return SafeMethods.safeIntegerProduct2(obj, key1, key2, multipler, defaultValue);
     }
 
-    public Object safeIntegerProductN(Object obj, Object keys, Object multiplier, Object... defaultValue) {
+    public Long safeIntegerProductN(Object obj, Object keys, Object multiplier, Object... defaultValue) {
         return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, multiplier, defaultValue);
     }
 
