@@ -9275,6 +9275,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
                 rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
                 rustContent = this.nativeFloorIfLet(rustContent); // closure-free floor of a numeric expr, last
+                rustContent = this.nativeDictKeyParenRecv(rustContent); // closure-free dict key/zip tests on place or paren if-let receivers, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10035,6 +10036,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
         finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
         finalFile = this.nativeFloorIfLet(finalFile); // closure-free floor of a numeric expr, last
+        finalFile = this.nativeDictKeyParenRecv(finalFile); // closure-free dict key/zip tests on place or paren if-let receivers, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13599,6 +13601,78 @@ impl std::ops::DerefMut for ${coreName} {
             const oldLen = le - ls;
             return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
         });
+    }
+
+    // Closure-free Str-keyed dict test and `.zip` string tests (the `|__m|`/`|__k|`/`|(__s, __p)|` closures are blobs):
+    //   R.as_map().is_some_and(|__m| K.as_str().is_some_and(|__k| __m.contains_key(__k)))
+    //     -> matches!((R.as_map(), K.as_str()), (Some(__m), Some(__k)) if __m.contains_key(__k))
+    //   (IFLET).as_map().and_then(|__m| K.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)
+    //     -> (if let (Some(__m), Some(__k)) = ((IFLET).as_map(), K.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })
+    //   A.as_str().zip(B.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)) -> matches!((A.as_str(), B.as_str()), (Some(__s), Some(__p)) if ..)
+    // R is a place path or an exact `(if let ..)` group, K/A/B place paths: evaluated once each, no side effects. Skips lines crossing 400.
+    nativeDictKeyParenRecv(content: string): string {
+        if (!content.includes('|__m| ') && !content.includes('.zip(')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const recvStart = (at: number, paren: boolean): number => {
+            if (content[at - 1] === ')') {
+                let depth = 0;
+                for (let i = at - 1; i >= 0 && at - i < 900; i--) {
+                    const ch = content[i];
+                    if (ch === '"') return -1;
+                    if (ch === ')') depth++;
+                    else if (ch === '(' && --depth === 0) return content.startsWith('(if let ', i) ? i : -1;
+                }
+                return -1;
+            }
+            if (!paren) return -1;
+            const hit = new RegExp(`(?<![A-Za-z0-9_.:])${P}$`).exec(content.slice(Math.max(0, at - 200), at));
+            return hit === null ? -1 : at - hit[0].length;
+        };
+        const rules: Array<[RegExp, boolean, (g: string[], r: string) => string]> = [
+            [new RegExp(`\\.as_map\\(\\)\\.is_some_and\\(\\|__m\\| (${P})\\.as_str\\(\\)\\.is_some_and\\(\\|__k\\| __m\\.contains_key\\(__k\\)\\)\\)`, 'g'), true,
+                (g, r) => `matches!((${r}.as_map(), ${g[1]}.as_str()), (Some(__m), Some(__k)) if __m.contains_key(__k))`],
+            [new RegExp(`\\.as_map\\(\\)\\.and_then\\(\\|__m\\| (${P})\\.as_str\\(\\)\\.and_then\\(\\|__k\\| __m\\.get\\(__k\\)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)`, 'g'), true,
+                (g, r) => `(if let (Some(__m), Some(__k)) = (${r}.as_map(), ${g[1]}.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })`],
+        ];
+        for (const [re, , build] of rules) {
+            let out = '';
+            let pos = 0;
+            for (let m = re.exec(content); m !== null; m = re.exec(content)) {
+                const start = recvStart(m.index, true);
+                const end = m.index + m[0].length;
+                if (start < pos) continue;
+                const text = build(m, content.slice(start, m.index));
+                const ls = content.lastIndexOf('\n', start) + 1;
+                let le = content.indexOf('\n', end); if (le < 0) le = content.length;
+                const oldLen = le - ls;
+                const keep = oldLen <= 400 && oldLen - (end - start) + text.length > 400;
+                out += content.slice(pos, start) + (keep ? content.slice(start, end) : text);
+                pos = end;
+            }
+            content = out + content.slice(pos);
+        }
+        const guard = (m: string, off: number, whole: string, text: string): string => {
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        };
+        const lead = '(?<![A-Za-z0-9_.:])';
+        const zip = `${lead}(${P})\\.as_str\\(\\)\\.zip\\((${P})\\.as_str\\(\\)\\)`;
+        content = content.replace(new RegExp(`${zip}\\.is_some_and\\(\\|\\(__s, __p\\)\\| __s\\.starts_with\\(__p\\)\\)`, 'g'),
+            (m: string, a: string, b: string, off: number, whole: string) =>
+                guard(m, off, whole, `matches!((${a}.as_str(), ${b}.as_str()), (Some(__s), Some(__p)) if __s.starts_with(__p))`));
+        content = content.replace(new RegExp(`${lead}Value::Int\\(${zip.slice(lead.length)}\\.and_then\\(\\|\\(__s, __n\\)\\| __s\\.find\\(__n\\)\\)\\.map\\(\\|__i\\| __i as i64\\)\\.unwrap_or\\(-1\\)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\) (>=|>|<) \\(\\((0|-1)i64\\) as f64\\)`, 'g'),
+            (m: string, a: string, b: string, op: string, n: string, off: number, whole: string) => {
+                const yes = (op === '>=' && n === '0') || (op === '>' && n === '-1');
+                const no = op === '<' && n === '0';
+                if (!yes && !no) return m;
+                return guard(m, off, whole, `${no ? '!' : ''}matches!((${a}.as_str(), ${b}.as_str()), (Some(__s), Some(__n)) if __s.contains(__n))`);
+            });
+        content = content.replace(new RegExp(`${zip}\\.map\\(\\|\\(__s, __p\\)\\| (Value::Str\\(__s\\.replace\\(__p, "[^"\\\\]*"\\)\\.into\\(\\)\\))\\)\\.unwrap_or_else\\(\\|\\| (${P})\\.clone\\(\\)\\)`, 'g'),
+            (m: string, a: string, b: string, val: string, fb: string, off: number, whole: string) =>
+                guard(m, off, whole, `(if let (Some(__s), Some(__p)) = (${a}.as_str(), ${b}.as_str()) { ${val} } else { ${fb}.clone() })`));
+        return content;
     }
 
     // Floor of a numeric expression without a closure (the `|__x|` closure counted as a blob):
