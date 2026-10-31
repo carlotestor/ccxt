@@ -9272,6 +9272,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeCaseConvert(rustContent); // closure/match-free to_lowercase/to_uppercase, last
                 rustContent = this.nativeIntLiteralCastFold(rustContent); // literal Int casts folded, last
                 rustContent = this.nativeReplaceIflet(rustContent); // closure-free literal replace, last
+||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
+                rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10029,6 +10031,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeCaseConvert(finalFile); // closure/match-free to_lowercase/to_uppercase, last
         finalFile = this.nativeIntLiteralCastFold(finalFile); // literal Int casts folded, last
         finalFile = this.nativeReplaceIflet(finalFile); // closure-free literal replace, last
+||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
+        finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13559,6 +13563,23 @@ impl std::ops::DerefMut for ${coreName} {
         content = content.replace(new RegExp(`${lead}Value::Int\\((-?[0-9]+)\\)\\.as_f64\\(\\)\\.unwrap_or\\(f64::NAN\\)`, 'g'),
             (m: string, n: string) => small(n) ? `(${n}f64)` : m);
         return content;
+    }
+
+    // Fixed-width pad of a Str place without closure (counted as a blob):
+    //   X.as_str().map(|__s| Value::Str(format!("{:0>N}", __s).into())).unwrap_or(Value::Null)
+    //     -> (if let Some(__s) = X.as_str() { Value::Str(format!("{:0>N}", __s).into()) } else { Value::Null })
+    // X is evaluated once; non-Str stays Null. `<`/`>`/`^` fills alike. Skips lines that would cross 400.
+    nativePadIfLet(content: string): string {
+        if (!content.includes('|__s| Value::Str(format!("{:')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| Value::Str\\(format!\\("(\\{:[0-9A-Za-z]?[<>^][0-9]+\\})", __s\\)\\.into\\(\\)\\)\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        return content.replace(re, (m: string, x: string, f: string, off: number, whole: string) => {
+            const text = `(if let Some(__s) = ${x}.as_str() { Value::Str(format!("${f}", __s).into()) } else { Value::Null })`;
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const oldLen = le - ls;
+            return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
