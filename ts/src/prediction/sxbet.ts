@@ -722,8 +722,7 @@ export default class sxbet extends Exchange {
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice (64, 128);
         const length = this.parseToInt (this.hexToInt (lengthHex));
-        const dataEnd = this.sum (128, length * 2);
-        const dataHex = hex.slice (128, dataEnd);
+        const dataHex = hex.slice (128, 128 + length * 2);
         return this.decode (this.base16ToBinary (dataHex));
     }
 

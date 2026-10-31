@@ -992,10 +992,8 @@ export default class gemini extends geminiRest {
         this.checkRequiredCredentials ();
         const wsBaseUrl = this.safeString (this.urls['api'], 'ws', '');
         const startIndex = wsBaseUrl.length;
-        const urlParamsIndex = url.indexOf ('?');
-        const urlLength = url.length;
-        const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        const request = url.slice (startIndex, endIndex);
+        const urlPath = url.split ('?')[0];
+        const request = urlPath.slice (startIndex);
         const payload: Dict = {
             'request': request,
             'nonce': this.incrementingNonce (), // must be greater than the previously used nonce, shared with the REST counter
