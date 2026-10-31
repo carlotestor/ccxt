@@ -9274,6 +9274,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.nativeReplaceIflet(rustContent); // closure-free literal replace, last
 ||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
                 rustContent = this.nativePadIfLet(rustContent); // closure-free fixed-width pad, last
+||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
+                rustContent = this.nativeSliceSubstring(rustContent); // closure-free char slice, last
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -10033,6 +10035,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.nativeReplaceIflet(finalFile); // closure-free literal replace, last
 ||||||| parent of bb4735eb262 (rust printer: pad-iflet-native (hx11 w8 M550))
         finalFile = this.nativePadIfLet(finalFile); // closure-free fixed-width pad, last
+||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
+        finalFile = this.nativeSliceSubstring(finalFile); // closure-free char slice, last
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -13546,6 +13550,24 @@ impl std::ops::DerefMut for ${coreName} {
             let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
             const oldLen = le - ls;
             return oldLen <= 400 && oldLen - m.length + text.length > 400 ? m : text;
+        });
+    }
+
+||||||| parent of 643d208c698 (rust printer: slice-substring-iflet-native (hx11 w9 M550))
+    // Char-slice of a Str place without closure:
+    //   X.as_str().map(|__s| { <slice body> }).map(Value::from).unwrap_or(Value::Null)
+    //     -> (if let Some(__s) = X.as_str() { Value::from({ <slice body> }) } else { Value::Null })
+    // Body text is kept verbatim; X is a pure place path (evaluated once either way). Skips lines that would cross 400.
+    nativeSliceSubstring(content: string): string {
+        if (!content.includes('let __c: Vec<char> = __s.chars().collect();')) return content;
+        const P = '[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*';
+        const body = '\\{ let __c: Vec<char> = __s\\.chars\\(\\)\\.collect\\(\\); let __l = __c\\.len\\(\\) as i64; let __i = [^;{}]+; let __j = [^;{}]+; if __i <= __j \\{ __c\\[__i as usize\\.\\.__j as usize\\]\\.iter\\(\\)\\.collect::<String>\\(\\) \\} else \\{ String::new\\(\\) \\} \\}';
+        const re = new RegExp(`(?<![A-Za-z0-9_.:)\\]])(${P})\\.as_str\\(\\)\\.map\\(\\|__s\\| (${body})\\)\\.map\\(Value::from\\)\\.unwrap_or\\(Value::Null\\)`, 'g');
+        return content.replace(re, (m: string, x: string, b: string, off: number, whole: string) => {
+            const ls = whole.lastIndexOf('\n', off) + 1;
+            let le = whole.indexOf('\n', off); if (le < 0) le = whole.length;
+            const text = `(if let Some(__s) = ${x}.as_str() { Value::from(${b}) } else { Value::Null })`;
+            return (le - ls) <= 400 && (le - ls) - m.length + text.length > 400 ? m : text;
         });
     }
 
