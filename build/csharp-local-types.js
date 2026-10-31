@@ -3404,6 +3404,7 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     // exchange's map / null), so the declaration needs no cast. Tree-wide census: no generated
     // class declares or hides the property.
     'markets_by_id': 'IDictionary<string, object>',
+    'currencies_by_id': 'IDictionary<string, object>',
 };
 
 // `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
