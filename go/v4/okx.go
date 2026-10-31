@@ -4967,8 +4967,12 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 		}
 	}
 	// unified stp
-	var selfTradePrevention *string = nil
-	selfTradePrevention, orderParams = this.HandleOptionStringAndParams(orderParams, "createOrder", "selfTradePrevention")
+	var selfTradePrevention any = nil
+	var selfTradePreventionPtr *string = nil
+	selfTradePreventionPtr, orderParams = this.HandleOptionStringAndParams(orderParams, "createOrder", "selfTradePrevention")
+	if selfTradePreventionPtr != nil {
+		selfTradePrevention = *selfTradePreventionPtr
+	}
 	if selfTradePrevention != nil {
 		var stpModes map[string]any = map[string]any{
 			"EXPIRE_MAKER": "cancel_maker",
@@ -7284,7 +7288,7 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		currency = this.Currency(code)
 		request["ccy"] = currency["id"]
 	}
-	requestUntil, _ := this.HandleUntilOption("end", request, paramsMarginMode)
+	var requestUntil any = GetValue(TupleSlice(this.HandleUntilOption("end", request, paramsMarginMode)), 0)
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetAccountBillsArchive" {
 

@@ -295,7 +295,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -368,7 +368,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTrades", "channel", "trades")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -877,7 +877,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")), 0))
+	channel, _ := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -1865,7 +1865,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var depthOption *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")), 0))
+	depthOption, _ := this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	var depth *string = depthOption
 	if limit != nil {
 		if limit != nil && *limit == 1 {
