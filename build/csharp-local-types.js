@@ -1684,6 +1684,12 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
 });
 
+// subscribeRequest: only pro/paradex declares it (whole-tree census); its single return is a
+// dict literal, so the by-declaration proof retypes it and the 10 `object request` callers.
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
+    'subscribeRequest': 'Dictionary<string, object>',
+});
+
 // the mapped collection type for a method declaration, or undefined to leave the printer's
 // own decision (async methods and every other name)
 function collectionReturnType (csharp, node, own) {
