@@ -7,7 +7,7 @@
 const WT01 = new RegExp (
     '^([ \\t]*)var (\\w+) map\\[string\\]any = (?:ccxt\\.)?StructResultMap\\((\\w+\\.Value), (?:ccxt\\.)?TickerMapToMap\\)\\n'
     + '((?:[ \\t]*\\n)*)'
-    + '\\1ch <- ((?:ccxt\\.)?)AsyncResult\\[(?:ccxt\\.)?Ticker\\]\\{Value: (?:ccxt\\.)?TickerFromMap\\((?:ccxt\\.)?GetValue\\(\\2, (\\w+)\\)\\)\\}\\n', 'gm');
+    + '\\1ch <- ((?:ccxt\\.)?)AsyncResult\\[(?:ccxt\\.)?Ticker\\]\\{Value: (?:ccxt\\.)?TickerFromMap\\((?:(?:ccxt\\.)?GetValue\\(\\2, (\\w+)\\)|\\2\\[(\\w+)\\])\\)\\}\\n', 'gm');
 
 function wt01Uses (fn: string, name: string): number {
     return (fn.match (new RegExp ('(?<![\\w.])' + name + '\\b', 'g')) ?? []).length;
@@ -31,7 +31,8 @@ export function hx11w8WT01Pass (content: string): string {
         return content;
     }
     return content.replace (/\nfunc [\s\S]*?\n\}(?=\n)/g, (fn: string) => {
-        return fn.replace (WT01, (m: string, ind: string, name: string, recv: string, blank: string | undefined, q: string, key: string) => {
+        return fn.replace (WT01, (m: string, ind: string, name: string, recv: string, blank: string | undefined, q: string, keyCall: string | undefined, keyIndex: string | undefined) => {
+            const key = (keyCall ?? keyIndex) as string;  // the printer indexes a string-keyed map local natively (RF-go-6-A)
             if ((wt01Uses (fn, name) !== 2) || (fn.indexOf ('tickerRow') >= 0)) {
                 return m;
             }
@@ -58,6 +59,9 @@ export function hx11w8WT01Check (): string[] {
     ok (ptr.indexOf ('if k != nil {\n\t\ttickerRow = r1.Value[*k]\n\t}') >= 0 && ptr.indexOf ('GetValue') < 0 && ptr.indexOf ('Value: tickerRow}') >= 0, 'ptr key: ' + ptr);
     const str = hx11w8WT01Pass (body ('symbol string', '', 'symbol'));
     ok (str.indexOf ('{Value: r1.Value[symbol]}') >= 0 && str.indexOf ('StructResultMap') < 0, 'string param: ' + str);
+    // the printer now indexes the string-keyed map local itself (RF-go-6-A awaited map local), so the pass meets `tickers[k]` too
+    const native = hx11w8WT01Pass (body ('symbol string', '', 'symbol').replace ('ccxt.GetValue(tickers, symbol)', 'tickers[symbol]'));
+    ok (native.indexOf ('{Value: r1.Value[symbol]}') >= 0 && native.indexOf ('StructResultMap') < 0, 'native-indexed string param: ' + native);
     ok (hx11w8WT01Pass (ptr) === ptr, 'idempotent');
     const keep = [
         body ('symbol string', '\tvar k any = this.Symbol(symbol)\n', 'k'),
