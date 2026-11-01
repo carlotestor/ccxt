@@ -2714,24 +2714,57 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String channelType = this.safeString(channelParts, 1);
-        Map<String, io.github.ccxt.Handler> v4Methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("usertrades", Gate.this::handleMyTrades);
-            put("candlesticks", Gate.this::handleOHLCV);
-            put("orders", Gate.this::handleOrder);
-            put("autoorders", Gate.this::handleOrder);
-            put("priceorders", Gate.this::handleOrder);
-            put("positions", Gate.this::handlePositions);
-            put("tickers", Gate.this::handleTicker);
-            put("book_ticker", Gate.this::handleBidAsk);
-            put("trades", Gate.this::handleTrades);
-            put("order_book_update", Gate.this::handleOrderBook);
-            put("balances", Gate.this::handleBalance);
-            put("liquidates", Gate.this::handleLiquidation);
+        java.util.Map<String, String> v4Methods = new java.util.HashMap<String, String>() {{
+            put("usertrades", "handleMyTrades");
+            put("candlesticks", "handleOHLCV");
+            put("orders", "handleOrder");
+            put("autoorders", "handleOrder");
+            put("priceorders", "handleOrder");
+            put("positions", "handlePositions");
+            put("tickers", "handleTicker");
+            put("book_ticker", "handleBidAsk");
+            put("trades", "handleTrades");
+            put("order_book_update", "handleOrderBook");
+            put("balances", "handleBalance");
+            put("liquidates", "handleLiquidation");
         }};
-        io.github.ccxt.Handler method = v4Methods.get(channelType);
+        String method = v4Methods.get(channelType);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleLiquidation":
+                    this.handleLiquidation(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
         String requestId = this.safeString(message, "request_id");
         if (java.util.Objects.equals(requestId, "authenticated"))

@@ -1055,11 +1055,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             this.handleError(client, message);
         }
-        Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-            put("l2_updates", Gemini.this::handleL2Updates);
-            put("trade", Gemini.this::handleTrade);
-            put("subscription_ack", Gemini.this::handleSubscription);
-            put("heartbeat", Gemini.this::handleHeartbeat);
+        java.util.Map<String, String> methods = new java.util.HashMap<String, String>() {{
+            put("l2_updates", "handleL2Updates");
+            put("trade", "handleTrade");
+            put("subscription_ack", "handleSubscription");
+            put("heartbeat", "handleHeartbeat");
         }};
         String type = this.safeString(message, "type", "");
         if (((String)type).indexOf("candles") >= 0)
@@ -1067,10 +1067,25 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             this.handleOHLCV(client, message);
             return;
         }
-        io.github.ccxt.Handler method = methods.get(type);
+        String method = methods.get(type);
         if (!java.util.Objects.equals(method, null))
         {
-            method.handle(client, message);
+            switch (method) {
+                case "handleL2Updates":
+                    this.handleL2Updates(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleSubscription":
+                    this.handleSubscription(client, message);
+                    break;
+                case "handleHeartbeat":
+                    this.handleHeartbeat(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
         // handle multimarketdata
         if (java.util.Objects.equals(type, "update"))

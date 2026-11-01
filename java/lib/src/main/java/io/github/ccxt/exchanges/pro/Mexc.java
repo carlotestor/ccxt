@@ -2468,14 +2468,20 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
             String channel = this.safeString(parts, 1);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("public.increase.depth.v3.api", Mexc.this::handleOrderBookSubscription);
-                put("public.aggre.depth.v3.api.pb", Mexc.this::handleOrderBookSubscription);
+            java.util.Map<String, String> methods = new java.util.HashMap<String, String>() {{
+                put("public.increase.depth.v3.api", "handleOrderBookSubscription");
+                put("public.aggre.depth.v3.api.pb", "handleOrderBookSubscription");
             }};
-            io.github.ccxt.Handler method = methods.get(channel);
+            String method = methods.get(channel);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOrderBookSubscription":
+                        this.handleOrderBookSubscription(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

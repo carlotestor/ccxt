@@ -2017,27 +2017,60 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         } else if (java.util.Objects.equals(eventVar, null))
         {
             String feed = this.safeString(message, "feed");
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("ticker", Krakenfutures.this::handleTicker);
-                put("ticker_lite", Krakenfutures.this::handleBidAsk);
-                put("trade", Krakenfutures.this::handleTrade);
-                put("trade_snapshot", Krakenfutures.this::handleTrade);
-                put("book", Krakenfutures.this::handleOrderBook);
-                put("book_snapshot", Krakenfutures.this::handleOrderBookSnapshot);
-                put("open_orders_verbose", Krakenfutures.this::handleOrder);
-                put("open_orders_verbose_snapshot", Krakenfutures.this::handleOrderSnapshot);
-                put("fills", Krakenfutures.this::handleMyTrades);
-                put("fills_snapshot", Krakenfutures.this::handleMyTrades);
-                put("open_orders", Krakenfutures.this::handleOrder);
-                put("open_orders_snapshot", Krakenfutures.this::handleOrderSnapshot);
-                put("balances", Krakenfutures.this::handleBalance);
-                put("balances_snapshot", Krakenfutures.this::handleBalance);
-                put("open_positions", Krakenfutures.this::handlePositions);
+            java.util.Map<String, String> methods = new java.util.HashMap<String, String>() {{
+                put("ticker", "handleTicker");
+                put("ticker_lite", "handleBidAsk");
+                put("trade", "handleTrade");
+                put("trade_snapshot", "handleTrade");
+                put("book", "handleOrderBook");
+                put("book_snapshot", "handleOrderBookSnapshot");
+                put("open_orders_verbose", "handleOrder");
+                put("open_orders_verbose_snapshot", "handleOrderSnapshot");
+                put("fills", "handleMyTrades");
+                put("fills_snapshot", "handleMyTrades");
+                put("open_orders", "handleOrder");
+                put("open_orders_snapshot", "handleOrderSnapshot");
+                put("balances", "handleBalance");
+                put("balances_snapshot", "handleBalance");
+                put("open_positions", "handlePositions");
             }};
-            io.github.ccxt.Handler method = methods.get(feed);
+            String method = methods.get(feed);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
+                        break;
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOrderBookSnapshot":
+                        this.handleOrderBookSnapshot(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleOrderSnapshot":
+                        this.handleOrderSnapshot(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

@@ -1007,14 +1007,23 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             String eventVar = this.safeString(message, "e");
-            Map<String, io.github.ccxt.Handler> handlers = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("BALANCE", Bitrue.this::handleBalance);
-                put("ORDER", Bitrue.this::handleOrder);
+            java.util.Map<String, String> handlers = new java.util.HashMap<String, String>() {{
+                put("BALANCE", "handleBalance");
+                put("ORDER", "handleOrder");
             }};
-            io.github.ccxt.Handler handler = handlers.get(eventVar);
+            String handler = handlers.get(eventVar);
             if (!java.util.Objects.equals(handler, null))
             {
-                handler.handle(client, message);
+                switch (handler) {
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + handler);
+                }
             }
         }
     }

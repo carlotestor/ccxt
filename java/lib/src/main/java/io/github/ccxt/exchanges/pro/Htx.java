@@ -2662,19 +2662,34 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(type, "market"))
         {
             String methodName = this.safeString(parts, 2);
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("depth", Htx.this::handleOrderBook);
-                put("mbp", Htx.this::handleOrderBook);
-                put("detail", Htx.this::handleTicker);
-                put("bbo", Htx.this::handleTicker);
-                put("ticker", Htx.this::handleTicker);
-                put("trade", Htx.this::handleTrades);
-                put("kline", Htx.this::handleOHLCV);
+            java.util.Map<String, String> methods = new java.util.HashMap<String, String>() {{
+                put("depth", "handleOrderBook");
+                put("mbp", "handleOrderBook");
+                put("detail", "handleTicker");
+                put("bbo", "handleTicker");
+                put("ticker", "handleTicker");
+                put("trade", "handleTrades");
+                put("kline", "handleOHLCV");
             }};
-            io.github.ccxt.Handler method = methods.get(methodName);
+            String method = methods.get(methodName);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

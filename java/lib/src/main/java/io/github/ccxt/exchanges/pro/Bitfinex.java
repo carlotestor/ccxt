@@ -1568,16 +1568,31 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String eventVar = this.safeString(message, "event");
         if (!java.util.Objects.equals(eventVar, null))
         {
-            Map<String, io.github.ccxt.Handler> methods = new HashMap<String, io.github.ccxt.Handler>() {{
-                put("info", Bitfinex.this::handleSystemStatus);
-                put("subscribed", Bitfinex.this::handleSubscriptionStatus);
-                put("unsubscribed", Bitfinex.this::handleUnsubscriptionStatus);
-                put("auth", Bitfinex.this::handleAuthenticationMessage);
+            java.util.Map<String, String> methods = new java.util.HashMap<String, String>() {{
+                put("info", "handleSystemStatus");
+                put("subscribed", "handleSubscriptionStatus");
+                put("unsubscribed", "handleUnsubscriptionStatus");
+                put("auth", "handleAuthenticationMessage");
             }};
-            io.github.ccxt.Handler method = methods.get(eventVar);
+            String method = methods.get(eventVar);
             if (!java.util.Objects.equals(method, null))
             {
-                method.handle(client, message);
+                switch (method) {
+                    case "handleSystemStatus":
+                        this.handleSystemStatus(client, message);
+                        break;
+                    case "handleSubscriptionStatus":
+                        this.handleSubscriptionStatus(client, message);
+                        break;
+                    case "handleUnsubscriptionStatus":
+                        this.handleUnsubscriptionStatus(client, message);
+                        break;
+                    case "handleAuthenticationMessage":
+                        this.handleAuthenticationMessage(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }
