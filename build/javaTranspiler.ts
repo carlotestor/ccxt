@@ -10818,14 +10818,14 @@ export function nativeJavaWsHandlerTables (content: string): string {
     const tableRe = /^(\s*)(?:java\.util\.)?Map<String, io\.github\.ccxt\.Handler> (\w+) = new (?:java\.util\.)?HashMap<String, io\.github\.ccxt\.Handler>\(\) \{\{\s*$/;
     const putRe = /^(\s*put\("[^"]*", )\w+\.this::(\w+)\);\s*$/;
     const readRe = /^(\s*)io\.github\.ccxt\.Handler (\w+) = (\w+)\.get\(/;
-    const tables = new Map<string, Set<string>>();
+    const tables = new Map<string, Set<string>>(); // latest table per local name, in line order
     const varTables = new Map<string, Set<string>>();
     let open: string | undefined;
     for (let i = 0; i < lines.length; i++) {
         let m = tableRe.exec(lines[i]);
         if (m) {
             open = m[2];
-            tables.set(open, new Set());
+            tables.set(open, new Set()); // a later same-named table starts a fresh set
             lines[i] = `${m[1]}java.util.Map<String, String> ${open} = new java.util.HashMap<String, String>() {{`;
             continue;
         }
@@ -10837,18 +10837,15 @@ export function nativeJavaWsHandlerTables (content: string): string {
         m = readRe.exec(lines[i]);
         if (m) {
             lines[i] = lines[i].replace('io.github.ccxt.Handler ', 'String ');
-            varTables.set(m[2], new Set([ m[3] ]));
+            varTables.set(m[2], new Set(tables.get(m[3]) ?? []));
             continue;
         }
         const re = /^\s*(\w+) = (\w+)\.get\(/.exec(lines[i]);
-        if (re && varTables.has(re[1]) && tables.has(re[2])) varTables.get(re[1]).add(re[2]);
-    }
-    for (let i = 0; i < lines.length; i++) {
+        if (re && varTables.has(re[1]) && tables.has(re[2])) for (const n of tables.get(re[2])) varTables.get(re[1]).add(n);
         const c = /^(\s*)(\w+)\.handle\((.*)\);\s*$/.exec(lines[i]);
         if (!c || !varTables.has(c[2])) continue;
         const [ , ind, v, args ] = c;
-        const names = new Set<string>();
-        for (const t of varTables.get(v)) for (const n of tables.get(t) ?? []) names.add(n);
+        const names = varTables.get(v);
         const out = [ `${ind}switch (${v}) {` ];
         for (const n of names) out.push(`${ind}    case "${n}":`, `${ind}        this.${n}(${args});`, `${ind}        break;`);
         out.push(`${ind}    default:`, `${ind}        throw new RuntimeException("Method not found: " + ${v});`, `${ind}}`);

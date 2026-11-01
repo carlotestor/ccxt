@@ -3210,32 +3210,23 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (!java.util.Objects.equals(method, null))
             {
                 switch (method) {
-                    case "handleOrderBook":
-                        this.handleOrderBook(client, message);
+                    case "handleAuthenticate":
+                        this.handleAuthenticate(client, message);
                         break;
-                    case "handleTicker":
-                        this.handleTicker(client, message);
+                    case "handleSubscriptionStatus":
+                        this.handleSubscriptionStatus(client, message);
                         break;
-                    case "handlePositions":
-                        this.handlePositions(client, message);
+                    case "handleUnsubscription":
+                        this.handleUnsubscription(client, message);
                         break;
-                    case "handleTrades":
-                        this.handleTrades(client, message);
+                    case "handlePlaceOrders":
+                        this.handlePlaceOrders(client, message);
                         break;
-                    case "handleBalance":
-                        this.handleBalance(client, message);
+                    case "handleCancelOrders":
+                        this.handleCancelOrders(client, message);
                         break;
-                    case "handleFundingRate":
-                        this.handleFundingRate(client, message);
-                        break;
-                    case "handleOrders":
-                        this.handleOrders(client, message);
-                        break;
-                    case "handleLiquidation":
-                        this.handleLiquidation(client, message);
-                        break;
-                    case "handleBalanceAndPosition":
-                        this.handleBalanceAndPosition(client, message);
+                    case "handleCancelAllOrders":
+                        this.handleCancelAllOrders(client, message);
                         break;
                     default:
                         throw new RuntimeException("Method not found: " + method);
