@@ -1417,7 +1417,7 @@ func (this *Bydfi) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 		ccxt.AddElementToObject(this.Balance, "timestamp", ccxt.GetValue(response, "timestamp"))
 		ccxt.AddElementToObject(this.Balance, "datetime", ccxt.GetValue(response, "datetime"))
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	// don't remove the future from the .futures cache
 	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	future.(*ccxt.Future).Resolve()
@@ -1490,7 +1490,7 @@ func (this *Bydfi) HandleBalance(client any, message map[string]any) {
 			this.Balance[*code] = account
 		}
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }

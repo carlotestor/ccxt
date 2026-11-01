@@ -1115,7 +1115,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 			}
 		}
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	var messageHash string = "wallet:"
 	if strings.Index(*method, "Spot") >= 0 {
 		messageHash += "spot"

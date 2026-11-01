@@ -1616,9 +1616,9 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		return nil
 	}()
 	ccxt.AddElementToObject(balance, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(balance))
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 	return true
 }
 

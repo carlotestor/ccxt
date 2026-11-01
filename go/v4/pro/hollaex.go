@@ -599,7 +599,12 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		var account any = this.Account()
 		if code != nil {
 			if _, ok := this.Balance[*code]; ok {
-				account = ccxt.GetValue(this.Balance, code)
+				account = func() any {
+					if code == nil {
+						return nil
+					}
+					return this.Balance[*code]
+				}()
 			}
 		}
 		var second *string = this.SafeString(parts, 1)
@@ -614,7 +619,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Hollaex) WatchPublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

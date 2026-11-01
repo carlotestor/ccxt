@@ -2091,7 +2091,7 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		"options": "option",
 	})
 	var messageHash any = ccxt.Add(channelType, ".balance")
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 

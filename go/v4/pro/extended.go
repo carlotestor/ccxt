@@ -370,7 +370,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	this.Balance["datetime"] = this.Iso8601(timestamp)
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 

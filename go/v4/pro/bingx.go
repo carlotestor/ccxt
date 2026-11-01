@@ -2418,8 +2418,8 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance")
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 
 // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them

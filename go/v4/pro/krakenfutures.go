@@ -1856,9 +1856,9 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "cash"), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "cash", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "cash"), holdingCodes))
-		ccxt.AddElementToObject(this.Balance, "cash", this.SafeBalance(ccxt.GetValue(this.Balance, "cash")))
-		updatedBalance = ccxt.GetValue(this.Balance, "cash")
+		ccxt.AddElementToObject(this.Balance, "cash", this.PruneStaleBalanceKeys(this.Balance["cash"], holdingCodes))
+		this.Balance["cash"] = this.SafeBalance(this.Balance["cash"])
+		updatedBalance = this.Balance["cash"]
 	}
 	if futures != nil {
 		var futuresKeys []string = nil
@@ -1889,11 +1889,11 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Balance, "margin"), symbol), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "margin", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "margin"), futuresSymbols))
-		ccxt.AddElementToObject(this.Balance, "margin", this.SafeBalance(ccxt.GetValue(this.Balance, "margin")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash+":futures")
+		ccxt.AddElementToObject(this.Balance, "margin", this.PruneStaleBalanceKeys(this.Balance["margin"], futuresSymbols))
+		this.Balance["margin"] = this.SafeBalance(this.Balance["margin"])
+		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash+":futures")
 		if ccxt.IsEqual(updatedBalance, nil) {
-			updatedBalance = ccxt.GetValue(this.Balance, "margin")
+			updatedBalance = this.Balance["margin"]
 		}
 	}
 	if flexFutures != nil {
@@ -1923,11 +1923,11 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, "flex"), code, newAccount)
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, "flex", this.PruneStaleBalanceKeys(ccxt.GetValue(this.Balance, "flex"), flexCodes))
-		ccxt.AddElementToObject(this.Balance, "flex", this.SafeBalance(ccxt.GetValue(this.Balance, "flex")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "flex"), messageHash+":flex_futures")
+		ccxt.AddElementToObject(this.Balance, "flex", this.PruneStaleBalanceKeys(this.Balance["flex"], flexCodes))
+		this.Balance["flex"] = this.SafeBalance(this.Balance["flex"])
+		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash+":flex_futures")
 		if ccxt.IsEqual(updatedBalance, nil) {
-			updatedBalance = ccxt.GetValue(this.Balance, "flex")
+			updatedBalance = this.Balance["flex"]
 		}
 	}
 	// resolve the plain hash exactly once per message, with the unified

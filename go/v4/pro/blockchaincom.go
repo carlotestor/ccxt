@@ -152,7 +152,7 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var messageHash string = "balance"
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 

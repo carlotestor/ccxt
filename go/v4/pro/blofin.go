@@ -934,9 +934,9 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, marketType), key, parsed[key])
 	}
-	ccxt.AddElementToObject(this.Balance, marketType, this.SafeBalance(ccxt.GetValue(this.Balance, marketType)))
+	this.Balance[marketType] = this.SafeBalance(this.Balance[marketType])
 	var messageHash string = marketType + ":balance"
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[marketType], messageHash)
 }
 func (this *Blofin) ParseWsBalance(message map[string]any) any {
 	return this.ParseBalance(message)

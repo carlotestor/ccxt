@@ -2290,9 +2290,9 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 		account["total"] = eq
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	var channel *string = this.SafeString(message, "channel")
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), channel)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], channel)
 }
 func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...

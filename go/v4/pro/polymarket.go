@@ -1517,7 +1517,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	account["used"] = this.SafeString(margin, "total_initial_margin")
 	// pUSD is the only collateral asset on the venue
 	result["PUSD"] = account
-	this.Balance = ccxt.MapTyped(this.SafeBalance(result))
+	this.Balance, _ = this.SafeBalance(result).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
 func (this *Polymarket) HandleAck(client any, message any) {

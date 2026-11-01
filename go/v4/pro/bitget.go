@@ -3157,7 +3157,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	// REST parseBalance sets info, keep the ws structure at parity,
 	// see https://github.com/ccxt/ccxt/issues/21973
 	this.Balance["info"] = message
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("balance:", instType))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }

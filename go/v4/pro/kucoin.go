@@ -3799,8 +3799,18 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		if code != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), code, account)
 		}
-		ccxt.AddElementToObject(this.Balance, uniformType, this.SafeBalance(ccxt.GetValue(this.Balance, uniformType)))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, uniformType), *uniformType+":balance")
+		ccxt.AddElementToObject(this.Balance, uniformType, this.SafeBalance(func() any {
+			if uniformType == nil {
+				return nil
+			}
+			return this.Balance[*uniformType]
+		}()))
+		client.(ccxt.ClientInterface).Resolve(func() any {
+			if uniformType == nil {
+				return nil
+			}
+			return this.Balance[*uniformType]
+		}(), *uniformType+":balance")
 	}
 }
 func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
@@ -3837,9 +3847,9 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	var messageHash string = typeVar + ":balance"
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }
 
 /**

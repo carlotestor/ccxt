@@ -2420,8 +2420,8 @@ func (this *Weex) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), messageHash)
+	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 
 /**

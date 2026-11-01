@@ -1957,10 +1957,10 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(ccxt.GetValue(this.Balance, account)))
+	ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(this.Balance[account]))
 	if topic != nil {
 		var messageHash string = *topic + "::balance"
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Balance[account], messageHash)
 	}
 }
 func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {

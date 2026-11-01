@@ -1020,8 +1020,8 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance")
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash any, marketType any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1051,8 +1051,8 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":fetchBalanceSnapshot")
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":fetchBalanceSnapshot")
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
 	}
 	return nil
 }

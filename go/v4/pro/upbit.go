@@ -990,7 +990,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		if code != nil {
 			this.Balance[*code] = account
 		}
-		this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
 	var messageHash *string = this.SafeString(message, "type")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

@@ -2184,7 +2184,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	//
 	var accountType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var messageHash string = accountType + ":balance"
-	if ccxt.IsEqual(ccxt.GetValue(this.Balance, accountType), nil) {
+	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
@@ -2206,8 +2206,8 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(messageValue, "E")
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, accountType, this.SafeBalance(ccxt.GetValue(this.Balance, accountType)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, accountType), messageHash)
+	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 
 /**

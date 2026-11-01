@@ -218,7 +218,7 @@ func (this *Bitrue) ParseWSBalances(balances []any) {
 			}
 		}
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 }
 
 /**

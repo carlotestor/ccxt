@@ -2555,7 +2555,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		if code != nil {
 			this.Balance[*code] = account
 		}
-		this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 		client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 	} else {
 		// contract balance
@@ -2581,7 +2581,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					this.Balance[*code] = account
 				}
 			}
-			this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+			this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "account")
 			return
 		}
@@ -2633,7 +2633,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			if code != nil {
 				this.Balance[*code] = unifiedAccount
 			}
-			this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+			this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "accounts_unify")
 		} else if subType != nil && *subType == "linear" {
 			var margin *string = this.SafeString(subscription, "margin")
@@ -2647,7 +2647,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					account["used"] = this.SafeString(first, "margin_frozen")
 					account["total"] = this.SafeString(first, "margin_balance")
 					this.Balance[*code] = account
-					this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+					this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 				}
 			} else {
 				// isolated margin
@@ -2661,7 +2661,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					if code != nil {
 						this.Balance[*code] = account
 					}
-					this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+					this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 				}
 			}
 		} else {
@@ -2676,7 +2676,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 				if code != nil {
 					this.Balance[*code] = account
 				}
-				this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+				this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 			}
 		}
 		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

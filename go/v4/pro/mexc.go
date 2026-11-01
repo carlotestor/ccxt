@@ -2024,8 +2024,8 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
+	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }
 
 /**

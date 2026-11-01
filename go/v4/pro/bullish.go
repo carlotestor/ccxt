@@ -903,7 +903,12 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 			var parsedKey string = parsedKeys[i]
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), parsedKey, parsed[parsedKey])
 		}
-		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
+		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(func() any {
+			if tradingAccountId == nil {
+				return nil
+			}
+			return this.Balance[*tradingAccountId]
+		}()))
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var assetId *string = this.SafeString(data, "assetSymbol")
@@ -915,12 +920,27 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), "info", message)
-		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
+		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(func() any {
+			if tradingAccountId == nil {
+				return nil
+			}
+			return this.Balance[*tradingAccountId]
+		}()))
 	}
 	var messageHash string = "balance"
 	var tradingAccountIdHash string = "::" + *tradingAccountId
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), messageHash)
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), messageHash+tradingAccountIdHash)
+	client.(ccxt.ClientInterface).Resolve(func() any {
+		if tradingAccountId == nil {
+			return nil
+		}
+		return this.Balance[*tradingAccountId]
+	}(), messageHash)
+	client.(ccxt.ClientInterface).Resolve(func() any {
+		if tradingAccountId == nil {
+			return nil
+		}
+		return this.Balance[*tradingAccountId]
+	}(), messageHash+tradingAccountIdHash)
 }
 
 /**

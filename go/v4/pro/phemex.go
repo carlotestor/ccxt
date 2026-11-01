@@ -435,7 +435,7 @@ func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
 		if code != nil {
 			this.Balance[*code] = account
 		}
-		this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	}
 	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

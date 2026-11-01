@@ -1836,7 +1836,7 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 		}
 		ccxt.AddElementToObject(this.Balance, key, balance[key])
 	}
-	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
+	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Hitbtc) HandleNotification(client any, message map[string]any) any {

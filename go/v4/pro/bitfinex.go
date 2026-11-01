@@ -1322,7 +1322,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	for i := 0; i < len(updatesKeys); i++ {
 		var typeVar string = updatesKeys[i]
 		var messageHash string = "balance:" + typeVar
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 	}
 }
 func (this *Bitfinex) ParseWsBalance(balance any) any {
