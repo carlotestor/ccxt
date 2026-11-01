@@ -3271,7 +3271,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn convert_to_big_int_custom(&self, mut x: Value) -> Value {
-        return crate::runtime::parse_int(&x);
+        return crate::runtime::parse_int(&self.number_to_string(x));
 
     Value::Null
 }
@@ -3343,8 +3343,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             returnValue.insert("builder".into(), order.get("builder").cloned().unwrap_or(Value::Null));
-            returnValue.insert("builderFee".into(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&order.get("builder_fee").cloned().unwrap_or(Value::Null)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.insert("builderFee".into(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
+                Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return Value::Map(returnValue);
 
@@ -4515,10 +4516,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainAccountID".to_string(), request.get("main_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("builderAccountID".to_string(), request.get("builder_account_id").cloned().unwrap_or(Value::Null));
-                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.get("max_futures_fee_rate").cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                        Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&request.get("max_spot_fee_rate").cloned().unwrap_or(Value::Null))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                        Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_futures_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_spot_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
