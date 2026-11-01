@@ -3406,12 +3406,9 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var networkCode any = nil
 	var networkCodePtr *string = nil
 	networkCodePtr, query = this.HandleNetworkCodeAndParams(query)
-	networkCode = func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	if networkCodePtr != nil {
+		networkCode = *networkCodePtr
+	}
 	var chain *string = this.SafeString(query, "chain")
 	if chain == nil {
 		if networkCode != nil {

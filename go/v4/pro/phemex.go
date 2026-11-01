@@ -476,7 +476,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)
@@ -534,7 +534,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			this.Ohlcvs[*symbol][*timeframe] = stored
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ohlcvs[i]
@@ -956,15 +958,15 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		// reset the existing orderbook instead of replacing it: a consumer
 		// holds a reference to the old object and would never see updates
 		// after a re-subscription snapshot
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, depth))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		if _, ok := this.Orderbooks[*symbol]; ok {
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		if this.Orderbooks.Has(symbol) {
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
@@ -973,7 +975,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 			orderbook.SetNonce(nonce)
 			orderbook.SetTimestamp(timestamp)
 			orderbook.SetDatetime(this.Iso8601(timestamp))
-			this.Orderbooks[*symbol] = orderbook
+			this.Orderbooks.Store(symbol, orderbook)
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}
 	}

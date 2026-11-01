@@ -2642,11 +2642,11 @@ func (this *Coinsph) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp2515 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
-	if listEp2515.Err != nil {
-		panic(listEp2515.Err)
+	listEp2513 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
+	if listEp2513.Err != nil {
+		panic(listEp2513.Err)
 	}
-	var response []any = listEp2515.Value
+	var response []any = listEp2513.Value
 
 	//
 	// [
@@ -2728,11 +2728,11 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["limit"] = limit
 	}
 
-	listEp2594 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
-	if listEp2594.Err != nil {
-		panic(listEp2594.Err)
+	listEp2592 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
+	if listEp2592.Err != nil {
+		panic(listEp2592.Err)
 	}
-	var response []any = listEp2594.Value
+	var response []any = listEp2592.Value
 
 	//
 	// [

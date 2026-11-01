@@ -421,12 +421,12 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		var symbol *string = this.SafeSymbol(marketId, market)
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash string = "orderbooks::" + *symbol
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
@@ -442,7 +442,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 		orderbook.SetNonce(nonce)
 		orderbook.SetSymbol(symbol)
-		this.Orderbooks[*symbol] = orderbook
+		this.Orderbooks.Store(symbol, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
@@ -1092,10 +1092,8 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		if symbol != nil {
-			if this.Ohlcvs[*symbol] == nil {
-				this.Ohlcvs[*symbol] = map[string]any{}
-			}
+		if symbol != nil && this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 		var stored any
 		if symbol != nil && timeframe != nil {

@@ -3234,18 +3234,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3083 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3083.Err != nil {
-			panic(listEp3083.Err)
+		listEp3079 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3079.Err != nil {
+			panic(listEp3079.Err)
 		}
-		response = listEp3083.Value
+		response = listEp3079.Value
 	} else {
 
-		listEp3086 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3086.Err != nil {
-			panic(listEp3086.Err)
+		listEp3082 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3082.Err != nil {
+			panic(listEp3082.Err)
 		}
-		response = listEp3086.Value
+		response = listEp3082.Value
 	}
 
 	//
@@ -3937,11 +3937,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 		"symbol": market["id"],
 	}
 
-	listEp3734 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3734.Err != nil {
-		panic(listEp3734.Err)
+	listEp3722 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3722.Err != nil {
+		panic(listEp3722.Err)
 	}
-	var response []any = listEp3734.Value
+	var response []any = listEp3722.Value
 	//
 	// [
 	//     {
@@ -4019,11 +4019,11 @@ func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		}
 	}
 
-	listEp3809 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))
-	if listEp3809.Err != nil {
-		panic(listEp3809.Err)
+	listEp3797 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))
+	if listEp3797.Err != nil {
+		panic(listEp3797.Err)
 	}
-	var response []any = listEp3809.Value
+	var response []any = listEp3797.Value
 
 	//
 	//    [

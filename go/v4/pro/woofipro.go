@@ -188,10 +188,10 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var topic *string = this.SafeString(message, "topic")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	orderbook.Reset(snapshot)
@@ -577,10 +577,8 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && timeframe != nil {
@@ -679,11 +677,11 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	trades.Append(trade)
-	this.Trades[symbol] = trades
+	this.Trades.Store(symbol, trades)
 	client.(ccxt.ClientInterface).Resolve(trades, topic)
 }
 func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1419,10 +1417,7 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {

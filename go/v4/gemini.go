@@ -2625,11 +2625,11 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 		request["timestamp"] = since
 	}
 
-	listEp2525 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
-	if listEp2525.Err != nil {
-		panic(listEp2525.Err)
+	listEp2523 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
+	if listEp2523.Err != nil {
+		panic(listEp2523.Err)
 	}
-	var response []any = listEp2525.Value
+	var response []any = listEp2523.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response))}
 	return nil
@@ -2798,11 +2798,11 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		"network": networkId,
 	}
 
-	listEp2686 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
-	if listEp2686.Err != nil {
-		panic(listEp2686.Err)
+	listEp2682 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
+	if listEp2682.Err != nil {
+		panic(listEp2682.Err)
 	}
-	var response []any = listEp2686.Value
+	var response []any = listEp2682.Value
 	var results []any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,

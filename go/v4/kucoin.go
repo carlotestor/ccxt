@@ -5938,12 +5938,10 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 			var hedged any = false
 			var hedgedPtr *bool = nil
 			hedgedPtr, paramsOmitted = this.HandleParamBool(paramsOmitted, "hedged", hedged)
-			hedged = func() any {
-				if hedgedPtr != nil {
-					return *hedgedPtr
-				}
-				return nil
-			}()
+			hedged = nil
+			if hedgedPtr != nil {
+				hedged = *hedgedPtr
+			}
 			if hedged == true {
 				var positionSide string = "SHORT"
 				if side == "buy" {
@@ -8011,8 +8009,8 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7420, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes592515 []any = listRecv7420
+	listRecv7425, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes592515 []any = listRecv7425
 	if retRes592515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -8091,8 +8089,8 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv7488, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes596315 []any = listRecv7488
+	listRecv7493, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes596315 []any = listRecv7493
 	if retRes596315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -9137,8 +9135,8 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv8455, _ := TradesToList(r.Value), r.Value != nil
-	var retRes678115 []any = listRecv8455
+	listRecv8465, _ := TradesToList(r.Value), r.Value != nil
+	var retRes678115 []any = listRecv8465
 	if retRes678115 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {

@@ -2647,11 +2647,11 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 		return params
 	}()
 
-	listEp2491 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
-	if listEp2491.Err != nil {
-		panic(listEp2491.Err)
+	listEp2489 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
+	if listEp2489.Err != nil {
+		panic(listEp2489.Err)
 	}
-	var response []any = listEp2491.Value
+	var response []any = listEp2489.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2725,11 +2725,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 	var response []any = nil
 	if id == nil {
 
-		listEp2559 := <-this.PrivateGetTransfers(this.Extend(request, params))
-		if listEp2559.Err != nil {
-			panic(listEp2559.Err)
+		listEp2557 := <-this.PrivateGetTransfers(this.Extend(request, params))
+		if listEp2557.Err != nil {
+			panic(listEp2557.Err)
 		}
-		var transfers []any = listEp2559.Value
+		var transfers []any = listEp2557.Value
 		//
 		//    [
 		//        {
@@ -2767,11 +2767,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		}
 	} else {
 
-		listEp2602 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
-		if listEp2602.Err != nil {
-			panic(listEp2602.Err)
+		listEp2600 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
+		if listEp2600.Err != nil {
+			panic(listEp2600.Err)
 		}
-		var accountTransfers []any = listEp2602.Value
+		var accountTransfers []any = listEp2600.Value
 		//
 		//    [
 		//        {

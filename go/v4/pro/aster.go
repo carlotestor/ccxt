@@ -139,9 +139,10 @@ func (this *Aster) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
+	var tickers map[string]ccxt.Ticker = r1.Value
 	var tickerRow ccxt.Ticker
 	if symbolValue != nil {
-		tickerRow = r1.Value[*symbolValue]
+		tickerRow = tickers[*symbolValue]
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickerRow}
@@ -369,9 +370,10 @@ func (this *Aster) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
+	var tickers map[string]ccxt.Ticker = r1.Value
 	var tickerRow ccxt.Ticker
 	if symbolValue != nil {
-		tickerRow = r1.Value[*symbolValue]
+		tickerRow = tickers[*symbolValue]
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickerRow}
@@ -1085,7 +1087,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	}
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	stored.Append(parsed)
@@ -1508,19 +1510,14 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "T")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -2330,10 +2327,7 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {

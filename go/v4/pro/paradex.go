@@ -369,8 +369,8 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
 	// levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
 	var bids []any = []any{}
@@ -391,7 +391,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = this.SafeInteger(data, "seq_no")
 	orderbook.Reset(snapshot)

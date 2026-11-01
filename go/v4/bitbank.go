@@ -1376,9 +1376,9 @@ func (this *Bitbank) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	var tagWithdrawTag *string = tagWithdrawTagPtr
+	tagAndParamsSlot0, tagAndParamsSlot1 := this.HandleParamString(params, "tag")
+	var tagWithdrawTag *string = tagAndParamsSlot0
+	paramsWithdrawTag := tagAndParamsSlot1
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if _, ok := params["uuid"]; !ok {
 		panic(ExchangeError(this.Id + " uuid is required for withdrawal"))

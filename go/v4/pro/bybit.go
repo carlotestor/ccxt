@@ -1537,16 +1537,11 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	orderbook.SetSymbol(symbol)
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
@@ -1559,10 +1554,10 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	if limit != nil && *limit == "1" {
-		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
+		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks.Get(symbol)), market)
 		var newBidsAsks map[string]any = map[string]any{}
 		if symbol != nil {
 			newBidsAsks[*symbol] = bidask

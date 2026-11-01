@@ -7323,8 +7323,8 @@ func (this *Bybit) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv7040, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv7040
+	listRecv7038, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv7038
 	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -8545,8 +8545,8 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv8151, _ := r2.Value, r2.Value != nil
-	var unifiedEnabled []any = listRecv8151
+	listRecv8152, _ := r2.Value, r2.Value != nil
+	var unifiedEnabled []any = listRecv8152
 	var enableUnified *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var currency map[string]any = nil
 	var currencyKey string = "coin"
@@ -8843,8 +8843,8 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv8434, _ := r.Value, r.Value != nil
-	var accounts []any = listRecv8434
+	listRecv8433, _ := r.Value, r.Value != nil
+	var accounts []any = listRecv8433
 	var isUta *bool = SafeBoolPtr(accounts[1])
 	accountTypeOption, paramsAccountType := this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
 	var defaultAccountType string = func() string {
@@ -9529,8 +9529,8 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9080, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv9080
+	listRecv9077, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv9077
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -10839,8 +10839,8 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv10273, _ := LeverageTiersToList(r1.Value), r1.Value != nil
-	var retRes812615 []any = listRecv10273
+	listRecv10270, _ := LeverageTiersToList(r1.Value), r1.Value != nil
+	var retRes812615 []any = listRecv10270
 	if retRes812615 == nil {
 		ch <- AsyncResult[[]LeverageTier]{Value: nil}
 	} else {
@@ -12616,8 +12616,8 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv11929, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv11929
+	listRecv11926, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv11926
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12750,8 +12750,8 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12051, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12051
+	listRecv12048, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12048
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12896,8 +12896,8 @@ func (this *Bybit) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12178, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12178
+	listRecv12175, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12175
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)

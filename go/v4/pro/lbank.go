@@ -1170,15 +1170,10 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	var datetime *string = this.SafeString(message, "TS")
 	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol

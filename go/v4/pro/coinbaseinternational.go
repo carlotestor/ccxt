@@ -1598,17 +1598,17 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(resolution, timeframes)
-	if this.Ohlcvs[*symbol] == nil {
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[*symbol], timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if timeframe != nil {
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var stored any
-	if timeframe != nil {
+	if symbol != nil && timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
@@ -1808,7 +1808,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 		if _, ok := this.Trades[*symbol]; !ok {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArrayCache := ccxt.NewArrayCache(limit)
-			this.Trades[*symbol] = tradesArrayCache
+			this.Trades.Store(symbol, tradesArrayCache)
 		}
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
@@ -1817,7 +1817,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		tradesArray.Append(trade)
 	}
-	this.Trades[*symbol] = tradesArray
+	this.Trades.Store(symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
 	return message
 }
@@ -2021,10 +2021,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			return this.CountedOrderBook(map[string]any{}, limit)
 		}())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if !isGrouped && (typeVar != "snapshot") && (nonce == nil) {
 		return
@@ -2035,9 +2032,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		var previousChangeId *int64 = this.SafeInteger(data, "prev_change_id")
 		if (typeVar != "snapshot") && (nonce != nil) && (previousChangeId != nonce && (previousChangeId == nil || nonce == nil || *previousChangeId != *nonce)) {
 			// drop the stale book and reject only this channels future
-			if symbol != nil {
-				delete(this.Orderbooks, *symbol)
-			}
+			this.Orderbooks.Delete(symbol)
 			if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
 				client.(ccxt.ClientInterface).SubscriptionDel(channel)
 			}
@@ -2048,13 +2043,11 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
 		this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "change_id"))
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	orderbook.SetSymbol(symbol)
+	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
+	this.Orderbooks.Store(symbol, orderbook)
 	if channel != nil {
 		client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 	}
@@ -2554,7 +2547,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 	if triggerPrice != nil {
 		request["trigger_price"] = triggerPrice
 	}
-	var paramsRequest any = this.Omit(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
+	var paramsRequest map[string]any = this.OmitDict(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 
 	r1 := <-this.RequestWsAsync("private/edit", this.Extend(request, paramsRequest), true)
 	if r1.Err != nil {
@@ -2642,7 +2635,7 @@ func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResul
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved map[string]any = this.HandleRouteAndParams("cancelAllOrdersWs", params)
+	var paramsResolved any = this.HandleRouteAndParams("cancelAllOrdersWs", params)
 	var method string = "private/cancel_all"
 	var paramsRequest any = paramsResolved
 	if symbol != nil {

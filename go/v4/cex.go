@@ -834,7 +834,6 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	if since != nil {
 		request["fromDateISO"] = this.Iso8601(since)
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["toDateISO"] = this.Iso8601(until)
@@ -1016,7 +1015,6 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	if since != nil {
 		request["fromISO"] = this.Iso8601(since)
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(paramsDataType, "until", "till")
 	if until != nil {
 		request["toISO"] = this.Iso8601(until)
@@ -1363,7 +1361,6 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 		// exchange requires a `since` parameter for closed orders, so set default to allowed 365
 		request["serverCreateTimestampFrom"] = this.Milliseconds() - (364*24)*60*60*1000
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["serverCreateTimestampTo"] = *until
@@ -1539,8 +1536,8 @@ func (this *Cex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1462, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1462
+	listRecv1449, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv1449
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -1584,8 +1581,8 @@ func (this *Cex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1499, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv1499
+	listRecv1486, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv1486
 	var order map[string]any = SafeMapTyped(result, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -1961,7 +1958,6 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["dateTo"] = *until
@@ -2081,7 +2077,6 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if limit != nil {
 		request["pageSize"] = limit
 	}
-	var until *int64 = nil
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
 		request["dateTo"] = *until

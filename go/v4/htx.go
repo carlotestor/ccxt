@@ -5868,8 +5868,8 @@ func (this *Htx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5465, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes423319 []any = listRecv5465
+		listRecv5470, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes423319 []any = listRecv5470
 		if retRes423319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6055,8 +6055,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5625, _ := OrdersToList(r2.Value), r2.Value != nil
-		var retRes432619 []any = listRecv5625
+		listRecv5630, _ := OrdersToList(r2.Value), r2.Value != nil
+		var retRes432619 []any = listRecv5630
 		if retRes432619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -6069,8 +6069,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		listRecv5634, _ := OrdersToList(r3.Value), r3.Value != nil
-		var retRes432819 []any = listRecv5634
+		listRecv5639, _ := OrdersToList(r3.Value), r3.Value != nil
+		var retRes432819 []any = listRecv5639
 		if retRes432819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
@@ -7090,15 +7090,15 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		request["source"] = "c2c-margin-api"
 	}
 	var isMarketBuy bool = (orderType == "market") && (IsEqual(sideStr, "buy"))
-	var requiresPriceAndParams []any = TupleSlice(this.HandleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true))
-	var cost *float64 = this.SafeNumber(requiresPriceAndParams[1], "cost")
+	requiresPriceAndParamsSlot0, requiresPriceAndParamsSlot1 := this.HandleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+	var cost *float64 = this.SafeNumber(requiresPriceAndParamsSlot1, "cost")
 	var paramsCost any = paramsPostOnly
 	if isMarketBuy {
-		paramsCost = this.Omit(requiresPriceAndParams[1], "cost")
+		paramsCost = this.Omit(requiresPriceAndParamsSlot1, "cost")
 	}
 	if isMarketBuy {
 		var quoteAmount *string = nil
-		var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParams[0])
+		var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParamsSlot0)
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {

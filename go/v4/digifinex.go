@@ -2211,8 +2211,8 @@ func (this *Digifinex) createOrderBody(ch chan AsyncResult[Order], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marginMode *string = nil
-	marginMode, _ = this.HandleMarginModeAndParams("createOrder", params)
+	marginResultSlot0, _ := this.HandleMarginModeAndParams("createOrder", params)
+	var marginMode *string = marginResultSlot0
 	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 	var response map[string]any = nil
 	if market["swap"] == true {
@@ -2313,8 +2313,8 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var currentMarginMode *string = nil
-		currentMarginMode, _ = this.HandleMarginModeAndParams("createOrders", orderParams)
+		marginResultSlot0, _ := this.HandleMarginModeAndParams("createOrders", orderParams)
+		var currentMarginMode *string = marginResultSlot0
 		if currentMarginMode != nil {
 			if marginMode == nil {
 				marginMode = currentMarginMode

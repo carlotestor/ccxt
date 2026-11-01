@@ -5877,7 +5877,7 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 	_ = defaultValue
 	var valueparamsOption1Variable []any = this.HandleOptionAndParams(params, methodName1, optionName1)
 	value := GetValue(valueparamsOption1Variable, 0)
-	paramsOption1 := valueparamsOption1Variable[1]
+	paramsOption1 := GetValue(valueparamsOption1Variable, 1)
 	if value != nil {
 		// omit optionName2 too from params
 		var paramsOmitted any = this.Omit(paramsOption1, optionName2)
@@ -8008,7 +8008,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	maxRetriesOption, paramsMaxRetries := this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3)
 	var removeRepeatedOptionparamsRemoveRepeatedVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated)
 	removeRepeatedOption := GetValue(removeRepeatedOptionparamsRemoveRepeatedVariable, 0)
-	paramsRemoveRepeated := removeRepeatedOptionparamsRemoveRepeatedVariable[1]
+	paramsRemoveRepeated := GetValue(removeRepeatedOptionparamsRemoveRepeatedVariable, 1)
 	paginationDirection, paramsPaginationDirection := this.HandleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward")
 	var paginationTimestamp any = nil
 	var result []any = []any{}
@@ -9223,8 +9223,8 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
-				if _, ok := this.Trades[*symbol]; ok {
-					delete(this.Trades, *symbol)
+				if InOp(this.Trades, symbol) {
+					this.Trades.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {
 				if this.Orderbooks.Has(symbol) {
@@ -11538,8 +11538,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11157, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11157
+	listRecv11154, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11154
 	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

@@ -1677,12 +1677,10 @@ func (this *Bydfi) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		}
 		var trailingTriggerPricePtr *string = nil
 		trailingTriggerPricePtr, query = this.HandleParamString(query, "trailingTriggerPrice", trailingTriggerPrice)
-		trailingTriggerPrice = func() any {
-			if trailingTriggerPricePtr != nil {
-				return *trailingTriggerPricePtr
-			}
-			return nil
-		}()
+		trailingTriggerPrice = nil
+		if trailingTriggerPricePtr != nil {
+			trailingTriggerPrice = *trailingTriggerPricePtr
+		}
 		if trailingTriggerPrice != nil {
 			request["activationPrice"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
 			query = this.Omit(query, []any{"trailingTriggerPrice"})

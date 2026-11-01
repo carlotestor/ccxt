@@ -1013,15 +1013,10 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	var partsLength int = len(parts) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	var marketId *string = this.SafeString(parts, partsLength-1)
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 }
@@ -1122,10 +1117,10 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var messageHash string = "orderbook:" + *symbol
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {
@@ -1329,7 +1324,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var d any = this.SafeDictN(message, []any{"d", "publicAggreDeals"})
 	var trades any = this.SafeList2(d, "deals", "dealsList", []any{d})
@@ -2472,13 +2467,13 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
-			if _, ok := this.Orderbooks[symbol]; ok {
-				delete(this.Orderbooks, symbol)
+			if this.Orderbooks.Has(symbol) {
+				this.Orderbooks.Delete(symbol)
 			}
 		} else if strings.Index(*messageHash, "trades") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:trades:", "", 1)
 			if _, ok := this.Trades[symbol]; ok {
-				delete(this.Trades, symbol)
+				this.Trades.Delete(symbol)
 			}
 		} else if strings.Index(*messageHash, "fundingRate") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:fundingRate:", "", 1)

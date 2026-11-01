@@ -688,7 +688,7 @@ func (this *Coinbaseinternational) fetchTimeBody(ch chan AsyncResult[*int64], op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchTime", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchTime", params)
 
 	r := <-this.PublicGetGetTime(paramsResolved)
 	if r.Err != nil {
@@ -732,7 +732,7 @@ func (this *Coinbaseinternational) fetchMarketsBody(ch chan AsyncResult[[]Market
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchMarkets", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchMarkets", params)
 	var request map[string]any = map[string]any{}
 	if this.IsNativeDeribitCredentials() {
 		request["currency"] = "any"
@@ -994,7 +994,7 @@ func (this *Coinbaseinternational) fetchCurrenciesBody(ch chan AsyncResult[map[s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchCurrencies", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchCurrencies", params)
 
 	r := <-this.PublicGetGetCurrencies(paramsResolved)
 	if r.Err != nil {
@@ -1159,7 +1159,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchOHLCV", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchOHLCV", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1434,7 +1434,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan AsyncResult[map[stri
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchTickers", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchTickers", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1489,7 +1489,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan AsyncResult[Ticker], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchTicker", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchTicker", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1629,7 +1629,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchOrderBook", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchOrderBook", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2089,7 +2089,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchTransfers", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchTransfers", params)
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a currency code argument"))
 	}
@@ -2119,9 +2119,9 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	if until != nil {
 		request["end_timestamp"] = until
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsResolved, "until")
+			return this.OmitDict(paramsResolved, "until")
 		}
 		return paramsResolved
 	}()
@@ -2258,7 +2258,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan AsyncResult[Positio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchPosition", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchPosition", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2416,7 +2416,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan AsyncResult[[]Posi
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchPositions", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchPositions", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2509,7 +2509,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchDepositsWithdrawals", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchDepositsWithdrawals", params)
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositsWithdrawals() requires a currency code argument"))
 	}
@@ -2538,9 +2538,9 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	if limit != nil {
 		request["count"] = limit
 	}
-	var paramsOmitted any = func() any {
+	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return this.Omit(paramsResolved, "until")
+			return this.OmitDict(paramsResolved, "until")
 		}
 		return paramsResolved
 	}()
@@ -2643,7 +2643,7 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchWithdrawals", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchWithdrawals", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2698,7 +2698,7 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchDeposits", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchDeposits", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2844,7 +2844,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("createOrder", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("createOrder", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3218,7 +3218,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], i
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("cancelOrder", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("cancelOrder", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3303,7 +3303,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan AsyncResult[[]Ord
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("cancelAllOrders", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("cancelAllOrders", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3382,7 +3382,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("editOrder", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("editOrder", params)
 	if this.IsNativeDeribitCredentials() && (amount == nil) && (this.SafeNumber(paramsResolved, "contracts") == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires amount or params.contracts on Deribit"))
 	}
@@ -3407,7 +3407,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id 
 	if triggerPrice != nil {
 		request["trigger_price"] = triggerPrice
 	}
-	var paramsOrder any = this.Omit(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
+	var paramsOrder map[string]any = this.OmitDict(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 
 	r1 := <-this.AuthenticateV2Async()
 	if r1.Err != nil {
@@ -3506,7 +3506,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan AsyncResult[Order], id
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchOrder", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchOrder", params)
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3952,7 +3952,7 @@ func (this *Coinbaseinternational) fetchLeverageBody(ch chan AsyncResult[Leverag
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("fetchLeverage", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("fetchLeverage", params)
 	if this.IsNativeDeribitCredentials() {
 		panic(NotSupported(this.Id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint"))
 	}
@@ -4043,7 +4043,7 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("setLeverage", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("setLeverage", params)
 	if this.IsNativeDeribitCredentials() {
 		panic(NotSupported(this.Id + " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint"))
 	}
@@ -4181,13 +4181,13 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramsResolved any = this.HandleRouteAndParams("authenticateV2", params)
+	var paramsResolved map[string]any = this.HandleRouteAndParams("authenticateV2", params)
 	if this.IsNativeDeribitCredentials() {
 
 		return nil
 	}
 	var forceRefresh *bool = this.SafeBool(paramsResolved, "forceRefresh", false)
-	var paramsOmitted any = this.Omit(paramsResolved, "forceRefresh")
+	var paramsOmitted map[string]any = this.OmitDict(paramsResolved, "forceRefresh")
 	var now int64 = this.Milliseconds()
 	var token *string = this.GetV2AccessToken()
 	var tokenExpires *int64 = this.SafeInteger(this.Options, "v2TokenExpires")

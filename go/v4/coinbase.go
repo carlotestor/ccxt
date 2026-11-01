@@ -5913,8 +5913,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5554, _ := r1.Value, r1.Value != nil
-	var requestparamsValueVariable []any = listRecv5554
+	listRecv5552, _ := r1.Value, r1.Value != nil
+	var requestparamsValueVariable []any = listRecv5552
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 

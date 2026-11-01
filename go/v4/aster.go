@@ -5957,11 +5957,11 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 		return nil
 	}
 
-	listEp5619 := <-this.FapiPrivateGetV3Builder()
-	if listEp5619.Err != nil {
-		panic(listEp5619.Err)
+	listEp5617 := <-this.FapiPrivateGetV3Builder()
+	if listEp5617.Err != nil {
+		panic(listEp5617.Err)
 	}
-	var result []any = listEp5619.Value
+	var result []any = listEp5617.Value
 	//
 	//    [
 	//        {

@@ -556,7 +556,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "nonce", timestamp)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 }
 func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {

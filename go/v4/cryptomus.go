@@ -975,13 +975,13 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var cost any = costParam
 	var response map[string]any = nil
 	if typeVar == "market" {
-		var requiresPriceAndParams []any = TupleSlice(this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true))
+		requiresPriceAndParamsSlot0, requiresPriceAndParamsSlot1 := this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var paramsMarket any = paramsCost
 		if sideBuy {
-			paramsMarket = requiresPriceAndParams[1]
+			paramsMarket = requiresPriceAndParamsSlot1
 		}
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParams[0])
+			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParamsSlot0)
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (costParam == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))

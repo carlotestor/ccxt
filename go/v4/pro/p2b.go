@@ -455,10 +455,8 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if symbol != nil {
 		if stored == nil {
@@ -505,7 +503,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(tradesLimit)
-		this.Trades[symbol] = tradesArray
+		this.Trades.Store(symbol, tradesArray)
 	}
 	for i := 0; i < len(trades); i++ {
 		var item any = trades[i]
@@ -607,8 +605,8 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if ccxt.IsEqual(orderbook, nil) {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		orderbook = this.Orderbooks[*symbol]
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
+		orderbook = this.Orderbooks.Get(symbol)
 	}
 	if isFullUpdate != nil && *isFullUpdate {
 		// the first parameter signals whether the message carries all

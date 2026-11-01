@@ -4723,7 +4723,7 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
 		var sym string = updatedSymbols[k]
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], "orderbook::"+sym)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(sym), "orderbook::"+sym)
 	}
 }
 

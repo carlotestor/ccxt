@@ -623,14 +623,9 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(legacySymbol)) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
-			if legacySymbol != nil {
-				this.Orderbooks[*legacySymbol] = ob
-			}
+			this.Orderbooks.Store(legacySymbol, ob)
 		}
-		var legacyOrderbook ccxt.OrderBookInterface
-		if legacySymbol != nil {
-			legacyOrderbook = this.Orderbooks[*legacySymbol]
-		}
+		var legacyOrderbook ccxt.OrderBookInterface = this.Orderbooks.Get(legacySymbol)
 		this.HandleBookDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
 		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
@@ -645,10 +640,10 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, obLimit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp int64 = this.Milliseconds()

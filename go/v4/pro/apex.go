@@ -194,7 +194,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var length int = len(trades)
 	for j := 0; j < length; j++ {
@@ -442,10 +442,10 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
@@ -458,7 +458,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Apex) HandleDelta(bookside any, delta any) {
@@ -770,17 +770,17 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if this.Ohlcvs[*symbol] == nil {
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if timeframe != nil {
+	if symbol != nil && timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}

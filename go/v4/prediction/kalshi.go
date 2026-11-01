@@ -391,10 +391,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var events []any = nil
-		if r.Value != nil {
-			events = ccxt.PredictionEventsToList(r.Value)
-		}
+		var events []any = ccxt.PredictionEventsToList(r.Value)
 		var eventsLength int = len(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {

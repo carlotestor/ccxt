@@ -481,7 +481,7 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	var symbol string = *this.SafeString(market, "symbol", "")
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var parsed map[string]any = this.ParseWsTrade(data)
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
@@ -656,7 +656,9 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	}
 	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
-		this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		if this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		}
 	}
 	var stored any = this.Ohlcvs[*symbol][*timeframe]
 	var parsed any = this.ParseWsOHLCV(data, market)
@@ -819,10 +821,10 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(data, "event_time", 0.000001)
 	var messageHash string = "orderbook::" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")
 	var isSnapshotChannel bool = (stream != nil && *stream == "v1.book.s")
@@ -847,7 +849,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	// unconditional assignment is correct for every language.
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(sequenceNumber)
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Grvt) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

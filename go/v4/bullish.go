@@ -3170,11 +3170,11 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	var tradingAccountId any = tradingAccountIdOption
 	if IsEqual(tradingAccountId, nil) {
 
-		listEp2974 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-		if listEp2974.Err != nil {
-			panic(listEp2974.Err)
+		listEp2972 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+		if listEp2972.Err != nil {
+			panic(listEp2972.Err)
 		}
-		var response []any = listEp2974.Value
+		var response []any = listEp2972.Value
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
 			var account map[string]any = SafeMapTyped(accounts, i)
@@ -3218,11 +3218,11 @@ func (this *Bullish) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 		panic(r.Err)
 	}
 
-	listEp3015 := <-this.PrivateGetV1AccountsTradingAccounts(params)
-	if listEp3015.Err != nil {
-		panic(listEp3015.Err)
+	listEp3013 := <-this.PrivateGetV1AccountsTradingAccounts(params)
+	if listEp3013.Err != nil {
+		panic(listEp3013.Err)
 	}
-	var response []any = listEp3015.Value
+	var response []any = listEp3013.Value
 
 	//
 	//     [
@@ -3345,11 +3345,11 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"symbol": currency["id"],
 	}
 
-	listEp3135 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
-	if listEp3135.Err != nil {
-		panic(listEp3135.Err)
+	listEp3133 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
+	if listEp3133.Err != nil {
+		panic(listEp3133.Err)
 	}
-	var response []any = listEp3135.Value
+	var response []any = listEp3133.Value
 	//
 	//     [
 	//         {
@@ -3551,11 +3551,11 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		"tradingAccountId": tradingAccountId,
 	}
 
-	listEp3317 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
-	if listEp3317.Err != nil {
-		panic(listEp3317.Err)
+	listEp3315 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
+	if listEp3315.Err != nil {
+		panic(listEp3315.Err)
 	}
-	var response []any = listEp3317.Value
+	var response []any = listEp3315.Value
 
 	//
 	//     [
@@ -3726,11 +3726,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	listEp3477 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
-	if listEp3477.Err != nil {
-		panic(listEp3477.Err)
+	listEp3475 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
+	if listEp3475.Err != nil {
+		panic(listEp3475.Err)
 	}
-	var response []any = listEp3477.Value
+	var response []any = listEp3475.Value
 
 	//
 	//     [
@@ -3925,11 +3925,11 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	request["createdAtDatetime[gte]"] = this.Iso8601(startTimestamp)
 	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
-	listEp3655 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, paramsUntil))
-	if listEp3655.Err != nil {
-		panic(listEp3655.Err)
+	listEp3653 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, paramsUntil))
+	if listEp3653.Err != nil {
+		panic(listEp3653.Err)
 	}
-	var response []any = listEp3655.Value
+	var response []any = listEp3653.Value
 
 	//
 	//     [

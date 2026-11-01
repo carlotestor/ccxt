@@ -1332,10 +1332,7 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {
@@ -1648,10 +1645,8 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
-		if symbol != nil {
-			if this.Ohlcvs[*symbol] == nil {
-				this.Ohlcvs[*symbol] = map[string]any{}
-			}
+		if symbol != nil && this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 		var stored any
 		if symbol != nil {
@@ -1808,14 +1803,9 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(symbol)) {
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-			}
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
@@ -1845,10 +1835,10 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 		var timestamp *int64 = this.SafeInteger(data, "t")
-		ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(data, "i", "u"))
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
+		orderbook.SetNonce(this.SafeInteger2(data, "i", "u"))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
+		orderbook.SetSymbol(symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }

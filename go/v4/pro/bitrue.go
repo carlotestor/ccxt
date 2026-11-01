@@ -504,10 +504,10 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 			"buys": this.ParseContractBidsAsks(rawBuys, *symbol),
 		}
 	}
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
@@ -671,7 +671,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			stored = ccxt.NewArrayCache(limit)
-			this.Trades[*symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		var trade map[string]any = this.ParseWsTrade(data[i], market)
 		stored.Append(trade)

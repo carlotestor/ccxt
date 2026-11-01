@@ -3785,7 +3785,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 		request["size"] = mathMin(limit, 1000)
 	}
 	var transactionType *string = this.SafeString(paramsNetworkCode, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsNetworkCode, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsNetworkCode, "type")
 	if transactionType != nil {
 		request["type"] = transactionType
 	}
@@ -3868,8 +3868,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3657, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3657
+	listRecv3658, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3658
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4080,8 +4080,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3853, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3853
+	listRecv3854, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3854
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 

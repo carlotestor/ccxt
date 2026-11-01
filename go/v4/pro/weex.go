@@ -744,7 +744,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 	var messageHash string = "trade::" + symbol
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data []any = ccxt.SafeListTyped(message, "d")
@@ -759,7 +759,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 		var sortedTrade any = ccxt.DerefScalar(sorted[j])
 		tradesArray.Append(sortedTrade)
 	}
-	this.Trades[symbol] = tradesArray
+	this.Trades.Store(symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
 func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1380,16 +1380,16 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 	}
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook::" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		if limit != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		} else {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 		}
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")
 	var nonce *int64 = this.SafeInteger(message, "u")
@@ -2535,14 +2535,11 @@ func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolById())
 	var cache any = this.WsCacheObjGet("Positions")
-	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
-		var position any = ccxt.GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = positions[i]
 		cache.(ccxt.Appender).Append(position)
 	}
 	// don't remove the future from the .futures cache

@@ -1253,13 +1253,13 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	var incrementalBook bool = (channel != nil && *channel == "books")
 	if incrementalBook {
 		// storedOrderBook = this.safeValue (this.orderbooks, symbol)
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			// const ob = this.orderBook ({})
 			var ob ccxt.OrderBookInterface = this.CountedOrderBook(map[string]any{})
 			ccxt.AddElementToObject(ob, "symbol", symbol)
-			this.Orderbooks[*symbol] = ob
+			this.Orderbooks.Store(symbol, ob)
 		}
-		var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var action *string = this.SafeString(message, "action")
 		var isSnapshot bool = (action != nil && *action == "snapshot") // snapshot does not have a checksum
 		if isSnapshot {
@@ -1310,10 +1310,10 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		// holds a reference to the old object and would never see updates
 		// after this snapshot (every frame of the non-incremental channels
 		// is a full snapshot)
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1330,7 +1330,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.Reset(parsedOrderbook)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
+	client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(symbol), messageHash)
 }
 func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol any, messageHash any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1596,7 +1596,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var length int = len(data)
@@ -3689,8 +3689,8 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "unsubscribe:orderbook:" + *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "orderbook:" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; ok {
-		delete(this.Orderbooks, *symbol)
+	if this.Orderbooks.Has(symbol) {
+		this.Orderbooks.Delete(symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
@@ -3720,7 +3720,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]an
 	var messageHash string = "unsubscribe:trade:" + *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + symbol
 	if _, ok := this.Trades[symbol]; ok {
-		delete(this.Trades, symbol)
+		this.Trades.Delete(symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
