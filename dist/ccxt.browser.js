@@ -374890,7 +374890,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         return this.parseOrder(data, market);
     }
     convertToBigIntCustom(x) {
-        return parseInt(x);
+        return parseInt(this.numberToString(x));
     }
     eipMessageForOrder(order, structureType) {
         const priceMultiplier = 1000000000;
@@ -374944,7 +374944,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(this.safeString(order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -375909,8 +375909,8 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt(parseFloat(request['max_futures_fee_rate']) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt(parseFloat(request['max_spot_fee_rate']) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_futures_fee_rate')) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_spot_fee_rate')) * amountMultiplier),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration']
             };
