@@ -950,7 +950,7 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -958,11 +958,11 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 		}
 	}
 
-	listEp959 := <-this.PrivateGetAccounts(params)
-	if listEp959.Err != nil {
-		panic(listEp959.Err)
+	listEp954 := <-this.PrivateGetAccounts(params)
+	if listEp954.Err != nil {
+		panic(listEp954.Err)
 	}
-	var response []any = listEp959.Value
+	var response []any = listEp954.Value
 	//
 	//     [
 	//         {
@@ -1045,7 +1045,7 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan AsyncResult[Balances], op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1053,11 +1053,11 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan AsyncResult[Balances], op
 		}
 	}
 
-	listEp1047 := <-this.PrivateGetAccounts(params)
-	if listEp1047.Err != nil {
-		panic(listEp1047.Err)
+	listEp1042 := <-this.PrivateGetAccounts(params)
+	if listEp1042.Err != nil {
+		panic(listEp1042.Err)
 	}
-	var response []any = listEp1047.Value
+	var response []any = listEp1042.Value
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
@@ -1085,7 +1085,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[OrderBook],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1229,7 +1229,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan AsyncResult[map[string]Ti
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1307,7 +1307,7 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1499,7 +1499,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 		}
 		return nil
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1527,11 +1527,11 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 		return paramsPaginate
 	}()
 
-	listEp1485 := <-this.PrivateGetFills(this.Extend(request, paramsUntil))
-	if listEp1485.Err != nil {
-		panic(listEp1485.Err)
+	listEp1480 := <-this.PrivateGetFills(this.Extend(request, paramsUntil))
+	if listEp1480.Err != nil {
+		panic(listEp1480.Err)
 	}
-	var response []any = listEp1485.Value
+	var response []any = listEp1480.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -1562,7 +1562,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1577,11 +1577,11 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 		request["limit"] = limit // default 100
 	}
 
-	listEp1528 := <-this.PublicGetProductsIdTrades(this.Extend(request, params))
-	if listEp1528.Err != nil {
-		panic(listEp1528.Err)
+	listEp1523 := <-this.PublicGetProductsIdTrades(this.Extend(request, params))
+	if listEp1523.Err != nil {
+		panic(listEp1523.Err)
 	}
-	var response []any = listEp1528.Value
+	var response []any = listEp1523.Value
 
 	//
 	//    [
@@ -1616,7 +1616,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan AsyncResult[map[strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1701,7 +1701,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1764,11 +1764,11 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 		}
 	}
 
-	listEp1698 := <-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))
-	if listEp1698.Err != nil {
-		panic(listEp1698.Err)
+	listEp1693 := <-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))
+	if listEp1693.Err != nil {
+		panic(listEp1693.Err)
 	}
-	var response []any = listEp1698.Value
+	var response []any = listEp1693.Value
 
 	//
 	//     [
@@ -1924,7 +1924,7 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan AsyncResult[Order], id stri
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1984,7 +1984,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan AsyncResult[[]Trade],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1999,11 +1999,11 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan AsyncResult[[]Trade],
 		"order_id": id,
 	}
 
-	listEp1911 := <-this.PrivateGetFills(this.Extend(request, params))
-	if listEp1911.Err != nil {
-		panic(listEp1911.Err)
+	listEp1906 := <-this.PrivateGetFills(this.Extend(request, params))
+	if listEp1906.Err != nil {
+		panic(listEp1906.Err)
 	}
-	var response []any = listEp1911.Value
+	var response []any = listEp1906.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -2083,7 +2083,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2128,11 +2128,11 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 		return paramsPaginate
 	}()
 
-	listEp2025 := <-this.PrivateGetOrders(this.Extend(request, paramsUntil))
-	if listEp2025.Err != nil {
-		panic(listEp2025.Err)
+	listEp2020 := <-this.PrivateGetOrders(this.Extend(request, paramsUntil))
+	if listEp2020.Err != nil {
+		panic(listEp2020.Err)
 	}
-	var response []any = listEp2025.Value
+	var response []any = listEp2020.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2208,7 +2208,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2308,7 +2308,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id any
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2377,7 +2377,7 @@ func (this *Coinbaseexchange) cancelAllOrdersBody(ch chan AsyncResult[[]Order], 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2446,7 +2446,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[Transaction], cod
 	_ = params
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2609,7 +2609,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code param"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2647,11 +2647,11 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 		return params
 	}()
 
-	listEp2491 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
-	if listEp2491.Err != nil {
-		panic(listEp2491.Err)
+	listEp2484 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
+	if listEp2484.Err != nil {
+		panic(listEp2484.Err)
 	}
-	var response []any = listEp2491.Value
+	var response []any = listEp2484.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2690,7 +2690,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2725,11 +2725,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 	var response []any = nil
 	if id == nil {
 
-		listEp2559 := <-this.PrivateGetTransfers(this.Extend(request, params))
-		if listEp2559.Err != nil {
-			panic(listEp2559.Err)
+		listEp2552 := <-this.PrivateGetTransfers(this.Extend(request, params))
+		if listEp2552.Err != nil {
+			panic(listEp2552.Err)
 		}
-		var transfers []any = listEp2559.Value
+		var transfers []any = listEp2552.Value
 		//
 		//    [
 		//        {
@@ -2767,11 +2767,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		}
 	} else {
 
-		listEp2602 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
-		if listEp2602.Err != nil {
-			panic(listEp2602.Err)
+		listEp2590 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
+		if listEp2590.Err != nil {
+			panic(listEp2590.Err)
 		}
-		var accountTransfers []any = listEp2602.Value
+		var accountTransfers []any = listEp2590.Value
 		//
 		//    [
 		//        {
@@ -3013,7 +3013,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

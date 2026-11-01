@@ -82,7 +82,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -135,12 +135,12 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		var timestampMs *int64 = this.Parse8601(timestamp)
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
 		var orderbook ccxt.OrderBookInterface
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 			orderbook = this.OrderBook(snapshot)
 			this.Orderbooks[*symbol] = orderbook
 		} else {
 			orderbook = this.Orderbooks[*symbol]
-			if ccxt.IsEqual(orderbook, nil) {
+			if orderbook == nil {
 				return
 			}
 			orderbook.Reset(snapshot)
@@ -177,7 +177,7 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -223,7 +223,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var marketIdValue string = *this.SafeString(market, "id", "")
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
@@ -268,7 +268,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -396,7 +396,7 @@ func (this *Hollaex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -599,7 +599,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		var account any = this.Account()
 		if code != nil {
 			if _, ok := this.Balance[*code]; ok {
-				account = this.Balance[*code]
+				account = ccxt.GetValue(this.Balance, code)
 			}
 		}
 		var second *string = this.SafeString(parts, 1)
@@ -611,10 +611,10 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		}()
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.WsBalanceReplace(this.SafeBalance(this.Balance))
+	this.Balance = ccxt.MapTyped(this.SafeBalance(this.Balance))
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Hollaex) WatchPublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

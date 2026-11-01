@@ -1511,7 +1511,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1624,7 +1624,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1682,7 +1682,7 @@ func (this *Bitstamp) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1763,11 +1763,11 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 		var firstCurrencyId string = *this.SafeString(currencyIds, 0, "")
 		var secondCurrencyId string = *this.SafeString(currencyIds, 1, "")
 		var marketId string = firstCurrencyId + secondCurrencyId
-		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() != nil) && ok {
+		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
 		marketId = secondCurrencyId + firstCurrencyId
-		if _, ok := this.Markets_by_id()[marketId]; (this.Markets_by_id() != nil) && ok {
+		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
 	}
@@ -1958,7 +1958,7 @@ func (this *Bitstamp) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2043,7 +2043,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2171,7 +2171,7 @@ func (this *Bitstamp) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2219,7 +2219,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2306,7 +2306,7 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2314,11 +2314,11 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		}
 	}
 
-	listEp2245 := <-this.PrivatePostFeesTrading(params)
-	if listEp2245.Err != nil {
-		panic(listEp2245.Err)
+	listEp2240 := <-this.PrivatePostFeesTrading(params)
+	if listEp2240.Err != nil {
+		panic(listEp2240.Err)
 	}
-	var response []any = listEp2245.Value
+	var response []any = listEp2240.Value
 
 	//
 	//     [
@@ -2360,7 +2360,7 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2368,11 +2368,11 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 		}
 	}
 
-	listEp2292 := <-this.PrivatePostFeesWithdrawal(params)
-	if listEp2292.Err != nil {
-		panic(listEp2292.Err)
+	listEp2287 := <-this.PrivatePostFeesWithdrawal(params)
+	if listEp2287.Err != nil {
+		panic(listEp2287.Err)
 	}
-	var response []any = listEp2292.Value
+	var response []any = listEp2287.Value
 
 	//
 	//     [
@@ -2438,7 +2438,7 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2446,11 +2446,11 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 		}
 	}
 
-	listEp2363 := <-this.PrivatePostFeesWithdrawal(params)
-	if listEp2363.Err != nil {
-		panic(listEp2363.Err)
+	listEp2358 := <-this.PrivatePostFeesWithdrawal(params)
+	if listEp2358.Err != nil {
+		panic(listEp2358.Err)
 	}
-	var response []any = listEp2363.Value
+	var response []any = listEp2358.Value
 	//
 	//     [
 	//         {
@@ -2526,7 +2526,7 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2644,7 +2644,7 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2703,7 +2703,7 @@ func (this *Bitstamp) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2755,7 +2755,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2824,7 +2824,7 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2877,7 +2877,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2958,7 +2958,7 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2977,18 +2977,18 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var response []any = nil
 	if symbol != nil {
 
-		listEp2821 := <-this.PrivatePostUserTransactionsPair(this.Extend(request, params))
-		if listEp2821.Err != nil {
-			panic(listEp2821.Err)
+		listEp2816 := <-this.PrivatePostUserTransactionsPair(this.Extend(request, params))
+		if listEp2816.Err != nil {
+			panic(listEp2816.Err)
 		}
-		response = listEp2821.Value
+		response = listEp2816.Value
 	} else {
 
-		listEp2824 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-		if listEp2824.Err != nil {
-			panic(listEp2824.Err)
+		listEp2819 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+		if listEp2819.Err != nil {
+			panic(listEp2819.Err)
 		}
-		response = listEp2824.Value
+		response = listEp2819.Value
 	}
 	var result []any = this.FilterBy(response, "type", "2")
 
@@ -3041,7 +3041,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		}
 		return nil
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -3129,7 +3129,7 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3141,11 +3141,11 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		request["limit"] = limit
 	}
 
-	listEp2963 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-	if listEp2963.Err != nil {
-		panic(listEp2963.Err)
+	listEp2958 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+	if listEp2958.Err != nil {
+		panic(listEp2958.Err)
 	}
-	var response []any = listEp2963.Value
+	var response []any = listEp2958.Value
 	//
 	//     [
 	//         {
@@ -3209,7 +3209,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3223,11 +3223,11 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}
 
-	listEp3038 := <-this.PrivatePostWithdrawalRequests(this.Extend(request, params))
-	if listEp3038.Err != nil {
-		panic(listEp3038.Err)
+	listEp3033 := <-this.PrivatePostWithdrawalRequests(this.Extend(request, params))
+	if listEp3033.Err != nil {
+		panic(listEp3033.Err)
 	}
-	var response []any = listEp3038.Value
+	var response []any = listEp3033.Value
 
 	//
 	//     [
@@ -3654,7 +3654,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3666,11 +3666,11 @@ func (this *Bitstamp) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		request["limit"] = limit
 	}
 
-	listEp3474 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-	if listEp3474.Err != nil {
-		panic(listEp3474.Err)
+	listEp3469 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+	if listEp3469.Err != nil {
+		panic(listEp3469.Err)
 	}
-	var response []any = listEp3474.Value
+	var response []any = listEp3469.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3699,7 +3699,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3795,7 +3795,7 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var market map[string]any = nil
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3806,11 +3806,11 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		market = this.Market(symbol)
 	}
 
-	listEp3600 := <-this.PrivatePostOpenOrdersAll(params)
-	if listEp3600.Err != nil {
-		panic(listEp3600.Err)
+	listEp3595 := <-this.PrivatePostOpenOrdersAll(params)
+	if listEp3595.Err != nil {
+		panic(listEp3595.Err)
 	}
-	var response []any = listEp3600.Value
+	var response []any = listEp3595.Value
 
 	//
 	//     [
@@ -3914,7 +3914,7 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3985,7 +3985,7 @@ func (this *Bitstamp) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4167,7 +4167,7 @@ func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method
 		} else {
 			var all []any = SafeListTyped(reasonInner, "__all__")
 			for i := 0; i < len(all); i++ {
-				errors = append(errors, all[i])
+				errors = append(errors, DerefScalar(all[i]))
 			}
 		}
 		var codeError *string = this.SafeString(response, "code")

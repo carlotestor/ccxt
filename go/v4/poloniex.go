@@ -1012,7 +1012,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	markets := r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies(), "numericId")
+		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: markets}
@@ -3155,11 +3155,11 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 		request["clientOrderIds"] = clientOrderIds
 	}
 
-	listEp3003 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
-	if listEp3003.Err != nil {
-		panic(listEp3003.Err)
+	listEp2999 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
+	if listEp2999.Err != nil {
+		panic(listEp2999.Err)
 	}
-	var response []any = listEp3003.Value
+	var response []any = listEp2999.Value
 
 	//
 	//     [
@@ -3441,11 +3441,11 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 		"id": id,
 	}
 
-	listEp3251 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
-	if listEp3251.Err != nil {
-		panic(listEp3251.Err)
+	listEp3247 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
+	if listEp3247.Err != nil {
+		panic(listEp3247.Err)
 	}
-	var trades []any = listEp3251.Value
+	var trades []any = listEp3247.Value
 
 	//
 	//     [
@@ -3888,7 +3888,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if _, ok := this.Currencies()[code]; !ok {
+	if _, ok := this.Currencies[code]; !ok {
 		panic(BadSymbol(this.Id + " fetchDepositAddress(): can not recognize " + code + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })"))
 	}
 	var currency map[string]any = this.Currency(code)
@@ -3896,12 +3896,9 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	var query any = nil
 	var networkCodePtr *string = nil
 	networkCodePtr, query = this.HandleNetworkCodeAndParams(params)
-	networkCode = func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	if networkCodePtr != nil {
+		networkCode = *networkCodePtr
+	}
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
@@ -4107,11 +4104,11 @@ func (this *Poloniex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp3845 := <-this.PrivateGetAccountsTransfer(this.Extend(requestUntil, paramsUntil))
-	if listEp3845.Err != nil {
-		panic(listEp3845.Err)
+	listEp3843 := <-this.PrivateGetAccountsTransfer(this.Extend(requestUntil, paramsUntil))
+	if listEp3843.Err != nil {
+		panic(listEp3843.Err)
 	}
-	var response []any = listEp3845.Value
+	var response []any = listEp3843.Value
 
 	//
 	//     [

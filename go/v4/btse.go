@@ -3111,11 +3111,11 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		listEp2937 := <-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))
-		if listEp2937.Err != nil {
-			panic(listEp2937.Err)
+		listEp2940 := <-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))
+		if listEp2940.Err != nil {
+			panic(listEp2940.Err)
 		}
-		response = listEp2937.Value
+		response = listEp2940.Value
 	} else {
 		// the futures amend requires an explicit amendType discriminator
 		// which can change the price and size together or a single field
@@ -3133,11 +3133,11 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
 			request["amendType"] = "PRICE"
 		}
 
-		listEp2955 := <-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, query))
-		if listEp2955.Err != nil {
-			panic(listEp2955.Err)
+		listEp2958 := <-this.PrivatePutFuturesApiV3TradeOrders(this.Extend(request, query))
+		if listEp2958.Err != nil {
+			panic(listEp2958.Err)
 		}
-		response = listEp2955.Value
+		response = listEp2958.Value
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
@@ -3197,11 +3197,11 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		listEp3012 := <-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))
-		if listEp3012.Err != nil {
-			panic(listEp3012.Err)
+		listEp3015 := <-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))
+		if listEp3015.Err != nil {
+			panic(listEp3015.Err)
 		}
-		response = listEp3012.Value
+		response = listEp3015.Value
 	} else {
 		//
 		//     [
@@ -3221,11 +3221,11 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		//
 		request["symbol"] = this.FuturesRequestId(market)
 
-		listEp3032 := <-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, paramsOmitted))
-		if listEp3032.Err != nil {
-			panic(listEp3032.Err)
+		listEp3035 := <-this.PrivateDeleteFuturesApiV3TradeOrders(this.Extend(request, paramsOmitted))
+		if listEp3035.Err != nil {
+			panic(listEp3035.Err)
 		}
-		response = listEp3032.Value
+		response = listEp3035.Value
 	}
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
@@ -3401,21 +3401,21 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 			request["symbol"] = this.SafeString(market, "id")
 		}
 
-		listEp3185 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3185.Err != nil {
-			panic(listEp3185.Err)
+		listEp3188 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3188.Err != nil {
+			panic(listEp3188.Err)
 		}
-		response = listEp3185.Value
+		response = listEp3188.Value
 	} else {
 		if symbol != nil {
 			request["symbol"] = this.FuturesRequestId(this.Market(symbol))
 		}
 
-		listEp3191 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3191.Err != nil {
-			panic(listEp3191.Err)
+		listEp3194 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3194.Err != nil {
+			panic(listEp3194.Err)
 		}
-		response = listEp3191.Value
+		response = listEp3194.Value
 	}
 	// the endpoints have no server side time filters, accept a bare array
 	// and a data envelope and filter client-side
@@ -3612,20 +3612,20 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
-		listEp3385 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
-		if listEp3385.Err != nil {
-			panic(listEp3385.Err)
+		listEp3388 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
+		if listEp3388.Err != nil {
+			panic(listEp3388.Err)
 		}
-		response = listEp3385.Value
+		response = listEp3388.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3390 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
-		if listEp3390.Err != nil {
-			panic(listEp3390.Err)
+		listEp3393 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
+		if listEp3393.Err != nil {
+			panic(listEp3393.Err)
 		}
-		response = listEp3390.Value
+		response = listEp3393.Value
 	}
 	//
 	//     [
@@ -4193,20 +4193,20 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp3929 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
-		if listEp3929.Err != nil {
-			panic(listEp3929.Err)
-		}
-		response = listEp3929.Value
-	} else {
-		// the futures fees stay on the legacy endpoint, the unified futures
-		// api has no fees route
-
-		listEp3934 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		listEp3934 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
 		if listEp3934.Err != nil {
 			panic(listEp3934.Err)
 		}
 		response = listEp3934.Value
+	} else {
+		// the futures fees stay on the legacy endpoint, the unified futures
+		// api has no fees route
+
+		listEp3939 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		if listEp3939.Err != nil {
+			panic(listEp3939.Err)
+		}
+		response = listEp3939.Value
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
@@ -4450,11 +4450,11 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4162 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
-	if listEp4162.Err != nil {
-		panic(listEp4162.Err)
+	listEp4167 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
+	if listEp4167.Err != nil {
+		panic(listEp4167.Err)
 	}
-	var response []any = listEp4162.Value
+	var response []any = listEp4167.Value
 	//
 	//     [
 	//         {
@@ -4556,11 +4556,11 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4254 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
-	if listEp4254.Err != nil {
-		panic(listEp4254.Err)
+	listEp4259 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
+	if listEp4259.Err != nil {
+		panic(listEp4259.Err)
 	}
-	var response []any = listEp4254.Value
+	var response []any = listEp4259.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
