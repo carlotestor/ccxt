@@ -4193,20 +4193,20 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp3929 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
-		if listEp3929.Err != nil {
-			panic(listEp3929.Err)
+		listEp3931 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
+		if listEp3931.Err != nil {
+			panic(listEp3931.Err)
 		}
-		response = listEp3929.Value
+		response = listEp3931.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3934 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
-		if listEp3934.Err != nil {
-			panic(listEp3934.Err)
+		listEp3936 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		if listEp3936.Err != nil {
+			panic(listEp3936.Err)
 		}
-		response = listEp3934.Value
+		response = listEp3936.Value
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
@@ -4450,11 +4450,11 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4162 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
-	if listEp4162.Err != nil {
-		panic(listEp4162.Err)
+	listEp4164 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
+	if listEp4164.Err != nil {
+		panic(listEp4164.Err)
 	}
-	var response []any = listEp4162.Value
+	var response []any = listEp4164.Value
 	//
 	//     [
 	//         {
@@ -4556,11 +4556,11 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4254 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
-	if listEp4254.Err != nil {
-		panic(listEp4254.Err)
+	listEp4256 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
+	if listEp4256.Err != nil {
+		panic(listEp4256.Err)
 	}
-	var response []any = listEp4254.Value
+	var response []any = listEp4256.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}

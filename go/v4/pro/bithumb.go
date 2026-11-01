@@ -622,18 +622,13 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		}())
 		if !(this.Orderbooks.Has(legacySymbol)) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
-			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
-			if legacySymbol != nil {
-				this.Orderbooks[*legacySymbol] = ob
-			}
+			ob.SetSymbol(legacySymbol)
+			this.Orderbooks.Store(legacySymbol, ob)
 		}
-		var legacyOrderbook ccxt.OrderBookInterface
-		if legacySymbol != nil {
-			legacyOrderbook = this.Orderbooks[*legacySymbol]
-		}
+		var legacyOrderbook ccxt.OrderBookInterface = this.Orderbooks.Get(legacySymbol)
 		this.HandleBookDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
-		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
+		legacyOrderbook.SetDatetime(this.Iso8601(legacyTimestamp))
 		var legacyMessageHash string = "orderbook" + ":" + *legacySymbol
 		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
 		return
@@ -645,10 +640,10 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, obLimit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp int64 = this.Milliseconds()
@@ -1086,7 +1081,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription map[string]any) []any {
 	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var subscriptions map[string]any = this.SafeDictMap(wsOptions, "gen2Subscriptions", map[string]any{})
-	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
+	subscriptions[subscriptionType] = subscription
 	wsOptions["gen2Subscriptions"] = subscriptions
 	this.Options["ws"] = wsOptions
 	var request []any = []any{map[string]any{

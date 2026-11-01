@@ -327,13 +327,10 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(symbol)) {
 			return
 		}
-		var orderbook ccxt.OrderBookInterface
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		if timestamp == nil {
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
+			ccxt.AppendToArray(orderbook.GetCache(), message)
 		} else {
 
 			{
@@ -345,9 +342,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 							}
 							ret_ = func(this *Woo) any {
 								// catch block:
-								if symbol != nil {
-									delete(this.Orderbooks, *symbol)
-								}
+								this.Orderbooks.Delete(symbol)
 								if topic != nil {
 									client.(ccxt.ClientInterface).SubscriptionDel(topic)
 								}
@@ -375,17 +370,12 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(topic)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-			}
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface
-		if symbol != nil {
-			orderbook = this.Orderbooks[*symbol]
-		}
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 	}
 }
@@ -396,10 +386,10 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	if symbol == nil {
 		return
 	}
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
 	ccxt.AddElementToObject(orderbook, "timestamp", nil)
 	ccxt.AddElementToObject(orderbook, "datetime", nil)
@@ -1064,10 +1054,8 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && timeframe != nil {
@@ -1915,10 +1903,7 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {

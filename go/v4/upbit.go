@@ -1343,11 +1343,11 @@ func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		"count":  limitResolved,
 	}
 
-	listEp1292 := <-this.PublicGetTradesTicks(this.Extend(request, params))
-	if listEp1292.Err != nil {
-		panic(listEp1292.Err)
+	listEp1294 := <-this.PublicGetTradesTicks(this.Extend(request, params))
+	if listEp1294.Err != nil {
+		panic(listEp1294.Err)
 	}
-	var response []any = listEp1292.Value
+	var response []any = listEp1294.Value
 
 	//
 	//     [ {             market: "BTC-ETH",
@@ -1593,18 +1593,18 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
 		request["unit"] = numMinutes
 
-		listEp1522 := <-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))
-		if listEp1522.Err != nil {
-			panic(listEp1522.Err)
+		listEp1524 := <-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))
+		if listEp1524.Err != nil {
+			panic(listEp1524.Err)
 		}
-		response = listEp1522.Value
+		response = listEp1524.Value
 	} else {
 
-		listEp1525 := <-this.PublicGetCandlesTimeframe(this.Extend(request, params))
-		if listEp1525.Err != nil {
-			panic(listEp1525.Err)
+		listEp1527 := <-this.PublicGetCandlesTimeframe(this.Extend(request, params))
+		if listEp1527.Err != nil {
+			panic(listEp1527.Err)
 		}
-		response = listEp1525.Value
+		response = listEp1527.Value
 	}
 	//
 	//     [
@@ -2100,11 +2100,11 @@ func (this *Upbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["limit"] = limit // default is 100
 	}
 
-	listEp1993 := <-this.PrivateGetDeposits(this.Extend(request, params))
-	if listEp1993.Err != nil {
-		panic(listEp1993.Err)
+	listEp1995 := <-this.PrivateGetDeposits(this.Extend(request, params))
+	if listEp1995.Err != nil {
+		panic(listEp1995.Err)
 	}
-	var response []any = listEp1993.Value
+	var response []any = listEp1995.Value
 
 	//
 	//     [
@@ -2236,11 +2236,11 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["limit"] = limit // default is 100
 	}
 
-	listEp2115 := <-this.PrivateGetWithdraws(this.Extend(request, params))
-	if listEp2115.Err != nil {
-		panic(listEp2115.Err)
+	listEp2117 := <-this.PrivateGetWithdraws(this.Extend(request, params))
+	if listEp2117.Err != nil {
+		panic(listEp2117.Err)
 	}
-	var response []any = listEp2115.Value
+	var response []any = listEp2117.Value
 
 	//
 	//     [
@@ -2625,11 +2625,11 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["limit"] = limit
 	}
 
-	listEp2490 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2490.Err != nil {
-		panic(listEp2490.Err)
+	listEp2492 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2492.Err != nil {
+		panic(listEp2492.Err)
 	}
-	var response []any = listEp2490.Value
+	var response []any = listEp2492.Value
 
 	//
 	//     [
@@ -2709,11 +2709,11 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
-	listEp2567 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
-	if listEp2567.Err != nil {
-		panic(listEp2567.Err)
+	listEp2569 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
+	if listEp2569.Err != nil {
+		panic(listEp2569.Err)
 	}
-	var response []any = listEp2567.Value
+	var response []any = listEp2569.Value
 
 	//
 	//     [
@@ -2794,11 +2794,11 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
-	listEp2645 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
-	if listEp2645.Err != nil {
-		panic(listEp2645.Err)
+	listEp2647 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
+	if listEp2647.Err != nil {
+		panic(listEp2647.Err)
 	}
-	var response []any = listEp2645.Value
+	var response []any = listEp2647.Value
 
 	//
 	//     [
@@ -2944,11 +2944,11 @@ func (this *Upbit) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddres
 		}
 	}
 
-	listEp2781 := <-this.PrivateGetDepositsCoinAddresses(params)
-	if listEp2781.Err != nil {
-		panic(listEp2781.Err)
+	listEp2783 := <-this.PrivateGetDepositsCoinAddresses(params)
+	if listEp2783.Err != nil {
+		panic(listEp2783.Err)
 	}
-	var response []any = listEp2781.Value
+	var response []any = listEp2783.Value
 
 	//
 	//     [

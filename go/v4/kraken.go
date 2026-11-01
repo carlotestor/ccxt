@@ -4192,7 +4192,9 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	if paginate {
-		AddElementToObject(paramsPaginate, "cursor", true)
+		if paramsPaginate != nil {
+			paramsPaginate["cursor"] = true
+		}
 
 		r1 := <-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor")
 		if r1.Err != nil {
@@ -4436,8 +4438,8 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv4236, _ := MapSliceToList(r1.Value), r1.Value != nil
-		var depositMethods []any = listRecv4236
+		listRecv4238, _ := MapSliceToList(r1.Value), r1.Value != nil
+		var depositMethods []any = listRecv4238
 		if network != nil {
 			// find best matching deposit method, or fallback to the first one
 			for i := 0; i < len(depositMethods); i++ {

@@ -299,7 +299,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	}
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var market map[string]any = this.Market(symbol)
@@ -311,7 +311,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
-	this.Trades[*symbol] = stored
+	this.Trades.Store(symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -1274,8 +1274,8 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if _, ok := this.Orderbooks[symbol]; !ok {
-		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
@@ -1332,11 +1332,11 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "time")
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
-	this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
-	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
-	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(storedOrderBook, "nonce", incrementalId)
+	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
+	this.HandleDeltas(storedOrderBook.GetBids(), bids)
+	storedOrderBook.SetTimestamp(timestamp)
+	storedOrderBook.SetDatetime(this.Iso8601(timestamp))
+	storedOrderBook.SetNonce(incrementalId)
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Cex) HandleDelta(bookside any, delta any) {

@@ -407,14 +407,9 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
 	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(this.Orderbooks.Has(symbol)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	// upbit always returns a snapshot of 15 topmost entries
 	// the "REALTIME" deltas are not incremental
 	// therefore we reset the orderbook on each update
@@ -468,7 +463,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	stored.Append(trade)
 	var messageHash string = "trade:" + *symbol

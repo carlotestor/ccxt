@@ -838,8 +838,8 @@ func (this *Gemini) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv823, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
-	var retRes56815 []any = listRecv823
+	listRecv825, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
+	var retRes56815 []any = listRecv825
 	if retRes56815 == nil {
 		ch <- AsyncResult[[]MarketInterface]{Value: nil}
 	} else {
@@ -1656,11 +1656,11 @@ func (this *Gemini) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 	}
 
-	listEp1622 := <-this.PublicGetV1Pricefeed(params)
-	if listEp1622.Err != nil {
-		panic(listEp1622.Err)
+	listEp1624 := <-this.PublicGetV1Pricefeed(params)
+	if listEp1624.Err != nil {
+		panic(listEp1624.Err)
 	}
-	var response []any = listEp1622.Value
+	var response []any = listEp1624.Value
 	//
 	//     [
 	//         {
@@ -1790,11 +1790,11 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["timestamp"] = since
 	}
 
-	listEp1749 := <-this.PublicGetV1TradesSymbol(this.Extend(request, params))
-	if listEp1749.Err != nil {
-		panic(listEp1749.Err)
+	listEp1751 := <-this.PublicGetV1TradesSymbol(this.Extend(request, params))
+	if listEp1751.Err != nil {
+		panic(listEp1751.Err)
 	}
-	var response []any = listEp1749.Value
+	var response []any = listEp1751.Value
 
 	//
 	//     [
@@ -1939,11 +1939,11 @@ func (this *Gemini) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 	}
 
-	listEp1885 := <-this.PrivatePostV1Balances(params)
-	if listEp1885.Err != nil {
-		panic(listEp1885.Err)
+	listEp1887 := <-this.PrivatePostV1Balances(params)
+	if listEp1887.Err != nil {
+		panic(listEp1887.Err)
 	}
-	var response []any = listEp1885.Value
+	var response []any = listEp1887.Value
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
@@ -2216,11 +2216,11 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 	}
 
-	listEp2148 := <-this.PrivatePostV1Orders(params)
-	if listEp2148.Err != nil {
-		panic(listEp2148.Err)
+	listEp2150 := <-this.PrivatePostV1Orders(params)
+	if listEp2150.Err != nil {
+		panic(listEp2150.Err)
 	}
-	var response []any = listEp2148.Value
+	var response []any = listEp2150.Value
 	//
 	//      [
 	//          {
@@ -2491,11 +2491,11 @@ func (this *Gemini) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp2402 := <-this.PrivatePostV1Mytrades(this.Extend(request, params))
-	if listEp2402.Err != nil {
-		panic(listEp2402.Err)
+	listEp2404 := <-this.PrivatePostV1Mytrades(this.Extend(request, params))
+	if listEp2404.Err != nil {
+		panic(listEp2404.Err)
 	}
-	var response []any = listEp2402.Value
+	var response []any = listEp2404.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -2625,11 +2625,11 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 		request["timestamp"] = since
 	}
 
-	listEp2525 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
-	if listEp2525.Err != nil {
-		panic(listEp2525.Err)
+	listEp2527 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
+	if listEp2527.Err != nil {
+		panic(listEp2527.Err)
 	}
-	var response []any = listEp2525.Value
+	var response []any = listEp2527.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response))}
 	return nil
@@ -2798,11 +2798,11 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		"network": networkId,
 	}
 
-	listEp2686 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
-	if listEp2686.Err != nil {
-		panic(listEp2686.Err)
+	listEp2688 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
+	if listEp2688.Err != nil {
+		panic(listEp2688.Err)
 	}
-	var response []any = listEp2686.Value
+	var response []any = listEp2688.Value
 	var results []any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,

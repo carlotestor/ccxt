@@ -420,20 +420,20 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
-			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
+			if _, ok := this.Ohlcvs[*symbol]; (symbol != nil) && (timeframe != nil) && ok {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
-			if _, ok := this.Orderbooks[symbol]; ok {
-				delete(this.Orderbooks, symbol)
+			if this.Orderbooks.Has(symbol) {
+				this.Orderbooks.Delete(symbol)
 			}
 		} else if strings.Index(*messageHash, "trades") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:trades:", "", 1)
 			if _, ok := this.Trades[symbol]; ok {
-				delete(this.Trades, symbol)
+				this.Trades.Delete(symbol)
 			}
 		} else if strings.Index(*messageHash, "orders") >= 0 {
 			if messageHash != nil && *messageHash == "unsubscribe:orders" {
@@ -1172,20 +1172,20 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	var stream string = *this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
 	var ohlcv any
-	if symbol != nil && timeframe != nil {
+	if symbol != nil {
 		ohlcv = this.Ohlcvs[*symbol][*timeframe]
 	}
 	var parsed any = this.ParseWsOHLCV(data)
@@ -1750,15 +1750,10 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var storedOrderBook ccxt.OrderBookInterface
-	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol]
-	}
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
@@ -2229,9 +2224,7 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	}, "balances", map[string]any{})
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	if parsed != nil {
-		parsed["timestamp"] = timestamp
-	}
+	parsed["timestamp"] = timestamp
 	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(parsed, "info", assets)
 	this.WsBalanceReplace(parsed)

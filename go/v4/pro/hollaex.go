@@ -135,12 +135,12 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		var timestampMs *int64 = this.Parse8601(timestamp)
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
 		var orderbook ccxt.OrderBookInterface
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			orderbook = this.OrderBook(snapshot)
-			this.Orderbooks[*symbol] = orderbook
+			this.Orderbooks.Store(symbol, orderbook)
 		} else {
-			orderbook = this.Orderbooks[*symbol]
-			if ccxt.IsEqual(orderbook, nil) {
+			orderbook = this.Orderbooks.Get(symbol)
+			if orderbook == nil {
 				return
 			}
 			orderbook.Reset(snapshot)
@@ -227,7 +227,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)

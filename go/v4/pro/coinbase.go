@@ -1145,7 +1145,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCacheBySymbolById(tradesLimit)
-		this.Trades[*symbol] = tradesArray
+		this.Trades.Store(symbol, tradesArray)
 	}
 	for i := 0; i < len(events); i++ {
 		var currentEvent map[string]any = ccxt.SafeMapTyped(events, i)
@@ -1286,7 +1286,7 @@ func (this *Coinbase) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades": nil,
 	}))
 }
-func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates []any) {
+func (this *Coinbase) HandleOrderBookHelper(orderbook ccxt.OrderBookInterface, updates []any) {
 	for i := 0; i < len(updates); i++ {
 		var trade map[string]any = ccxt.SafeMapTyped(updates, i)
 		var sideId *string = this.SafeString(trade, "side")
@@ -1343,13 +1343,13 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var typeVar *string = this.SafeString(event, "type")
 		if typeVar != nil && *typeVar == "snapshot" {
-			if _, ok := this.Orderbooks[*symbol]; !ok {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			if !(this.Orderbooks.Has(symbol)) {
+				this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 			}
-		} else if _, ok := this.Orderbooks[*symbol]; !ok {
+		} else if !(this.Orderbooks.Has(symbol)) {
 			continue
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		if typeVar != nil && *typeVar == "snapshot" {
 			// reset in place so consumers holding a reference keep receiving updates after a resync
 			orderbook.Reset(map[string]any{})

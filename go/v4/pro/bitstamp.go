@@ -475,7 +475,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = tradesArray
+		this.Trades.Store(symbol, tradesArray)
 	}
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
@@ -1027,15 +1027,10 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 }

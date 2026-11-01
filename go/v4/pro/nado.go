@@ -2323,7 +2323,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = trades
+		this.Trades.Store(symbol, trades)
 	}
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	trades.Append(trade)
@@ -2365,14 +2365,11 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
-	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
-	}
+	var stored any = this.Ohlcvs[*symbol][*timeframe]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil && this.Ohlcvs[*symbol] != nil {
+		if this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
@@ -2678,10 +2675,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	if !(this.Orderbooks.Has(symbol)) {
 		return
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var messageHash string = "orderbook:" + *symbol
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")
 	var lastMaxTimestamp *string = this.SafeString(message, "last_max_timestamp")
@@ -2700,7 +2694,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 		if subscriptionMsg != nil {
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
-		delete(this.Orderbooks, *symbol)
+		this.Orderbooks.Delete(symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
@@ -2798,18 +2792,18 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 	if strings.Index(messageHash, "trade:") == 0 {
 		var symbol string = strings.Replace(messageHash, "trade:", "", 1)
 		if _, ok := this.Trades[symbol]; ok {
-			delete(this.Trades, symbol)
+			this.Trades.Delete(symbol)
 		}
 	} else if strings.Index(messageHash, "orderbook:") == 0 {
 		var symbol string = strings.Replace(messageHash, "orderbook:", "", 1)
-		if _, ok := this.Orderbooks[symbol]; ok {
-			delete(this.Orderbooks, symbol)
+		if this.Orderbooks.Has(symbol) {
+			this.Orderbooks.Delete(symbol)
 		}
 	} else if strings.Index(messageHash, "ohlcv:") == 0 {
 		var parts []string = strings.Split(messageHash, ":")
 		var timeframe *string = this.SafeString(parts, 1)
 		var symbol *string = this.SafeString(parts, 2)
-		if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+		if _, ok := this.Ohlcvs[*symbol]; (symbol != nil) && (timeframe != nil) && ok && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
 			delete(this.Ohlcvs[*symbol], *timeframe)
 		}
 	} else if strings.Index(messageHash, "ticker:") == 0 {

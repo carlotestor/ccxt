@@ -4106,11 +4106,11 @@ func (this *Backpack) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		"symbol": market["id"],
 	}
 
-	listEp3873 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
-	if listEp3873.Err != nil {
-		panic(listEp3873.Err)
+	listEp3875 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
+	if listEp3875.Err != nil {
+		panic(listEp3875.Err)
 	}
-	var response []any = listEp3873.Value
+	var response []any = listEp3875.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
@@ -4404,11 +4404,11 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 		}
 	}
 
-	listEp4155 := <-this.PrivateGetApiV1Position(params)
-	if listEp4155.Err != nil {
-		panic(listEp4155.Err)
+	listEp4157 := <-this.PrivateGetApiV1Position(params)
+	if listEp4157.Err != nil {
+		panic(listEp4157.Err)
 	}
-	var response []any = listEp4155.Value
+	var response []any = listEp4157.Value
 	if this.IsEmpty(symbols) {
 
 		ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response))}
@@ -4551,11 +4551,11 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["limit"] = limit
 	}
 
-	listEp4295 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
-	if listEp4295.Err != nil {
-		panic(listEp4295.Err)
+	listEp4297 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
+	if listEp4297.Err != nil {
+		panic(listEp4297.Err)
 	}
-	var response []any = listEp4295.Value
+	var response []any = listEp4297.Value
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil

@@ -7114,7 +7114,9 @@ func (this *BaseExchange) ParseIsolatedBorrowRates(info any) map[string]any {
 		var item any = this.SafeValue(info, i)
 		var borrowRate map[string]any = this.ParseIsolatedBorrowRate(item)
 		var symbol *string = this.SafeString(borrowRate, "symbol")
-		AddElementToObject(result, symbol, borrowRate)
+		if symbol != nil {
+			result[*symbol] = borrowRate
+		}
 	}
 	return result
 }
@@ -9214,7 +9216,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 				panic(ArgumentsRequired(this.Id + " cleanCache() requires a timeframe argument"))
 			}
 			if _, ok := this.Ohlcvs[*symbol]; ok {
-				if InOp(this.Ohlcvs[*symbol], timeframe) {
+				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
@@ -9223,12 +9225,12 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
-				if _, ok := this.Trades[*symbol]; ok {
-					delete(this.Trades, *symbol)
+				if InOp(this.Trades, symbol) {
+					this.Trades.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {
 				if this.Orderbooks.Has(symbol) {
-					delete(this.Orderbooks, *symbol)
+					this.Orderbooks.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "ticker" {
 				if this.Tickers.Has(symbol) {
@@ -11538,8 +11540,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11157, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11157
+	listRecv11161, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11161
 	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

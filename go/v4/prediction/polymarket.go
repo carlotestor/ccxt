@@ -770,9 +770,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 				_, ok := seen[*eventId]
 				return ok
 			}()) {
-				if eventId != nil {
-					seen[*eventId] = true
-				}
+				seen[*eventId] = true
 				rawEvents = append(rawEvents, rawEvent)
 			}
 		}
@@ -1532,7 +1530,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
 			if _, ok := outcomesByTokenId[*tokenId]; !ok {
-				ccxt.AddElementToObject(outcomesByTokenId, tokenId, outcomeObj)
+				outcomesByTokenId[*tokenId] = outcomeObj
 				tokenIds = append(tokenIds, tokenId)
 			}
 		}
@@ -2097,11 +2095,11 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 		"market": conditionId,
 	}
 
-	listEp2004 := <-this.DataPublicGetOi(this.Extend(request, params))
-	if listEp2004.Err != nil {
-		panic(listEp2004.Err)
+	listEp2002 := <-this.DataPublicGetOi(this.Extend(request, params))
+	if listEp2002.Err != nil {
+		panic(listEp2002.Err)
 	}
-	var response []any = listEp2004.Value
+	var response []any = listEp2002.Value
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
@@ -4457,15 +4455,15 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		if (outcome == nil) || !(this.Orderbooks.Has(outcome)) {
 			continue
 		}
-		var orderbook any = this.Orderbooks.Get(outcome)
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcome)
 		var price *float64 = this.SafeNumber(change, "price")
 		var size *float64 = this.SafeNumber(change, "size")
 		var isBuy bool = (this.SafeStringUpper(change, "side", "") != nil && *this.SafeStringUpper(change, "side", "") == "BUY")
 		var side any = func() any {
 			if isBuy {
-				return ccxt.GetValue(orderbook, "bids")
+				return orderbook.GetBids()
 			}
-			return ccxt.GetValue(orderbook, "asks")
+			return orderbook.GetAsks()
 		}()
 		// storeArray([price, size]) inserts/updates or removes (size=0) the level
 		var sideRef any = side
@@ -4483,7 +4481,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	for k := 0; k < len(updatedSymbols); k++ {
 		var outcome string = updatedSymbols[k]
-		var orderbook any = this.Orderbooks[outcome]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}

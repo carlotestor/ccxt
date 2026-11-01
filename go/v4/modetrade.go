@@ -3886,8 +3886,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3622, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3622
+	listRecv3624, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3624
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4087,8 +4087,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3810, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3810
+	listRecv3812, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3812
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//

@@ -873,10 +873,10 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		orderbook.SetCache([]any{})
 	}
@@ -917,9 +917,9 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash string = "orderbook:" + *symbol
 	if ccxt.IsEqual(this.Orderbooks.Get(symbol), nil) {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, 1000)
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, 1000))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if full != nil && *full {
 		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
 		snapshopt["nonce"] = this.SafeInteger(result, "u")
@@ -1011,7 +1011,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if nonce == nil {
 		var cacheLength int64 = this.ParseToInt(0)
-		if !ccxt.IsEqual(storedOrderBook, nil) {
+		if storedOrderBook != nil {
 			var storedCacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
 			cacheLength = this.ParseToInt(storedCacheLength)
 		}
@@ -1564,7 +1564,7 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			cachedTrades = ccxt.NewArrayCache(limit)
 			if symbol != nil {
-				this.Trades[*symbol] = cachedTrades
+				this.Trades.Store(symbol, cachedTrades)
 			}
 		}
 		cachedTrades.Append(trade)
@@ -2240,10 +2240,7 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = ccxt.GetValue(this.WsCacheObjGet("Positions"), typeVar)
 	for i := 0; i < len(positions); i++ {

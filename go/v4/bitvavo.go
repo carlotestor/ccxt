@@ -1458,11 +1458,11 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
-	listEp1400 := <-this.PublicGetMarketCandles(request)
-	if listEp1400.Err != nil {
-		panic(listEp1400.Err)
+	listEp1402 := <-this.PublicGetMarketCandles(request)
+	if listEp1402.Err != nil {
+		panic(listEp1402.Err)
 	}
-	var response []any = listEp1400.Value
+	var response []any = listEp1402.Value
 
 	//
 	//     [
@@ -1520,11 +1520,11 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		}
 	}
 
-	listEp1455 := <-this.PrivateGetBalance(params)
-	if listEp1455.Err != nil {
-		panic(listEp1455.Err)
+	listEp1457 := <-this.PrivateGetBalance(params)
+	if listEp1457.Err != nil {
+		panic(listEp1457.Err)
 	}
-	var response []any = listEp1455.Value
+	var response []any = listEp1457.Value
 
 	//
 	//     [
@@ -2317,11 +2317,11 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	listEp2190 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
-	if listEp2190.Err != nil {
-		panic(listEp2190.Err)
+	listEp2192 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
+	if listEp2192.Err != nil {
+		panic(listEp2192.Err)
 	}
-	var response []any = listEp2190.Value
+	var response []any = listEp2192.Value
 
 	//
 	//     [
@@ -2558,11 +2558,11 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2407 := <-this.PrivateGetOrders(request)
-	if listEp2407.Err != nil {
-		panic(listEp2407.Err)
+	listEp2409 := <-this.PrivateGetOrders(request)
+	if listEp2409.Err != nil {
+		panic(listEp2409.Err)
 	}
-	var response []any = listEp2407.Value
+	var response []any = listEp2409.Value
 
 	//
 	//     [
@@ -2645,11 +2645,11 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 
-	listEp2487 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2487.Err != nil {
-		panic(listEp2487.Err)
+	listEp2489 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2489.Err != nil {
+		panic(listEp2489.Err)
 	}
-	var response []any = listEp2487.Value
+	var response []any = listEp2489.Value
 
 	//
 	//     [
@@ -2892,11 +2892,11 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2723 := <-this.PrivateGetTrades(request)
-	if listEp2723.Err != nil {
-		panic(listEp2723.Err)
+	listEp2725 := <-this.PrivateGetTrades(request)
+	if listEp2725.Err != nil {
+		panic(listEp2725.Err)
 	}
-	var response []any = listEp2723.Value
+	var response []any = listEp2725.Value
 
 	//
 	//     [
@@ -3195,11 +3195,11 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		currency = this.Currency(code)
 	}
 
-	listEp3000 := <-this.PrivateGetWithdrawalHistory(request)
-	if listEp3000.Err != nil {
-		panic(listEp3000.Err)
+	listEp3002 := <-this.PrivateGetWithdrawalHistory(request)
+	if listEp3002.Err != nil {
+		panic(listEp3002.Err)
 	}
-	var response []any = listEp3000.Value
+	var response []any = listEp3002.Value
 
 	//
 	//     [
@@ -3284,11 +3284,11 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		currency = this.Currency(code)
 	}
 
-	listEp3082 := <-this.PrivateGetDepositHistory(request)
-	if listEp3082.Err != nil {
-		panic(listEp3082.Err)
+	listEp3084 := <-this.PrivateGetDepositHistory(request)
+	if listEp3084.Err != nil {
+		panic(listEp3084.Err)
 	}
-	var response []any = listEp3082.Value
+	var response []any = listEp3084.Value
 
 	//
 	//     [
@@ -3480,11 +3480,11 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 		}
 	}
 
-	listEp3271 := <-this.PublicGetAssets(params)
-	if listEp3271.Err != nil {
-		panic(listEp3271.Err)
+	listEp3273 := <-this.PublicGetAssets(params)
+	if listEp3273.Err != nil {
+		panic(listEp3273.Err)
 	}
-	var response []any = listEp3271.Value
+	var response []any = listEp3273.Value
 
 	//
 	//   [

@@ -680,10 +680,8 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1276,9 +1274,7 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 		var messageItem any = ccxt.GetValue(messages, i)
 		this.HandleOrderBookMessage(client, messageItem, orderbook)
 	}
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	// getBook is a one-shot request but this.watch tracks it as a persistent
 	// subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
@@ -1294,16 +1290,11 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]
 	var limits map[string]any = this.SafeDictMap(this.Options, "orderBookLimits", map[string]any{})
 	var storedLimit *int64 = this.SafeInteger(limits, symbol)
 	if !(this.Orderbooks.Has(symbol)) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		ccxt.AddElementToObject(limits, symbol, limit)
 		this.Options["orderBookLimits"] = limits
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 }
@@ -1322,9 +1313,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 				// multi-symbol watches share one subscription object without a
 				// per-market method - initialize the order book directly
 				var limit *int64 = this.SafeInteger(subscription, "limit")
-				if symbol != nil {
-					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-				}
+				this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 			}
 		}
 	}
@@ -2454,7 +2443,7 @@ func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
 	var response []any = ccxt.SafeListTyped(message, "response")
-	var currencies any = this.ParseCurrencies(response)
+	var currencies map[string]any = this.ParseCurrencies(response)
 	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
 }
 func (this *Bitvavo) HandleTradingFees(client any, message map[string]any) {

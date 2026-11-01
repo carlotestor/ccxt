@@ -834,9 +834,7 @@ func (this *Bithumb) ParseBalanceList(response any) map[string]any {
 			}
 			account["free"] = this.SafeString(entry, "balance")
 			account["used"] = this.SafeString(entry, "locked")
-			if code != nil {
-				result[*code] = account
-			}
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)
@@ -3682,22 +3680,22 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3486 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
-		if listEp3486.Err != nil {
-			panic(listEp3486.Err)
+		listEp3484 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
+		if listEp3484.Err != nil {
+			panic(listEp3484.Err)
 		}
-		response = listEp3486.Value
+		response = listEp3484.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = currency["id"]
 		}
 
-		listEp3493 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
-		if listEp3493.Err != nil {
-			panic(listEp3493.Err)
+		listEp3491 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
+		if listEp3491.Err != nil {
+			panic(listEp3491.Err)
 		}
-		response = listEp3493.Value
+		response = listEp3491.Value
 	}
 
 	//
@@ -3846,22 +3844,22 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3632 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
-		if listEp3632.Err != nil {
-			panic(listEp3632.Err)
+		listEp3630 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
+		if listEp3630.Err != nil {
+			panic(listEp3630.Err)
 		}
-		response = listEp3632.Value
+		response = listEp3630.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = currency["id"]
 		}
 
-		listEp3639 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
-		if listEp3639.Err != nil {
-			panic(listEp3639.Err)
+		listEp3637 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
+		if listEp3637.Err != nil {
+			panic(listEp3637.Err)
 		}
-		response = listEp3639.Value
+		response = listEp3637.Value
 	}
 
 	//
@@ -4041,11 +4039,11 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3802 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
-	if listEp3802.Err != nil {
-		panic(listEp3802.Err)
+	listEp3800 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
+	if listEp3800.Err != nil {
+		panic(listEp3800.Err)
 	}
-	var response []any = listEp3802.Value
+	var response []any = listEp3800.Value
 
 	//
 	//     [

@@ -1064,7 +1064,7 @@ func (this *Kucoin) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+symbol)
 		// watchTickers
 		var allTickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(allTickers, symbol, ticker)
+		allTickers[symbol] = ticker
 		client.(ccxt.ClientInterface).Resolve(allTickers, "tickers")
 	} else {
 		this.HandleContractTicker(client, message)
@@ -1619,7 +1619,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
@@ -1669,7 +1669,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
@@ -1993,7 +1993,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	cache.Append(trade)
@@ -2024,7 +2024,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var cache ccxt.WsArrayCache = this.Trades.Get(symbol)
 	cache.Append(trade)
@@ -2486,22 +2486,22 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook:" + *symbol
 	// let orderbook = this.safeDict (this.orderbooks, symbol)
 	if strings.Index(*topic, "Depth") >= 0 {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook())
 		} else {
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-			orderbook.(ccxt.OrderBookInterface).Reset()
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+			orderbook.Reset()
 		}
-		ccxt.AddElementToObject(this.Orderbooks[*symbol], "symbol", symbol)
+		ccxt.AddElementToObject(this.Orderbooks.Get(symbol), "symbol", symbol)
 	} else {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook())
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
+			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
 			var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 			var subscription any = nil
 			for i := 0; i < len(subscriptions); i++ {
@@ -2516,13 +2516,13 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 			}
-			ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), data)
+			ccxt.AppendToArray(orderbook.GetCache(), data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return
 		}
 	}
-	var book ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var book ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
@@ -2550,17 +2550,17 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(data, "M", 0.000001)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var depth string = *this.SafeString(message, "dp", "")
 	var messageHash string = "uta:orderbook:" + *symbol + ":depth:" + depth
 	if typeVar != nil && *typeVar == "snapshot" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", 0, 1)
 		parsed["nonce"] = this.SafeInteger(data, "O")
 		orderbook.Reset(parsed)
-		this.Orderbooks[*symbol] = orderbook
+		this.Orderbooks.Store(symbol, orderbook)
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
@@ -2581,7 +2581,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			return
 		}
 	}
-	var book ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var book ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
@@ -4060,10 +4060,7 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolById())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {

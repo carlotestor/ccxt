@@ -566,10 +566,8 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && timeframe != nil {
@@ -761,7 +759,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						}
 						if symbol != nil {
-							delete(this.Orderbooks, *symbol)
+							this.Orderbooks.Delete(symbol)
 						}
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						return nil
@@ -813,7 +811,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 				}
 				orderbook.SetCache([]any{})
 				if symbol != nil {
-					this.Orderbooks[*symbol] = orderbook
+					this.Orderbooks.Store(symbol, orderbook)
 				}
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 			}
@@ -978,10 +976,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
@@ -1005,16 +1000,16 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	if (spotConditon) || (nonSpotCondition) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
-		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+		this.HandleDeltas(orderbook.GetAsks(), asks)
+		this.HandleDeltas(orderbook.GetBids(), bids)
 		ccxt.AddElementToObject(orderbook, "nonce", func() any {
 			if spotConditon {
 				return seqNum
 			}
 			return version
 		}())
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 }
 func (this *Htx) HandleOrderBook(client any, message map[string]any) {
@@ -1080,14 +1075,9 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 		}
 		var sizeParts []string = strings.Split(*size, "_")
 		var limit *int64 = this.SafeInteger(sizeParts, 1)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if (event == nil) && (this.SafeInteger(orderbook, "nonce") == nil) {
 		ccxt.AppendToArray(orderbook.GetCache(), message)
 	} else {
@@ -1100,10 +1090,10 @@ func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any,
 	var market map[string]any = this.Market(symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		if !(this.Orderbooks.Has(symbol)) {
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
 		orderbook.SetCache([]any{})
 	}

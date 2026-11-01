@@ -1125,9 +1125,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 		account["used"] = used
 		account["total"] = this.SafeString(balance, "total")
-		if code != nil {
-			result[*code] = account
-		}
+		result[*code] = account
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.SafeBalance(result).(map[string]any))}

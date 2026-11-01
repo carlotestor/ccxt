@@ -1275,10 +1275,8 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any = func() any {
 		if timeframe == nil {
@@ -1341,7 +1339,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
 				if symbol != nil {
-					this.Trades[*symbol] = tradesArray
+					this.Trades.Store(symbol, tradesArray)
 				}
 			}
 			tradesArray.Append(trade)
@@ -1809,7 +1807,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			if snapshot && (orderbook == nil) {
 				orderbook = this.OrderBook(map[string]any{}, limit)
-				this.Orderbooks[*symbol] = orderbook
+				this.Orderbooks.Store(symbol, orderbook)
 			}
 			if orderbook == nil {
 				continue

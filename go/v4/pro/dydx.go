@@ -186,7 +186,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var parsedTrades []any = this.ParseTrades(rawTrades, market)
 	for i := 0; i < len(parsedTrades); i++ {
@@ -368,7 +368,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetNonce(this.SafeInteger(message, "message_id"))
 	var messageHash string = "orderbook:" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Dydx) HandleDelta(bookside any, delta any) {
@@ -574,7 +574,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}

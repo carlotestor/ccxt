@@ -7735,7 +7735,9 @@ func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) map[st
 		var currency map[string]any = this.SafeCurrency(currencyId)
 		var code *string = this.SafeString(currency, "code")
 		if (codes == nil) || (this.InArray(code, codes)) {
-			AddElementToObject(withdrawFees, code, this.ParseTransactionFee(entry, currency))
+			if code != nil {
+				withdrawFees[*code] = this.ParseTransactionFee(entry, currency)
+			}
 		}
 	}
 	return map[string]any{
@@ -7814,11 +7816,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7340 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7340.Err != nil {
-		panic(listEp7340.Err)
+	listEp7342 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7342.Err != nil {
+		panic(listEp7342.Err)
 	}
-	var response []any = listEp7340.Value
+	var response []any = listEp7342.Value
 
 	//
 	//    [

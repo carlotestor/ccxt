@@ -421,7 +421,9 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					marketUpdates[timeframe] = true
 				}
 			}
-			this.Ohlcvs[*symbol][timeframe] = stored
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][timeframe] = stored
+			}
 		}
 		if marketId != nil {
 			updates[*marketId] = marketUpdates
@@ -606,7 +608,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
 	var messageHash string = name + ":" + *marketId
-	this.Orderbooks[symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
@@ -644,10 +646,10 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	orderbook.Reset(snapshot)
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

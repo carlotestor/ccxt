@@ -2134,12 +2134,14 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var response map[string]any = nil
 	var reduceOnly *bool = this.SafeBool(paramsTpsl, "reduceOnly")
 	if reduceOnly != nil {
-		AddElementToObject(paramsTpsl, "reduceOnly", func() string {
-			if reduceOnly != nil && *reduceOnly {
-				return "true"
-			}
-			return "false"
-		}())
+		if paramsTpsl != nil {
+			paramsTpsl["reduceOnly"] = func() string {
+				if reduceOnly != nil && *reduceOnly {
+					return "true"
+				}
+				return "false"
+			}()
+		}
 	}
 	if isCombinedSlTp {
 		var tpslRequest map[string]any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, paramsTpsl)

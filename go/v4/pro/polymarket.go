@@ -260,11 +260,11 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		this.Orderbooks[*symbol] = ob
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -693,7 +693,7 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < rowsLength; i++ {
@@ -896,17 +896,14 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if _, ok := this.Ohlcvs[symbol]; !ok {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {
+	if _, ok := this.Ohlcvs[symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
-	var ohlcv any
-	if timeframe != nil {
-		ohlcv = this.Ohlcvs[symbol][*timeframe]
-	}
+	var ohlcv any = this.Ohlcvs[symbol][*timeframe]
 	for i := 0; i < len(rows); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.DerefScalar(rows[i]), market))
 		ohlcv.(ccxt.Appender).Append(parsed)
@@ -1340,10 +1337,7 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {
@@ -1622,12 +1616,12 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		var symbol *string = this.SafeString(pending, "symbol")
 		if symbol != nil {
 			if topic != nil && *topic == "orderbook" {
-				if _, ok := this.Orderbooks[*symbol]; ok {
-					delete(this.Orderbooks, *symbol)
+				if this.Orderbooks.Has(symbol) {
+					this.Orderbooks.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "trades" {
 				if _, ok := this.Trades[*symbol]; ok {
-					delete(this.Trades, *symbol)
+					this.Trades.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "ticker" {
 				if this.Tickers.Has(symbol) {

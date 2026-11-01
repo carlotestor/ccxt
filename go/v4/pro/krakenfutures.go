@@ -1621,15 +1621,10 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var bids []any = ccxt.SafeListTyped(message, "bids")
 	if bids == nil {
 		return
@@ -1657,19 +1652,16 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var side *string = this.SafeString(message, "side")
 	var price *float64 = this.SafeNumber(message, "price")
 	var qty *float64 = this.SafeNumber(message, "qty")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if side != nil && *side == "sell" {
-		var asks any = ccxt.GetValue(orderbook, "asks")
+		var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 		asks.(ccxt.IOrderBookSide).Store(price, qty)
 	} else {
-		var bids any = ccxt.GetValue(orderbook, "bids")
+		var bids ccxt.IOrderBookSide = orderbook.GetBids()
 		bids.(ccxt.IOrderBookSide).Store(price, qty)
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)

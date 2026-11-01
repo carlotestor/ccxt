@@ -1139,11 +1139,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["pair"] = market["id"]
 	}
 
-	listEp1063 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
-	if listEp1063.Err != nil {
-		panic(listEp1063.Err)
+	listEp1065 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
+	if listEp1065.Err != nil {
+		panic(listEp1065.Err)
 	}
-	var response []any = listEp1063.Value
+	var response []any = listEp1065.Value
 	//
 	//     [
 	//         {
