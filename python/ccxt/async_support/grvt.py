@@ -2102,7 +2102,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.parse_order(data, market)
 
     def convert_to_big_int_custom(self, x: object) -> int:
-        return int(x)
+        return int(self.number_to_string(x))
 
     def eip_message_for_order(self, order: dict, structureType: Str) -> dict:
         priceMultiplier = 1000000000
@@ -2153,7 +2153,7 @@ class grvt(Exchange, ImplicitAPI):
         }
         if structureType == 'EIP712_ORDER_WITH_BUILDER_TYPE' and self.safe_bool(self.options, 'builderFee', True):
             returnValue['builder'] = order['builder']
-            returnValue['builderFee'] = self.parse_to_int(self.convert_to_big_int_custom(self.fee_amount_multiplier()) * float(order['builder_fee']))  # the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = self.parse_to_int(self.convert_to_big_int_custom(self.fee_amount_multiplier()) * float(self.safe_string(order, 'builder_fee')))  # the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         return returnValue
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -3085,8 +3085,8 @@ class grvt(Exchange, ImplicitAPI):
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': self.parse_to_int(float(request['max_futures_fee_rate']) * amountMultiplier),
-                'maxSpotFeeRate': self.parse_to_int(float(request['max_spot_fee_rate']) * amountMultiplier),
+                'maxFutureFeeRate': self.parse_to_int(float(self.safe_string(request, 'max_futures_fee_rate')) * amountMultiplier),
+                'maxSpotFeeRate': self.parse_to_int(float(self.safe_string(request, 'max_spot_fee_rate')) * amountMultiplier),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             }
