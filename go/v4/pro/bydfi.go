@@ -894,13 +894,13 @@ func (this *Bydfi) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var messageHash string = "orderbook::" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var parsed map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 	orderbook.Reset(parsed)
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

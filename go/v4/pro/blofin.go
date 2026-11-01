@@ -262,7 +262,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			stored = ccxt.NewArrayCache(limit)
-			this.Trades[symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		stored.Append(trade)
 		if channelName != nil {
@@ -385,15 +385,10 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var action *string = this.SafeString(message, "action")
 	if action != nil && *action == "snapshot" {
@@ -408,9 +403,7 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks.Store(symbol, orderbook)
 	if channelName != nil {
 		var messageHash string = *channelName + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -830,16 +823,12 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval string = strings.Replace(*channelName, "candle", "", 1)
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if unifiedTimeframe != nil {
-			stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
-		}
+	if symbol != nil && unifiedTimeframe != nil {
+		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

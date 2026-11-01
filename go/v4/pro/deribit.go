@@ -882,15 +882,10 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.CountedOrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.CountedOrderBook())
 	}
-	var storedOrderBook ccxt.OrderBookInterface
-	if symbol != nil {
-		storedOrderBook = this.Orderbooks[*symbol]
-	}
+	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
@@ -899,9 +894,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	storedOrderBook.SetTimestamp(timestamp)
 	storedOrderBook.SetDatetime(this.Iso8601(timestamp))
 	storedOrderBook.SetSymbol(symbol)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = storedOrderBook
-	}
+	this.Orderbooks.Store(symbol, storedOrderBook)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
@@ -1220,12 +1213,10 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
+	if ccxt.IsEqual(this.SafeDict(this.Ohlcvs[*symbol], unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)

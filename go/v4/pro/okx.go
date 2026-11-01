@@ -1768,10 +1768,8 @@ func (this *Okx) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	for i := 0; i < len(data); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.DerefScalar(data[i]), market))
-		if symbol != nil {
-			if this.Ohlcvs[*symbol] == nil {
-				this.Ohlcvs[*symbol] = map[string]any{}
-			}
+		if symbol != nil && this.Ohlcvs[*symbol] == nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 		var stored any
 		if symbol != nil && timeframe != nil {
@@ -2233,15 +2231,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 			// reset the existing orderbook instead of replacing it: a consumer
 			// holds a reference to the old object and would never see updates
 			// after a re-subscription snapshot
-			if symbol != nil {
-				if _, ok := this.Orderbooks[*symbol]; !ok {
-					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-				}
+			if !(this.Orderbooks.Has(symbol)) {
+				this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 			}
-			var snapshotBook ccxt.OrderBookInterface
-			if symbol != nil {
-				snapshotBook = this.Orderbooks[*symbol]
-			}
+			var snapshotBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			var timestamp *int64 = this.SafeInteger(update, "ts")
 			// rows are [ price, amount, liquidatedOrders, numOrders ] - store
 			// price and amount only, matching handleDelta, so countOrIdKey
@@ -2256,10 +2249,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		}
 	} else if action != nil && *action == "update" {
 		if this.Orderbooks.Has(symbol) {
-			var updatedBook ccxt.OrderBookInterface
-			if symbol != nil {
-				updatedBook = this.Orderbooks[*symbol]
-			}
+			var updatedBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			for i := 0; i < len(data); i++ {
 				var update any = ccxt.DerefScalar(data[i])
 				this.HandleOrderBookMessage(client, update, updatedBook, messageHash, market)
@@ -2276,15 +2266,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 		// shared order-book cache when watchOrderBook subscribed to this
 		// channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.(*ccxt.WSClient).Subscriptions)
 		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			if symbol != nil {
-				if _, ok := this.Orderbooks[*symbol]; !ok {
-					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-				}
+			if !(this.Orderbooks.Has(symbol)) {
+				this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 			}
-			var bboBook ccxt.OrderBookInterface
-			if symbol != nil {
-				bboBook = this.Orderbooks[*symbol]
-			}
+			var bboBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			for i := 0; i < len(data); i++ {
 				var update any = ccxt.DerefScalar(data[i])
 				var timestamp *int64 = this.SafeInteger(update, "ts")
@@ -3750,14 +3735,14 @@ func (this *Okx) HandleUnSubscriptionTrades(client any, symbol string, channel s
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if _, ok := this.Trades[symbol]; ok {
-		delete(this.Trades, symbol)
+		this.Trades.Delete(symbol)
 	}
 }
 func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol string, channel string) {
 	var subMessageHash string = channel + ":" + symbol
 	var messageHash string = "unsubscribe:orderbook:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Orderbooks[symbol]; ok {
+	if this.Orderbooks.Has(symbol) {
 		delete(this.Orderbooks, symbol)
 	}
 }

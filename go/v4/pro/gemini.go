@@ -231,7 +231,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
 		if symbol != nil {
-			this.Trades[*symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 	}
 	stored.Append(trade)
@@ -285,7 +285,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			this.Trades[symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)
@@ -309,7 +309,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 		var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			this.Trades[*symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		stored.Append(trade)
 		if symbol != nil {
@@ -533,9 +533,9 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + *symbol
 	if !(this.Orderbooks.Has(symbol)) {
-		this.Orderbooks[*symbol] = this.OrderBook()
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if isInitial {
 		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
 		var bidsSnapshot []any = []any{}
@@ -570,7 +570,7 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 	orderbook.SetSymbol(symbol)
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -790,11 +790,11 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		this.Orderbooks[*symbol] = ob
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var bids ccxt.IOrderBookSide = orderbook.GetBids()
 	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
@@ -812,7 +812,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	orderbook.SetNonce(nonce)
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Gemini) HandleL2Updates(client any, message map[string]any) {

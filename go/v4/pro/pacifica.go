@@ -772,11 +772,11 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		snapshot["nonce"] = nonce
 	}
 	var messageHash string = "orderbook:" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		this.Orderbooks[*symbol] = ob
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -805,7 +805,9 @@ func (this *Pacifica) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: r.Value[symbol]}
+	var tickers map[string]ccxt.Ticker = r.Value
+
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbol]}
 	return nil
 }
 
@@ -1362,7 +1364,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(entry); i++ {
@@ -1637,12 +1639,11 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	}
 	var messageHash string = "candles:" + *timeframe + ":" + *symbol
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
-		this.Ohlcvs[*symbol] = map[string]any{}
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var symbolOhlcvs map[string]any = this.Ohlcvs[*symbol]
-	if symbolOhlcvs == nil {
-		symbolOhlcvs = map[string]any{}
-	}
+	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
 	var ohlcv any = symbolOhlcvs[*timeframe]
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1922,8 +1923,8 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Orderbooks[*symbol]; ok {
-		delete(this.Orderbooks, *symbol)
+	if this.Orderbooks.Has(symbol) {
+		this.Orderbooks.Delete(symbol)
 	}
 }
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
@@ -1934,7 +1935,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Trades.Has(symbol) {
-		delete(this.Trades, *symbol)
+		this.Trades.Delete(symbol)
 	}
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {

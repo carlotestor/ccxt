@@ -9214,7 +9214,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 				panic(ArgumentsRequired(this.Id + " cleanCache() requires a timeframe argument"))
 			}
 			if _, ok := this.Ohlcvs[*symbol]; ok {
-				if InOp(this.Ohlcvs[*symbol], timeframe) {
+				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
@@ -9223,8 +9223,8 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		for i := 0; i < len(symbols); i++ {
 			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
-				if _, ok := this.Trades[*symbol]; ok {
-					delete(this.Trades, *symbol)
+				if InOp(this.Trades, symbol) {
+					this.Trades.Delete(symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {
 				if this.Orderbooks.Has(symbol) {

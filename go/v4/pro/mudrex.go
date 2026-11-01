@@ -285,10 +285,8 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && tf != nil {

@@ -299,7 +299,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	}
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var market map[string]any = this.Market(symbol)
@@ -311,7 +311,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
-	this.Trades[*symbol] = stored
+	this.Trades.Store(symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -1274,8 +1274,8 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if _, ok := this.Orderbooks[symbol]; !ok {
-		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")

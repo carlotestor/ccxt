@@ -208,17 +208,14 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	if _, ok := this.Ohlcvs[symbol]; !ok {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {
+	if _, ok := this.Ohlcvs[symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if timeframe != nil {
+		if this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var stored any
-	if timeframe != nil {
-		stored = this.Ohlcvs[symbol][*timeframe]
-	}
+	var stored any = this.Ohlcvs[symbol][*timeframe]
 	for i := 0; i < len(data); i++ {
 		var candle map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(candle, market)
@@ -402,7 +399,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	var symbol string = *this.SafeString(market, "symbol", "")
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data any = this.SafeList(message, "data")
@@ -494,17 +491,17 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook:" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.Reset(snapshot)
 	orderbook.SetNonce(this.SafeInteger(message, "id"))
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 

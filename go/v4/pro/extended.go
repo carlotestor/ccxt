@@ -131,13 +131,13 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var nonce *int64 = this.SafeInteger(message, "seq")
 	var typeVar *string = this.SafeString(message, "type", this.SafeString(data, "t"))
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
@@ -148,7 +148,7 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, *previousNonce+1)) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-		delete(this.Orderbooks, *symbol)
+		this.Orderbooks.Delete(symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
@@ -966,7 +966,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
 	var nonce *int64 = this.SafeInteger(message, "seq")
@@ -1090,15 +1090,10 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 		cacheKey = *timeframe + ":" + candleType
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
-	if symbol != nil {
-		stored = this.SafeValue(this.Ohlcvs[*symbol], cacheKey)
-	}
+	var stored any = this.SafeValue(this.Ohlcvs[*symbol], cacheKey)
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)

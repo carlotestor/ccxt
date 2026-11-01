@@ -889,12 +889,12 @@ func (this *Deepcoin) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var interval *string = this.SafeString(data, "P")
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1070,15 +1070,10 @@ func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var typeVar *string = this.SafeString(message, "t")
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "timestamp"), nil) {
 		if typeVar != nil && *typeVar == "f" {
@@ -1101,10 +1096,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < len(entries); i++ {

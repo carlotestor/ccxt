@@ -4304,10 +4304,10 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 		var isYesOutcome bool = (this.SafeInteger(outcomeInfo, "indexSet") != nil && *this.SafeInteger(outcomeInfo, "indexSet") == 1)
 		var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 		if outcomeHandle != nil {
-			if _, ok := this.Orderbooks[*outcomeHandle]; !ok {
-				this.Orderbooks[*outcomeHandle] = this.OrderBook(map[string]any{})
+			if !(this.Orderbooks.Has(outcomeHandle)) {
+				this.Orderbooks.Store(outcomeHandle, this.OrderBook(map[string]any{}))
 			}
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*outcomeHandle]
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(outcomeHandle)
 			var bids []any = yesBids
 			var asks []any = yesAsks
 			if !isYesOutcome {

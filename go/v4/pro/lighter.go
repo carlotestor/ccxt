@@ -253,15 +253,10 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var typeVar string = *this.SafeString(message, "type", "")
 	if typeVar == "subscribed/order_book" {
 		var parsed map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
@@ -2184,9 +2179,7 @@ func (this *Lighter) HandleOrderBookUnSubscription(client any, marketId any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Orderbooks.Has(symbol) {
-		if symbol != nil {
-			delete(this.Orderbooks, *symbol)
-		}
+		this.Orderbooks.Delete(symbol)
 	}
 }
 func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
@@ -2238,9 +2231,7 @@ func (this *Lighter) HandleTradesUnSubscription(client any, marketId any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Trades.Has(symbol) {
-		if symbol != nil {
-			delete(this.Trades, *symbol)
-		}
+		this.Trades.Delete(symbol)
 	}
 }
 func (this *Lighter) HandleMyTradesUnSubscription(client any) {

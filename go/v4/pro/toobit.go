@@ -304,7 +304,7 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 	var symbol string = *this.SafeString(market, "symbol", "")
 	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		this.Trades[symbol] = ccxt.NewArrayCache(limit)
+		this.Trades.Store(symbol, ccxt.NewArrayCache(limit))
 	}
 	var stored ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
@@ -809,18 +809,18 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var messageHash string = "orderBook::" + *symbol + "::" + "diffDepth"
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderBook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
 		orderBook.SetTimestamp(timestamp)
-		this.Orderbooks[*symbol] = orderBook
+		this.Orderbooks.Store(symbol, orderBook)
 		client.(ccxt.ClientInterface).Resolve(orderBook, messageHash)
 	}
 }
@@ -864,11 +864,11 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "orderBook::" + *symbol + "::" + channel
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var snapshot map[string]any = this.ParseOrderBook(entry, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
@@ -1449,10 +1449,7 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = ccxt.GetValue(this.WsCacheObjGet("Positions"), typeVar)
 	for i := 0; i < len(positions); i++ {

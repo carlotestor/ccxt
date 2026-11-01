@@ -556,7 +556,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "nonce", timestamp)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, channel)
 }
 func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
@@ -1411,11 +1411,10 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	var symbolOhlcvs map[string]any = this.Ohlcvs[*symbol]
-	if symbolOhlcvs == nil {
-		symbolOhlcvs = map[string]any{}
+	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
+	if symbol != nil {
+		this.Ohlcvs[*symbol] = symbolOhlcvs
 	}
-	this.Ohlcvs[*symbol] = symbolOhlcvs
 	var stored any
 	if timeframe != nil {
 		stored = symbolOhlcvs[*timeframe]

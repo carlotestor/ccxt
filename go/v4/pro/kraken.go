@@ -783,8 +783,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
@@ -795,10 +795,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1504,9 +1502,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(symbol)) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
-			}
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, depth))
 			if symbol != nil {
 				depths[*symbol] = depth
 			}
@@ -1562,9 +1558,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-			if symbol != nil {
-				delete(this.Orderbooks, *symbol)
-			}
+			this.Orderbooks.Delete(symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}

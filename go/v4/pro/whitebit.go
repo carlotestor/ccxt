@@ -159,16 +159,21 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 		var messageHash string = "candles" + ":" + *symbol
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 		if _, ok := this.Ohlcvs[*symbol]; !ok {
-			this.Ohlcvs[*symbol] = map[string]any{}
+			if symbol != nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
 		}
 		if _, ok := this.Ohlcvs[*symbol]["unknown"]; !ok {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored := ccxt.NewArrayCacheByTimestamp(limit)
-			if this.Ohlcvs[*symbol] != nil {
+			if symbol != nil && this.Ohlcvs[*symbol] != nil {
 				this.Ohlcvs[*symbol]["unknown"] = stored
 			}
 		}
-		var ohlcv any = this.Ohlcvs[*symbol]["unknown"]
+		var ohlcv any
+		if symbol != nil {
+			ohlcv = this.Ohlcvs[*symbol]["unknown"]
+		}
 		ohlcv.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 	}
@@ -272,18 +277,13 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
-	if symbol != nil {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	if isSnapshot != nil && *isSnapshot == true {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 		orderbook.Reset(snapshot)

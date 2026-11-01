@@ -513,16 +513,11 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "time")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz")
-	if symbol != nil {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1677,12 +1672,12 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId)
 	var timeframe string = *this.SafeString(data, "i", "")
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
 		if symbol != nil && this.Ohlcvs[*symbol] != nil {
@@ -2602,8 +2597,8 @@ func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription 
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Orderbooks[*symbol]; ok {
-		delete(this.Orderbooks, *symbol)
+	if this.Orderbooks.Has(symbol) {
+		this.Orderbooks.Delete(symbol)
 	}
 }
 func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any) {
@@ -2615,7 +2610,7 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Trades.Has(symbol) {
-		delete(this.Trades, *symbol)
+		this.Trades.Delete(symbol)
 	}
 }
 func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription any) {
@@ -2649,8 +2644,8 @@ func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription any)
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Ohlcvs, symbol) {
-		if ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe) {
+	if _, ok := this.Ohlcvs[*symbol]; ok {
+		if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		}
 	}

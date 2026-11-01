@@ -370,16 +370,11 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data any = this.SafeDict(this.SafeList(message, "data"), 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
-	if symbol != nil {
+	if !(this.Orderbooks.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(message, "depth")
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks.Store(symbol, this.CountedOrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var channel *string = this.SafeString(message, "channel")
 	var nonce *int64 = this.SafeInteger2(data, "u", "s")
 	var books any = data
@@ -403,9 +398,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(books, "asks", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeList(books, "bids", []any{}))
 	orderbook.SetNonce(nonce)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks.Store(symbol, orderbook)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -1170,10 +1163,8 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(message, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
 	if symbol != nil && timeframe != nil {
@@ -1436,10 +1427,7 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = nil
-	if r.Value != nil {
-		positions = ccxt.PositionsToList(r.Value)
-	}
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.WsCacheObjSet("Positions", ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = this.WsCacheObjGet("Positions")
 	for i := 0; i < len(positions); i++ {

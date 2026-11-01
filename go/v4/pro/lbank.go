@@ -267,21 +267,20 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar", "")
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		var ohlcvsForSymbol map[string]any
-		if symbol != nil {
-			ohlcvsForSymbol = this.Ohlcvs[*symbol]
-		}
-		if ohlcvsForSymbol == nil {
-			ohlcvsForSymbol = map[string]any{}
-		}
+		var ohlcvsForSymbol map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = ohlcvsForSymbol
 		}
-		var stored any = this.SafeValue(ohlcvsForSymbol, timeframe)
+		var stored any
+		if timeframe != nil {
+			stored = ohlcvsForSymbol[*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ohlcvsForSymbol, timeframe, stored)
+			if timeframe != nil {
+				ohlcvsForSymbol[*timeframe] = stored
+			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var messageHash string = "fetchOHLCV:" + *symbol + ":" + *timeframeId
@@ -292,21 +291,20 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		var ohlcvsForSymbol map[string]any
-		if symbol != nil {
-			ohlcvsForSymbol = this.Ohlcvs[*symbol]
-		}
-		if ohlcvsForSymbol == nil {
-			ohlcvsForSymbol = map[string]any{}
-		}
+		var ohlcvsForSymbol map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = ohlcvsForSymbol
 		}
-		var stored any = this.SafeValue(ohlcvsForSymbol, timeframe)
+		var stored any
+		if timeframe != nil {
+			stored = ohlcvsForSymbol[*timeframe]
+		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			ccxt.AddElementToObject(ohlcvsForSymbol, timeframe, stored)
+			if timeframe != nil {
+				ohlcvsForSymbol[*timeframe] = stored
+			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var messageHash string = "ohlcv:" + *symbol + ":" + *timeframeId
@@ -1170,15 +1168,10 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	var datetime *string = this.SafeString(message, "TS")
 	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{})
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}))
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol

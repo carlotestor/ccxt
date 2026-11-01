@@ -4071,7 +4071,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 		var categoryMarkets []any = ccxt.MapSliceToList(r1.Value)
 		var categoryMarketsLength int = len(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {
-			var raw any = ccxt.GetValue(categoryMarkets, mi)
+			var raw any = categoryMarkets[mi]
 			var slug *string = this.SafeString(raw, "slug")
 			if slug != nil {
 				if _, ok := seen[*slug]; !ok {
