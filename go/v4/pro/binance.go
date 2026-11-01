@@ -5001,7 +5001,9 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
+	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+		entry["info"] = message
+	}
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
 	var balanceMessage any = this.SafeDict(message, "a", message)
@@ -5020,7 +5022,9 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["free"] = delta
 		}
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 	} else {
 		var B []any = ccxt.SafeListTyped(balanceMessage, "B")
@@ -5036,13 +5040,15 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["used"] = this.SafeString(entry, "l")
 			account["total"] = this.SafeString(entry, wallet)
 			if code != nil {
-				ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+				if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+					entry[*code] = account
+				}
 			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(balanceMessage, "E")
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
 	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
@@ -7488,7 +7494,9 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
+	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+		entry["info"] = message
+	}
 	var B []any = ccxt.SafeListTyped(message, "B")
 	for i := 0; i < len(B); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(B, i)
@@ -7497,12 +7505,14 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		if code != nil {
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(entry, "b")
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
 	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], accountType+":balance")
 	// --- positions ---

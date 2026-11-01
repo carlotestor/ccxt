@@ -2013,16 +2013,20 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", data)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		entry["info"] = data
+	}
+	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString2(data, "balanceAmount", "availableBalance")
 	account["used"] = this.SafeString2(data, "frozenBalance", "frozenAmount")
 	if code != nil {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+			entry[*code] = account
+		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
@@ -2456,11 +2460,9 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:ticker:", "", 1)
 			if strings.Index(symbol, "unsubscribe") >= 0 {
 				// unWatchTickers
-				var symbols any = slices.Collect(maps.Keys(this.Tickers))
-				for j := 0; j < ccxt.GetArrayLength(symbols); j++ {
-					if wsKey, ok := (ccxt.GetValue(symbols, j)).(string); ok {
-						delete(this.Tickers, wsKey)
-					}
+				var symbols []string = slices.Collect(maps.Keys(this.Tickers))
+				for j := 0; j < len(symbols); j++ {
+					delete(this.Tickers, symbols[j])
 				}
 			} else if _, ok := this.Tickers[symbol]; ok {
 				delete(this.Tickers, symbol)

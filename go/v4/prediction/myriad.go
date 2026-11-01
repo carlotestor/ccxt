@@ -5149,7 +5149,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var ts *int64 = this.SafeInteger(data, "ts")
 	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
-	if ccxt.IsEqual(this.Tickers, nil) {
+	if this.Tickers == nil {
 		this.Tickers = map[string]any{}
 	}
 	for i := 0; i < outcomesLength; i++ {

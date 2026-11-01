@@ -1005,9 +1005,11 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", this.SafeList(message, "B", []any{}))
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		entry["info"] = this.SafeList(message, "B", []any{})
+	}
+	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(data); i++ {
 		var balance any = data[i]
 		var currencyId *string = this.SafeString(balance, "a")
@@ -1017,7 +1019,9 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(balance, "l")
 		account["free"] = this.SafeString(balance, "f")
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+			if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
@@ -1046,7 +1050,7 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if ccxt.IsEqual(marketType, "spot") {
 		typeVar = "spot"
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)

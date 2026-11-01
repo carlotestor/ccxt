@@ -9261,24 +9261,20 @@ func (this *BaseExchange) CleanCache(subscription any) {
 					Remove(futures, "fetchPositionsSnapshot")
 				}
 			}
-		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (!IsEqual(this.Tickers, nil)) {
-			var tickerSymbols any = slices.Collect(maps.Keys(this.Tickers))
-			for i := 0; i < GetArrayLength(tickerSymbols); i++ {
-				var tickerSymbol *string = SafeStringPtr(GetValue(tickerSymbols, i))
-				if tickerSymbol != nil && this.Tickers[*tickerSymbol] != nil {
-					if tickerSymbol != nil {
-						delete(this.Tickers, *tickerSymbol)
-					}
+		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (this.Tickers != nil) {
+			var tickerSymbols []string = slices.Collect(maps.Keys(this.Tickers))
+			for i := 0; i < len(tickerSymbols); i++ {
+				var tickerSymbol string = tickerSymbols[i]
+				if _, ok := this.Tickers[tickerSymbol]; ok {
+					delete(this.Tickers, tickerSymbol)
 				}
 			}
-		} else if (topic != nil && *topic == "bidsasks") && (!IsEqual(this.Bidsasks, nil)) {
-			var bidsaskSymbols any = slices.Collect(maps.Keys(this.Bidsasks))
-			for i := 0; i < GetArrayLength(bidsaskSymbols); i++ {
-				var bidsaskSymbol *string = SafeStringPtr(GetValue(bidsaskSymbols, i))
-				if bidsaskSymbol != nil && this.Bidsasks[*bidsaskSymbol] != nil {
-					if bidsaskSymbol != nil {
-						delete(this.Bidsasks, *bidsaskSymbol)
-					}
+		} else if (topic != nil && *topic == "bidsasks") && (this.Bidsasks != nil) {
+			var bidsaskSymbols []string = slices.Collect(maps.Keys(this.Bidsasks))
+			for i := 0; i < len(bidsaskSymbols); i++ {
+				var bidsaskSymbol string = bidsaskSymbols[i]
+				if _, ok := this.Bidsasks[bidsaskSymbol]; ok {
+					delete(this.Bidsasks, bidsaskSymbol)
 				}
 			}
 		}
@@ -11548,8 +11544,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11151, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11151
+	listRecv11147, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11147
 	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

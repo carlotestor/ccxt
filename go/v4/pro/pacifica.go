@@ -1954,11 +1954,9 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	var symbols any = slices.Collect(maps.Keys(this.Tickers))
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		if wsKey, ok := (ccxt.GetValue(symbols, i)).(string); ok {
-			delete(this.Tickers, wsKey)
-		}
+	var symbols []string = slices.Collect(maps.Keys(this.Tickers))
+	for i := 0; i < len(symbols); i++ {
+		delete(this.Tickers, symbols[i])
 	}
 }
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {

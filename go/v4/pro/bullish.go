@@ -884,9 +884,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		return
 	}
 	if _, ok := this.Balance[*tradingAccountId]; !ok {
-		if tradingAccountId != nil {
-			this.Balance[*tradingAccountId] = map[string]any{}
-		}
+		this.Balance[*tradingAccountId] = map[string]any{}
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
@@ -901,7 +899,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		}
 		for i := 0; i < len(parsedKeys); i++ {
 			var parsedKey string = parsedKeys[i]
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), parsedKey, parsed[parsedKey])
+			ccxt.AddElementToObject(this.Balance[*tradingAccountId], parsedKey, parsed[parsedKey])
 		}
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(func() any {
 			if tradingAccountId == nil {
@@ -917,9 +915,13 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
+			if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), "info", message)
+		if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
+			entry["info"] = message
+		}
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(func() any {
 			if tradingAccountId == nil {
 				return nil

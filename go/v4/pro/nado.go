@@ -2820,12 +2820,10 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 			delete(this.Tickers, symbol)
 		}
 	} else if messageHash == "ticker" {
-		var symbols any = slices.Collect(maps.Keys(this.Tickers))
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var tickerSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
-			if tickerSymbol != nil {
-				delete(this.Tickers, *tickerSymbol)
-			}
+		var symbols []string = slices.Collect(maps.Keys(this.Tickers))
+		for i := 0; i < len(symbols); i++ {
+			var tickerSymbol string = symbols[i]
+			delete(this.Tickers, tickerSymbol)
 		}
 	} else if strings.Index(messageHash, "bidask:") == 0 {
 		var symbol string = strings.Replace(messageHash, "bidask:", "", 1)
@@ -2833,12 +2831,10 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 			delete(this.Bidsasks, symbol)
 		}
 	} else if messageHash == "bidask" {
-		var symbols any = slices.Collect(maps.Keys(this.Bidsasks))
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var bidaskSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
-			if bidaskSymbol != nil {
-				delete(this.Bidsasks, *bidaskSymbol)
-			}
+		var symbols []string = slices.Collect(maps.Keys(this.Bidsasks))
+		for i := 0; i < len(symbols); i++ {
+			var bidaskSymbol string = symbols[i]
+			delete(this.Bidsasks, bidaskSymbol)
 		}
 	} else if strings.Index(messageHash, "orders") == 0 {
 		this.Orders = nil

@@ -2096,7 +2096,9 @@ func (this *Aster) SetBalanceCache(client any, typeVar *string) {
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
+		if typeVar != nil {
+			this.Balance[*typeVar] = map[string]any{}
+		}
 	}
 }
 func (this *Aster) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
@@ -2187,7 +2189,9 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
+	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+		entry["info"] = message
+	}
 	var messageValue any = this.SafeDict(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb")
@@ -2200,12 +2204,14 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(entry, "l")
 		account["total"] = this.SafeString(entry, wallet)
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(messageValue, "E")
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance[accountType], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[accountType], "datetime", this.Iso8601(timestamp))
 	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }

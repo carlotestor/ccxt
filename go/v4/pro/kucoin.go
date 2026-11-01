@@ -3662,7 +3662,7 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
+		this.Balance[typeVar] = map[string]any{}
 	}
 }
 func (this *Kucoin) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
@@ -3782,10 +3782,12 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		if _, ok := this.Balance[*uniformType]; !ok {
 			this.Balance[*uniformType] = map[string]any{}
 		}
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "info", data)
+		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
+			entry["info"] = data
+		}
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "timestamp", timestamp)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "datetime", this.Iso8601(timestamp))
+		ccxt.AddElementToObject(this.Balance[*uniformType], "timestamp", timestamp)
+		ccxt.AddElementToObject(this.Balance[*uniformType], "datetime", this.Iso8601(timestamp))
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var used *string = this.SafeString2(data, "hold", "holdBalance")
@@ -3797,7 +3799,9 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		account["used"] = used
 		account["total"] = this.SafeString(data, "total")
 		if code != nil {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), code, account)
+			if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 		ccxt.AddElementToObject(this.Balance, uniformType, this.SafeBalance(func() any {
 			if uniformType == nil {
@@ -3836,16 +3840,20 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", data)
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		entry["info"] = data
+	}
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
+	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(data, "a")
 	account["used"] = this.SafeString(data, "h")
 	account["total"] = this.SafeString(data, "b")
 	if code != nil {
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+			entry[*code] = account
+		}
 	}
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	var messageHash string = typeVar + ":balance"

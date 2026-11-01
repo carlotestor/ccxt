@@ -1952,12 +1952,14 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
 	}
 	if _, ok := this.Balance[account]; !ok {
-		ccxt.AddElementToObject(this.Balance, account, map[string]any{})
+		this.Balance[account] = map[string]any{}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "timestamp", timestamp)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(this.Balance[account]))
+	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
+		entry["info"] = info
+	}
+	ccxt.AddElementToObject(this.Balance[account], "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance[account], "datetime", this.Iso8601(timestamp))
+	this.Balance[account] = this.SafeBalance(this.Balance[account])
 	if topic != nil {
 		var messageHash string = *topic + "::balance"
 		client.(ccxt.ClientInterface).Resolve(this.Balance[account], messageHash)
@@ -2018,7 +2020,9 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		}
 	} else {
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			if code != nil {
+				this.Balance[*code] = account
+			}
 		}
 	}
 }
@@ -2632,11 +2636,9 @@ func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription an
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	var symbols any = slices.Collect(maps.Keys(this.Tickers))
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		if wsKey, ok := (ccxt.GetValue(symbols, i)).(string); ok {
-			delete(this.Tickers, wsKey)
-		}
+	var symbols []string = slices.Collect(maps.Keys(this.Tickers))
+	for i := 0; i < len(symbols); i++ {
+		delete(this.Tickers, symbols[i])
 	}
 }
 func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any) {
@@ -2717,7 +2719,7 @@ func (this *Hyperliquid) HandlePositionsUnsubscription(client any, subscription 
 	this.CleanCache(topicStructure)
 	// clean swap balance if it existed
 	if _, ok := this.Balance["swap"]; ok {
-		ccxt.Remove(this.Balance, "swap")
+		delete(this.Balance, "swap")
 	}
 }
 func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscription any) {
@@ -2725,7 +2727,7 @@ func (this *Hyperliquid) HandleSpotBalanceUnsubscription(client any, subscriptio
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	if _, ok := this.Balance["spot"]; ok {
-		ccxt.Remove(this.Balance, "spot")
+		delete(this.Balance, "spot")
 	}
 }
 func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[string]any) {

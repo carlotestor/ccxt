@@ -2577,9 +2577,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 				var account map[string]any = this.Account()
 				account["free"] = this.SafeString(detail, "withdraw_available")
 				account["total"] = this.SafeString(detail, "equity")
-				if code != nil {
-					this.Balance[*code] = account
-				}
+				this.Balance[*code] = account
 			}
 			this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "account")
