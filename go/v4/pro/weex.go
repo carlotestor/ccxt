@@ -135,12 +135,12 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Weex) SubscribePrivateAsync(messageHash any, subscribeHash any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Weex) SubscribePrivateAsync(messageHash any, subscribeHash string, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, messageHash, subscribeHash, channel, optionalArgs...)
 	return ch
 }
-func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, subscribeHash any, channel string, optionalArgs ...any) any {
+func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, subscribeHash string, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isContract bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -2264,6 +2264,9 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	if typeVar == nil {
+		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a market type"))
+	}
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var urlType string = "spot"
 	if isContract {
@@ -2272,7 +2275,7 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	var url string = *this.SafeString(this.UrlsApi["ws"], urlType, "") + "/private"
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeVar)
+	this.SetBalanceCache(client, *typeVar)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
@@ -2284,37 +2287,35 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 		}
 	}
 
-	r2 := <-this.SubscribePrivateAsync(ccxt.Add(typeVar, ":balance"), typeVar, "account", isContract, paramsMarketType)
+	r2 := <-this.SubscribePrivateAsync(ccxt.Add(typeVar, ":balance"), *typeVar, "account", isContract, paramsMarketType)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Weex) SetBalanceCache(client any, typeVar *string) {
-	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+func (this *Weex) SetBalanceCache(client any, typeVar string) {
+	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
-		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		if typeVar != nil {
-			this.Balance[*typeVar] = map[string]any{}
-		}
+		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Weex) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Weex) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Weex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Weex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -2329,12 +2330,12 @@ func (this *Weex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -2528,12 +2529,12 @@ func (this *Weex) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
 }
-func (this *Weex) LoadPositionsSnapshotAsync(client any, messageHash any, params any) <-chan ccxt.AsyncResult[bool] {
+func (this *Weex) LoadPositionsSnapshotAsync(client any, messageHash string, params any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, params)
 	return ch
 }
-func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, params any) any {
+func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, params any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2694,12 +2695,12 @@ func (this *Weex) GetMarketFromClientAndMessage(client any, message map[string]a
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	return market
 }
-func (this *Weex) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Weex) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Weex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Weex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

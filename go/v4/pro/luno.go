@@ -524,7 +524,7 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 		}
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() received an out-of-sequence update for " + symbolValue + ", expected " + strconv.FormatInt(expectedSequence, 10) + " but got " + strconv.FormatInt(*messageSequence, 10))
 		client.(ccxt.ClientInterface).Reset(error)
-		ccxt.Remove(this.Clients, client.(ccxt.ClientInterface).GetUrl())
+		delete(this.Clients, client.(ccxt.ClientInterface).GetUrl())
 		return false
 	}
 	return true

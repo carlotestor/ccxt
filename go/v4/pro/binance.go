@@ -1258,12 +1258,12 @@ func (this *Binance) HandleFetchOrderBook(client any, message map[string]any) {
 	orderbook["nonce"] = this.SafeInteger2(result, "lastUpdateId", "u")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Binance) FetchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) FetchOrderBookSnapshotAsync(client any, message any, subscription map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.fetchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, message any, subscription any) any {
+func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, message any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = this.SafeString(subscription, "symbol", "")
@@ -4513,18 +4513,18 @@ func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...an
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
 }
-func (this *Binance) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
 }
-func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, isPortfolioMargin any) any {
+func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, isPortfolioMargin bool) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	if ccxt.EvalTruthy(isPortfolioMargin) {
+	if isPortfolioMargin {
 		params["portfolioMargin"] = true
 	}
 
@@ -6809,18 +6809,18 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	}
 }
-func (this *Binance) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
 }
-func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, isPortfolioMargin any) any {
+func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, isPortfolioMargin bool) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	if ccxt.EvalTruthy(isPortfolioMargin) {
+	if isPortfolioMargin {
 		params["portfolioMargin"] = true
 	}
 

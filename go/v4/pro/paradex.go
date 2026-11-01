@@ -980,7 +980,7 @@ func (this *Paradex) HandleBalance(client any, message map[string]any) {
 		if this.InArray(key, reserved) {
 			continue
 		}
-		ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(balance, key))
+		this.Balance[key] = ccxt.GetValue(balance, key)
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")

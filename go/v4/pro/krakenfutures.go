@@ -1889,14 +1889,15 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			newAccount["free"] = this.SafeString(future, "available")
 			newAccount["used"] = this.SafeString(future, "initial_margin")
 			newAccount["total"] = this.SafeString(future, "balance")
-			if symbol != nil {
-				if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
-					entry[*symbol] = map[string]any{}
-				}
-			}
+			var symbolAccounts map[string]any = map[string]any{}
 			if (symbol != nil) && (code != nil) {
 				futuresSymbols[*symbol] = true
-				ccxt.AddElementToObject(ccxt.GetValue(this.Balance["margin"], symbol), code, newAccount)
+				symbolAccounts[*code] = newAccount
+			}
+			if symbol != nil {
+				if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
+					entry[*symbol] = symbolAccounts
+				}
 			}
 		}
 		this.Balance["margin"] = this.PruneStaleBalanceKeys(this.Balance["margin"], futuresSymbols)

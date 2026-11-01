@@ -1027,12 +1027,12 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
-func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash any, marketType any) <-chan ccxt.AsyncResult[bool] {
+func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash string, marketType any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, marketType)
 	return ch
 }
-func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, marketType any) any {
+func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, marketType any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1052,7 +1052,7 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":fetchBalanceSnapshot")
@@ -1443,12 +1443,12 @@ func (this *Toobit) SetPositionsCache(client any, typeVar string, optionalArgs .
 		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	}
 }
-func (this *Toobit) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Toobit) LoadPositionsSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -1467,10 +1467,10 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		cache.(ccxt.Appender).Append(position)
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
-		client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
+		client.(ccxt.ClientInterface).Resolve(cache, typeVar+":positions")
 	}
 	return nil
 }

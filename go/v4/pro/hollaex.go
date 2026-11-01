@@ -599,12 +599,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		var account any = this.Account()
 		if code != nil {
 			if _, ok := this.Balance[*code]; ok {
-				account = func() any {
-					if code == nil {
-						return nil
-					}
-					return this.Balance[*code]
-				}()
+				account = this.Balance[*code]
 			}
 		}
 		var second *string = this.SafeString(parts, 1)

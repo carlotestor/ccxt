@@ -2581,16 +2581,16 @@ func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[
 
 	return nil
 }
-func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash any, unsubHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Hyperliquid) ExpirePendingUnsubscribeAsync(client any, subHash string, unsubHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.expirePendingUnsubscribeBody(ch, client, subHash, unsubHash)
 	return ch
 }
-func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, subHash any, unsubHash any) any {
+func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, subHash string, unsubHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
-		error := ccxt.RequestTimeout(ccxt.Add(ccxt.Add(this.Id+" unsubscribe ", subHash), " was not acknowledged"))
+		error := ccxt.RequestTimeout(this.Id + " unsubscribe " + subHash + " was not acknowledged")
 		client.(ccxt.ClientInterface).Reject(error, unsubHash)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}

@@ -4671,12 +4671,12 @@ func (this *Predictfun) HandleHeartbeat(client any, message map[string]any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw probe
  */
-func (this *Predictfun) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Predictfun) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the server probes every fifteen seconds and drops the connection on the next probe unless

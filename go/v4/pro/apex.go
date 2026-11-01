@@ -1150,12 +1150,12 @@ func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 	}
 }
-func (this *Apex) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Apex) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
@@ -1175,7 +1175,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
@@ -1464,12 +1464,12 @@ func (this *Apex) Ping(client any) any {
 		"op":   "ping",
 	}
 }
-func (this *Apex) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Apex) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

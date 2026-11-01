@@ -2280,12 +2280,12 @@ func (this *Lighter) HandlePing(client any, message map[string]any) {
 	//
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Lighter) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Lighter) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Lighter) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Lighter) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = map[string]any{

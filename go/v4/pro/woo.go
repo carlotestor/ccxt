@@ -400,12 +400,12 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	orderbook.SetCache([]any{})
 	this.Spawn(this.FetchOrderBookSnapshotAsync, client, message, subscription)
 }
-func (this *Woo) FetchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[bool] {
+func (this *Woo) FetchOrderBookSnapshotAsync(client any, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.fetchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, message any, subscription any) any {
+func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = this.SafeString(subscription, "symbol")
@@ -1900,12 +1900,12 @@ func (this *Woo) SetPositionsCache(client any, typeVar any, optionalArgs ...any)
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Woo) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Woo) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Woo) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Woo) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1924,7 +1924,7 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
@@ -2289,12 +2289,12 @@ func (this *Woo) Ping(client any) any {
 		"event": "ping",
 	}
 }
-func (this *Woo) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Woo) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Woo) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Woo) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 

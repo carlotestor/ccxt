@@ -1179,12 +1179,12 @@ func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
 		}
 	}
 }
-func (this *Poloniex) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Poloniex) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1208,13 +1208,13 @@ func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 			continue
 		}
 		if _, ok := this.Balance[key]; !ok {
-			ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(response, key))
+			this.Balance[key] = ccxt.GetValue(response, key)
 		}
 	}
 	if _, ok := this.Balance["info"]; !ok {
-		ccxt.AddElementToObject(this.Balance, "info", ccxt.GetValue(response, "info"))
-		ccxt.AddElementToObject(this.Balance, "timestamp", ccxt.GetValue(response, "timestamp"))
-		ccxt.AddElementToObject(this.Balance, "datetime", ccxt.GetValue(response, "datetime"))
+		this.Balance["info"] = ccxt.GetValue(response, "info")
+		this.Balance["timestamp"] = ccxt.GetValue(response, "timestamp")
+		this.Balance["datetime"] = ccxt.GetValue(response, "datetime")
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	// don't remove the future from the .futures cache

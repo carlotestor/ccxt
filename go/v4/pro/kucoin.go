@@ -162,12 +162,12 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[*string], privateChan
 	ch <- ccxt.AsyncResult[*string]{Value: resolved1}
 	return nil
 }
-func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId any, optionalArgs ...any) <-chan ccxt.AsyncResult[string] {
+func (this *Kucoin) NegotiateHelperAsync(privateChannel any, connectId string, optionalArgs ...any) <-chan ccxt.AsyncResult[string] {
 	ch := make(chan ccxt.AsyncResult[string], 1)
 	go this.negotiateHelperBody(ch, privateChannel, connectId, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privateChannel any, connectId any, optionalArgs ...any) any {
+func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privateChannel any, connectId string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -193,21 +193,21 @@ func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privat
 				}
 			}()
 			// try block:
-			if ccxt.IsEqual(connectId, "private") {
+			if connectId == "private" {
 
 				r := <-this.PrivatePostBulletPrivate(params)
 				if r.Err != nil {
 					panic(r.Err)
 				}
 				response = r.Value
-			} else if ccxt.IsEqual(connectId, "public") {
+			} else if connectId == "public" {
 
 				r1 := <-this.PublicPostBulletPublic(params)
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
 				response = r1.Value
-			} else if ccxt.IsEqual(connectId, "privateFutures") {
+			} else if connectId == "privateFutures" {
 
 				r2 := <-this.FuturesPrivatePostBulletPrivate(params)
 				if r2.Err != nil {
@@ -3665,15 +3665,15 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
 		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Kucoin) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var uta bool = (ccxt.IsEqual(typeVar, "unified"))
+	var uta bool = (typeVar == "unified")
 	var params map[string]any = map[string]any{
 		"type": typeVar,
 		"uta":  uta,
@@ -3687,12 +3687,12 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -3803,18 +3803,8 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 				entry[*code] = account
 			}
 		}
-		ccxt.AddElementToObject(this.Balance, uniformType, this.SafeBalance(func() any {
-			if uniformType == nil {
-				return nil
-			}
-			return this.Balance[*uniformType]
-		}()))
-		client.(ccxt.ClientInterface).Resolve(func() any {
-			if uniformType == nil {
-				return nil
-			}
-			return this.Balance[*uniformType]
-		}(), *uniformType+":balance")
+		this.Balance[*uniformType] = this.SafeBalance(this.Balance[*uniformType])
+		client.(ccxt.ClientInterface).Resolve(this.Balance[*uniformType], *uniformType+":balance")
 	}
 }
 func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
@@ -4073,12 +4063,12 @@ func (this *Kucoin) SetPositionsCache(client any, uta any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
 }
-func (this *Kucoin) LoadPositionsSnapshotAsync(client any, messageHash any, uta any) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) LoadPositionsSnapshotAsync(client any, messageHash string, uta any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, uta)
 	return ch
 }
-func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, uta any) any {
+func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, uta any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -4099,7 +4089,7 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")

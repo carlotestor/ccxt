@@ -1324,12 +1324,12 @@ func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Polymarket) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1344,7 +1344,7 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 		cache.(ccxt.Appender).Append(positions[i])
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 	}
@@ -1385,8 +1385,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	this.SetBalanceCache(client)
 	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
 	var awaitBalanceSnapshot any = this.HandleOption("watchBalance", "awaitBalanceSnapshot", true)
-	var balanceLoaded bool = (ccxt.InOp(this.Balance, "info"))
-	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) && (!balanceLoaded) {
+	if _, ok := this.Balance["info"]; (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) && !ok {
 		// the portfolio channel pushes one snapshot at subscribe time and
 		// then only on changes, so the first call hydrates over rest
 
@@ -1410,25 +1409,24 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	return nil
 }
 func (this *Polymarket) SetBalanceCache(client any) {
-	var balanceLoaded bool = (ccxt.InOp(this.Balance, "info"))
-	if balanceLoaded {
+	if _, ok := this.Balance["info"]; ok {
 		return
 	}
 	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
 	if fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash)
 		}
 	}
 }
-func (this *Polymarket) LoadBalanceSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadBalanceSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1442,7 +1440,7 @@ func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	}
 	this.Balance = this.Extend(this.Balance, balance)
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(this.Balance)
 	}

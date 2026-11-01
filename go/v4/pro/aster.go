@@ -2052,7 +2052,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	}
 	var typeVar any = nil
 	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
-	if typeVar == nil {
+	if (typeVar == nil) || (typeMarketType == nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a market type"))
 	}
 
@@ -2062,7 +2062,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	}
 	var url string = this.GetPrivateUrl(typeMarketType)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeMarketType)
+	this.SetBalanceCache(client, *typeMarketType)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
@@ -2083,30 +2083,28 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Aster) SetBalanceCache(client any, typeVar *string) {
-	if (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && (ccxt.InOp(this.Balance, typeVar)) {
+func (this *Aster) SetBalanceCache(client any, typeVar string) {
+	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
-		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
-		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		if typeVar != nil {
-			this.Balance[*typeVar] = map[string]any{}
-		}
+		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Aster) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Aster) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -2121,12 +2119,12 @@ func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -2324,12 +2322,12 @@ func (this *Aster) SetPositionsCache(client any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Aster) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Aster) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2348,7 +2346,7 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
@@ -2520,7 +2518,7 @@ func (this *Aster) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	var messageHash string = "orders"
 	var typeVar any = nil
 	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar)
-	if typeVar == nil {
+	if (typeVar == nil) || (typeMarketType == nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a market type"))
 	}
 
@@ -2533,7 +2531,7 @@ func (this *Aster) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	}
 	var url string = this.GetPrivateUrl(typeMarketType)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeMarketType)
+	this.SetBalanceCache(client, *typeMarketType)
 
 	r2 := <-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeMarketType})
 	if r2.Err != nil {
@@ -2598,7 +2596,7 @@ func (this *Aster) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	var messageHash string = "myTrades"
 	var typeVar any = nil
 	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar)
-	if typeVar == nil {
+	if (typeVar == nil) || (typeMarketType == nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a market type"))
 	}
 
@@ -2611,7 +2609,7 @@ func (this *Aster) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	}
 	var url string = this.GetPrivateUrl(typeMarketType)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeMarketType)
+	this.SetBalanceCache(client, *typeMarketType)
 
 	r2 := <-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeMarketType})
 	if r2.Err != nil {

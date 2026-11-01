@@ -1062,12 +1062,12 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash s
 	}
 	this.Balance[typeVar] = map[string]any{}
 }
-func (this *Hashkey) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Hashkey) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1081,12 +1081,12 @@ func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add("balance:", typeVar))
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], "balance:"+typeVar)
 	}
 	return nil
 }
@@ -1264,7 +1264,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 						var client ccxt.ClientInterface = this.Client(url)
 						this.Options["listenKey"] = nil
 						client.(ccxt.ClientInterface).Reject(error)
-						ccxt.Remove(this.Clients, url)
+						delete(this.Clients, client.(ccxt.ClientInterface).GetUrl())
 						return nil
 					}(this)
 				}

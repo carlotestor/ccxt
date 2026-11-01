@@ -1319,12 +1319,12 @@ func (this *Xt) SetPositionsCache(client any) {
 		}
 	}
 }
-func (this *Xt) LoadPositionsSnapshotAsync(client any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Xt) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any) any {
+func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1343,7 +1343,7 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "position::contract")

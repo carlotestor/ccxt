@@ -1222,7 +1222,10 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	// the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
 	var subaccountIdKey *string = this.NumberToString(subaccountId)
-	if fetchSnapshot && !(ccxt.InOp(this.Balance, subaccountIdKey)) {
+	if subaccountIdKey == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchBalance() could not resolve the subaccount id"))
+	}
+	if _, ok := this.Balance[*subaccountIdKey]; fetchSnapshot && !ok {
 		var snapshotRequest map[string]any = map[string]any{
 			"subaccount_id": subaccountId,
 		}

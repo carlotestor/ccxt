@@ -1200,12 +1200,12 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Bitvavo) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Bitvavo) WatchOrderBookSnapshotAsync(client any, message map[string]any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message any, subscription any) any {
+func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message map[string]any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.SafeMapTyped(subscription, "params")

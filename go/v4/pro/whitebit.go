@@ -1010,12 +1010,12 @@ func (this *Whitebit) SetBalanceCache(client any, typeVar *string, subscriptionH
 		}
 	}
 }
-func (this *Whitebit) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, subscriptionHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Whitebit) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, subscriptionHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, subscriptionHash)
 	return ch
 }
-func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, subscriptionHash any) any {
+func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, subscriptionHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 

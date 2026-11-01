@@ -996,12 +996,12 @@ func (this *Bitrue) ParseWsOrderStatus(status *string) *string {
 func (this *Bitrue) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bitrue) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitrue) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

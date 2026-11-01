@@ -502,12 +502,12 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message any, subscription any) any {
+func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -760,12 +760,12 @@ func (this *Bittrade) HandleSubject(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bittrade) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bittrade) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

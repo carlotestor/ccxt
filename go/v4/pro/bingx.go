@@ -1555,12 +1555,12 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		}
 	}
 	var userStreamKey *string = this.SafeString(this.Options, "listenKey")
-	if (baseUrl == nil) || (userStreamKey == nil) {
+	if (typeVar == nil) || (baseUrl == nil) || (userStreamKey == nil) {
 		panic(ccxt.AuthenticationError(this.Id + " watchBalance() requires a websocket URL and a listen key"))
 	}
 	var url string = *baseUrl + "?listenKey=" + *userStreamKey
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeVar, subType, subscriptionHash, paramsSubType)
+	this.SetBalanceCache(client, *typeVar, subType, subscriptionHash, paramsSubType)
 	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true)
 	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
@@ -1582,29 +1582,27 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Bingx) SetBalanceCache(client any, typeVar *string, subType any, subscriptionHash string, params any) {
+func (this *Bingx) SetBalanceCache(client any, typeVar string, subType any, subscriptionHash string, params any) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
 	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	if fetchBalanceSnapshot {
-		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, subType)
 		}
 	} else {
-		if typeVar != nil {
-			this.Balance[*typeVar] = map[string]any{}
-		}
+		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Bingx) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, subType any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bingx) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string, subType any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, subType)
 	return ch
 }
-func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, subType any) any {
+func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string, subType any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1619,12 +1617,12 @@ func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
