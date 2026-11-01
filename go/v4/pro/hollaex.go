@@ -82,7 +82,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -135,12 +135,12 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		var timestampMs *int64 = this.Parse8601(timestamp)
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
 		var orderbook ccxt.OrderBookInterface
-		if _, ok := this.Orderbooks[*symbol]; !ok {
+		if !(this.Orderbooks.Has(symbol)) {
 			orderbook = this.OrderBook(snapshot)
-			this.Orderbooks[*symbol] = orderbook
+			this.Orderbooks.Store(symbol, orderbook)
 		} else {
-			orderbook = this.Orderbooks[*symbol]
-			if ccxt.IsEqual(orderbook, nil) {
+			orderbook = this.Orderbooks.Get(symbol)
+			if orderbook == nil {
 				return
 			}
 			orderbook.Reset(snapshot)
@@ -177,7 +177,7 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -227,7 +227,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
@@ -268,7 +268,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -396,7 +396,7 @@ func (this *Hollaex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

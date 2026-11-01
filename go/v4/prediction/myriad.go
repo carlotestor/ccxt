@@ -4265,8 +4265,8 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(responses, 1, []any{}))
 		}
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
 	var result []any = []any{}
@@ -4723,7 +4723,7 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 	var updatedLength int = len(updatedSymbols)
 	for k := 0; k < updatedLength; k++ {
 		var sym string = updatedSymbols[k]
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], "orderbook::"+sym)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks.Get(sym), "orderbook::"+sym)
 	}
 }
 

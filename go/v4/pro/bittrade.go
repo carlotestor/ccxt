@@ -76,7 +76,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -174,7 +174,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -291,7 +291,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -364,16 +364,12 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if symbol != nil {
-		if timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
-		}
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -412,7 +408,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	if (limit != nil) && (limit == nil || *limit != 150) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook accepts limit = 150 only"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -497,9 +493,7 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
 		this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i), orderbook)
 	}
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
@@ -670,10 +664,10 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		return
 	}
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 	// watch the snapshot in a separate async call

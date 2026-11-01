@@ -191,7 +191,7 @@ func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -256,14 +256,14 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArrayCache := ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = tradesArrayCache
+		this.Trades.Store(symbol, tradesArrayCache)
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades.Get(symbol)
 	var tradesList []any = this.ToArray(trades)
 	for i := 0; i < len(tradesList); i++ {
 		tradesArray.Append(ccxt.DerefScalar(tradesList[i]))
 	}
-	this.Trades[*symbol] = tradesArray
+	this.Trades.Store(symbol, tradesArray)
 	var messageHash string = "trades::" + *this.SafeString(market, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
@@ -287,7 +287,7 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -391,7 +391,7 @@ func (this *Bullish) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -443,10 +443,10 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook::" + *symbol
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var bids []any = this.SeparateBidsOrAsks(this.SafeList(data, "bids", []any{}))
 	var asks []any = this.SeparateBidsOrAsks(this.SafeList(data, "asks", []any{}))
 	var snapshot map[string]any = map[string]any{
@@ -460,7 +460,7 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.Reset(parsed)
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bullish) SeparateBidsOrAsks(entry any) []any {
@@ -507,7 +507,7 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -662,7 +662,7 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -801,7 +801,7 @@ func (this *Bullish) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -944,7 +944,7 @@ func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

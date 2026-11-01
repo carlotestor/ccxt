@@ -1117,7 +1117,7 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, cancelledOrders[i]), market)))
+		}, DerefScalar(cancelledOrders[i])), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(result)}
@@ -2456,11 +2456,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2289 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2289.Err != nil {
-		panic(listEp2289.Err)
+	listEp2279 := <-this.GatewayV2PublicGetAssets(params)
+	if listEp2279.Err != nil {
+		panic(listEp2279.Err)
 	}
-	var response []any = listEp2289.Value
+	var response []any = listEp2279.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -3054,11 +3054,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2824 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2824.Err != nil {
-		panic(listEp2824.Err)
+	listEp2814 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2814.Err != nil {
+		panic(listEp2814.Err)
 	}
-	var response []any = listEp2824.Value
+	var response []any = listEp2814.Value
 
 	//
 	//     [

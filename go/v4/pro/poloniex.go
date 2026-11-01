@@ -358,7 +358,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -491,7 +491,7 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -536,7 +536,7 @@ func (this *Poloniex) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -607,7 +607,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -656,7 +656,7 @@ func (this *Poloniex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -698,7 +698,7 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -738,7 +738,7 @@ func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -822,7 +822,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -909,7 +909,7 @@ func (this *Poloniex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -953,7 +953,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1001,7 +1001,7 @@ func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1068,7 +1068,7 @@ func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1127,7 +1127,7 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1275,10 +1275,8 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any = func() any {
 		if timeframe == nil {
@@ -1341,7 +1339,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
 				if symbol != nil {
-					this.Trades[*symbol] = tradesArray
+					this.Trades.Store(symbol, tradesArray)
 				}
 			}
 			tradesArray.Append(trade)
@@ -1809,7 +1807,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 			if snapshot && (orderbook == nil) {
 				orderbook = this.OrderBook(map[string]any{}, limit)
-				this.Orderbooks[*symbol] = orderbook
+				this.Orderbooks.Store(symbol, orderbook)
 			}
 			if orderbook == nil {
 				continue

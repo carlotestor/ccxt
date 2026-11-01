@@ -124,7 +124,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -194,7 +194,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var length int = len(trades)
 	for j := 0; j < length; j++ {
@@ -299,7 +299,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -442,10 +442,10 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
@@ -458,7 +458,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Apex) HandleDelta(bookside any, delta any) {
@@ -490,7 +490,7 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -533,7 +533,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -696,7 +696,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -780,7 +780,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if timeframe != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
@@ -842,7 +842,7 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "myTrades"
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -902,7 +902,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -994,7 +994,7 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

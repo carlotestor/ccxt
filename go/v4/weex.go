@@ -1379,7 +1379,7 @@ func (this *Weex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1485,7 +1485,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1645,7 +1645,7 @@ func (this *Weex) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice],
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1717,7 +1717,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1779,7 +1779,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1836,7 +1836,7 @@ func (this *Weex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1923,7 +1923,7 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1989,7 +1989,7 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2047,7 +2047,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2204,7 +2204,7 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2403,7 +2403,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2469,7 +2469,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2576,7 +2576,7 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2777,7 +2777,7 @@ func (this *Weex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2892,7 +2892,7 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2950,7 +2950,7 @@ func (this *Weex) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3059,7 +3059,7 @@ func (this *Weex) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3298,7 +3298,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3394,7 +3394,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3469,7 +3469,7 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3550,7 +3550,7 @@ func (this *Weex) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3649,7 +3649,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3833,7 +3833,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3908,7 +3908,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3984,7 +3984,7 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4083,7 +4083,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4420,7 +4420,7 @@ func (this *Weex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4474,7 +4474,7 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4609,7 +4609,7 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4828,7 +4828,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4959,7 +4959,7 @@ func (this *Weex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5039,7 +5039,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5232,7 +5232,7 @@ func (this *Weex) closeAllPositionsBody(ch chan AsyncResult[[]Position], optiona
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5282,7 +5282,7 @@ func (this *Weex) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 	_ = side
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5324,7 +5324,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5396,7 +5396,7 @@ func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5452,7 +5452,7 @@ func (this *Weex) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMode
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5514,7 +5514,7 @@ func (this *Weex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5565,7 +5565,7 @@ func (this *Weex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5609,7 +5609,7 @@ func (this *Weex) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5683,7 +5683,7 @@ func (this *Weex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5739,7 +5739,7 @@ func (this *Weex) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5792,7 +5792,7 @@ func (this *Weex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setPositionMode() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5831,7 +5831,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5987,7 +5987,7 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 	if (!(sandboxMode != nil && *sandboxMode)) || (marketId == nil) {
 		return marketId
 	}
-	if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() != nil) && ok {
+	if _, ok := this.Markets_by_id[*marketId]; (this.Markets_by_id != nil) && ok {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {

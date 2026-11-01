@@ -510,7 +510,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	markets := r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
-		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies())
+		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: markets}

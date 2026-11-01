@@ -257,10 +257,7 @@ func (this *Sxbet) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInterf
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rawMarkets []any = nil
-	if r.Value != nil {
-		rawMarkets = ccxt.MapSliceToList(r.Value)
-	}
+	var rawMarkets []any = ccxt.MapSliceToList(r.Value)
 	var markets []any = []any{}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
@@ -632,8 +629,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}()
 		ccxt.AppendToArray(&retRes48412, raw)
 	}
-	if this.Markets() == nil {
-		this.PublishMarkets(map[string]any{})
+	if this.Markets == nil {
+		this.Markets = map[string]any{}
 	}
 	var result []any = []any{}
 	var orderLength int = len(order)
@@ -3414,7 +3411,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(sym)
 		if orderbook == nil {
 			orderbook = this.OrderBook(map[string]any{})
-			this.Orderbooks[sym] = orderbook
+			this.Orderbooks.Store(sym, orderbook)
 		}
 		var bookSnapshot map[string]any = map[string]any{
 			"bids":      this.SafeList(sides, "bids", []any{}),
@@ -3689,7 +3686,7 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 		}
 		if this.Trades.Get(sym) == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
+			this.Trades.Store(sym, ccxt.NewArrayCache(tradesLimit))
 		}
 		var stored ccxt.WsArrayCache = this.Trades.Get(sym)
 		stored.Append(trade)

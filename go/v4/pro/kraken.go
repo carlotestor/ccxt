@@ -783,8 +783,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Ohlcvs[*symbol]; !ok {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
@@ -795,10 +795,8 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && timeframe != nil {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
-	if symbol != nil {
-		if this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1473,8 +1471,8 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	var orderbook ccxt.OrderBookInterface
 	if typeVar != nil && *typeVar == "update" {
 		orderbook = this.Orderbooks.Get(symbol)
-		var storedAsks any = ccxt.GetValue(orderbook, "asks")
-		var storedBids any = ccxt.GetValue(orderbook, "bids")
+		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
+		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 		if a != nil {
 			this.CustomHandleDeltas(storedAsks, a)
 		}
@@ -1482,9 +1480,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 			this.CustomHandleDeltas(storedBids, b)
 		}
 		var datetime *string = this.SafeString(first, "timestamp")
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
-		ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))
-		ccxt.AddElementToObject(orderbook, "datetime", datetime)
+		orderbook.SetSymbol(symbol)
+		orderbook.SetTimestamp(this.Parse8601(datetime))
+		orderbook.SetDatetime(datetime)
 	} else {
 		// snapshot
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
@@ -1504,9 +1502,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if !(this.Orderbooks.Has(symbol)) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
-			}
+			this.Orderbooks.Store(symbol, this.OrderBook(map[string]any{}, depth))
 			if symbol != nil {
 				depths[*symbol] = depth
 			}
@@ -1534,8 +1530,8 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	if checksum == true {
 		var payloadArray []string = []string{}
 		if c != nil {
-			var checkAsks any = ccxt.GetValue(orderbook, "asks")
-			var checkBids any = ccxt.GetValue(orderbook, "bids")
+			var checkAsks ccxt.IOrderBookSide = orderbook.GetAsks()
+			var checkBids ccxt.IOrderBookSide = orderbook.GetBids()
 			// const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ])
 			// const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ])
 			for i := 0; i < 10; i++ {
@@ -1562,9 +1558,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-			if symbol != nil {
-				delete(this.Orderbooks, *symbol)
-			}
+			this.Orderbooks.Delete(symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return
 		}
@@ -2281,10 +2275,10 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	this.WsBalanceEntryForWrite(typeVar)["info"] = message
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var currencyId *string = this.SafeString(ccxt.DerefScalar(data[i]), "asset")
+		var currencyId *string = this.SafeString(data[i], "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
-		var eq *string = this.SafeString(ccxt.DerefScalar(data[i]), "balance")
+		var eq *string = this.SafeString(data[i], "balance")
 		account["total"] = eq
 		ccxt.AddElementToObject(this.Balance[typeVar], code, account)
 	}

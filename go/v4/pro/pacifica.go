@@ -126,7 +126,7 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -245,7 +245,7 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var batchOperationType string = "edit_order"
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -337,7 +337,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var batchOperationType string = "batch_orders"
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -448,7 +448,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "cancel_order"
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -541,7 +541,7 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -610,7 +610,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.SetupApiKeyHeaders()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -671,7 +671,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -772,11 +772,11 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 		snapshot["nonce"] = nonce
 	}
 	var messageHash string = "orderbook:" + *symbol
-	if _, ok := this.Orderbooks[*symbol]; !ok {
+	if !(this.Orderbooks.Has(symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		this.Orderbooks[*symbol] = ob
+		this.Orderbooks.Store(symbol, ob)
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -805,7 +805,9 @@ func (this *Pacifica) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: r.Value[symbol]}
+	var tickers map[string]ccxt.Ticker = r.Value
+
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbol]}
 	return nil
 }
 
@@ -831,7 +833,7 @@ func (this *Pacifica) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.SetupApiKeyHeaders()
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -894,7 +896,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optiona
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -973,7 +975,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("watchMyTrades", params)
 	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsOriginAndSingleAddressVariable[0])
 	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1042,7 +1044,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1222,7 +1224,7 @@ func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1285,7 +1287,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1362,7 +1364,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	if !(this.Trades.Has(symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		this.Trades[*symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var trades ccxt.WsArrayCache = this.Trades.Get(symbol)
 	for i := 0; i < len(entry); i++ {
@@ -1490,7 +1492,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1558,7 +1560,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1637,12 +1639,11 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	}
 	var messageHash string = "candles:" + *timeframe + ":" + *symbol
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
-		this.Ohlcvs[*symbol] = map[string]any{}
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var symbolOhlcvs map[string]any = this.Ohlcvs[*symbol]
-	if symbolOhlcvs == nil {
-		symbolOhlcvs = map[string]any{}
-	}
+	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
 	var ohlcv any = symbolOhlcvs[*timeframe]
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1682,7 +1683,7 @@ func (this *Pacifica) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1760,7 +1761,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1922,8 +1923,8 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if _, ok := this.Orderbooks[*symbol]; ok {
-		delete(this.Orderbooks, *symbol)
+	if this.Orderbooks.Has(symbol) {
+		this.Orderbooks.Delete(symbol)
 	}
 }
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
@@ -1934,7 +1935,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Trades.Has(symbol) {
-		delete(this.Trades, *symbol)
+		this.Trades.Delete(symbol)
 	}
 }
 func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {

@@ -76,7 +76,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -127,7 +127,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot)
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -157,7 +157,7 @@ func (this *Coincheck) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -207,7 +207,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)

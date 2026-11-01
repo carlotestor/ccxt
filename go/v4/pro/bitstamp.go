@@ -85,7 +85,7 @@ func (this *Bitstamp) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -133,7 +133,7 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -323,7 +323,7 @@ func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -375,7 +375,7 @@ func (this *Bitstamp) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -475,7 +475,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = tradesArray
+		this.Trades.Store(symbol, tradesArray)
 	}
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
@@ -500,7 +500,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -584,7 +584,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -639,7 +639,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrders() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -697,7 +697,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -753,7 +753,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1027,15 +1027,10 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
 	var symbol *string = this.SafeSymbol(marketId)
-	if symbol != nil {
-		if _, ok := this.Orderbooks[*symbol]; !ok {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 }

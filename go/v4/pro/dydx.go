@@ -70,7 +70,7 @@ func (this *Dydx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -119,7 +119,7 @@ func (this *Dydx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -186,7 +186,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		this.Trades[symbol] = stored
+		this.Trades.Store(symbol, stored)
 	}
 	var parsedTrades []any = this.ParseTrades(rawTrades, market)
 	for i := 0; i < len(parsedTrades); i++ {
@@ -249,7 +249,7 @@ func (this *Dydx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -294,7 +294,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -368,7 +368,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetNonce(this.SafeInteger(message, "message_id"))
 	var messageHash string = "orderbook:" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	this.Orderbooks.Store(symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Dydx) HandleDelta(bookside any, delta any) {
@@ -410,7 +410,7 @@ func (this *Dydx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -464,7 +464,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	_ = timeframe
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -574,7 +574,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}

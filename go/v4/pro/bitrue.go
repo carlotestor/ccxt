@@ -248,7 +248,7 @@ func (this *Bitrue) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -402,7 +402,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -504,20 +504,20 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 			"buys": this.ParseContractBidsAsks(rawBuys, *symbol),
 		}
 	}
-	if _, ok := this.Orderbooks[*symbol]; !ok {
-		this.Orderbooks[*symbol] = this.OrderBook()
+	if !(this.Orderbooks.Has(symbol)) {
+		this.Orderbooks.Store(symbol, this.OrderBook())
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks.Get(symbol)
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
-	if this.Markets() == nil {
+	if this.Markets == nil {
 		return nil
 	}
-	var markets map[string]any = this.Markets()
+	var markets map[string]any = this.Markets
 	var symbols []string = nil
 	if markets != nil {
 		symbols = make([]string, 0, len(markets))
@@ -593,7 +593,7 @@ func (this *Bitrue) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -671,7 +671,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			stored = ccxt.NewArrayCache(limit)
-			this.Trades[*symbol] = stored
+			this.Trades.Store(symbol, stored)
 		}
 		var trade map[string]any = this.ParseWsTrade(data[i], market)
 		stored.Append(trade)
@@ -736,7 +736,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -822,16 +822,13 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if timeframe != nil {
+		if this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
-	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
-	}
+	var stored any = this.Ohlcvs[*symbol][*timeframe]
 	stored.(ccxt.Appender).Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -869,7 +866,7 @@ func (this *Bitrue) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets() == nil {
+	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
