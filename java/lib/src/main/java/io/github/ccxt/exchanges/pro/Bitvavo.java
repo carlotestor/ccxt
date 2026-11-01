@@ -232,7 +232,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ticker.get("symbol");
-            this.tickers.put(((String)symbol), ticker);
+            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {

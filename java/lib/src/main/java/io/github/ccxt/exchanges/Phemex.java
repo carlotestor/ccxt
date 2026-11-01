@@ -7,7 +7,6 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Conversion;
@@ -1462,7 +1461,7 @@ public class Phemex extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Long valueScale = JsParse.parseInt(valueScaleString);
+        Long valueScale = Long.parseLong(valueScaleString);
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Double minAmount = null;

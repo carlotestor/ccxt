@@ -3970,7 +3970,7 @@ public class Myriad extends MyriadApi
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             orderbook.reset(snapshot);
-            this.orderbooks.put(((String)sym), orderbook);
+            Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
 
@@ -4365,7 +4365,7 @@ public class Myriad extends MyriadApi
             mapLiteral17.put("quoteVolume", null);
             mapLiteral17.put("info", oc);
             Object ticker = this.safePredictionTicker(mapLiteral17, market);
-            this.tickers.put(sym, ((Object)ticker));
+            Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
             client.resolve(ticker, ("ticker::" + sym));
         }
         client.resolve(this.tickers, "tickers");

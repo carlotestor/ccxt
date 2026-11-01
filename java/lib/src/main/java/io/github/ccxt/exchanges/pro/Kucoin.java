@@ -1549,7 +1549,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (this.trades == null || symbol == null ? null : this.trades.get(symbol));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -1583,7 +1583,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (this.trades == null || symbol == null ? null : this.trades.get(symbol));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         cache.append(trade);
         client.resolve(cache, messageHash);
     }

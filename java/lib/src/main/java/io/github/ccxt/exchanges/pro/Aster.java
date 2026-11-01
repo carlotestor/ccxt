@@ -8,7 +8,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
@@ -2268,7 +2267,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                                 {
                                     Object feeCost = this.sum(tradeFee.get("cost"), Helpers.GetValue(orderFee, "cost"));
                                     String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : JsParse.parseFloat(feeCostString));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Double.parseDouble(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -2283,7 +2282,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             {
                                 Object feeCost = this.sum(fee.get("cost"), tradeFee.get("cost"));
                                 String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : JsParse.parseFloat(feeCostString));
+                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Double.parseDouble(feeCostString));
                             } else if (java.util.Objects.equals(this.safeString(fee, "currency"), null))
                             {
                                 order.put("fee", tradeFee);

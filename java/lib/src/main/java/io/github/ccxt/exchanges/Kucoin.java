@@ -7,7 +7,6 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
@@ -5141,7 +5140,7 @@ public class Kucoin extends KucoinApi
             String sizeString = this.amountToPrecision(symbol, amount);
             if (!java.util.Objects.equals(sizeString, null))
             {
-                request.put("size", JsParse.parseInt(sizeString));
+                request.put("size", Long.parseLong(sizeString));
             }
         }
         this.checkTriggerPrices(paramsOmitted);
@@ -9096,7 +9095,7 @@ public class Kucoin extends KucoinApi
             String amountString = (String) this.currencyToPrecision((String) (code), amount, networkCode);
             if (!java.util.Objects.equals(amountString, null))
             {
-                request.put("amount", JsParse.parseFloat(amountString));
+                request.put("amount", Double.parseDouble(amountString));
             }
             Pair<Boolean, Map<String, Object>> includeFeeparamsIncludeFeeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsNetworkCode), "withdraw", "includeFee", false);
             Boolean includeFee = includeFeeparamsIncludeFeeVariable.first();

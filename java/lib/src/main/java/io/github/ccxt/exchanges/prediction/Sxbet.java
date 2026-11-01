@@ -2866,7 +2866,7 @@ public class Sxbet extends SxbetApi
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
                     io.github.ccxt.ws.WsOrderBook emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
-                    this.orderbooks.put(sym, emptyBook);
+                    Helpers.addElementToObject(this.orderbooks, sym, emptyBook);
                 }
             }
             Long requestId = this.requestId((String) (url));
@@ -2932,7 +2932,7 @@ public class Sxbet extends SxbetApi
             if (java.util.Objects.equals(orderbook, null))
             {
                 orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-                this.orderbooks.put(sym, orderbook);
+                Helpers.addElementToObject(this.orderbooks, sym, orderbook);
             }
             Map<String, Object> bookSnapshot = new HashMap<String, Object>() {{
                 put( "bids", Sxbet.this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList())) );
@@ -3003,7 +3003,7 @@ public class Sxbet extends SxbetApi
                 Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
                 Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
                 Object ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers.put(sym, ((Object)ticker));
+                Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
                 hydrated = true;
             }
             Long requestId = this.requestId((String) (url));
@@ -3067,7 +3067,7 @@ public class Sxbet extends SxbetApi
                 }
                 Object outcomeObj = ((Object)this.outcome(sym));
                 Object ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                this.tickers.put(sym, ((Object)ticker));
+                Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }
         }

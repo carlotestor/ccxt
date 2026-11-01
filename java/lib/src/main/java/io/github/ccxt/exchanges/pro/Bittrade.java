@@ -148,7 +148,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ticker.put("timestamp", timestamp);
         ticker.put("datetime", this.iso8601(timestamp));
         Object symbol = ticker.get("symbol");
-        this.tickers.put(((String)symbol), ticker);
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, ch);
         return message;
     }

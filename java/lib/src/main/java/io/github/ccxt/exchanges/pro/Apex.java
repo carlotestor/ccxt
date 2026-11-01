@@ -568,7 +568,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         parsed.put("datetime", this.iso8601(timestamp));
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker:" + symbol);
-        client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     /**

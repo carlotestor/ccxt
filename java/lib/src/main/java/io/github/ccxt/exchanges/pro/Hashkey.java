@@ -292,7 +292,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String symbol = this.safeString(ticker, "symbol", "");
         String messageHash = ("ticker:" + symbol);
         this.tickers.put(symbol, ticker);
-        client.resolve((this.tickers == null || symbol == null ? null : this.tickers.get(symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     /**

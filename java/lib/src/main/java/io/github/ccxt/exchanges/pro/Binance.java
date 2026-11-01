@@ -8,7 +8,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.OHLCV;
@@ -6691,7 +6690,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", JsParse.parseFloat(feeCostString));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", Double.parseDouble(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -6710,7 +6709,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 {
                                     feeCostString = "0";
                                 }
-                                Helpers.addElementToObject(order.get("fee"), "cost", JsParse.parseFloat(feeCostString));
+                                Helpers.addElementToObject(order.get("fee"), "cost", Double.parseDouble(feeCostString));
                             } else if (java.util.Objects.equals(fee.get("currency"), null))
                             {
                                 order.put("fee", tradeFee);

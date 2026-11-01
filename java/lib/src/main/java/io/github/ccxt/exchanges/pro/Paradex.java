@@ -269,7 +269,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
-            this.trades.put(((String)symbol), stored);
+            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         stored.append(parsedTrade);
         client.resolve(stored, messageHash);

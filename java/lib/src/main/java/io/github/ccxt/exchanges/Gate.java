@@ -7,7 +7,6 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
-import io.github.ccxt.base.JsParse;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.BorrowInterest;
 import io.github.ccxt.types.DepositAddress;
@@ -6023,7 +6022,7 @@ public class Gate extends GateApi
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!Boolean.TRUE.equals(useGateFuturesDecimalSize))
                 {
-                    contractAmount = JsParse.parseInt(((String)signedAmount));
+                    contractAmount = Long.parseLong(((String)signedAmount));
                 }
             }
         }
@@ -9717,10 +9716,10 @@ public class Gate extends GateApi
         Object timestamp = null;
         if (rawTimestamp.length() > 10)
         {
-            timestamp = JsParse.parseInt(rawTimestamp);
+            timestamp = Long.parseLong(rawTimestamp);
         } else
         {
-            timestamp = Helpers.multiply(JsParse.parseInt(rawTimestamp), 1000);
+            timestamp = Helpers.multiply(Long.parseLong(rawTimestamp), 1000);
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");

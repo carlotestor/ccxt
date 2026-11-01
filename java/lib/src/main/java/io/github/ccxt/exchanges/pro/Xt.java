@@ -956,7 +956,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
             Object symbol = fundingRate.get("symbol");
-            this.fundingRates.put(((String)symbol), fundingRate);
+            Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
             if (!java.util.Objects.equals(eventVar, null))
             {
