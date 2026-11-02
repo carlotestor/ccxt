@@ -2361,7 +2361,7 @@ public class TestMain extends BaseTest
                     // if it's not a BadRequest, it means our request was not created succesfully
                     // so we might have an error in the request creation
                     this.requestTestsFailed = true;
-                    String creationErrorMessage = (((((((((((("[" + this.lang) + "][STATIC_REQUEST]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + ((Map<String, Object>)data).get("description")) + "]") + exceptionMessage(e));
+                    String creationErrorMessage = (((((((((((("[" + this.lang) + "][STATIC_REQUEST]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + data.get("description")) + "]") + exceptionMessage(e));
                     dump(("[TEST_FAILURE]" + creationErrorMessage));
                     return true;
                 }
