@@ -2136,10 +2136,10 @@ public partial class coinbaseinternational : Exchange
         if (this.isNativeDeribitCredentials())
         {
             string? size = this.safeString(position, "size");
-            if ((((marketResolved != null && marketResolved.ContainsKey("option") ? marketResolved["option"] : null) as bool?) != true))
+            if (!(this.safeBool(marketResolved, "option", false) == true))
             {
                 notional = size;
-                if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
+                if ((this.safeBool(marketResolved, "linear", false) == true))
                 {
                     size = this.safeString(position, "size_currency");
                 }
@@ -2485,7 +2485,7 @@ public partial class coinbaseinternational : Exchange
     public virtual string? getOrderAmount(object market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && ((getValue(market, "contract") is true)))
+        if (this.isNativeDeribitCredentials() && (this.safeBool(market, "contract", false) == true))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
@@ -2780,7 +2780,7 @@ public partial class coinbaseinternational : Exchange
         Int64? lastUpdateTimestamp = this.safeInteger(order, "last_update_timestamp");
         double? filled = this.safeNumber(order, "filled_amount");
         double? amount = this.safeNumber(order, "amount");
-        if (this.isNativeDeribitCredentials() && ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)))
+        if (this.isNativeDeribitCredentials() && (this.safeBool(marketResolved, "contract", false) == true))
         {
             string? contractSize = this.safeString(marketResolved, "contractSize");
             amount = this.parseNumber(this.safeString(order, "contracts", Precise.stringDiv(this.safeString(order, "amount"), contractSize)));
@@ -2799,7 +2799,7 @@ public partial class coinbaseinternational : Exchange
         if (((filledString != null)) && ((averageString != null)))
         {
             cost = this.parseNumber(Precise.stringMul(filledString, averageString));
-            if (this.isNativeDeribitCredentials() && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("option") ? marketResolved["option"] : null) as bool?) != true)))
+            if (this.isNativeDeribitCredentials() && (this.safeBool(marketResolved, "inverse", false) == true) && (!(this.safeBool(marketResolved, "option", false) == true)))
             {
                 cost = this.parseNumber(Precise.stringDiv(filledString, averageString));
             }
@@ -3435,7 +3435,7 @@ public partial class coinbaseinternational : Exchange
         double? price = this.safeNumber(trade, "price");
         double? amount = this.safeNumber(trade, "amount");
         string? amountString = this.safeString(trade, "amount");
-        if (this.isNativeDeribitCredentials() && ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)))
+        if (this.isNativeDeribitCredentials() && (this.safeBool(marketResolved, "contract", false) == true))
         {
             amount = this.parseNumber(this.safeString(trade, "contracts", Precise.stringDiv(amountString, this.safeString(marketResolved, "contractSize"))));
         }
@@ -3444,7 +3444,7 @@ public partial class coinbaseinternational : Exchange
         if (((amountString != null)) && ((priceString != null)))
         {
             cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-            if (this.isNativeDeribitCredentials() && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("option") ? marketResolved["option"] : null) as bool?) != true)))
+            if (this.isNativeDeribitCredentials() && (this.safeBool(marketResolved, "inverse", false) == true) && (!(this.safeBool(marketResolved, "option", false) == true)))
             {
                 cost = this.parseNumber(Precise.stringDiv(amountString, priceString));
             }
@@ -3907,7 +3907,7 @@ public partial class coinbaseinternational : Exchange
      */
     public virtual bool isNativeDeribitCredentials()
     {
-        return this.resolveRoute((this.options.ContainsKey("route") ? this.options["route"] : null));
+        return this.resolveRoute((this.options != null && this.options.ContainsKey("route") ? this.options["route"] : null));
     }
 
     /**
