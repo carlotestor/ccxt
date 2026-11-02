@@ -676,11 +676,11 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	// read-modify-write: the cached entry is copied out, updated, and stored back whole
 	var currentBidAsk map[string]any = map[string]any{}
 	if _, ok := this.Bidsasks[*symbol]; ok {
-		currentBidAsk = this.Extend(map[string]any{}, ccxt.TickerToMap(this.Bidsasks[*symbol]))
+		var cachedBidAsk any = ccxt.TickerToMap(this.Bidsasks[*symbol])
+		currentBidAsk = this.Extend(map[string]any{}, cachedBidAsk)
 	} else {
-		currentBidAsk = this.Extend(ccxt.TickerToMap(this.ParseTicker(map[string]any{})), map[string]any{
-			"symbol": symbol,
-		})
+		currentBidAsk = this.Extend(ccxt.TickerToMap(this.ParseTicker(map[string]any{})))
+		currentBidAsk["symbol"] = symbol
 	}
 	var messageHash string = "bidsasks:" + *symbol
 	// last update always overwrites the previous state and is the latest state
