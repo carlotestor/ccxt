@@ -4,7 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
-import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
+import { CORE_LIST_ARGS } from './csharp-local-types.js'
 import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
@@ -2819,22 +2819,6 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
     return false
 }
 
-// the suffixed C# literal a numeric core parameter takes for a plain numeric literal argument:
-// `1L` -> Int64 / Int64?, `0d` -> double / double?. '' when the operand is not such a literal
-function csharpNumericLiteralFor (helper: string, argument: string): string {
-    const literal = /^(-?)(\d+)(\.\d+)?$/.exec (argument)
-    if (literal === null) {
-        return ''
-    }
-    if ((helper === 'ToDoubleArg') || (helper === 'ToDoubleArgRequired')) {
-        return argument + 'd'
-    }
-    if (((helper === 'ToInt64Arg') || (helper === 'ToInt64ArgRequired')) && (literal[3] === undefined)) {
-        return argument + 'L'
-    }
-    return ''
-}
-
 // --self-test: each return/argument identity accepts only its own declared shape
 function csharpReturnIdentitySelfTest (): string[] {
     const pad = '    '
@@ -2870,11 +2854,6 @@ function csharpReturnIdentitySelfTest (): string[] {
         if (got !== expected) {
             problems.push ('[return identity] ' + name + ' expected ' + String (expected) + ' got ' + String (got))
         }
-    }
-    if ((csharpNumericLiteralFor ('ToDoubleArgRequired', '-1') !== '-1d') || (csharpNumericLiteralFor ('ToInt64Arg', '1') !== '1L')
-        || (csharpNumericLiteralFor ('ToDoubleArg', '1') !== '1d') || (csharpNumericLiteralFor ('ToInt64Arg', '1.5') !== '')
-        || (csharpNumericLiteralFor ('ToInt64Arg', 'since') !== '') || (csharpNumericLiteralFor ('ToInt64Arg', 'null') !== '')) {
-        problems.push ('[numeric literal argument] expected the suffixed literal')
     }
     return problems
 }
@@ -3068,6 +3047,8 @@ class NewTranspiler {
                 "dictParamsMethods": PARAMETERS_ARG_TYPED_METHODS,
                 "coreArgTypes": this.coreArgTypeTable (),
                 "signatureArgTypes": SIGNATURE_ARG_TYPES,
+                "callSiteArgTypes": this.callSiteArgTypeTable (),
+                "callSiteTypedIdentifiers": CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS,
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -4731,6 +4712,16 @@ class NewTranspiler {
         return merged;
     }
 
+    // the positions a `this.`/`base.`/`exchange.` call converts its argument at (the printer's csharpCallSiteArgs)
+    callSiteArgTypeTable (): Record<string, Record<number, string>> {
+        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS)).concat (Object.keys (CORE_LIST_ARGS)).concat (Object.keys (SIGNATURE_ARG_TYPES));
+        const table: Record<string, Record<number, string>> = {};
+        for (const name of names) {
+            table[name] = Object.assign ({}, this.coreArgTypes (name), SIGNATURE_ARG_TYPES[name]);
+        }
+        return table;
+    }
+
     // every CORE_*_ARGS position -> narrowed C# type, the table the printer prints signatures from
     coreArgTypeTable (): Record<string, Record<number, string>> {
         const names = new Set (Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS)).concat (Object.keys (CORE_DICT_ARGS)).concat (Object.keys (CORE_IDICT_ARGS)).concat (Object.keys (CORE_LIST_ARGS)));
@@ -5700,42 +5691,6 @@ class NewTranspiler {
         return content;
     }
 
-    // Declared C# type of the bare identifier `ident` at offset `at` of `content`, read off the
-    // enclosing generated method's parameter list, falling back to the last local declaration
-    // before `at` (C# forbids a local from shadowing a parameter, so the two cannot disagree).
-    // Null when the enclosing declaration cannot be resolved -- then the caller keeps the cast.
-    coreArgCallSiteDeclaredType (content: string, at: number, ident: string): string | null {
-        const lines = content.split ('\n');
-        let lineIndex = 0;
-        for (let i = 0, off = 0; i < lines.length; i++) {
-            if (off + lines[i].length >= at) { lineIndex = i; break; }
-            off += lines[i].length + 1;
-        }
-        const sigRe = /^\s*public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        let sig = -1;
-        for (let i = lineIndex; i >= 0; i--) {
-            if (sigRe.test (lines[i])) { sig = i; break; }
-        }
-        if (sig === -1) {
-            return null;
-        }
-        const sigMatch = sigRe.exec (lines[sig]) as RegExpExecArray;
-        const types: Record<string, string> = {};
-        for (const param of this.splitCsharpParams (sigMatch[5])) {
-            const parts = param.split ('=')[0].trim ().split (/\s+/);
-            if (parts.length >= 2) {
-                types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-            }
-        }
-        for (let i = sig + 1; i <= lineIndex; i++) {
-            const decl = /^\s*(string|object|Int64\??|double\??|bool\??|I?List<[^>]*>|Dictionary<[^>]*>|[\w.]+)\s+(\w+)\s*(?:=[^=]|;\s*$)/.exec (lines[i]);
-            if (decl !== null && decl[2] === ident) {
-                types[ident] = decl[1];
-            }
-        }
-        return types[ident] === undefined ? null : types[ident];
-    }
-
     // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` where `x` IS declared
     // `string`/`string?` in the same method: the cast names the box the value already is, so
     // it is dropped. The ast printer (csharpStringReceiverType) drops it at print time for
@@ -5886,151 +5841,6 @@ class NewTranspiler {
     // dictionary receivers), behind one entry point so the pass chains stay a single call
     retypePrintedReceiverCasts (content: string): string {
         return this.retypeStringReceiverCasts (this.retypeDictReceiverCasts (content));
-    }
-
-    // `ToInt64Arg`/`ToDoubleArg` (and `Required` twins) on a bare identifier whose declared box already
-    // matches the target are the identity, so the operand passes through; returns the operand text, or
-    // '' when the wrap stays. `Required` on `double? x` is `(x ?? 0d)`.
-    coreArgIdentityOperand (content: string, at: number, targetType: string, operand: string): string {
-        if (targetType !== 'Int64?' && targetType !== 'Int64' && targetType !== 'double?' && targetType !== 'double') {
-            return '';
-        }
-        const negated = (targetType === 'double') ? /^\(-([A-Za-z_]\w*)\)$/.exec (operand) : null;
-        const ident = (negated !== null) ? negated[1] : operand;
-        if (!/^[A-Za-z_]\w*$/.test (ident)) {
-            return '';
-        }
-        const declared = this.coreArgCallSiteDeclaredType (content, at, ident);
-        if (negated !== null) {
-            return (declared === 'double') ? operand : '';
-        }
-        if (declared === targetType || (targetType.endsWith ('?') && declared === targetType.slice (0, -1))) {
-            return operand;
-        }
-        return (targetType === 'double' && declared === 'double?') ? '(' + operand + ' ?? 0d)' : '';
-    }
-
-    // narrowing a core parameter to `string` breaks every intra-core call site that still
-    // holds the value in an `object` local, so each such argument gets an explicit
-    // `((string)expr)`. The value is a string by contract (the TS signature says so); the
-    // cast only makes the existing assumption explicit to the C# compiler.
-    castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
-        const allNames = Object.keys (CORE_STRING_ARGS)
-            .concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)))
-            .concat (Object.keys (CORE_LIST_ARGS).filter ((n) => !(n in CORE_STRING_ARGS) && !(n in CORE_NUMERIC_ARGS)))
-            .concat (Object.keys (SIGNATURE_ARG_TYPES));
-        for (const methodName of allNames) {
-            const positions = Object.assign ({}, this.coreArgTypes (methodName), SIGNATURE_ARG_TYPES[methodName]);
-            for (const receiver of receivers) {
-                const needle = receiver + methodName + '(';
-                let from = 0;
-            for (;;) {
-                const at = content.indexOf (needle, from);
-                if (at === -1) {
-                    break;
-                }
-                const before = content[at - 1];
-                if (before !== undefined && /[\w.]/.test (before)) {
-                    from = at + needle.length;
-                    continue;
-                }
-                const open = at + needle.length - 1;
-                const close = this.matchingParen (content, open);
-                if (close === -1) {
-                    from = at + needle.length;
-                    continue;
-                }
-                const args = this.splitCsharpParams (content.substring (open + 1, close));
-                let changed = false;
-                // content offset of each argument, so the skip below can look up the enclosing scope
-                const argOffsets: number[] = [];
-                for (let q = 0, off = open + 1; q < args.length; q++) {
-                    argOffsets.push (off);
-                    off += args[q].length + 1;
-                }
-                for (const posKey of Object.keys (positions)) {
-                    const pos = Number (posKey);
-                    const targetType = positions[pos];
-                    const arg = args[pos];
-                    if (arg === undefined) {
-                        continue;
-                    }
-                    const trimmed = arg.trim ();
-                    if (trimmed === '') {
-                        continue;
-                    }
-                    if (targetType === 'string') {
-                        if (trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
-                            continue;
-                        }
-                        // the argument already carries the target type: `string symbol` (a
-                        // `typeCoreArgs`-narrowed parameter or a `string` local) needs no cast --
-                        // the callee receives the identical reference
-                        if (CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS.indexOf (trimmed) !== -1
-                                && this.coreArgCallSiteDeclaredType (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), trimmed) === 'string') {
-                            continue;
-                        }
-                        args[pos] = '((string)' + trimmed + ')';
-                        changed = true;
-                        continue;
-                    }
-                    // a list target adds no wrap: every admitted caller already passes a list,
-                    // `this.symbols`, null or nothing (see CORE_LIST_ARGS), and `((IList<object>)x)`
-                    // on an `object` argument would be a new runtime type check
-                    if (CORE_LIST_TARGET_TYPES.indexOf (targetType) !== -1) {
-                        continue;
-                    }
-                    // reference type (the sign()/handleErrors() dictionaries): the argument is that
-                    // dictionary by contract, so an explicit cast only spells the assumption out; a
-                    // `new Dictionary<string, object>` literal and a bare `null` already convert
-                    if (targetType.endsWith ('Dictionary<string, object>')) {
-                        if (trimmed.startsWith ('((' + targetType + ')') || trimmed.startsWith ('(' + targetType + ')')
-                            || trimmed.startsWith ('new Dictionary<string, object>') || trimmed === 'null') {
-                            continue;
-                        }
-                        args[pos] = '((' + targetType + ')' + trimmed + ')';
-                        changed = true;
-                        continue;
-                    }
-                    // numeric: a direct unbox-cast of a boxed Int32 throws, so convert
-                    const helper = (targetType === 'Int64?') ? 'ToInt64Arg'
-                        : (targetType === 'Int64') ? 'ToInt64ArgRequired'
-                            : (targetType === 'double?') ? 'ToDoubleArg' : 'ToDoubleArgRequired';
-                    if (trimmed.startsWith (helper + '(') || trimmed.startsWith ('ccxt.BaseExchange.' + helper + '(')) {
-                        continue;
-                    }
-                    // an operand already declared in the parameter's own box passes through bare (the twin is
-                    // the identity on `T`/`T?`); a `double?` operand becomes `(x ?? 0d)`, a negated `double` itself
-                    const coreArgNativeOperand = this.coreArgIdentityOperand (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), targetType, trimmed);
-                    if (coreArgNativeOperand === trimmed) {
-                        continue;
-                    }
-                    if (coreArgNativeOperand !== '') {
-                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + coreArgNativeOperand
-                        changed = true;
-                        continue;
-                    }
-                    // a null literal converts to `Int64?`/`double?` on its own
-                    if ((trimmed === 'null') && ((helper === 'ToInt64Arg') || (helper === 'ToDoubleArg'))) {
-                        continue;
-                    }
-                    // a plain numeric literal prints as the target's own suffixed C# literal (`0d`, `1L`)
-                    const numericLiteral = csharpNumericLiteralFor (helper, trimmed);
-                    if (numericLiteral !== '') {
-                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + numericLiteral;
-                        changed = true;
-                        continue;
-                    }
-                    args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
-                    changed = true;
-                }
-                const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
-                content = content.substring (0, at) + replacement + content.substring (close + 1);
-                from = at + replacement.length;
-                }
-            }
-        }
-        return content;
     }
 
     // drop `((string)x)` when the enclosing method declares `x` as `string`/`string?`: the printer wraps
@@ -8040,7 +7850,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (this.castCoreArgCallSites ((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n");
+            const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n");
             fs.writeFileSync (csharpExchangeBase, csharpTupleReturns (file, csharpExchangeBase));
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -8048,7 +7858,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (this.castCoreArgCallSites ((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n");
+                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n");
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, csharpTupleReturns (tradingFile, BASE_TRADING_METHODS_FILE));
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -8096,7 +7906,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (this.castCoreArgCallSites ((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n");
+            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n");
             fs.writeFileSync (predictionBase, csharpTupleReturns (file, predictionBase));
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -8440,7 +8250,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages ((this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (this.castCoreArgCallSites ((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages ((this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
@@ -8875,7 +8685,7 @@ class NewTranspiler {
             if (isWs) {
                 // add ws-tests specific regexes
                 regexes = regexes.concat([
-                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                    [/await exchange.watchOrderBook\((\(\(string\)symbol\))\)/g, '((IOrderBook)(await exchange.watchOrderBook($1))).Copy()'],
                     [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
                 ]);
             }
@@ -8885,7 +8695,6 @@ class NewTranspiler {
             // cast in tests: REST tests route only the awaited `await exchange.X(` calls through
             // invokeExchangeDynamically, so synchronous helpers (currency, parseOHLCVs, ...) stay
             // static calls against `BaseExchange`; WS tests bind statically throughout.
-            contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
             if (isWs) {
                 contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
                 // must run last: it matches the PascalCase names the previous pass produced
