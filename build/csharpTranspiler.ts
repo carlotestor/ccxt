@@ -3049,6 +3049,7 @@ class NewTranspiler {
                 "signatureArgTypes": SIGNATURE_ARG_TYPES,
                 "callSiteArgTypes": this.callSiteArgTypeTable (),
                 "callSiteTypedIdentifiers": CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS,
+                "typedCores": { "base": TYPED_CORES, "prediction": PREDICTION_TYPED_CORES, "snapshot": SNAPSHOT_CORES, "venue": VENUE_TYPED_CORES },
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -3700,7 +3701,7 @@ class NewTranspiler {
     wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
         let out = line;
         for (const name of names) {
-            const typedType = this.typedCoreType (name, predictionTier);
+            const typedType = this.typedCoreType (this.camelName (name), predictionTier);
             if (typedType === '') {
                 continue;
             }
@@ -3804,7 +3805,7 @@ class NewTranspiler {
         const declRe = /^(\s*)Dictionary<string, object> (\w+) = ccxt\.BaseExchange\.FromOHLCVDict\((await this\.(\w+)\(.*\))\);$/;
         for (let j = bodyStart + 1; j < bodyEnd; j++) {
             const decl = lines[j] === null ? null : declRe.exec (lines[j]);
-            if (decl === null || this.typedCoreType (decl[4], predictionTier) !== OHLCV_DICT_TYPE) {
+            if (decl === null || this.typedCoreType (this.camelName (decl[4]), predictionTier) !== OHLCV_DICT_TYPE) {
                 continue;
             }
             const name = decl[2];
@@ -3827,7 +3828,7 @@ class NewTranspiler {
     }
 
     typeCores (content: string, predictionTier = this.isPrediction): string {
-        const names = this.typedCoreNames ();
+        const names = this.typedCoreNames ().map ((name) => this.pascalName (name));
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
@@ -3844,7 +3845,8 @@ class NewTranspiler {
             if (!sig) {
                 continue;
             }
-            const [ , indent, modifier, methodName ] = sig;
+            const [ , indent, modifier, printedName ] = sig;
+            const methodName = this.camelName (printedName);
             const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
             const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
             const isTyped = typedType !== '';
@@ -3863,7 +3865,7 @@ class NewTranspiler {
                 if (lines[j] === indent + '}') { bodyEnd = j; break; }
             }
             if (isTyped) {
-                lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
+                lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${printedName}(` + lines[i].split (printedName + '(').slice (1).join (printedName + '(');
             }
             const tailOk: Record<number, boolean> = {};
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
@@ -3876,7 +3878,7 @@ class NewTranspiler {
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 const calledCore = typedCallRe.exec (expr);
-                const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
+                const calledType = calledCore ? this.typedCoreType (this.camelName (calledCore[1]), predictionTier) : '';
                 // the return already carries the core's own dictionary type
                 if (isTyped && (csharpReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
                     tailOk[j] = true;
@@ -4037,7 +4039,7 @@ class NewTranspiler {
             return false;
         }
         const venue = (call[2] === 'base') ? '' : this.currentVenue;
-        const declared = (call[1] !== undefined) ? this.typedCoreType (call[3], predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
+        const declared = (call[1] !== undefined) ? this.typedCoreType (this.camelName (call[3]), predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
         return declared === targetType;
     }
 
@@ -4049,6 +4051,15 @@ class NewTranspiler {
             unchanged.push ('this.' + name + '(', 'base.' + name + '(');
         }
         return unchanged.some ((prefix) => expr.startsWith (prefix));
+    }
+
+    pascalName (name: string): string {
+        return name.charAt (0).toUpperCase () + name.slice (1);
+    }
+
+    // the TS (table) name of a printed method name: typed cores print PascalCase
+    camelName (name: string): string {
+        return name.charAt (0).toLowerCase () + name.slice (1);
     }
 
     // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
@@ -4063,22 +4074,6 @@ class NewTranspiler {
             }
         }
         return map;
-    }
-
-    // renames every typed core (declaration + call site) to PascalCase, so the generated core
-    // *is* the public API and createWrapper stops emitting a thin duplicate. Method-name string
-    // literals are deliberately NOT touched: they double as `has`/`describe()` capability keys
-    // (`"createOrder": true`) — reflective lookup resolves the case instead (ResolveMethod).
-    pascalizeTypedCores (content: string, predictionTier = this.isPrediction, receivers = [ 'this.', 'base.' ], declarations = true): string {
-        const map = this.pascalTypedCoreNames (predictionTier);
-        if (declarations) {
-            const declRe = /(public\s+(?:async\s+)?(?:virtual\s+|override\s+)?Task<[^\n]*?>\s+)(\w+)\(/g;
-            content = content.replace (declRe, (whole, head, name) => (map[name] !== undefined ? head + map[name] + '(' : whole));
-        }
-        const escaped = receivers.map ((r) => r.replace (/[.*+?^${}()|[\]\\]/g, '\\$&')).join ('|');
-        const callRe = new RegExp ('(' + escaped + ')(\\w+)\\(', 'g');
-        content = content.replace (callRe, (whole, receiver, name) => (map[name] !== undefined ? receiver + map[name] + '(' : whole));
-        return content;
     }
 
     // WS tests bind the unified methods STATICALLY, so unlike the REST tests they never pass
@@ -7500,7 +7495,7 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
+        // a typed core is emitted PascalCase (the printer's typedCores), so it already *is* the public
         // API — a wrapper here would be a duplicate declaration of the same name
         if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
             return '';
@@ -7850,7 +7845,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n");
+            const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))))))), 'BaseExchange')))))))))) + "\n");
             fs.writeFileSync (csharpExchangeBase, csharpTupleReturns (file, csharpExchangeBase));
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -7858,7 +7853,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n");
+                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams ((this.typeVenueNumericArgs (this.typeVenueStringArgs (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), 'Exchange')))))))))) + "\n}\n");
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, csharpTupleReturns (tradingFile, BASE_TRADING_METHODS_FILE));
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -7906,7 +7901,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n");
+            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), 'PredictionExchange')))))))) + "\n");
             fs.writeFileSync (predictionBase, csharpTupleReturns (file, predictionBase));
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -8250,7 +8245,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages ((this.pascalizeTypedCores (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
@@ -8537,7 +8532,15 @@ class NewTranspiler {
 
     transpileMainTest(files: any) {
         log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
-        const csharp = this.transpiler.transpileCSharp(fs.readFileSync (files.tsFile).toString ());
+        // the legacy request-builders bind Exchange statically, so their typed-core calls print PascalCase
+        const printer = this.transpiler.csharpTranspiler as any;
+        printer.csharpTypedCoreInMemoryReceiver = 'exchange';
+        let csharp;
+        try {
+            csharp = this.transpiler.transpileCSharp(fs.readFileSync (files.tsFile).toString ());
+        } finally {
+            printer.csharpTypedCoreInMemoryReceiver = undefined;
+        }
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = csharp.content;
 
@@ -8562,10 +8565,6 @@ class NewTranspiler {
             [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
             [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
-
-        // the legacy request-builders bind Exchange statically, so the typed cores'
-        // PascalCase rename applies to their call sites too (declarations left alone)
-        contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
 
         const file = [
             'using ccxt;',
@@ -8685,8 +8684,8 @@ class NewTranspiler {
             if (isWs) {
                 // add ws-tests specific regexes
                 regexes = regexes.concat([
-                    [/await exchange.watchOrderBook\((\(\(string\)symbol\))\)/g, '((IOrderBook)(await exchange.watchOrderBook($1))).Copy()'],
-                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
+                    [/await exchange.WatchOrderBook\((\(\(string\)symbol\))\)/g, '((IOrderBook)(await exchange.WatchOrderBook($1))).Copy()'],
+                    [/await exchange.WatchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.WatchOrderBookForSymbols($1))).Copy()'],
                 ]);
             }
 
@@ -8696,8 +8695,7 @@ class NewTranspiler {
             // invokeExchangeDynamically, so synchronous helpers (currency, parseOHLCVs, ...) stay
             // static calls against `BaseExchange`; WS tests bind statically throughout.
             if (isWs) {
-                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
-                // must run last: it matches the PascalCase names the previous pass produced
+                // must run last: it matches the PascalCase names the printer produced
                 contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);
             }
             contentIndentend = this.detypeStructReturningCalls (contentIndentend);

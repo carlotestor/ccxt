@@ -2767,7 +2767,7 @@ const CSHARP_FUNNEL_DECLARED_HELPERS = {
     'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>': 'FromOHLCVDict',
 };
 function csharpFunnelHelper (content, name, core) {
-    // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
+    // the emitted call site is pascalized (the printer's typedCores), the AST holds the TS name, so the
     // core matches case-insensitively; the helper and the local name must match exactly
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
     const declared = new RegExp ('^[ \\t]*([A-Za-z][\\w<>,. ]*) ' + name + ' = await this\\.' + core + '\\(', 'i');
