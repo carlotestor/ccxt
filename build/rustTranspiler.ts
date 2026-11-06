@@ -10,6 +10,7 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 
+const __H: Record<string, number> = {}; for (const __m of ['replace', 'replaceAll'] as const) { const __o = (String.prototype as any)[__m]; (String.prototype as any)[__m] = function (this: string, a: any, b: any) { const r = __o.call(this, a, b); if (this.length > 3000) { const ln = (new Error().stack || '').split('\n')[2] || ''; const m = /rustTranspiler\.ts:(\d+)/.exec(ln); if (m) { const k = m[1]; if (r !== String(this)) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0; } } return r; }; } process.on('exit', () => { process.stderr.write('RUSTHITS ' + JSON.stringify({ hits: __H, calls: {} }) + '\n'); });
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
 // ---- native get_value ----
