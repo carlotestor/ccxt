@@ -8952,7 +8952,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullSubtractNegateSelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9529,7 +9529,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    const baseOut = csharpParamsBagGetValue (csharpScopedEqualityInOp (objectNull, csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpNonNullSubtractNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpTypedCompareMinMax (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull))))))))))))))));
+    const baseOut = csharpParamsBagGetValue (csharpScopedEqualityInOp (objectNull, csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpTypedCompareMinMax (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))))));
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
@@ -11654,189 +11654,6 @@ function isNonNullNumericAtom (text: string, typeOf: (name: string) => string | 
     }
     const binary = topLevelBinaryOperands (t);
     return (binary !== undefined) && isNonNullNumericAtom (binary.left, typeOf, nonNullName) && isNonNullNumericAtom (binary.right, typeOf, nonNullName);
-}
-
-export function csharpNonNullSubtractNegate (content: string): string {
-    if (!/(?<![\w.])(?:prefixUnaryNeg|subtract)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    let changed = false;
-    const set = (i: number, next: string) => {
-        if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
-    };
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const params = csharpHelperSignatureParams (masked, start);
-        const nameRe = (name: string) => new RegExp ('(?<![\\w.])' + name + '(?![\\w])');
-        const region = () => {
-            const declarations = [];
-            for (let i = start; i < end; i++) {
-                const d = csharpHelperDeclarationOfLine (masked[i]);
-                if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-            }
-            return { start, end, params, declarations, lines: masked };
-        };
-        // names bound by other syntax (lambda / for / foreach / out / pattern) are never proven
-        const bound = new Set<string> ();
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
-        }
-        const typeAt = (name: string, line: number) => bound.has (name) ? undefined : csharpHelperReceiverType (region (), name, line, params)?.type;
-        const writesIn = (name: string, from: number, to: number, except: number[] = []) => {
-            const re = nameWriteRe (name);
-            for (let k = from; k <= to; k++) if (!except.includes (k) && re.test (masked[k])) return true;
-            return false;
-        };
-        // a dominating `if ((x == null)) { …exit; }` / `{ x = <non-null>; }` (no else) in the read's block or an enclosing one
-        const exitGuard = (name: string, line: number, depth: number): boolean => {
-            let indent = csharpIndent (masked[line]);
-            for (let k = line - 1; k > start; k--) {
-                if (masked[k].trim () === '') continue;
-                const ind = csharpIndent (masked[k]);
-                if (ind > indent) continue;
-                if (ind < indent) { indent = ind; continue; }
-                const test = new RegExp ('^[ ]*if \\((?:\\(' + name + ' == null\\)|isEqual\\(' + name + ', null\\))\\)[ ]*$').exec (masked[k]);
-                if ((test === null) || (masked[k + 1]?.trim () !== '{') || (csharpIndent (masked[k + 1]) !== ind)) continue;
-                const blockEnd = csharpBlockEnd (masked, k + 1, end);
-                if ((blockEnd >= line) || (masked[blockEnd].trim () !== '}') || /^[ ]*else\b/.test (masked[blockEnd + 1] ?? '')) continue;
-                if (writesIn (name, blockEnd + 1, line - 1)) continue;
-                const body = [];
-                for (let j = k + 2; j < blockEnd; j++) if (masked[j].trim () !== '') body.push (masked[j]);
-                const last = body[body.length - 1] ?? '';
-                const inner = body.filter ((b) => csharpIndent (b) === ind + 4);
-                const exits = /^[ ]*(?:return\b|throw\b|continue;|break;)/.test (last) && (csharpIndent (last) === ind + 4);
-                const assigns = inner.filter ((b) => nameWriteRe (name).test (b));
-                const assign = (assigns.length === 1) && !body.some ((b) => (csharpIndent (b) > ind + 4) && nameWriteRe (name).test (b))
-                    && ((m) => (m !== null) && isNonNullNumericAtom (m[1], (x) => typeAt (x, k), (x) => nonNull (x, k, 0, depth + 1)))
-                        (new RegExp ('^[ ]*' + name + ' = ([^;]*);[ ]*$').exec (assigns[0]));
-                if (exits || assign) return true;
-            }
-            return false;
-        };
-        // a single-binding local whose initializer cannot be null and which is never written again
-        const declProof = (name: string, line: number, depth: number): boolean => {
-            const decls = region ().declarations.filter ((d) => d.name === name);
-            if ((decls.length !== 1) || (decls[0].line >= line) || (params[name] !== undefined) || bound.has (name)) return false;
-            if (writesIn (name, start + 1, end - 1, [ decls[0].line ])) return false;
-            return isNonNullNumericAtom (decls[0].value, (x) => typeAt (x, decls[0].line), (x) => nonNull (x, decls[0].line, 0, depth + 1));
-        };
-        const nonNull = (name: string, line: number, col: number, depth: number): boolean => {
-            if ((depth > 4) || bound.has (name)) return false;
-            return isNonNullGuarded (masked, start, line, col, name) || declProof (name, line, depth) || exitGuard (name, line, depth);
-        };
-        // (A) subtract with nullable operands proven non-null
-        for (let i = start + 1; i < end; i++) {
-            if (!/(?<![A-Za-z0-9_.])subtract\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
-            const typeOfName = (name: string) => typeAt (name, i);
-            const comment = masked[i].indexOf ('//');
-            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
-            const strings = [];
-            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
-            let k = 0;
-            const rewritten = guardedArithmetic (opaque, typeOfName, (name: string, col: number) => nonNull (name, i, col, 0), 0)
-                .replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
-            if (k !== strings.length) continue;
-            set (i, rewritten + ((comment < 0) ? '' : lines[i].slice (comment)));
-        }
-        // (C1) `object x = this.safeNumber(..)` negated in place under a non-null proof -> double? + `(x = -x)`
-        const compare = [ 'isLessThan', 'isGreaterThan', 'isLessThanOrEqual', 'isGreaterThanOrEqual', 'isEqual' ];
-        for (let i = start + 1; i < end; i++) {
-            const m = /^[ ]*object ([A-Za-z_]\w*) = (this\.(?:safeNumber2?|safeFloat)\(.*\));[ ]*$/.exec (masked[i]);
-            if ((m === null) || (csharpClosingParen (m[2], m[2].indexOf ('(')) !== m[2].length - 1)) continue;
-            const x = m[1];
-            // the declaration's own block (C# forbids nested shadowing; sibling blocks may redeclare x)
-            let scopeEnd = i + 1;
-            while ((scopeEnd < end) && ((masked[scopeEnd].trim () === '') || (csharpIndent (masked[scopeEnd]) >= csharpIndent (masked[i])))) scopeEnd++;
-            if ((params[x] !== undefined) || bound.has (x) || region ().declarations.some ((d) => (d.name === x) && (d.line > i) && (d.line < scopeEnd))) continue;
-            if (writesIn (x, i + 1, scopeEnd - 1, masked.map ((l, k) => l.includes ('prefixUnaryNeg(ref ' + x + ')') ? k : -1))) continue;
-            let sites = 0;
-            let ok = true;
-            for (let k = i + 1; (k < scopeEnd) && ok; k++) {
-                for (const u of masked[k].matchAll (new RegExp ('(?<![\\w.])' + x + '(?![\\w])', 'g'))) {
-                    const before = masked[k].slice (0, u.index);
-                    const after = masked[k].slice (u.index + x.length);
-                    if (before.endsWith ('prefixUnaryNeg(ref ')) {
-                        if (exitGuard (x, k, 0)) { sites++; continue; }
-                        ok = false; break;
-                    }
-                    if (/^[ ]*[!=]= null/.test (after) || (/: $/.test (before) && /^;/.test (after))) continue;
-                    const call = enclosingHelperCall (masked[k], u.index);
-                    if ((call !== undefined) && (call.arg === x) && (compare.includes (call.name) || (call.name === 'this.numberToString'))) continue;
-                    ok = false; break;
-                }
-            }
-            if (!ok || (sites === 0)) continue;
-            set (i, lines[i].replace ('object ' + x + ' = ', 'double? ' + x + ' = '));
-            for (let k = i + 1; k < scopeEnd; k++) {
-                if (masked[k].includes ('prefixUnaryNeg(ref ' + x + ')')) set (k, lines[k].split ('prefixUnaryNeg(ref ' + x + ')').join ('(' + x + ' = -' + x + ')'));
-            }
-        }
-        // (C2) `object x = <Int64? name>;` written only by int literals, negated once (no later read) -> Int64? + `(-x)`
-        for (let i = start + 1; i < end; i++) {
-            const m = /^[ ]*object ([A-Za-z_]\w*) = ([A-Za-z_]\w*);[ ]*$/.exec (masked[i]);
-            if ((m === null) || ![ 'Int64?', 'long?' ].includes (typeAt (m[2], i))) continue;
-            const x = m[1];
-            const decls = region ().declarations.filter ((d) => d.name === x);
-            if ((decls.length !== 1) || bound.has (x)) continue;
-            let site = -1;
-            let ok = true;
-            for (let k = i + 1; (k < end) && ok; k++) {
-                if (!nameRe (x).test (masked[k])) continue;
-                if (new RegExp ('^[ ]*' + x + ' = -?\\d{1,9};[ ]*(?://.*)?$').test (masked[k])) continue;
-                if (new RegExp ('^[ ]*if \\(\\(' + x + ' [!=]= null\\)\\)[ ]*$').test (masked[k])) continue;
-                const neg = masked[k].indexOf ('prefixUnaryNeg(ref ' + x + ')');
-                const rest = (neg < 0) ? '' : masked[k].slice (0, neg) + masked[k].slice (neg + ('prefixUnaryNeg(ref ' + x + ')').length);
-                if ((neg >= 0) && (site < 0) && !nameRe (x).test (rest) && exitGuard (x, k, 0)) { site = k; continue; }
-                ok = false;
-            }
-            if (!ok || (site < 0)) continue;
-            set (i, lines[i].replace ('object ' + x + ' = ', 'Int64? ' + x + ' = '));
-            set (site, lines[site].replace ('prefixUnaryNeg(ref ' + x + ')', '(-' + x + ')'));
-        }
-    }
-    return changed ? csharpNativeArithmetic (lines.join ('\n')) : content;
-}
-
-// snippet checks (run from the --self-test path)
-function nonNullSubtractNegateSelfTest (): string[] {
-    const problems: string[] = [];
-    const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object o, string s, Int64? since = null, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-    const check = (name: string, body: string, expected: string, forbidden?: string) => {
-        const out = csharpNonNullSubtractNegate (wrap (body));
-        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden))) problems.push (`non null subtract negate self: ${name}\n${out}`);
-        if (csharpNonNullSubtractNegate (out) !== out) problems.push (`non null subtract negate self: ${name}: not idempotent`);
-    };
-    const keep = (name: string, body: string) => {
-        if (csharpNonNullSubtractNegate (wrap (body)) !== wrap (body)) problems.push (`non null subtract negate self keeps ${name}\n${csharpNonNullSubtractNegate (wrap (body))}`);
-    };
-    check ('parseToInt(.Length) local', '        Int64? n = this.parseToInt(s.Length);\n        string? t = slice(s, subtract(n, 3), null);', 'slice(s, (n - 3), null)');
-    check ('safeInteger literal default', '        Int64? c = this.safeInteger(o, "c", 100);\n        Int64 now = this.milliseconds();\n        object a = subtract(now, c);', 'object a = (now - c);');
-    check ('copy of a guarded param', '        if ((since != null))\n        {\n            Int64? st = since;\n            Int64 now = this.milliseconds();\n            object d = subtract(now, st);\n        }', 'object d = (now - st);');
-    check ('null-default ternary', '        Int64? lim = ((limit == null)) ? 100 : limit;\n        object d = subtract(lim, 1);', 'object d = (lim - 1);');
-    check ('throw early exit', '        Int64? e = limit;\n        if ((e == null))\n        {\n            throw new ExchangeError ("x") ;\n        }\n        object d = subtract(e, 5);', 'object d = (e - 5);');
-    check ('assign-default dominator', '        Int64? u = this.safeInteger(o, "u");\n        if ((u == null))\n        {\n            u = this.milliseconds();\n        }\n        object d = subtract(u, 5);', 'object d = (u - 5);');
-    check ('isEqual-continue guarded negation', '        while (true)\n        {\n            object a = this.safeNumber(o, 2);\n            if (isEqual(a, null))\n            {\n                continue;\n            }\n            object sz = (isLessThan(a, 0)) ? prefixUnaryNeg(ref a) : a;\n        }', 'object sz = (isLessThan(a, 0)) ? (a = -a) : a;');
-    check ('defaulted Int64? copy negated', '        object lr = limit;\n        if ((lr == null))\n        {\n            lr = 300;\n        }\n        object q = this.sum(1, multiply(prefixUnaryNeg(ref lr), 2));', 'multiply((-lr), 2)');
-    check ('negation with a sibling-block redeclaration', '        if (true)\n        {\n            object a = this.safeNumber(o, 1);\n        } else\n        {\n            object a = this.safeNumber(o, 2);\n            if (isEqual(a, null))\n            {\n                return null;\n            }\n            object sz = (isLessThan(a, 0)) ? prefixUnaryNeg(ref a) : a;\n        }', 'object sz = (isLessThan(a, 0)) ? (a = -a) : a;');
-    keep ('unguarded nullable subtract', '        Int64? c = this.safeInteger(o, "c");\n        object d = subtract(c, 1);');
-    keep ('written after the declaration', '        Int64? n = this.parseToInt(s.Length);\n        n = this.safeInteger(o, "n");\n        object d = subtract(n, 1);');
-    keep ('early exit with else', '        Int64? e = limit;\n        if ((e == null))\n        {\n            return null;\n        } else\n        {\n        }\n        object d = subtract(e, 5);');
-    keep ('written between exit and read', '        Int64? e = limit;\n        if ((e == null))\n        {\n            return null;\n        }\n        e = this.safeInteger(o, "e");\n        object d = subtract(e, 5);');
-    keep ('nullable - double', '        Int64? n = this.parseToInt(s.Length);\n        double b = 1.5;\n        object d = subtract(n, b);');
-    keep ('unguarded negation', '        object a = this.safeNumber(o, 2);\n        object sz = (isLessThan(a, 0)) ? prefixUnaryNeg(ref a) : a;');
-    keep ('copy negated then read', '        object lr = limit;\n        if ((lr == null))\n        {\n            lr = 300;\n        }\n        object q = multiply(prefixUnaryNeg(ref lr), 2);\n        return lr;');
-    const tests = 'namespace Tests;\n' + wrap ('        Int64? n = this.parseToInt(s.Length);\n        object d = subtract(n, 1);').split ('\n').slice (1).join ('\n');
-    if (csharpNonNullSubtractNegate (tests) !== tests) problems.push ('non null subtract negate self tests namespace changed');
-    return problems;
 }
 
 // ordered comparisons whose operands the name pass leaves: `for (Int64 i = …)` counters, `Int64?` locals
