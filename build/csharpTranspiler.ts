@@ -3008,22 +3008,14 @@ class NewTranspiler {
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
-            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
             [/this\.delay\(([^,\n]+),([^,\n]+),([^\n]+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
-            [/future(\.reject.+)/gm, '((Future)future)$1'],
-            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
+            [/(((?:this\.)?\w+))\.(append|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
             [/\(client,/g, '(client as WebSocketClient,'],
             [/([(,]\s*)object client\b/g, '$1WebSocketClient client'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
-            // `resolve` on a receiver the arg pass already typed (`client as WebSocketClient`,
-            // or Future for the ws promise) targets a method that class declares, so it needs no
-            // reflective dispatch: the direct call binds the same method, with the same
-            // object-typed arguments and the same void result.
-            [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
 
@@ -8414,7 +8406,6 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
@@ -8425,7 +8416,6 @@ class NewTranspiler {
             // prediction exchanges merge REST + WS in one class, so the WS transforms
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
-            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
         }
         const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
