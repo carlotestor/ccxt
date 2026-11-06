@@ -71,62 +71,6 @@ if (platform === 'win32') {
     }
 }
 
-// `callDynamically(x, "resolve"/"reject", ...)` whose receiver class the file itself declares —
-// `Future f = ...` / `WebSocketClient c = ...`, an `x as Future|WebSocketClient` receiver, or a read
-// of the ws client's `futures` map (`IDictionary<string, Future>`, cs/ccxt/ws/Client.cs) — binds the
-// same method the reflective dispatch resolves, so the direct call is emitted instead. Only the
-// methods those two hand-written classes declare, and only when the argument count binds the
-// signature; every other receiver keeps the helper.
-const WS_DECLARED_CLASSES_TYPED: dict = {
-    'Future': 'Future',
-    'Exchange.Future': 'Future',
-    'ccxt.Exchange.Future': 'Future',
-    'WebSocketClient': 'WebSocketClient',
-    'Exchange.WebSocketClient': 'WebSocketClient',
-    'ccxt.Exchange.WebSocketClient': 'WebSocketClient',
-}
-// class -> method -> rewritable argument counts, from the hand-written declarations
-// (cs/ccxt/ws/Future.cs: `resolve(object data = null)`, `reject(object data)`;
-// cs/ccxt/ws/Client.cs: `resolve(object content, object messageHash2)`, `reject(object content,
-// object messageHash2 = null)`). An empty `new object[] {}` stays: the helper coerces it to {null}.
-const WS_DECLARED_METHODS_TYPED: { [cls: string]: { [method: string]: number[] } } = {
-    'Future': { 'resolve': [1, 1], 'reject': [1, 1] },
-    'WebSocketClient': { 'resolve': [2, 2], 'reject': [1, 2] },
-}
-const CSHARP_DECLARATION_RE = /^[ \t]*([A-Za-z_][\w.]*(?:<[^=;{}]*>)?)[ \t]+(\w+)[ \t]*=[ \t]*(.+?);?[ \t]*$/gm
-// a value read out of the ws client's `futures` map is a Future by the field's declared type
-const CSHARP_FUTURES_READ_RE = /^(?:this\.)?(?:safeValue|getValue)\([^,]*\.futures,/
-
-function csharpClassOfDeclaration (content: string, receiver: string, callAt: number): { cls: string, cast: boolean } | undefined {
-    CSHARP_DECLARATION_RE.lastIndex = 0
-    let declared: { cls: string, cast: boolean } | undefined = undefined
-    let declarationCount = 0
-    let match
-    while ((match = CSHARP_DECLARATION_RE.exec (content)) !== null) {
-        if (match[2] !== receiver) {
-            continue
-        }
-        declarationCount += 1
-        if (match.index >= callAt) {
-            continue
-        }
-        const declaredClass = WS_DECLARED_CLASSES_TYPED[match[1]]
-        if (declaredClass !== undefined) {
-            declared = { cls: declaredClass, cast: false }
-        } else if (CSHARP_FUTURES_READ_RE.test (match[3])) {
-            declared = { cls: 'Future', cast: true }
-        } else {
-            declared = undefined
-        }
-    }
-    // any `receiver = ...` beyond its own declarations is a rebind that could box another class (D2)
-    const assignments = (content.match (new RegExp ('\\b' + receiver + '\\s*=(?![=>])', 'g')) || []).length
-    if (assignments !== declarationCount) {
-        return undefined
-    }
-    return declared
-}
-
 function csharpBalancedBraceEnd (content: string, openAt: number): number {
     let depth = 0
     let inString = false
@@ -900,59 +844,6 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
         return rewritten;
     });
     return csharpNativeArithmetic (csharpDeclaredReceiverHelperCalls (changed ? out.join ('\n') : content));
-}
-
-export function nativeDeclaredWsCalls (content: string): string {
-    const opener = 'callDynamically('
-    let out = ''
-    let cursor = 0
-    let search = 0
-    while (true) {
-        const at = content.indexOf (opener, search)
-        if (at < 0) {
-            break
-        }
-        const receiverAt = at + opener.length
-        // statement position only: a value-position call would have to bind the helper's object
-        // result, which the void `resolve`/`reject` declarations cannot
-        const lineStart = content.lastIndexOf ('\n', at - 1) + 1
-        if (!/^[ \t]*$/.test (content.slice (lineStart, at))) {
-            search = receiverAt
-            continue
-        }
-        const head = /^(\w+)(?: as (WebSocketClient|Future))?\s*,\s*"(\w+)"\s*,\s*new object\[\]\s*\{/.exec (content.slice (receiverAt))
-        if (!head) {
-            search = receiverAt
-            continue
-        }
-        const receiver = head[1]
-        const castClass = head[2]
-        const method = head[3]
-        const argsAt = receiverAt + head[0].length
-        const argsEnd = csharpBalancedBraceEnd (content, argsAt - 1)
-        if (argsEnd < 0) {
-            search = argsAt
-            continue
-        }
-        const statementEnd = /^\s*\)\s*;/.exec (content.slice (argsEnd + 1))
-        if (!statementEnd) {
-            search = argsEnd
-            continue
-        }
-        const args = content.slice (argsAt, argsEnd)
-        const target = castClass !== undefined ? { cls: castClass, cast: true } : csharpClassOfDeclaration (content, receiver, at)
-        const arities = (target !== undefined) ? WS_DECLARED_METHODS_TYPED[target.cls]?.[method] : undefined
-        const argc = csharpArgumentCount (args)
-        if (arities === undefined || argc < arities[0] || argc > arities[1]) {
-            search = argsEnd
-            continue
-        }
-        const receiverText = target!.cast ? `(${receiver} as ${target!.cls})` : receiver
-        out += content.slice (cursor, at) + receiverText + '.' + method + '(' + args + ');'
-        cursor = argsEnd + 1 + statementEnd[0].length
-        search = cursor
-    }
-    return out + content.slice (cursor)
 }
 
 // `callDynamically(x, "append"|"getLimit", ...)` on a receiver whose C# declaration (the last one in
@@ -2987,22 +2878,14 @@ class NewTranspiler {
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
             [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
-            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
             [/this\.delay\(([^,\n]+),([^,\n]+),([^\n]+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
-            [/future(\.reject.+)/gm, '((Future)future)$1'],
-            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
+            [/(((?:this\.)?\w+))\.(append|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
             [/\(client,/g, '(client as WebSocketClient,'],
             [/([(,]\s*)object client\b/g, '$1WebSocketClient client'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
-            // `resolve` on a receiver the arg pass already typed (`client as WebSocketClient`,
-            // or Future for the ws promise) targets a method that class declares, so it needs no
-            // reflective dispatch: the direct call binds the same method, with the same
-            // object-typed arguments and the same void result.
-            [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
 
@@ -8219,7 +8102,6 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
@@ -8230,7 +8112,6 @@ class NewTranspiler {
             // prediction exchanges merge REST + WS in one class, so the WS transforms
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
-            content = nativeDeclaredWsCalls (content);
             content = this.removeRedundantClientCasts (content);
         }
         const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
