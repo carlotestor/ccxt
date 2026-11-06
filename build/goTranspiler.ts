@@ -3289,7 +3289,6 @@ export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
-    content = goOmitTupleMapReturns (content);
     content = guardMultiSendCores (content);
     content = nativeAppendWriteBack (content);
     content = nativeLoopBoundedSliceReads (content);
@@ -5618,6 +5617,7 @@ class NewTranspiler {
                 // return families the printer retypes on the emitted signature (base + every override)
                 "provenReturnFamilies": goProvenReturnFamilies (),
                 "provenStructToMapCalls": GO_PROVEN_STRUCT_TO_MAP_CALLS,
+                "omitTupleMapMethods": goTypedMaplistTupleMethods (),
                 "asyncMapRowListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]map[string]any').map (([ name ]) => name),
                 "asyncTickerMapCallees": [ ...goChan3Table () ].filter (([ name, type ]) => (type === 'map[string]Ticker') && !name.includes ('.')).map (([ name ]) => name),
                 // ===== end RF-go-6-C =====
@@ -11484,27 +11484,6 @@ export function goTypedDerefSelfTest (): string[] {
     return problems;
 }
 
-// an `any` method whose every return is `this.Omit(x, ..)` of a tuple-helper params map
-// (x declared once by `a, x := this.HandleXAndParams(..)`) returns a fresh map: OmitDict, map[string]any.
-function goOmitTupleMapReturns (content: string): string {
-    const head = /\nfunc \(this \*\w+\) \w+\([^)\n]*\) any \{\n/g;
-    let out = '';
-    let cursor = 0;
-    for (let m = head.exec (content); m !== null; m = head.exec (content)) {
-        const open = m.index + m[0].length - 1;
-        const close = content.indexOf ('\n}\n', open);
-        const body = (close < 0) ? '' : content.substring (open, close + 1);
-        const exprs = (close < 0) ? undefined : goFunctionLevelReturnExprs (body);
-        const omit = /^this\.Omit\((\w+), /;
-        if ((exprs === undefined) || !exprs.length || body.includes ('func(') || !exprs.every ((e) => omit.test (e) && goTypedMaplistTupleMap (body, omit.exec (e)[1]))) {
-            continue;
-        }
-        out += content.substring (cursor, m.index) + m[0].replace (/\) any \{\n$/, ') map[string]any {\n') + body.replace (/\n(\t+)return this\.Omit\(/g, '\n$1return this.OmitDict(').substring (1);
-        cursor = close + 1;
-        head.lastIndex = cursor;
-    }
-    return out + content.substring (cursor);
-}
 
 // ===== Omit of a tuple-helper params map is OmitDict =====
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
