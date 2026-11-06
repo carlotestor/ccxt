@@ -10,7 +10,6 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 
-const __H: Record<string, number> = {}; for (const __m of ['replace', 'replaceAll'] as const) { const __o = (String.prototype as any)[__m]; (String.prototype as any)[__m] = function (this: string, a: any, b: any) { const r = __o.call(this, a, b); if (this.indexOf("\n") >= 0) { const ln = (new Error().stack || '').split('\n')[2] || ''; const m = /rustTranspiler\.ts:(\d+)/.exec(ln); if (m) { const k = m[1]; if (r !== String(this)) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0; } } return r; }; } process.on('exit', () => { process.stderr.write('RUSTHITS ' + JSON.stringify({ hits: __H, calls: {} }) + '\n'); });
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
 // ---- native get_value ----
@@ -9773,11 +9772,6 @@ export class RustTranspilerBuilder {
                 });
             });
         }
-        // Then `let __be_tmp = EXPR;` pattern.
-        content = content.replace(/(\blet\s+__be_tmp\s*=\s*)([^;]+?)(;)/g,
-            (_, lead, expr, tail) => {
-                return isBoolExpr(expr) ? `${lead}Value::Bool(${expr.trim()})${tail}` : `${lead}${expr}${tail}`;
-            });
         return content;
     }
 
@@ -13605,20 +13599,11 @@ ${arms.join('\n')}
             content = this.regexAll(content, this.getWsRegexes());
         }
 
-        // Go-style inheritance: `super.X(...)` (emitted by the ast as
-        // `self.super_x(...)`) on a subclass routes straight to the
-        // embedded parent Core — `self.parent.x(...)`. Method resolution
-        // then finds the parent's `x` (or the parent's parent, …).
-        if (parentCore) {
-            content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
-        }
-
         // Rename the struct/impl to CoreName convention (BinanceCore)
         content = content
             .replace(new RegExp(`pub struct ${capitalize(className)}\\b`, 'g'), `pub struct ${coreName}`)
             .replace(new RegExp(`pub struct ${className}\\b`, 'gi'), `pub struct ${coreName}`)
-            .replace(new RegExp(`impl ${capitalize(className)}\\b`, 'g'), `impl ${coreName}`)
-            .replace(new RegExp(`impl ${className}\\b`, 'gi'), `impl ${coreName}`);
+            .replace(new RegExp(`impl ${capitalize(className)}\\b`, 'g'), `impl ${coreName}`);
 
         // Strip the transpiler-emitted struct declaration AND its empty
         // `pub fn new() -> Self { <className> { } }` constructor — we
@@ -14928,12 +14913,6 @@ impl std::ops::DerefMut for ${coreName} {
                     while ((m = helperRe.exec(content)) !== null) {
                         localHelpers.add(m[1]);
                     }
-                    content = content.replace(
-                        /([a-zA-Z_][a-zA-Z0-9_]*)\(exchange,/g,
-                        (full, name) => localHelpers.has(name)
-                            ? `${name}(exchange.clone(),`
-                            : full,
-                    );
                 }
                 // `crate::tests_support::shared::X(<exchange-var>, ...)`
                 // calls consume the exchange (by-value). Borrow instead
@@ -14982,38 +14961,12 @@ impl std::ops::DerefMut for ${coreName} {
                     /\.get_property\(\s*(exchange\d*|[a-zA-Z_][a-zA-Z0-9_]*[Ee]xchange\d*)\s*,/g,
                     '.get_property(Value::Null,',
                 );
-                // Same for `exchange2`, `exchange3`, … (used in some
-                // tests to compare two Exchange instances).
-                content = content.replace(
-                    /\bget_value\(\s*&(?:mut\s+)?(exchange\d)\s*,\s*([^)]+)\)/g,
-                    '$1.prop(&$2)',
-                );
-                // Drop spurious `mut` on struct fields (rust-port artifact).
-                content = content.replace(/(\bpub\s+)mut\s+/g, '$1');
                 // `ArrayCacheX::new()` (zero-arg) → `::new(Value::Null)`.
                 // TS calls them with no args in some tests; our stubs
                 // take a `Value` max-length param.
                 content = content.replace(
                     /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                     '$1::new(Value::Null)',
-                );
-                // `load_markets().await` → `load_markets(&[]).await`
-                // (load_markets is variadic in the Rust stub).
-                content = content.replace(
-                    /\.load_markets\(\)\.await/g,
-                    '.load_markets(&[]).await',
-                );
-                // `set_value(&mut <exchange-typed-var>, …)` — set_value
-                // expects `&mut Value`. Drop these calls for now (no-op).
-                // They live in test.handleMethods where the test scaffolds
-                // currencies onto the exchange instance.
-                content = content.replace(
-                    /\{\s*let __sv_tmp = [^;]+;\s*ccxt::set_value\(&mut exchange\d*\s*,[^;]+;\s*\}\s*\/\/[^\n]*\n/g,
-                    '// (set_value on Exchange dropped)\n',
-                );
-                content = content.replace(
-                    /\{\s*let __sv_tmp = [^;]+;\s*ccxt::set_value\(&mut exchange\d*\s*,[^;]+;\s*\}/g,
-                    '/* set_value on Exchange dropped */',
                 );
                 // Clone-on-move: `obj.clone()` already added downstream,
                 // but in tests we sometimes assign a value to a `let`
@@ -15035,10 +14988,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = content.replace(
                     /\b(tbfe[A-Z][a-zA-Z0-9_]*)\((extended|opts|obj\d*)\b\s*,/g,
                     '$1($2.clone(),',
-                );
-                content = content.replace(
-                    /\bexchange\.extend\((extended|opts|obj\d*)\.clone\(\)\s*,/g,
-                    'exchange.extend($1.clone(),',
                 );
                 // `exchange['field'] = X` / `exchange['field']['k'] = v` on
                 // the typed test exchange resolve to `set_value(&mut
@@ -15271,8 +15220,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // the second arg → wrap inner in `is_true(&(…))`. Same
                 // sequence as the REST `transpileBaseTests` pipeline.
                 content = content
-                    .replace(/\bassert\s*\(/g, 'assert!(')
-                    .replace(/assert!!+\(/g,    'assert!(');
+                    .replace(/\bassert\s*\(/g, 'assert!(');
                 content = this.stripAssertSecondArg(content);
                 content = this.wrapAssertInIsTrue(content);
 
@@ -16253,9 +16201,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // `new ccxt.Exchange(...)` → `ccxt::Exchange`.
                 [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
             ]);
-            // `set_value` / `get_value` are re-exported at the ccxt crate
-            // root — bare references need the `ccxt::` qualifier.
-            content = content.replace(/(^|[^:\w])set_value\(/g, '$1ccxt::set_value(');
             // Fold trailing args of the hand-written test-harness
             // helpers into the `&[Value]` slice their Rust signatures
             // expect.
@@ -16272,24 +16217,11 @@ impl std::ops::DerefMut for ${coreName} {
             // list, so `.await` each async `self.*` call inline — the
             // tests then run sequentially, which is fine offline.
             content = this.appendAwaitToAsyncCalls(content, asyncMethods);
-            // `self.<field> = <bare ident>;` moves the RHS — clone it so
-            // the local stays usable afterwards.
-            content = content.replace(
-                /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([a-zA-Z_][a-zA-Z0-9_]*)(;)/g,
-                '$1$2.clone()$3',
-            );
             // `self.<field> = <boolean expression>;` — the struct fields
             // are `Value`; wrap `||` / `&&` / `is_true(...)` results.
             content = content.replace(
                 /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([^;\n]*(?:\|\||&&)[^;\n]*)(;)/g,
                 '$1Value::Bool($2)$3',
-            );
-            // `vec![<bare ident>]` — clone the element so the local
-            // isn't moved into the list (covers nested list literals
-            // the array-literal pass doesn't reach).
-            content = content.replace(
-                /\bvec!\[([a-zA-Z_][a-zA-Z0-9_]*)\]/g,
-                'vec![$1.clone()]',
             );
             // paradex's broker-id test signs the order via `starknetSign()`,
             // which isn't ported to the Rust runtime yet (it throws
@@ -16309,12 +16241,6 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
-            // `init` is a thin wrapper around `init_inner` — drop the
-            // statement-block wrapper so it returns `init_inner`'s value.
-            content = content.replace(
-                /(fn init\s*\([^)]*\)\s*->\s*Value\s*\{)\s*\{\s*(self\.init_inner\([^;]*\.await)\s*;\s*\}\s*\}/,
-                '$1\n        $2\n    }',
-            );
             // `callExchangeMethodDynamically` / `setFetchResponse`
             // mutate the exchange value in place (store `last_request_*`
             // / the mock response) — pass `&mut exchange`.
@@ -16367,16 +16293,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.
             content = this.hoistExtendExchangeOptionsArg(content);
-            // The try/catch that captured `last_request_*` into
-            // `output` / `requestUrl` is stripped by `stripCatchBlocks`;
-            // `callExchangeMethodDynamically` now stores the request on
-            // the exchange value, so read it back before asserting.
-            content = content.replace(
-                /(\n[ \t]*\{\n[ \t]*let mut callOutput: Value = exchange\.safe_value\(data)/,
-                '\n        output = ccxt::get_value(&exchange, &Value::Str("last_request_body".to_string()));' +
-                '\n        requestUrl = ccxt::get_value(&exchange, &Value::Str("last_request_url".to_string()));' +
-                '$1',
-            );
             // Go's `testExchange{Request,Response}Statically` wraps each
             // per-case call in a try/catch that records the failure and
             // keeps going. `stripCatchBlocks` removed it — re-wrap the
@@ -16399,13 +16315,6 @@ impl std::ops::DerefMut for ${coreName} {
                 },
             );
 
-            // `urlencoded_to_dict` only builds a local dict — it never
-            // mutates `self`. The ast-transpiler over-marks it `&mut self`,
-            // which blocks `&self` callers. Force `&self` (done last so no
-            // later pass — e.g. promoteSelfMutMethods — can undo it).
-            content = content.replace(
-                /\bfn urlencoded_to_dict\(\s*&mut self\b/g,
-                'fn urlencoded_to_dict(&self');
             // `obj['k'] = v` on a Value-typed local (e.g.
             // `exchange.options['uta'] = false`) transpiles to
             // `add_element_to_object(&mut get_value(&obj, k), …)` — but
