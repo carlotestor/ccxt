@@ -10,197 +10,6 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 
-
-const __H: Record<string, number> = {};
-const __C: Record<string, number> = {};
-function __hit(k: string, f: any, self: any, a: any[]): any {
-    const r = f.apply(self, a);
-    if (typeof a[0] === 'string') { __C[k] = (__C[k] || 0) + 1; if (typeof r === 'string' && r !== a[0]) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0; }
-    return r;
-}
-process.on('exit', () => { process.stderr.write('RUSTHITS ' + JSON.stringify({ hits: __H, calls: __C }) + '\n'); });
-
-function maskText(...a: any[]): any { return __hit('fn:maskText', maskText__o, this, a); }
-function closeBracket(...a: any[]): any { return __hit('fn:closeBracket', closeBracket__o, this, a); }
-function statementEnd(...a: any[]): any { return __hit('fn:statementEnd', statementEnd__o, this, a); }
-function literalIndex(...a: any[]): any { return __hit('fn:literalIndex', literalIndex__o, this, a); }
-function literalStrKey(...a: any[]): any { return __hit('fn:literalStrKey', literalStrKey__o, this, a); }
-function identKey(...a: any[]): any { return __hit('fn:identKey', identKey__o, this, a); }
-function callArgs(...a: any[]): any { return __hit('fn:callArgs', callArgs__o, this, a); }
-function intPinned(...a: any[]): any { return __hit('fn:intPinned', intPinned__o, this, a); }
-function nativeGetValue(...a: any[]): any { return __hit('fn:nativeGetValue', nativeGetValue__o, this, a); }
-function arrayPayload(...a: any[]): any { return __hit('fn:arrayPayload', arrayPayload__o, this, a); }
-function insertedKeys(...a: any[]): any { return __hit('fn:insertedKeys', insertedKeys__o, this, a); }
-function rustNativeGetValueSelfTest(...a: any[]): any { return (rustNativeGetValueSelfTest__o as any)(...a); }
-function isWordChar(...a: any[]): any { return __hit('fn:isWordChar', isWordChar__o, this, a); }
-function splitArgs(...a: any[]): any { return __hit('fn:splitArgs', splitArgs__o, this, a); }
-function balancedCloseIndex(...a: any[]): any { return __hit('fn:balancedCloseIndex', balancedCloseIndex__o, this, a); }
-function closeParenAt(...a: any[]): any { return __hit('fn:closeParenAt', closeParenAt__o, this, a); }
-function fnRegions(...a: any[]): any { return __hit('fn:fnRegions', fnRegions__o, this, a); }
-function regionAt(...a: any[]): any { return __hit('fn:regionAt', regionAt__o, this, a); }
-function firstArg(...a: any[]): any { return __hit('fn:firstArg', firstArg__o, this, a); }
-function insertChainCallArgs(...a: any[]): any { return __hit('fn:insertChainCallArgs', insertChainCallArgs__o, this, a); }
-function keyConv(...a: any[]): any { return __hit('fn:keyConv', keyConv__o, this, a); }
-function nativeInserts(...a: any[]): any { return __hit('fn:nativeInserts', nativeInserts__o, this, a); }
-function containerOpMask(...a: any[]): any { return __hit('fn:containerOpMask', containerOpMask__o, this, a); }
-function containerOpClose(...a: any[]): any { return __hit('fn:containerOpClose', containerOpClose__o, this, a); }
-function containerOpSplit(...a: any[]): any { return __hit('fn:containerOpSplit', containerOpSplit__o, this, a); }
-function containerOpStmtEnd(...a: any[]): any { return __hit('fn:containerOpStmtEnd', containerOpStmtEnd__o, this, a); }
-function containerOpParens(...a: any[]): any { return __hit('fn:containerOpParens', containerOpParens__o, this, a); }
-function containerOpIsCall(...a: any[]): any { return __hit('fn:containerOpIsCall', containerOpIsCall__o, this, a); }
-function containerOpKeyText(...a: any[]): any { return __hit('fn:containerOpKeyText', containerOpKeyText__o, this, a); }
-function nativeContainerOps(...a: any[]): any { return __hit('fn:nativeContainerOps', nativeContainerOps__o, this, a); }
-function nativeContainerOpsSelfTest(...a: any[]): any { return (nativeContainerOpsSelfTest__o as any)(...a); }
-function mask(...a: any[]): any { return __hit('fn:mask', mask__o, this, a); }
-function closeParen(...a: any[]): any { return __hit('fn:closeParen', closeParen__o, this, a); }
-function splitTopLevel(...a: any[]): any { return __hit('fn:splitTopLevel', splitTopLevel__o, this, a); }
-function stripOuter(...a: any[]): any { return __hit('fn:stripOuter', stripOuter__o, this, a); }
-function statementBefore(...a: any[]): any { return __hit('fn:statementBefore', statementBefore__o, this, a); }
-function fnRegionOf(...a: any[]): any { return __hit('fn:fnRegionOf', fnRegionOf__o, this, a); }
-function rhsAfter(...a: any[]): any { return __hit('fn:rhsAfter', rhsAfter__o, this, a); }
-function stripTrailingOperand(...a: any[]): any { return __hit('fn:stripTrailingOperand', stripTrailingOperand__o, this, a); }
-function boolSlotAt(...a: any[]): any { return __hit('fn:boolSlotAt', boolSlotAt__o, this, a); }
-function variantOf(...a: any[]): any { return __hit('fn:variantOf', variantOf__o, this, a); }
-function safeBoolVariants(...a: any[]): any { return __hit('fn:safeBoolVariants', safeBoolVariants__o, this, a); }
-function boolDefault(...a: any[]): any { return __hit('fn:boolDefault', boolDefault__o, this, a); }
-function proveLocal(...a: any[]): any { return __hit('fn:proveLocal', proveLocal__o, this, a); }
-function pushEdit(...a: any[]): any { return __hit('fn:pushEdit', pushEdit__o, this, a); }
-function nativeBoolScalars(...a: any[]): any { return __hit('fn:nativeBoolScalars', nativeBoolScalars__o, this, a); }
-function nativeBoolScalarsSelfTest(...a: any[]): any { return (nativeBoolScalarsSelfTest__o as any)(...a); }
-function vecPushMaskText(...a: any[]): any { return __hit('fn:vecPushMaskText', vecPushMaskText__o, this, a); }
-function vecPushFnRegions(...a: any[]): any { return __hit('fn:vecPushFnRegions', vecPushFnRegions__o, this, a); }
-function vecPushCloseParen(...a: any[]): any { return __hit('fn:vecPushCloseParen', vecPushCloseParen__o, this, a); }
-function vecPushExprEnd(...a: any[]): any { return __hit('fn:vecPushExprEnd', vecPushExprEnd__o, this, a); }
-function vecPushIsArrInit(...a: any[]): any { return __hit('fn:vecPushIsArrInit', vecPushIsArrInit__o, this, a); }
-function vecPushBalanced(...a: any[]): any { return __hit('fn:vecPushBalanced', vecPushBalanced__o, this, a); }
-function vecPushGuardClone(...a: any[]): any { return __hit('fn:vecPushGuardClone', vecPushGuardClone__o, this, a); }
-function arrOnlyVecPush(...a: any[]): any { return __hit('fn:arrOnlyVecPush', arrOnlyVecPush__o, this, a); }
-function arrOnlyVecPushSelfTest(...a: any[]): any { return (arrOnlyVecPushSelfTest__o as any)(...a); }
-function typedLocalsMaskText(...a: any[]): any { return __hit('fn:typedLocalsMaskText', typedLocalsMaskText__o, this, a); }
-function typedLocalsCloseParen(...a: any[]): any { return __hit('fn:typedLocalsCloseParen', typedLocalsCloseParen__o, this, a); }
-function closeAt(...a: any[]): any { return __hit('fn:closeAt', closeAt__o, this, a); }
-function closeBrace(...a: any[]): any { return __hit('fn:closeBrace', closeBrace__o, this, a); }
-function stmtEnd(...a: any[]): any { return __hit('fn:stmtEnd', stmtEnd__o, this, a); }
-function typedLocalsSplitArgs(...a: any[]): any { return __hit('fn:typedLocalsSplitArgs', typedLocalsSplitArgs__o, this, a); }
-function openerMap(...a: any[]): any { return __hit('fn:openerMap', openerMap__o, this, a); }
-function valueSlot(...a: any[]): any { return __hit('fn:valueSlot', valueSlot__o, this, a); }
-function typedLocalsFnRegions(...a: any[]): any { return __hit('fn:typedLocalsFnRegions', typedLocalsFnRegions__o, this, a); }
-function boxed(...a: any[]): any { return __hit('fn:boxed', boxed__o, this, a); }
-function initShape(...a: any[]): any { return __hit('fn:initShape', initShape__o, this, a); }
-function rebound(...a: any[]): any { return __hit('fn:rebound', rebound__o, this, a); }
-function classify(...a: any[]): any { return __hit('fn:classify', classify__o, this, a); }
-function blockHeader(...a: any[]): any { return __hit('fn:blockHeader', blockHeader__o, this, a); }
-function inRepeatedBlock(...a: any[]): any { return __hit('fn:inRepeatedBlock', inRepeatedBlock__o, this, a); }
-function assignRewrite(...a: any[]): any { return __hit('fn:assignRewrite', assignRewrite__o, this, a); }
-function rustTypedLocals(...a: any[]): any { return __hit('fn:rustTypedLocals', rustTypedLocals__o, this, a); }
-function rustTypedLocalsSelfTest(...a: any[]): any { return (rustTypedLocalsSelfTest__o as any)(...a); }
-function calleeShapeMask(...a: any[]): any { return __hit('fn:calleeShapeMask', calleeShapeMask__o, this, a); }
-function calleeShapeClose(...a: any[]): any { return __hit('fn:calleeShapeClose', calleeShapeClose__o, this, a); }
-function calleeShapeArgs(...a: any[]): any { return __hit('fn:calleeShapeArgs', calleeShapeArgs__o, this, a); }
-function calleeShapeStmtEnd(...a: any[]): any { return __hit('fn:calleeShapeStmtEnd', calleeShapeStmtEnd__o, this, a); }
-function calleeShapeReturns(...a: any[]): any { return __hit('fn:calleeShapeReturns', calleeShapeReturns__o, this, a); }
-function calleeShapeTail(...a: any[]): any { return __hit('fn:calleeShapeTail', calleeShapeTail__o, this, a); }
-function calleeShapeTailIsDead(...a: any[]): any { return __hit('fn:calleeShapeTailIsDead', calleeShapeTailIsDead__o, this, a); }
-function freshCalleeShape(...a: any[]): any { return __hit('fn:freshCalleeShape', freshCalleeShape__o, this, a); }
-function calleeShapeDecl(...a: any[]): any { return __hit('fn:calleeShapeDecl', calleeShapeDecl__o, this, a); }
-function methodCalleeShapes(...a: any[]): any { return __hit('fn:methodCalleeShapes', methodCalleeShapes__o, this, a); }
-function baseCalleeShapeTable(...a: any[]): any { return __hit('fn:baseCalleeShapeTable', baseCalleeShapeTable__o, this, a); }
-function calleeShapeLiteralKey(...a: any[]): any { return __hit('fn:calleeShapeLiteralKey', calleeShapeLiteralKey__o, this, a); }
-function calleeShapePlainReceiver(...a: any[]): any { return __hit('fn:calleeShapePlainReceiver', calleeShapePlainReceiver__o, this, a); }
-function calleeShapeSingleWrite(...a: any[]): any { return __hit('fn:calleeShapeSingleWrite', calleeShapeSingleWrite__o, this, a); }
-function calleeShapeContainerOps(...a: any[]): any { return __hit('fn:calleeShapeContainerOps', calleeShapeContainerOps__o, this, a); }
-function calleeShapeBoolPosition(...a: any[]): any { return __hit('fn:calleeShapeBoolPosition', calleeShapeBoolPosition__o, this, a); }
-function calleeShapeContainerOpsSelfTest(...a: any[]): any { return (calleeShapeContainerOpsSelfTest__o as any)(...a); }
-function boolCalleeMask(...a: any[]): any { return __hit('fn:boolCalleeMask', boolCalleeMask__o, this, a); }
-function boolCalleeClose(...a: any[]): any { return __hit('fn:boolCalleeClose', boolCalleeClose__o, this, a); }
-function boolCalleeStrip(...a: any[]): any { return __hit('fn:boolCalleeStrip', boolCalleeStrip__o, this, a); }
-function boolCalleeRegions(...a: any[]): any { return __hit('fn:boolCalleeRegions', boolCalleeRegions__o, this, a); }
-function boolCalleeRetExprs(...a: any[]): any { return __hit('fn:boolCalleeRetExprs', boolCalleeRetExprs__o, this, a); }
-function boolCalleeSafeBoolDefault(...a: any[]): any { return __hit('fn:boolCalleeSafeBoolDefault', boolCalleeSafeBoolDefault__o, this, a); }
-function boolCalleeVariant(...a: any[]): any { return __hit('fn:boolCalleeVariant', boolCalleeVariant__o, this, a); }
-function boolCalleeReturnVariant(...a: any[]): any { return __hit('fn:boolCalleeReturnVariant', boolCalleeReturnVariant__o, this, a); }
-function boolCalleeWrites(...a: any[]): any { return __hit('fn:boolCalleeWrites', boolCalleeWrites__o, this, a); }
-function boolCalleeStmtBefore(...a: any[]): any { return __hit('fn:boolCalleeStmtBefore', boolCalleeStmtBefore__o, this, a); }
-function boolCalleeDropOperand(...a: any[]): any { return __hit('fn:boolCalleeDropOperand', boolCalleeDropOperand__o, this, a); }
-function boolCalleeBoolSlot(...a: any[]): any { return __hit('fn:boolCalleeBoolSlot', boolCalleeBoolSlot__o, this, a); }
-function nativeBoolCallee(...a: any[]): any { return __hit('fn:nativeBoolCallee', nativeBoolCallee__o, this, a); }
-function boolCalleeFixture(...a: any[]): any { return __hit('fn:boolCalleeFixture', boolCalleeFixture__o, this, a); }
-function nativeBoolCalleeSelfTest(...a: any[]): any { return (nativeBoolCalleeSelfTest__o as any)(...a); }
-function maskSrc(...a: any[]): any { return __hit('fn:maskSrc', maskSrc__o, this, a); }
-function argSpans(...a: any[]): any { return __hit('fn:argSpans', argSpans__o, this, a); }
-function callEnd(...a: any[]): any { return __hit('fn:callEnd', callEnd__o, this, a); }
-function fieldChainIsStatement(...a: any[]): any { return __hit('fn:fieldChainIsStatement', fieldChainIsStatement__o, this, a); }
-function fieldChainFirstArg(...a: any[]): any { return __hit('fn:fieldChainFirstArg', fieldChainFirstArg__o, this, a); }
-function chainField(...a: any[]): any { return __hit('fn:chainField', chainField__o, this, a); }
-function fnSpan(...a: any[]): any { return __hit('fn:fnSpan', fnSpan__o, this, a); }
-function identKeyArg(...a: any[]): any { return __hit('fn:identKeyArg', identKeyArg__o, this, a); }
-function runPass(...a: any[]): any { return __hit('fn:runPass', runPass__o, this, a); }
-function fieldChainInserts(...a: any[]): any { return __hit('fn:fieldChainInserts', fieldChainInserts__o, this, a); }
-function markerFreePushMaskText(...a: any[]): any { return __hit('fn:markerFreePushMaskText', markerFreePushMaskText__o, this, a); }
-function markerFreePushFnRegions(...a: any[]): any { return __hit('fn:markerFreePushFnRegions', markerFreePushFnRegions__o, this, a); }
-function markerFreePushCloseParen(...a: any[]): any { return __hit('fn:markerFreePushCloseParen', markerFreePushCloseParen__o, this, a); }
-function exprEnd(...a: any[]): any { return __hit('fn:exprEnd', exprEnd__o, this, a); }
-function rustVecPushInline(...a: any[]): any { return __hit('fn:rustVecPushInline', rustVecPushInline__o, this, a); }
-function rustVecPushInlineSelfTest(...a: any[]): any { return (rustVecPushInlineSelfTest__o as any)(...a); }
-function stringNativesMaskText(...a: any[]): any { return __hit('fn:stringNativesMaskText', stringNativesMaskText__o, this, a); }
-function stringNativesCloseParen(...a: any[]): any { return __hit('fn:stringNativesCloseParen', stringNativesCloseParen__o, this, a); }
-function stringNativesSplitArgs(...a: any[]): any { return __hit('fn:stringNativesSplitArgs', stringNativesSplitArgs__o, this, a); }
-function stringNativesStmtEnd(...a: any[]): any { return __hit('fn:stringNativesStmtEnd', stringNativesStmtEnd__o, this, a); }
-function fnBounds(...a: any[]): any { return __hit('fn:fnBounds', fnBounds__o, this, a); }
-function strBox(...a: any[]): any { return __hit('fn:strBox', strBox__o, this, a); }
-function intBox(...a: any[]): any { return __hit('fn:intBox', intBox__o, this, a); }
-function elemKind(...a: any[]): any { return __hit('fn:elemKind', elemKind__o, this, a); }
-function inferSet(...a: any[]): any { return __hit('fn:inferSet', inferSet__o, this, a); }
-function valueSets(...a: any[]): any { return __hit('fn:valueSets', valueSets__o, this, a); }
-function rewrite(...a: any[]): any { return __hit('fn:rewrite', rewrite__o, this, a); }
-function rustStringNatives(...a: any[]): any { return __hit('fn:rustStringNatives', rustStringNatives__o, this, a); }
-function rustStringNativesSelfTest(...a: any[]): any { return (rustStringNativesSelfTest__o as any)(...a); }
-function plainDictMaskSrc(...a: any[]): any { return __hit('fn:plainDictMaskSrc', plainDictMaskSrc__o, this, a); }
-function plainDictArgSpans(...a: any[]): any { return __hit('fn:plainDictArgSpans', plainDictArgSpans__o, this, a); }
-function closeOf(...a: any[]): any { return __hit('fn:closeOf', closeOf__o, this, a); }
-function hopAt(...a: any[]): any { return __hit('fn:hopAt', hopAt__o, this, a); }
-function chainAt(...a: any[]): any { return __hit('fn:chainAt', chainAt__o, this, a); }
-function valueIdentKey(...a: any[]): any { return __hit('fn:valueIdentKey', valueIdentKey__o, this, a); }
-function plainDictRunPass(...a: any[]): any { return __hit('fn:plainDictRunPass', plainDictRunPass__o, this, a); }
-function plainDictChains(...a: any[]): any { return __hit('fn:plainDictChains', plainDictChains__o, this, a); }
-function clientHandleMask(...a: any[]): any { return __hit('fn:clientHandleMask', clientHandleMask__o, this, a); }
-function clientHandleViews(...a: any[]): any { return __hit('fn:clientHandleViews', clientHandleViews__o, this, a); }
-function clientHandleSubsWrites(...a: any[]): any { return __hit('fn:clientHandleSubsWrites', clientHandleSubsWrites__o, this, a); }
-function clientHandleTypedReads(...a: any[]): any { return __hit('fn:clientHandleTypedReads', clientHandleTypedReads__o, this, a); }
-function clientHandleBraceDeltas(...a: any[]): any { return __hit('fn:clientHandleBraceDeltas', clientHandleBraceDeltas__o, this, a); }
-function clientHandleDeltaAt(...a: any[]): any { return __hit('fn:clientHandleDeltaAt', clientHandleDeltaAt__o, this, a); }
-function clientHandleBlock(...a: any[]): any { return __hit('fn:clientHandleBlock', clientHandleBlock__o, this, a); }
-function clientHandleSpan(...a: any[]): any { return __hit('fn:clientHandleSpan', clientHandleSpan__o, this, a); }
-function clientHandleApply(...a: any[]): any { return __hit('fn:clientHandleApply', clientHandleApply__o, this, a); }
-function clientHandleSelfTest(...a: any[]): any { return (clientHandleSelfTest__o as any)(...a); }
-function mapParamKind(...a: any[]): any { return __hit('fn:mapParamKind', mapParamKind__o, this, a); }
-function mapParamDispatchArg(...a: any[]): any { return __hit('fn:mapParamDispatchArg', mapParamDispatchArg__o, this, a); }
-function mapParamSplitArgs(...a: any[]): any { return __hit('fn:mapParamSplitArgs', mapParamSplitArgs__o, this, a); }
-function mapParamSplitTopLevel(...a: any[]): any { return __hit('fn:mapParamSplitTopLevel', mapParamSplitTopLevel__o, this, a); }
-function refMapParamNames(...a: any[]): any { return __hit('fn:refMapParamNames', refMapParamNames__o, this, a); }
-function mapParamDispatchSelfTest(...a: any[]): any { return (mapParamDispatchSelfTest__o as any)(...a); }
-function narrowStrSinkLocals(...a: any[]): any { return __hit('fn:narrowStrSinkLocals', narrowStrSinkLocals__o, this, a); }
-function narrowStrNullLocals(...a: any[]): any { return __hit('fn:narrowStrNullLocals', narrowStrNullLocals__o, this, a); }
-function rustSignApiStr(...a: any[]): any { return __hit('fn:rustSignApiStr', rustSignApiStr__o, this, a); }
-function rustBoolKLocalOptionBool(...a: any[]): any { return __hit('fn:rustBoolKLocalOptionBool', rustBoolKLocalOptionBool__o, this, a); }
-function strLocalReassign(...a: any[]): any { return __hit('fn:strLocalReassign', strLocalReassign__o, this, a); }
-function rustBool2LocalOptionBool(...a: any[]): any { return __hit('fn:rustBool2LocalOptionBool', rustBool2LocalOptionBool__o, this, a); }
-function rustBoolNLocalOptionBool(...a: any[]): any { return __hit('fn:rustBoolNLocalOptionBool', rustBoolNLocalOptionBool__o, this, a); }
-function rustInt2IntNLocalOptionI64(...a: any[]): any { return __hit('fn:rustInt2IntNLocalOptionI64', rustInt2IntNLocalOptionI64__o, this, a); }
-function rustIntLocalNullSinkOptionI64(...a: any[]): any { return __hit('fn:rustIntLocalNullSinkOptionI64', rustIntLocalNullSinkOptionI64__o, this, a); }
-function rustNumber2LocalOptionF64(...a: any[]): any { return __hit('fn:rustNumber2LocalOptionF64', rustNumber2LocalOptionF64__o, this, a); }
-function rustNumber2SinkLocalOptionF64R2(...a: any[]): any { return __hit('fn:rustNumber2SinkLocalOptionF64R2', rustNumber2SinkLocalOptionF64R2__o, this, a); }
-function rustStr2LocalOptionString(...a: any[]): any { return __hit('fn:rustStr2LocalOptionString', rustStr2LocalOptionString__o, this, a); }
-function rustStrLiteralLocalNativeString(...a: any[]): any { return __hit('fn:rustStrLiteralLocalNativeString', rustStrLiteralLocalNativeString__o, this, a); }
-function rustStrNLocalOptionString(...a: any[]): any { return __hit('fn:rustStrNLocalOptionString', rustStrNLocalOptionString__o, this, a); }
-function allocLiteralBoxes(...a: any[]): any { return __hit('fn:allocLiteralBoxes', allocLiteralBoxes__o, this, a); }
-function borrowLiteralBoxes(...a: any[]): any { return __hit('fn:borrowLiteralBoxes', borrowLiteralBoxes__o, this, a); }
-function splitLongRustLines(...a: any[]): any { return __hit('fn:splitLongRustLines', splitLongRustLines__o, this, a); }
-function overwriteFileAndFolder(...a: any[]): any { return __hit('fn:overwriteFileAndFolder', overwriteFileAndFolder__o, this, a); }
-function capitalize(...a: any[]): any { return __hit('fn:capitalize', capitalize__o, this, a); }
-function toSnakeCase(...a: any[]): any { return __hit('fn:toSnakeCase', toSnakeCase__o, this, a); }
-function rustPassesSelfTest(...a: any[]): any { return (rustPassesSelfTest__o as any)(...a); }
-function rustInlineInOp(...a: any[]): any { return __hit('fn:rustInlineInOp', rustInlineInOp__o, this, a); }
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
 // ---- native get_value ----
@@ -208,15 +17,9 @@ function rustInlineInOp(...a: any[]): any { return __hit('fn:rustInlineInOp', ru
 // index/length becomes `Vec<Value>`, a never-reassigned marker-free literal dict reads `as_map().get(k)`. Both
 // match the helper exactly (its array arm and marker-free dict arm); anything unproven keeps `get_value(...)`.
 
-const IDENT = '[A-Za-z_][A-Za-z0-9_]*';
 
-// Keys whose presence in a Dict activates a fetch/store routing arm of
-// `get_value` (runtime value.rs): book/cache handle ids and markers.
-const MARKER_KEYS = ['__book_id', '__cache_id', '__cacheKind', '__sideKind', '__live_id'];
-// Keys the Dict branch special-cases on the way through.
-const ROUTED_KEYS = ['cache', 'hashmap', 'subscriptions', 'futures', 'timestamp', 'datetime', 'nonce', 'symbol', 'checksum'];
 
-function maskText__o(src: string): string {
+function maskText(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -242,7 +45,7 @@ function maskText__o(src: string): string {
     return out;
 }
 
-function closeBracket__o(src: string, open: number): number {
+function closeBracket(src: string, open: number): number {
     let depth = 0;
     for (let k = open; k < src.length; k++) {
         const c = src[k];
@@ -255,54 +58,20 @@ function closeBracket__o(src: string, open: number): number {
     return -1;
 }
 
-function statementEnd__o(src: string, from: number): number {
-    let depth = 0;
-    for (let k = from; k < src.length; k++) {
-        const c = src[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            if (depth === 0) return -1;
-            depth--;
-        } else if (c === ';' && depth === 0) return k + 1;
-        else if (c === '\n' && depth === 0) return -1;
-    }
-    return -1;
-}
 
-// Initializers the runtime only ever answers with a fresh `Value::Array`.
-// `promise_all` is NOT one (it is `v.clone()`), nor `index_by` (a map for a
-// non-array arg), nor any `safe_value*`.
-const ARRAY_INIT = /^(?:Value::Array\(|Value::from\(\s*vec!\[|Value::from\(\s*std::sync::Arc::new\(\s*vec!\[|split\(|object_keys\(|object_values\(|self\.array_concat\(|self\.safe_list(?:_k|_n)?\()/;
-// A fresh dict literal: `Value::Map({.. let mut m = indexmap::IndexMap::new(); ..})`.
-const DICT_INIT = /^(?:Value::Map\(|Value::Dict\()/;
-const SEQ_TYPE = /^(?:&)?(?:mut )?(?:Vec<(?:crate::)?Value>|\[(?:crate::)?Value\])$/;
-const INDEXED = '.cloned().unwrap_or(Value::Null)';
 
 type Edit = { start: number, end: number, text: string };
 
-function literalIndex__o(keyText: string): number {
-    const key = keyText.trim().replace(/^&/, '').trim();
-    const int = /^Value::Int\(\s*(\d+)\s*\)$/.exec(key);
-    if (int !== null) return Number(int[1]);
-    const str = /^Value::Str\(\s*"(\d+)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(key);
-    if (str !== null) return Number(str[1]);
-    return -1;
-}
 
-function literalStrKey__o(keyText: string): string | undefined {
-    const key = keyText.trim().replace(/^&/, '').trim();
-    const m = /^Value::Str\(\s*"([^"\\]*)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(key);
-    return m === null ? undefined : m[1];
-}
 
 /** Bare identifier used as a key, or undefined. */
-function identKey__o(keyText: string): string | undefined {
+function identKey(keyText: string): string | undefined {
     const m = /^&?([A-Za-z_][A-Za-z0-9_]*)$/.exec(keyText.trim());
     return m === null ? undefined : m[1];
 }
 
 /** Split `get_value(&RECV, &KEY)` at `callStart`; returns [recvEnd, close]. */
-function callArgs__o(masked: string, callStart: number, recv: string): [number, number] | undefined {
+function callArgs(masked: string, callStart: number, recv: string): [number, number] | undefined {
     const head = 'get_value(&' + recv;
     if (masked.slice(callStart, callStart + head.length) !== head) return undefined;
     const afterRecv = callStart + head.length;
@@ -312,380 +81,18 @@ function callArgs__o(masked: string, callStart: number, recv: string): [number, 
     return [afterRecv, close];
 }
 
-/**
- * True when `name` in this region can only ever hold `Value::Int`: one
- * declaration initialised with an int literal, mutated only by the printer's
- * `if let Value::Int(n) = &mut name { *n += 1; }` counter step.
- */
-function intPinned__o(region: string, name: string): boolean {
-    const declRe = new RegExp('^[ \\t]*let (?:mut )?' + name + ':\\s*(?:crate::)?Value\\s*=\\s*Value::Int\\(\\s*\\d+\\s*\\);', 'm');
-    const decl = declRe.exec(region);
-    if (decl === null) return false;
-    const declEnd = decl.index + decl[0].length;
-    const useRe = new RegExp('(?<![A-Za-z0-9_.])' + name + '(?![A-Za-z0-9_])', 'g');
-    let um: RegExpExecArray | null;
-    while ((um = useRe.exec(region)) !== null) {
-        const at = um.index;
-        if (at >= decl.index && at < declEnd) continue;
-        const before = region.slice(Math.max(0, at - 5), at);
-        const after = region.slice(at + name.length);
-        if (before === '&mut ' && /^\s*\{\s*\*n \+= 1;\s*\}/.test(after)) continue;
-        if (before.endsWith('&')) continue;
-        if (/^\.(?:as_(?:i64|f64)|clone)\(\)/.test(after)) continue;
-        return false;
-    }
-    return true;
-}
 
 type NativeGetValueStats = { seqLocals: number, seqReads: number, dictLocals: number, dictReads: number };
 
-/** Native `get_value` on statically pinned receivers. `stats` counts rewritten locals and reads. */
-function nativeGetValue__o(content: string, stats?: NativeGetValueStats): string {
-    const masked = maskText(content);
-    const edits: Edit[] = [];
 
-    // Fn regions: a local of one fn is never in scope in another.
-    const headers: number[] = [];
-    const headerRe = /^[ \t]*(?:pub )?(?:async )?fn /gm;
-    let hm: RegExpExecArray | null;
-    while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index);
-    headers.push(content.length);
 
-    for (let h = 0; h + 1 < headers.length; h++) {
-        const from = headers[h];
-        const to = h + 2 < headers.length ? headers[h + 1] : content.length;
-        const region = masked.slice(from, to);
-
-        // A read's replacement text, or undefined when the receiver/key pair is
-        // not one this rule can prove.
-        const readText = (recv: string, seq: boolean, keyText: string): string | undefined => {
-            if (seq) {
-                const idx = literalIndex(keyText);
-                if (idx >= 0) return recv + '.get(' + idx + ')' + INDEXED;
-                const key = identKey(keyText);
-                if (key !== undefined && intPinned(region, key)) {
-                    return recv + '.get(' + key + '.as_i64().unwrap() as usize)' + INDEXED;
-                }
-                return undefined;
-            }
-            const str = literalStrKey(keyText);
-            if (str === undefined || ROUTED_KEYS.indexOf(str) >= 0) return undefined;
-            return recv + '.as_map().unwrap().get("' + str + '").cloned().unwrap_or(Value::Null)';
-        };
-        const rewriteRead = (recv: string, seq: boolean, callStart: number): Edit | undefined => {
-            const args = callArgs(masked, callStart, recv);
-            if (args === undefined) return undefined;
-            const text = readText(recv, seq, content.slice(args[0] + 1, args[1] - 1));
-            return text === undefined ? undefined : { start: callStart, end: args[1], text };
-        };
-
-        // Receivers already declared as a sequence of `Value`.
-        const declared = new Map<string, string>();
-        const declType = new RegExp('\\blet (?:mut )?(' + IDENT + ')\\s*:\\s*([^=;]+?)\\s*=', 'g');
-        let dm: RegExpExecArray | null;
-        while ((dm = declType.exec(region)) !== null) declared.set(dm[1], dm[2].trim());
-        const headerEnd = region.indexOf('{');
-        const headerText = headerEnd < 0 ? region : region.slice(0, headerEnd);
-        const paramRe = new RegExp('\\b(?:mut )?(' + IDENT + ')\\s*:\\s*([&\\[A-Za-z_][A-Za-z0-9_:<>,\\s&\\[\\]]*)', 'g');
-        while ((dm = paramRe.exec(headerText)) !== null) {
-            if (!declared.has(dm[1])) declared.set(dm[1], dm[2].trim());
-        }
-        for (const [name, type] of declared) {
-            if (!SEQ_TYPE.test(type)) continue;
-            const useRe = new RegExp('get_value\\(&' + name + '(?![A-Za-z0-9_])', 'g');
-            let um: RegExpExecArray | null;
-            while ((um = useRe.exec(region)) !== null) {
-                const read = rewriteRead(name, true, from + um.index);
-                if (read === undefined) continue;
-                edits.push(read);
-                if (stats) stats.seqReads++;
-            }
-        }
-
-        // Locals whose initializer pins the container shape.
-        const declRe = new RegExp('^([ \\t]*)let (mut )?(' + IDENT + '):\\s*(?:crate::)?Value\\s*=\\s*', 'gm');
-        while ((dm = declRe.exec(region)) !== null) {
-            const name = dm[3];
-            const declAt = from + dm.index;
-            const initStart = declAt + dm[0].length;
-            const stmtEnd = statementEnd(masked, initStart);
-            if (stmtEnd < 0) continue;
-            const initText = content.slice(initStart, stmtEnd).trim();
-            const isSeq = ARRAY_INIT.test(initText);
-            const isDict = DICT_INIT.test(initText);
-            if (!isSeq && !isDict) continue;
-            const declCount = (region.match(new RegExp('\\blet (?:mut )?' + name + '\\b', 'g')) ?? []).length;
-            if (declCount !== 1) continue;
-            // A reassignment could hand the local another shape.
-            if (new RegExp('(?<![A-Za-z0-9_.])' + name + '\\s*=[^=]').test(region)) continue;
-            // A dict's key set must be literal and marker-free for the native
-            // read to skip the same routing the helper does.
-            const dictKeys: string[] = [];
-            if (isDict) {
-                const keys = insertedKeys(initText);
-                if (keys === undefined) continue;
-                for (const k of keys) dictKeys.push(k);
-            }
-
-            // Every later use must be one this rule keeps exact.
-            const useRe = new RegExp('(?<![A-Za-z0-9_.])' + name + '(?![A-Za-z0-9_])', 'g');
-            const reads: Edit[] = [];
-            let ok = true;
-            let um: RegExpExecArray | null;
-            while ((um = useRe.exec(region)) !== null) {
-                const at = um.index;
-                if (at >= dm.index && at < dm.index + dm[0].length) continue;
-                const gv = region.lastIndexOf('get_value(', at);
-                if (gv >= 0 && region.slice(gv, at) === 'get_value(&') {
-                    const read = rewriteRead(name, isSeq, from + gv);
-                    if (read === undefined) { ok = false; break; }
-                    reads.push(read);
-                    continue;
-                }
-                // A length sink reads the same on a Vec and on a `Value` array.
-                if (isSeq && /^\.\s*(?:len|is_empty)\s*\(\s*\)/.test(region.slice(at + name.length))) continue;
-                if (isSeq) { ok = false; break; }
-                // A dict keeps its `Value` type, so only writes can change what
-                // the read would have to route: they must land on literal,
-                // non-marker keys. Reads by other means and Value sinks are fine.
-                const before = region.slice(Math.max(0, at - 24), at);
-                const writeHead = /(?:add_element_to_object|set_value)\(\s*&mut\s+$/.exec(before);
-                if (writeHead !== null) {
-                    const keyStart = at + name.length;
-                    const key = /^\s*,\s*&?\s*Value::Str\(\s*"([^"\\]*)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)\s*,/.exec(region.slice(keyStart));
-                    if (key === null) { ok = false; break; }
-                    if (ROUTED_KEYS.indexOf(key[1]) >= 0 || MARKER_KEYS.indexOf(key[1]) >= 0) { ok = false; break; }
-                    dictKeys.push(key[1]);
-                    continue;
-                }
-                if (/&mut\s+$/.test(before)) { ok = false; break; }
-            }
-            if (!ok || reads.length === 0) continue;
-            if (dictKeys.some((k) => MARKER_KEYS.indexOf(k) >= 0)) continue;
-
-            if (isSeq) {
-                const typeAt = declAt + dm[0].length - 'Value = '.length;
-                edits.push({ start: typeAt, end: typeAt + 'Value'.length, text: 'Vec<Value>' });
-                // The initializer still yields a `Value`; unwrap the array this
-                // rule just proved it holds (same value, no copy for a literal).
-                const initExpr = content.slice(initStart, stmtEnd - 1).replace(/\s+$/, '');
-                const inner = arrayPayload(initExpr);
-                edits.push({
-                    start: initStart,
-                    end: initStart + initExpr.length,
-                    text: inner !== undefined ? inner : initExpr + '.as_array().unwrap().clone()',
-                });
-                if (stats) {
-                    stats.seqLocals++;
-                    stats.seqReads += reads.length;
-                }
-            } else if (stats) {
-                stats.dictLocals++;
-                stats.dictReads += reads.length;
-            }
-            for (const r of reads) edits.push(r);
-        }
-    }
-
-    if (edits.length === 0) return content;
-    edits.sort((a, b) => a.start - b.start);
-    let out = '';
-    let at = 0;
-    for (const e of edits) {
-        if (e.start < at) continue;
-        out += content.slice(at, e.start) + e.text;
-        at = e.end;
-    }
-    return out + content.slice(at);
-}
-
-/**
- * The `Vec<Value>` expression inside an array-valued `Value` constructor, or
- * undefined when the initializer is a call whose result must be unwrapped.
- */
-function arrayPayload__o(initExpr: string): string | undefined {
-    const strip = (text: string, prefix: string): string | undefined => {
-        if (!text.startsWith(prefix) || !text.endsWith(')')) return undefined;
-        return text.slice(prefix.length, -1).trim();
-    };
-    // `Value::Array(x)` takes the Vec, so the payload is exactly `x`.
-    const direct = strip(initExpr, 'Value::Array(');
-    if (direct !== undefined && direct.length > 0) return direct;
-    let inner = strip(initExpr, 'Value::from(');
-    if (inner !== undefined) inner = strip(inner, 'std::sync::Arc::new(') ?? inner;
-    if (inner === undefined || !inner.startsWith('vec![')) return undefined;
-    return inner;
-}
-
-function insertedKeys__o(initText: string): string[] | undefined {
-    const keys: string[] = [];
-    const insertRe = /\.insert\(\s*(?:"([^"\\]*)"\s*(?:\.to_string\(\)|\.into\(\))|([^,]+?))\s*,/g;
-    let im: RegExpExecArray | null;
-    while ((im = insertRe.exec(initText)) !== null) {
-        if (im[1] === undefined) return undefined;
-        keys.push(im[1]);
-    }
-    return keys;
-}
 
 // ── self-test ────────────────────────────────────────────────────────────────
 // Each case is a shape the rule must transform (or must leave alone).
 
 type Case = { name: string, src: string, want: string[], gone: string[] };
 
-const CASES: Case[] = [
-    {
-        name: 'seq: Value::from(vec![..]) local retyped, literal int key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut rows: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);',
-            '    let mut first: Value = get_value(&rows, &Value::Int(1));',
-            '    return first;',
-            '}',
-        ].join('\n'),
-        want: ['let mut rows: Vec<Value> =', 'rows.get(1).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: safe_list_k local, numeric-string key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);',
-            '    let mut head: Value = get_value(&data, &Value::Str("0".into()));',
-            '    return head;',
-            '}',
-        ].join('\n'),
-        want: ['let mut data: Vec<Value> =', 'data.get(0).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: split local read by a Value::Int-pinned counter',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut parts: Value = split(&raw, &Value::Str("_".into()));',
-            '    let mut i: Value = Value::Int(0);',
-            '    while i.as_f64().unwrap_or(f64::NAN) < 2.0 {',
-            '        let mut part: Value = get_value(&parts, &i);',
-            '        if let Value::Int(n) = &mut i { *n += 1; }',
-            '    }',
-            '    return Value::Null;',
-            '}',
-        ].join('\n'),
-        want: ['let mut parts: Vec<Value> =', 'parts.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: unpinned dynamic key stays a helper call',
-        src: [
-            'pub fn demo(&mut self, mut key: Value) -> Value {',
-            '    let mut parts: Value = split(&raw, &Value::Str("_".into()));',
-            '    return get_value(&parts, &key);',
-            '}',
-        ].join('\n'),
-        want: ['let mut parts: Value =', 'get_value(&parts, &key)'],
-        gone: ['Vec<Value>'],
-    },
-    {
-        name: 'seq: a Value sink keeps the box',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);',
-            '    let mut first: Value = get_value(&data, &Value::Int(0));',
-            '    return self.parse_trades(data, &[]);',
-            '}',
-        ].join('\n'),
-        want: ['let mut data: Value =', 'get_value(&data, &Value::Int(0))'],
-        gone: [],
-    },
-    {
-        name: 'dict: fresh literal with a literal key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut request: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert("amount".to_string(), amount);',
-            '        m',
-            '    });',
-            '    let mut amount2: Value = get_value(&request, &Value::Str("amount".into()));',
-            '    return amount2;',
-            '}',
-        ].join('\n'),
-        want: ['let mut request: Value =', 'request.as_map().unwrap().get("amount").cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'dict: a routed key stays a helper call',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut book: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert("bids".to_string(), bids);',
-            '        m',
-            '    });',
-            '    return get_value(&book, &Value::Str("cache".into()));',
-            '}',
-        ].join('\n'),
-        want: ['get_value(&book, &Value::Str("cache".into()))'],
-        gone: [],
-    },
-    {
-        name: 'dict: a computed insert key makes the key set dynamic',
-        src: [
-            'pub fn demo(&mut self, mut key: Value) -> Value {',
-            '    let mut request: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert(crate::runtime::stringify_param(&key), amount);',
-            '        m',
-            '    });',
-            '    return get_value(&request, &Value::Str("amount".into()));',
-            '}',
-        ].join('\n'),
-        want: ['get_value(&request, &Value::Str("amount".into()))'],
-        gone: [],
-    },
-    {
-        name: 'seq: a reassigned local keeps the box',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut rows: Value = Value::from(vec![Value::Int(1)]);',
-            '    rows = self.parse_rows();',
-            '    return get_value(&rows, &Value::Int(0));',
-            '}',
-        ].join('\n'),
-        want: ['let mut rows: Value =', 'get_value(&rows, &Value::Int(0))'],
-        gone: [],
-    },
-    {
-        name: 'seq: an already typed receiver goes native as is',
-        src: [
-            'pub fn demo(&mut self, mut rows: &[Value]) -> Value {',
-            '    return get_value(&rows, &Value::Int(2));',
-            '}',
-        ].join('\n'),
-        want: ['rows.get(2).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-];
 
-function rustNativeGetValueSelfTest__o(): number {
-    let failures = 0;
-    for (const c of CASES) {
-        const out = nativeGetValue(c.src);
-        const misses: string[] = [];
-        for (const w of c.want) if (!out.includes(w)) misses.push('missing: ' + w);
-        for (const g of c.gone) if (out.includes(g)) misses.push('not replaced: ' + g);
-        if (misses.length === 0) {
-            console.log('ok   ' + c.name);
-        } else {
-            failures++;
-            console.log('FAIL ' + c.name);
-            for (const m of misses) console.log('       ' + m);
-            console.log('       ---- output ----\n' + out.split('\n').map((l) => '       ' + l).join('\n'));
-        }
-    }
-    console.log(failures === 0 ? 'self-test: all cases pass' : 'self-test: ' + failures + ' failing');
-    return failures;
-}
 
 // ---- native insert ----
 /**
@@ -740,12 +147,12 @@ const INSERT_CHAIN_IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 interface Region { start: number, end: number }
 
-function isWordChar__o(c: string): boolean {
+function isWordChar (c: string): boolean {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '_';
 }
 
 /** Split on top-level commas, honouring strings and bracket nesting. */
-function splitArgs__o(text: string): string[] | undefined {
+function splitArgs (text: string): string[] | undefined {
     const out: string[] = [];
     let depth = 0, inStr = false, esc = false, cur = 0;
     for (let i = 0; i < text.length; i++) {
@@ -768,7 +175,7 @@ function splitArgs__o(text: string): string[] | undefined {
 /** Index just past the closing `)` of the call whose `(` is at `open`. */
 /** Index of the bracket closing an already-open one, scanning from `from` (string-aware); `content.length` if none.
  *  `escapeAnywhere`: a backslash outside a string literal also skips the next char. */
-function balancedCloseIndex__o(content: string, from: number, escapeAnywhere = false): number {
+function balancedCloseIndex(content: string, from: number, escapeAnywhere = false): number {
     let depth = 1, inStr = false, escape = false;
     for (let j = from; j < content.length; j++) {
         const c = content[j];
@@ -783,7 +190,7 @@ function balancedCloseIndex__o(content: string, from: number, escapeAnywhere = f
     return content.length;
 }
 
-function closeParenAt__o(content: string, open: number): number {
+function closeParenAt (content: string, open: number): number {
     let depth = 0, inStr = false, esc = false;
     for (let i = open; i < content.length; i++) {
         const c = content[i];
@@ -804,7 +211,7 @@ function closeParenAt__o(content: string, open: number): number {
 }
 
 /** Function bodies, sliced from one `fn` header line to the next. */
-function fnRegions__o(content: string): Region[] {
+function fnRegions (content: string): Region[] {
     const headers: number[] = [];
     const rx = /^[ \t]*(?:pub )?(?:async )?fn [A-Za-z0-9_]+/gm;
     let m: RegExpExecArray | null;
@@ -816,7 +223,7 @@ function fnRegions__o(content: string): Region[] {
     return out;
 }
 
-function regionAt__o(regions: Region[], pos: number): Region | undefined {
+function regionAt (regions: Region[], pos: number): Region | undefined {
     let lo = 0, hi = regions.length - 1, hit: Region | undefined;
     while (lo <= hi) {
         const mid = (lo + hi) >> 1;
@@ -826,7 +233,7 @@ function regionAt__o(regions: Region[], pos: number): Region | undefined {
 }
 
 /** First argument of the call spelled at `text`, or undefined when truncated. */
-function firstArg__o(text: string): string | undefined {
+function firstArg (text: string): string | undefined {
     const open = text.indexOf('(');
     if (open < 0) return undefined;
     let depth = 0, inStr = false, esc = false;
@@ -942,14 +349,14 @@ class Proof {
 }
 
 /** Arguments of `text` when it is exactly one `<name>(...)` call. */
-function insertChainCallArgs__o(text: string, name: string): string[] | undefined {
+function insertChainCallArgs (text: string, name: string): string[] | undefined {
     if (!text.startsWith(name + '(')) return undefined;
     const after = closeParenAt(text, name.length);
     if (after !== text.length) return undefined;
     return splitArgs(text.slice(name.length + 1, after - 1));
 }
 
-function keyConv__o(arg: string, intermediate: boolean): string | undefined {
+function keyConv (arg: string, intermediate: boolean): string | undefined {
     const lit = arg.trim().match(LITERAL_KEY);
     if (lit !== null) return lit[1] + '.to_string()';
     if (intermediate) return undefined;
@@ -962,7 +369,7 @@ function keyConv__o(arg: string, intermediate: boolean): string | undefined {
  * Rewrite `x[k] = v` / nested `x[a][b] = v` writes on a proven tag-free
  * receiver into the native `insert` the helper performs on one.
  */
-function nativeInserts__o(content: string): string {
+function nativeInserts (content: string): string {
     if (!content.includes(CALL)) return content;
     const regions = fnRegions(content);
     const proof = new Proof(content, regions);
@@ -1113,7 +520,7 @@ const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_a
 const CONTAINER_OP_SHAPE_WRITES = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|(?:^|[^A-Za-z0-9_:.])if let (?:Value::(?:Dict|Arr)\(__[a-z]+\)|\(Value::(?:Dict|Arr)\(__[a-z]+\), ?(?:&mut )?[a-z_][A-Za-z0-9_]*\)) = )$/;
 
 // Blank out string literals and comments, preserving every offset.
-function containerOpMask__o(content: string): string {
+function containerOpMask (content: string): string {
     const out = content.split ('');
     let i = 0;
     while (i < content.length) {
@@ -1137,7 +544,7 @@ function containerOpMask__o(content: string): string {
 }
 
 // Index of the bracket closing the one at `open`, or -1.
-function containerOpClose__o(content: string, open: number): number {
+function containerOpClose (content: string, open: number): number {
     const pairs: Record<string, string> = { '(': ')', '[': ']', '{': '}' };
     const close = pairs[content[open]];
     if (close === undefined) return -1;
@@ -1164,7 +571,7 @@ function containerOpClose__o(content: string, open: number): number {
     return -1;
 }
 
-function containerOpSplit__o(inner: string): string[] {
+function containerOpSplit (inner: string): string[] {
     const parts: string[] = [];
     let depth = 0;
     let cur = '';
@@ -1197,7 +604,7 @@ function containerOpSplit__o(inner: string): string[] {
 }
 
 // End offset of the statement starting at `i` (the `;` at depth 0), or -1.
-function containerOpStmtEnd__o(content: string, i: number): number {
+function containerOpStmtEnd (content: string, i: number): number {
     let depth = 0;
     while (i < content.length) {
         const c = content[i];
@@ -1222,14 +629,14 @@ function containerOpStmtEnd__o(content: string, i: number): number {
     return -1;
 }
 
-function containerOpParens__o(e: string): string {
+function containerOpParens (e: string): string {
     let t = e.trim ();
     while (t.startsWith ('(') && containerOpClose (t, 0) === t.length - 1) t = t.slice (1, -1).trim ();
     return t;
 }
 
 // True when `e` is exactly one call to `name(` … `)`.
-function containerOpIsCall__o(e: string, name: string): boolean {
+function containerOpIsCall (e: string, name: string): boolean {
     if (!e.startsWith (name + '(')) return false;
     return containerOpClose (e, name.length) === e.length - 1;
 }
@@ -1364,7 +771,7 @@ class ContainerOpProver {
     }
 }
 
-function containerOpKeyText__o(key: string): string | undefined {
+function containerOpKeyText (key: string): string | undefined {
     const lit = CONTAINER_OP_LITERAL_KEY.exec (key);
     if (lit !== null) return lit[1];
     const ident = CONTAINER_OP_IDENT_ARG.exec (key);
@@ -1372,7 +779,7 @@ function containerOpKeyText__o(key: string): string | undefined {
     return undefined;
 }
 
-function nativeContainerOps__o(content: string): string {
+function nativeContainerOps (content: string): string {
     if (!/\b(?:in_op|object_keys|object_values|get_array_length)\(&/.test (content)) return content;
     const prover = new ContainerOpProver (content);
     for (let round = 0; round < 6; round++) {
@@ -1444,7 +851,7 @@ function nativeContainerOps__o(content: string): string {
 }
 
 // Self-test cases: each must stay unchanged on the base generator and rewrite here.
-function nativeContainerOpsSelfTest__o(): string[] {
+function nativeContainerOpsSelfTest (): string[] {
     const problems: string[] = [];
     const check = (name: string, input: string, expected: string) => {
         // A case whose input already equals the native text proves nothing.
@@ -1490,7 +897,7 @@ type VariantSet = Set<Variant>
 interface FnRegion { start: number, end: number, header: string }
 
 /** Blank out string literals and line comments, preserving every offset. */
-function mask__o(content: string): string {
+function mask (content: string): string {
     const out = content.split('');
     let i = 0;
     while (i < out.length) {
@@ -1515,7 +922,7 @@ function mask__o(content: string): string {
     return out.join('');
 }
 
-function closeParen__o(masked: string, open: number): number {
+function closeParen (masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -1528,7 +935,7 @@ function closeParen__o(masked: string, open: number): number {
     return -1;
 }
 
-function splitTopLevel__o(src: string, sep: string): string[] {
+function splitTopLevel (src: string, sep: string): string[] {
     const parts: string[] = [];
     let depth = 0;
     let cur = '';
@@ -1551,14 +958,14 @@ function splitTopLevel__o(src: string, sep: string): string[] {
     return parts.map((p) => p.trim());
 }
 
-function stripOuter__o(src: string): string {
+function stripOuter (src: string): string {
     let s = src.trim();
     while (s.startsWith('(') && closeParen(s, 0) === s.length - 1) s = s.slice(1, -1).trim();
     return s;
 }
 
 /** Text from the start of the statement holding `pos` up to `pos`. */
-function statementBefore__o(masked: string, pos: number): string {
+function statementBefore (masked: string, pos: number): string {
     let depth = 0;
     for (let i = pos; i > 0; i--) {
         const c = masked[i - 1];
@@ -1569,7 +976,7 @@ function statementBefore__o(masked: string, pos: number): string {
     return masked.slice(0, pos);
 }
 
-function fnRegionOf__o(masked: string, pos: number): FnRegion {
+function fnRegionOf (masked: string, pos: number): FnRegion {
     const heads: number[] = [0];
     for (const m of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) heads.push((m.index as number) + 1);
     heads.push(masked.length);
@@ -1580,7 +987,7 @@ function fnRegionOf__o(masked: string, pos: number): FnRegion {
     return { start: heads[lo], end: heads[lo + 1], header: brace < 0 ? body : body.slice(0, brace) };
 }
 
-function rhsAfter__o(masked: string, from: number): string {
+function rhsAfter (masked: string, from: number): string {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -1592,7 +999,7 @@ function rhsAfter__o(masked: string, from: number): string {
 }
 
 /** Drop the balanced expression ending `s` (an operand of `&&` / `||`). */
-function stripTrailingOperand__o(s: string): string {
+function stripTrailingOperand (s: string): string {
     let depth = 0;
     for (let i = s.length - 1; i >= 0; i--) {
         const c = s[i];
@@ -1615,7 +1022,7 @@ function stripTrailingOperand__o(s: string): string {
 }
 
 /** True when a `bool` is legal at `start` (condition, bool decl, Value::Bool box). */
-function boolSlotAt__o(masked: string, start: number): boolean {
+function boolSlotAt (masked: string, start: number): boolean {
     let prefix = statementBefore(masked, start);
     for (let hop = 0; hop < 60; hop++) {
         prefix = prefix.replace(/[\s!]+$/, '');
@@ -1635,7 +1042,7 @@ const UNION: Variant[] = ['bool', 'null'];
  * Runtime variants a write can produce, or undefined when not provable.
  * `safe_bool*` is admitted only when its default cannot be a non-bool value.
  */
-function variantOf__o(expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function variantOf (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const e = stripOuter(expr);
     const lit = /^Value::(Bool|Int|Float|Str)\(/.exec(e);
     if (lit !== null && closeParen(e, 'Value::'.length + lit[1].length) === e.length - 1) {
@@ -1661,7 +1068,7 @@ function variantOf__o(expr: string, masked: string, region: FnRegion, depth: num
 }
 
 /** `safe_bool*(obj, key, &[])` is `Bool` or `Null`; a proven bool default is `Bool`. */
-function safeBoolVariants__o(call: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function safeBoolVariants (call: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const open = call.indexOf('(');
     const args = splitTopLevel(call.slice(open + 1, closeParen(call, open)), ',');
     const list = /^&\[(.*)\]$/.exec(args[args.length - 1] ?? '');
@@ -1671,7 +1078,7 @@ function safeBoolVariants__o(call: string, masked: string, region: FnRegion, dep
     return boolDefault(items, masked, region, depth);
 }
 
-function boolDefault__o(expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function boolDefault (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const e = stripOuter(expr);
     if (/^Value::Bool\(/.test(e) || e === 'Value::Null') return new Set<Variant>(UNION);
     const name = /^([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
@@ -1684,7 +1091,7 @@ function boolDefault__o(expr: string, masked: string, region: FnRegion, depth: n
 interface LocalProof { kind: 'variant' | 'none', variants?: VariantSet }
 
 /** Variant proof for every write of `name` inside one fn region. */
-function proveLocal__o(masked: string, name: string, region: FnRegion, depth: number): LocalProof {
+function proveLocal (masked: string, name: string, region: FnRegion, depth: number): LocalProof {
     if (depth > 3) return { kind: 'none' };
     const body = masked.slice(region.start, region.end);
     const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1725,7 +1132,7 @@ function proveLocal__o(masked: string, name: string, region: FnRegion, depth: nu
 const isBoolOnly = (v: VariantSet): boolean => [...v].every((x) => x === 'bool' || x === 'null');
 
 /** `!is_true(&X)` flips the comparison instead of wrapping it. */
-function pushEdit__o(edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
+function pushEdit (edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
     let k = start - 1;
     while (k >= 0 && (masked[k] === ' ' || masked[k] === '\t')) k--;
     if (k >= 0 && masked[k] === '!' && masked[k - 1] !== '=') {
@@ -1735,7 +1142,7 @@ function pushEdit__o(edits: Array<{ start: number, end: number, text: string }>,
     edits.push({ start, end: close + 1, text });
 }
 
-function nativeBoolScalars__o(content: string): string {
+function nativeBoolScalars (content: string): string {
     if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
     const masked = mask(content);
     const edits: Array<{ start: number, end: number, text: string }> = [];
@@ -1798,7 +1205,7 @@ const BOOL_SCALAR_CASES: Array<[string, string, string]> = [
 ];
 
 /** Each case: the native text must appear, and the helper must be gone unless the case keeps it. */
-function nativeBoolScalarsSelfTest__o(): string[] {
+function nativeBoolScalarsSelfTest (): string[] {
     const bad: string[] = [];
     for (const [name, body, want] of BOOL_SCALAR_CASES) {
         const src = `    pub fn f(&mut self) -> Value {\n        ${body} return Value::Null; }\n    Value::Null\n}\n`;
@@ -1827,7 +1234,7 @@ const VEC_PUSH_ARR_INIT = [
 ];
 
 // Blank strings and comments; same length as the input, so indices stay valid.
-function vecPushMaskText__o(src: string): string {
+function vecPushMaskText (src: string): string {
     const out: string[] = [];
     let i = 0;
     const n = src.length;
@@ -1858,7 +1265,7 @@ function vecPushMaskText__o(src: string): string {
 }
 
 // [open, close] brace spans of every `fn` body.
-function vecPushFnRegions__o(masked: string): Array<[number, number]> {
+function vecPushFnRegions (masked: string): Array<[number, number]> {
     const regions: Array<[number, number]> = [];
     const head = /\bfn\s+[A-Za-z0-9_]*\s*[(<]/g;
     let m: RegExpExecArray | null;
@@ -1887,7 +1294,7 @@ function vecPushFnRegions__o(masked: string): Array<[number, number]> {
 }
 
 // Index of the `)` matching the `(` at `open`, or -1.
-function vecPushCloseParen__o(src: string, open: number): number {
+function vecPushCloseParen (src: string, open: number): number {
     let depth = 0;
     for (let i = open; i < src.length; i++) {
         const c = src[i];
@@ -1898,7 +1305,7 @@ function vecPushCloseParen__o(src: string, open: number): number {
 }
 
 // Index of the `;` ending the expression that starts at `from` (depth 0), or -1.
-function vecPushExprEnd__o(masked: string, from: number): number {
+function vecPushExprEnd (masked: string, from: number): number {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -1909,13 +1316,13 @@ function vecPushExprEnd__o(masked: string, from: number): number {
     return -1;
 }
 
-function vecPushIsArrInit__o(init: string): boolean {
+function vecPushIsArrInit (init: string): boolean {
     const t = init.trim ();
     return VEC_PUSH_ARR_INIT.some ((rx) => rx.test (t));
 }
 
 // `s` closes its own opening bracket and never dips below it.
-function vecPushBalanced__o(s: string): boolean {
+function vecPushBalanced (s: string): boolean {
     let d = 0;
     for (const c of s) {
         if (c === '(' || c === '[' || c === '{') d++;
@@ -1926,7 +1333,7 @@ function vecPushBalanced__o(s: string): boolean {
 
 // `y = x.clone();` as the only statement of `if matches!(&x, Value::Arr(_)) { ... }`:
 // the guard makes the copy an array.
-function vecPushGuardClone__o(masked: string, rhs: string, stmtStart: number, rhsEnd: number): boolean {
+function vecPushGuardClone (masked: string, rhs: string, stmtStart: number, rhsEnd: number): boolean {
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)$/.exec (rhs.trim ());
     if (m === null) return false;
     const open = masked.lastIndexOf ('{', stmtStart);
@@ -1939,7 +1346,7 @@ function vecPushGuardClone__o(masked: string, rhs: string, stmtStart: number, rh
     return cm !== null && cm[1] === m[1];
 }
 
-function arrOnlyVecPush__o(content: string): string {
+function arrOnlyVecPush (content: string): string {
     if (!content.includes (VEC_PUSH_HELPER + '(')) return content;
     const masked = vecPushMaskText (content);
     const regions = vecPushFnRegions (masked);
@@ -2036,7 +1443,7 @@ const VEC_PUSH_FILE_HEAD = `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND
 
 `;
 
-function arrOnlyVecPushSelfTest__o(): string[] {
+function arrOnlyVecPushSelfTest (): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) { problems.push ('arr only vec push self: ' + what); } };
     const run = (body: string, header = '    pub fn k(&mut self, other: Value) -> Value {') => arrOnlyVecPush (VEC_PUSH_FILE_HEAD + header + '\n' + body + '\n    }\n');
@@ -2107,7 +1514,7 @@ type Rw = { start: number, end: number, text: string, g?: number };
 const STR_LIT = String.raw`"(?:[^"\\]|\\.)*"`;
 
 /** Blank string literals and line comments, same length as the input. */
-function typedLocalsMaskText__o(src: string): string {
+function typedLocalsMaskText(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -2135,7 +1542,7 @@ function typedLocalsMaskText__o(src: string): string {
 }
 
 /** Index just past the `)` matching the `(` at `open`, or -1. */
-function typedLocalsCloseParen__o(masked: string, open: number): number {
+function typedLocalsCloseParen(masked: string, open: number): number {
     let depth = 0;
     for (let k = open; k < masked.length; k++) {
         const c = masked[k];
@@ -2146,7 +1553,7 @@ function typedLocalsCloseParen__o(masked: string, open: number): number {
 }
 
 /** Index just past the delimiter closing the one at `open`, or -1. */
-function closeAt__o(src: string, open: number): number {
+function closeAt(src: string, open: number): number {
     const openCh = src[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : '}';
     let depth = 0;
@@ -2159,7 +1566,7 @@ function closeAt__o(src: string, open: number): number {
 }
 
 /** Index just past the `}` matching the `{` at `open`, or -1. */
-function closeBrace__o(masked: string, open: number): number {
+function closeBrace(masked: string, open: number): number {
     let depth = 0;
     for (let k = open; k < masked.length; k++) {
         const c = masked[k];
@@ -2170,7 +1577,7 @@ function closeBrace__o(masked: string, open: number): number {
 }
 
 /** End (index of `;`) of the statement starting at `from`, depth 0. */
-function stmtEnd__o(masked: string, from: number): number {
+function stmtEnd(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -2182,7 +1589,7 @@ function stmtEnd__o(masked: string, from: number): number {
 }
 
 /** Split top-level commas; undefined when the delimiters are unbalanced. */
-function typedLocalsSplitArgs__o(masked: string, from: number, to: number): string[] | undefined {
+function typedLocalsSplitArgs(masked: string, from: number, to: number): string[] | undefined {
     const args: string[] = [];
     let depth = 0;
     let start = from;
@@ -2197,7 +1604,7 @@ function typedLocalsSplitArgs__o(masked: string, from: number, to: number): stri
 }
 
 /** Innermost unclosed delimiter at each index, plus its opening index. */
-function openerMap__o(masked: string): { kind: Uint8Array, at: Int32Array } {
+function openerMap(masked: string): { kind: Uint8Array, at: Int32Array } {
     const kind = new Uint8Array(masked.length);
     const at = new Int32Array(masked.length).fill(-1);
     const stack: Array<{ kind: number, at: number }> = [];
@@ -2217,7 +1624,7 @@ function openerMap__o(masked: string): { kind: Uint8Array, at: Int32Array } {
 const KEYWORDS = new Set(['if', 'while', 'match', 'return', 'for', 'in', 'else', 'loop', 'not']);
 
 /** True when the identifier at `s` is a whole by-value expression slot. */
-function valueSlot__o(masked: string, content: string, s: number, name: string, open: { kind: Uint8Array, at: Int32Array }): number {
+function valueSlot(masked: string, content: string, s: number, name: string, open: { kind: Uint8Array, at: Int32Array }): number {
     const kind = open.kind[s];
     if (kind !== 1 && kind !== 2 && kind !== 3) return 0;
     if (kind === 1) {
@@ -2240,7 +1647,7 @@ function valueSlot__o(masked: string, content: string, s: number, name: string, 
 
 const FN_HEADER = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
 
-function typedLocalsFnRegions__o(masked: string): number[] {
+function typedLocalsFnRegions(masked: string): number[] {
     const heads: number[] = [0];
     for (const m of masked.matchAll(FN_HEADER)) heads.push((m.index as number) + 1);
     return heads;
@@ -2258,7 +1665,7 @@ const RUST_TYPE: Record<Shape, string> = {
 };
 
 /** Box a native local back into a `Value` slot. */
-function boxed__o(shape: Shape, expr: string): string {
+function boxed(shape: Shape, expr: string): string {
     switch (shape) {
     case 'String': return `Value::str(${expr})`;
     case 'Int': return `Value::Int(${expr})`;
@@ -2270,7 +1677,7 @@ function boxed__o(shape: Shape, expr: string): string {
 }
 
 /** Initializer shape, or undefined when the variant is not pinned. */
-function initShape__o(init: string): { shape: Shape, inner: string, wrapperEnd: number } | undefined {
+function initShape(init: string): { shape: Shape, inner: string, wrapperEnd: number } | undefined {
     const pinned = (head: string, shape: Shape): { shape: Shape, inner: string, wrapperEnd: number } | undefined => {
         if (!init.startsWith(head)) return undefined;
         const open = head.length - 1;
@@ -2308,7 +1715,7 @@ function initShape__o(init: string): { shape: Shape, inner: string, wrapperEnd: 
 }
 
 /** True when `x` is only ever read (never rebound or mutated elsewhere). */
-function rebound__o(region: string, name: string): boolean {
+function rebound(region: string, name: string): boolean {
     const n = name;
     const rx = new RegExp(
         `\\blet\\s+(?:mut\\s+)?${n}\\b|\\bfor\\s+(?:mut\\s+)?${n}\\b`
@@ -2325,7 +1732,7 @@ type Ctx = {
 };
 
 /** Classify one use: rewrites for the use, or null when it cannot be proven. */
-function classify__o(shape: Shape, ctx: Ctx, masked: string, content: string, where: { kind: Uint8Array, at: Int32Array }): Rw[] | null {
+function classify(shape: Shape, ctx: Ctx, masked: string, content: string, where: { kind: Uint8Array, at: Int32Array }): Rw[] | null {
     const { name, useStart: s, before, after } = ctx;
     const open = where;
     const nameEnd = s + name.length;
@@ -2571,7 +1978,7 @@ function classify__o(shape: Shape, ctx: Ctx, masked: string, content: string, wh
 }
 
 /** Source text of the header that owns the block opening at `open`. */
-function blockHeader__o(masked: string, from: number, open: number): string {
+function blockHeader(masked: string, from: number, open: number): string {
     let i = open - 1;
     let depth = 0;
     while (i >= from) {
@@ -2587,7 +1994,7 @@ function blockHeader__o(masked: string, from: number, open: number): string {
 }
 
 /** True when `pos` sits inside a loop body or a closure (re-runnable). */
-function inRepeatedBlock__o(masked: string, from: number, pos: number, declAt = -1): boolean {
+function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1): boolean {
     const stack: number[] = [];
     for (let k = from; k < pos; k++) {
         const c = masked[k];
@@ -2606,7 +2013,7 @@ function inRepeatedBlock__o(masked: string, from: number, pos: number, declAt = 
 }
 
 /** True when the use is a whole-statement `X = <init>;` re-assignment. */
-function assignRewrite__o(shape: Shape, name: string, s: number, after: string, content: string, masked: string): Rw[] | null {
+function assignRewrite(shape: Shape, name: string, s: number, after: string, content: string, masked: string): Rw[] | null {
     const m = /^\s*=\s*/.exec(after);
     if (m === null) return null;
     const rhsStart = s + name.length + m[0].length;
@@ -2651,7 +2058,7 @@ type TypedLocalReject = { shape: Shape, name: string, line: number, text: string
 let typedLocalRejects: TypedLocalReject[] = [];
 
 /** Type the `Value` locals whose initializer pins the variant and whose every use is native. */
-function rustTypedLocals__o(content: string): string {
+function rustTypedLocals(content: string): string {
     typedLocalRejects = [];
     if (!content.includes(': Value = ')) return content;
     const masked = typedLocalsMaskText(content);
@@ -2802,7 +2209,7 @@ function rustTypedLocals__o(content: string): string {
 }
 
 /** One case per rule; each one fails on the base generator (no such pass). */
-function rustTypedLocalsSelfTest__o(): string[] {
+function rustTypedLocalsSelfTest(): string[] {
     const cases: any[] = [
         [
             'string-equal-and-move-box',
@@ -2909,7 +2316,7 @@ const CALLEE_SHAPE_BASE_FILE = 'rust/ccxt-common/src/exchange_generated.rs';
 let baseCalleeShapes: Map<string, CalleeShape> | undefined = undefined;
 
 /** Blank string literals and line comments, same length as the input. */
-function calleeShapeMask__o(src: string): string {
+function calleeShapeMask(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -2937,7 +2344,7 @@ function calleeShapeMask__o(src: string): string {
 }
 
 /** Index of the delimiter closing the one at `open`, or -1. */
-function calleeShapeClose__o(src: string, open: number): number {
+function calleeShapeClose(src: string, open: number): number {
     const openCh = src[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : openCh === '{' ? '}' : '';
     if (closeCh === '') return -1;
@@ -2954,7 +2361,7 @@ function calleeShapeClose__o(src: string, open: number): number {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function calleeShapeArgs__o(masked: string, open: number, close: number): [number, number][] | undefined {
+function calleeShapeArgs(masked: string, open: number, close: number): [number, number][] | undefined {
     const spans: [number, number][] = [];
     let depth = 0;
     let start = open + 1;
@@ -2972,7 +2379,7 @@ function calleeShapeArgs__o(masked: string, open: number, close: number): [numbe
 }
 
 /** End index (the `;`) of the statement starting at `from`, or -1. */
-function calleeShapeStmtEnd__o(masked: string, from: number): number {
+function calleeShapeStmtEnd(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -2986,7 +2393,7 @@ function calleeShapeStmtEnd__o(masked: string, from: number): number {
 }
 
 /** Depth-0 `return` expressions of a body. */
-function calleeShapeReturns__o(masked: string): string[] {
+function calleeShapeReturns(masked: string): string[] {
     const out: string[] = [];
     const rx = /(?<![A-Za-z0-9_])return\b/g;
     let m: RegExpExecArray | null;
@@ -2999,7 +2406,7 @@ function calleeShapeReturns__o(masked: string): string[] {
 }
 
 /** The bare tail expression of a body (no trailing `;`), or undefined. */
-function calleeShapeTail__o(body: string): string | undefined {
+function calleeShapeTail(body: string): string | undefined {
     const t = body.replace(/\s+$/, '');
     if (t === '' || t.endsWith(';')) return undefined;
     const cut = t.lastIndexOf(';');
@@ -3009,7 +2416,7 @@ function calleeShapeTail__o(body: string): string | undefined {
 }
 
 /** True when the bare tail is unreachable: the statement before it returns. */
-function calleeShapeTailIsDead__o(body: string): boolean {
+function calleeShapeTailIsDead(body: string): boolean {
     const cut = body.replace(/\s+$/, '').lastIndexOf(';');
     if (cut < 0) return false;
     let depth = 0;
@@ -3024,7 +2431,7 @@ function calleeShapeTailIsDead__o(body: string): boolean {
 }
 
 /** Shape of the container a return expression builds from scratch, if it does. */
-function freshCalleeShape__o(t: string): CalleeShape | undefined {
+function freshCalleeShape(t: string): CalleeShape | undefined {
     const s = t.replace(/^\(+/, '').trim();
     if (/^Value::(?:Map|Dict)\(/.test(s)) {
         const open = s.indexOf('(');
@@ -3039,7 +2446,7 @@ function freshCalleeShape__o(t: string): CalleeShape | undefined {
 }
 
 /** The single declaration of a local in a region, with its initializer text. */
-function calleeShapeDecl__o(region: string, name: string): { init: string } | undefined {
+function calleeShapeDecl(region: string, name: string): { init: string } | undefined {
     const rx = new RegExp('\\blet (?:mut )?' + name + '\\s*(?::\\s*[^=;]+)?=\\s*', 'g');
     let hit: RegExpExecArray | null = null;
     let count = 0;
@@ -3050,7 +2457,7 @@ function calleeShapeDecl__o(region: string, name: string): { init: string } | un
 }
 
 /** Arity-independent shape table for `pub fn NAME(...) -> Value` methods. */
-function methodCalleeShapes__o(content: string, masked: string, loose = false): Map<string, CalleeShape> {
+function methodCalleeShapes(content: string, masked: string, loose = false): Map<string, CalleeShape> {
     const shapes = new Map<string, CalleeShape>();
     const hdr = loose ? /\n {4}(?:pub )?fn (\w+)\s*\(/g : /\n {4}pub fn (\w+)\s*\(/g;
     let hm: RegExpExecArray | null;
@@ -3090,7 +2497,7 @@ function methodCalleeShapes__o(content: string, masked: string, loose = false): 
 }
 
 /** Base-tier shape table, read from the generated base (cached). */
-function baseCalleeShapeTable__o(): Map<string, CalleeShape> {
+function baseCalleeShapeTable(): Map<string, CalleeShape> {
     if (baseCalleeShapes !== undefined) return baseCalleeShapes;
     baseCalleeShapes = new Map<string, CalleeShape>();
     try {
@@ -3159,14 +2566,14 @@ class CalleeShapeProver {
 }
 
 /** Literal string key of an argument (`&Value::Str("k".into())`), else undefined. */
-function calleeShapeLiteralKey__o(arg: string | undefined): string | undefined {
+function calleeShapeLiteralKey(arg: string | undefined): string | undefined {
     if (arg === undefined) return undefined;
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1].slice(1, -1);
 }
 
 /** True when a `&mut name` receiver is only used by the writes this pass keeps. */
-function calleeShapePlainReceiver__o(region: string, name: string): boolean {
+function calleeShapePlainReceiver(region: string, name: string): boolean {
     const rx = new RegExp('&mut ' + name + '(?![A-Za-z0-9_])', 'g');
     let m: RegExpExecArray | null;
     while ((m = rx.exec(region)) !== null) {
@@ -3179,7 +2586,7 @@ function calleeShapePlainReceiver__o(region: string, name: string): boolean {
 }
 
 /** True when the local is never reassigned to another expression. */
-function calleeShapeSingleWrite__o(region: string, name: string): boolean {
+function calleeShapeSingleWrite(region: string, name: string): boolean {
     const rx = new RegExp('(?<![A-Za-z0-9_.])' + name + '\\s*=\\s*(?!=)', 'g');
     let m: RegExpExecArray | null;
     while ((m = rx.exec(region)) !== null) {
@@ -3193,7 +2600,7 @@ function calleeShapeSingleWrite__o(region: string, name: string): boolean {
 interface CalleeShapeStats { sites: number }
 
 /** Rewrite helper calls on a proven callee-shaped local to the native op. */
-function calleeShapeContainerOps__o(content: string, stats?: CalleeShapeStats): string {
+function calleeShapeContainerOps(content: string, stats?: CalleeShapeStats): string {
     if (content.indexOf('add_element_to_object(') < 0 && content.indexOf('get_value(&') < 0
         && content.indexOf('in_op(') < 0 && content.indexOf('object_keys(') < 0
         && content.indexOf('object_values(') < 0 && content.indexOf('get_array_length(') < 0) return content;
@@ -3316,7 +2723,7 @@ function calleeShapeContainerOps__o(content: string, stats?: CalleeShapeStats): 
 }
 
 /** True when the call at `pos` sits in a Rust bool position (if/while head). */
-function calleeShapeBoolPosition__o(masked: string, pos: number): boolean {
+function calleeShapeBoolPosition(masked: string, pos: number): boolean {
     const lineStart = masked.lastIndexOf('\n', pos) + 1;
     const pre = masked.slice(lineStart, pos).trim();
     const headed = /^(?:\}\s*else\s+)?(?:if|while)$/.test(pre);
@@ -3325,7 +2732,7 @@ function calleeShapeBoolPosition__o(masked: string, pos: number): boolean {
 }
 
 /** Self-test: the rule fires on a proven callee and leaves an unproven one alone. */
-function calleeShapeContainerOpsSelfTest__o(): string[] {
+function calleeShapeContainerOpsSelfTest(): string[] {
     const problems: string[] = [];
     const dictFn = (body: string) => "\n    pub fn parse_thing(&self, mut x: Value) -> Value {\n" + body + "\n    Value::Null\n}\n";
     const wrapper = (call: string) => "\n    pub fn use_it(&self, mut data: Value) -> Value {\n        let mut parsed: Value = " + call + ";\n        add_element_to_object(&mut parsed, &Value::Str(\"nonce\".into()), self.safe_integer_k(data, \"u\", &[]));\n        let mut n: Value = get_value(&parsed, &Value::Str(\"bids\"));\n        return parsed;\n    }\n";
@@ -3358,7 +2765,7 @@ function calleeShapeContainerOpsSelfTest__o(): string[] {
 interface BoolCalleeRegion { start: number, end: number, name: string, ret: string, body: string }
 
 /** Blank out string literals and comments, preserving every offset. */
-function boolCalleeMask__o(text: string): string {
+function boolCalleeMask (text: string): string {
     const out = text.split('');
     const n = out.length;
     let i = 0;
@@ -3385,7 +2792,7 @@ function boolCalleeMask__o(text: string): string {
     return out.join('');
 }
 
-function boolCalleeClose__o(masked: string, open: number): number {
+function boolCalleeClose (masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -3398,7 +2805,7 @@ function boolCalleeClose__o(masked: string, open: number): number {
     return -1;
 }
 
-function boolCalleeStrip__o(src: string): string {
+function boolCalleeStrip (src: string): string {
     let s = src.trim();
     while (s.startsWith('(') && boolCalleeClose(s, 0) === s.length - 1) s = s.slice(1, -1).trim();
     return s;
@@ -3406,7 +2813,7 @@ function boolCalleeStrip__o(src: string): string {
 
 const BOOL_CALLEE_FN = /\n[ \t]*(?:pub )?(?:async )?fn (\w+)/g;
 
-function boolCalleeRegions__o(masked: string): BoolCalleeRegion[] {
+function boolCalleeRegions (masked: string): BoolCalleeRegion[] {
     const heads: number[] = [0];
     for (const m of masked.matchAll(BOOL_CALLEE_FN)) heads.push((m.index as number) + 1);
     heads.push(masked.length);
@@ -3425,7 +2832,7 @@ function boolCalleeRegions__o(masked: string): BoolCalleeRegion[] {
 }
 
 /** Value expressions a `return`/tail can hand back, `undefined` when not a `Value` fn. */
-function boolCalleeRetExprs__o(region: BoolCalleeRegion): string[] | undefined {
+function boolCalleeRetExprs (region: BoolCalleeRegion): string[] | undefined {
     if (!/^\s*->\s*(?:crate::)?Value\s*$/.test(region.ret.replace(/\s+/g, ' '))) return undefined;
     const body = region.body;
     const rets: string[] = [];
@@ -3456,7 +2863,7 @@ function boolCalleeRetExprs__o(region: BoolCalleeRegion): string[] | undefined {
     return rets;
 }
 
-function boolCalleeSafeBoolDefault__o(call: string): boolean | undefined {
+function boolCalleeSafeBoolDefault (call: string): boolean | undefined {
     const open = call.indexOf('(');
     const close = boolCalleeClose(call, open);
     if (close < 0) return undefined;
@@ -3485,7 +2892,7 @@ const BOOL_CALLEE_BOOLISH = (v: BoolCalleeVariants): boolean => [...v].every((x)
  * Variants an expression can evaluate to, or undefined when unproven.
  * `self.<fn>` resolves through the same file's declarations (depth-limited).
  */
-function boolCalleeVariant__o(expr: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, region: BoolCalleeRegion, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
+function boolCalleeVariant (expr: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, region: BoolCalleeRegion, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
     if (depth > 6) return undefined;
     let e = boolCalleeStrip(expr);
     while (e.endsWith('.clone()')) e = boolCalleeStrip(e.slice(0, -'.clone()'.length));
@@ -3527,7 +2934,7 @@ function boolCalleeVariant__o(expr: string, masked: string, byName: Map<string, 
 }
 
 /** Union of every return expression of every same-file declaration of `name`. */
-function boolCalleeReturnVariant__o(name: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
+function boolCalleeReturnVariant (name: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
     if (visiting.has(name) || depth > 6) return undefined;
     const decls = byName.get(name);
     if (decls === undefined || decls.length === 0) return undefined;
@@ -3547,7 +2954,7 @@ function boolCalleeReturnVariant__o(name: string, masked: string, byName: Map<st
 }
 
 /** Every right-hand side written to local `ident` inside `region`, or undefined when it can be rebound. */
-function boolCalleeWrites__o(masked: string, ident: string, region: BoolCalleeRegion): string[] | undefined {
+function boolCalleeWrites (masked: string, ident: string, region: BoolCalleeRegion): string[] | undefined {
     const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const body = masked.slice(region.start, region.end);
     const shadow = new RegExp(`\\|(?!\\|)[^|\\n]*\\b${esc}\\b[^|\\n]*\\|(?!\\|)|\\bfor [^\\n]*\\b${esc}\\b[^\\n]* in |\\blet \\([^)]*\\b${esc}\\b`);
@@ -3592,7 +2999,7 @@ function boolCalleeWrites__o(masked: string, ident: string, region: BoolCalleeRe
 }
 
 /** Text of the statement holding `pos`, up to `pos`. */
-function boolCalleeStmtBefore__o(masked: string, pos: number): string {
+function boolCalleeStmtBefore (masked: string, pos: number): string {
     let depth = 0;
     for (let i = pos; i > 0; i--) {
         const c = masked[i - 1];
@@ -3604,7 +3011,7 @@ function boolCalleeStmtBefore__o(masked: string, pos: number): string {
 }
 
 /** Drop the balanced operand that ends `s` (an operand of `&&` / `||`). */
-function boolCalleeDropOperand__o(s: string): string {
+function boolCalleeDropOperand (s: string): string {
     let depth = 0;
     for (let i = s.length - 1; i >= 0; i--) {
         const c = s[i];
@@ -3627,7 +3034,7 @@ function boolCalleeDropOperand__o(s: string): string {
 }
 
 /** A `bool` is legal where `start` begins: a condition, a bool local, or a Value::Bool box. */
-function boolCalleeBoolSlot__o(masked: string, start: number): boolean {
+function boolCalleeBoolSlot (masked: string, start: number): boolean {
     let prefix = boolCalleeStmtBefore(masked, start);
     for (let hop = 0; hop < 60; hop++) {
         prefix = prefix.replace(/[\s!]+$/, '');
@@ -3641,7 +3048,7 @@ function boolCalleeBoolSlot__o(masked: string, start: number): boolean {
     return false;
 }
 
-function nativeBoolCallee__o(content: string): string {
+function nativeBoolCallee (content: string): string {
     if (!content.includes('is_true(&')) return content;
     const masked = boolCalleeMask(content);
     const regions = boolCalleeRegions(masked);
@@ -3693,7 +3100,7 @@ const BOOL_CALLEE_CASES: Array<[string, string, string]> = [
 ];
 
 /** Three arg shapes per callee body: every arm Bool, one arm mixed, unknown local. */
-function boolCalleeFixture__o(body: string): string {
+function boolCalleeFixture (body: string): string {
     return `    pub fn is_linear(&self, mut t: Value, optional_args: &[Value]) -> Value {\n        if (t == Value::Null) {\n            return Value::Bool(true);\n        }\n        return Value::Bool(false);\n\n    Value::Null\n}\n\n    pub fn opt(&self) -> Option<Value> {
         return Some(Value::Bool(true));
     }
@@ -3701,7 +3108,7 @@ function boolCalleeFixture__o(body: string): string {
     pub fn mixed(&self) -> Value {\n        return Value::Int(1);\n    }\n\n    pub async fn is_uta(&mut self, optional_args: &[Value]) -> Value {\n        let mut uta: Value = Value::Bool(self.safe_bool_k(self.options.clone(), "uta", &[]).as_bool() == Some(true));\n        return uta;\n\n    Value::Null\n}\n\n    pub fn f(&mut self, mut o: Value) -> Value {\n        ${body}\n        return Value::Null; }\n}\n`;
 }
 
-function nativeBoolCalleeSelfTest__o(): string[] {
+function nativeBoolCalleeSelfTest (): string[] {
     const bad: string[] = [];
     for (const [name, body, want] of BOOL_CALLEE_CASES) {
         const src = boolCalleeFixture(body);
@@ -3724,7 +3131,7 @@ const STR_KEY = '&Value::Str\\("((?:[^"\\\\]|\\\\.)*)"\\.(?:into|to_string)\\(\\
 const MAX_LINE = 400;
 
 /** Hide comments and string bodies so paren/key scans cannot be fooled. */
-function maskSrc__o(src: string): string {
+function maskSrc(src: string): string {
     const out = src.split('');
     const blank = (from: number, to: number) => {
         for (let i = from; i < to && i < out.length; i++) if (out[i] !== '\n') out[i] = ' ';
@@ -3767,7 +3174,7 @@ function maskSrc__o(src: string): string {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function argSpans__o(masked: string, open: number): Array<[number, number]> | undefined {
+function argSpans(masked: string, open: number): Array<[number, number]> | undefined {
     let depth = 0;
     const spans: Array<[number, number]> = [];
     let start = open + 1;
@@ -3786,7 +3193,7 @@ function argSpans__o(masked: string, open: number): Array<[number, number]> | un
 }
 
 /** Offset just past the `)` closing the `(` at `open`, or -1. */
-function callEnd__o(masked: string, open: number): number {
+function callEnd(masked: string, open: number): number {
     let depth = 0;
     for (let j = open; j < masked.length; j++) {
         const c = masked[j];
@@ -3800,7 +3207,7 @@ function callEnd__o(masked: string, open: number): number {
 }
 
 /** True when the call is a statement (only whitespace between it and a `;`). */
-function fieldChainIsStatement__o(masked: string, from: number, to: number): boolean {
+function fieldChainIsStatement(masked: string, from: number, to: number): boolean {
     let k = to;
     while (k < masked.length && (masked[k] === ' ' || masked[k] === '\t')) k++;
     if (masked[k] !== ';') return false;
@@ -3810,7 +3217,7 @@ function fieldChainIsStatement__o(masked: string, from: number, to: number): boo
 }
 
 /** First top-level argument of the call text starting at `expr`'s `(`. */
-function fieldChainFirstArg__o(expr: string): string {
+function fieldChainFirstArg(expr: string): string {
     const open = expr.indexOf('(');
     if (open < 0) return '';
     let depth = 0;
@@ -3828,7 +3235,7 @@ function fieldChainFirstArg__o(expr: string): string {
 }
 
 /** The whitelisted field a receiver chain is rooted at, or '' when unproven. */
-function chainField__o(recv: string): string {
+function chainField(recv: string): string {
     const direct = new RegExp('^&mut\\s+' + RECV + '$').exec(recv);
     if (direct !== null) return direct[1];
     let expr = recv;
@@ -3848,7 +3255,7 @@ function chainField__o(recv: string): string {
 const FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*/g;
 
 /** The `fn` body span holding offset `at`. */
-function fnSpan__o(src: string, at: number): [number, number] {
+function fnSpan(src: string, at: number): [number, number] {
     FN_HEAD.lastIndex = 0;
     let start = 0;
     let m: RegExpExecArray | null;
@@ -3860,7 +3267,7 @@ function fnSpan__o(src: string, at: number): [number, number] {
 }
 
 /** How a `&ident` key may be lowered, or '' when the local's type is unproven. */
-function identKeyArg__o(body: string, ident: string, header: string): string {
+function identKeyArg(body: string, ident: string, header: string): string {
     const asStr = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*String\\s*=');
     const asVal = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*Value\\s*=');
     if (asStr.test(body)) return ident + '.clone()';
@@ -3874,7 +3281,7 @@ function identKeyArg__o(body: string, ident: string, header: string): string {
 
 interface FieldChainRw { start: number, end: number, text: string }
 
-function runPass__o(content: string): string {
+function runPass(content: string): string {
     if (!content.includes('add_element_to_object(')) return content;
     const masked = maskSrc(content);
     const callRe = /(?<![A-Za-z0-9_:.])(add_element_to_object)\(/g;
@@ -3927,7 +3334,7 @@ function runPass__o(content: string): string {
     return out + content.slice(at);
 }
 
-function fieldChainInserts__o(content: string): string {
+function fieldChainInserts(content: string): string {
     // Deeper chains (`a[k1][k2][k3]`) resolve one hop per round.
     let out = content;
     for (let i = 0; i < 4; i++) {
@@ -3957,7 +3364,7 @@ const keeperCalls = [ 'add_element_to_object', 'set_value', 'remove' ];
 const literalPrefixes = [ 'Value::Null', 'Value::Int(', 'Value::Float(', 'Value::Bool(', 'Value::Str(', 'Value::Map({', 'Value::Array(' ];
 
 // Blank strings and comments; same length as the input, so indices stay valid.
-function markerFreePushMaskText__o(src: string): string {
+function markerFreePushMaskText (src: string): string {
     const out: string[] = [];
     let i = 0;
     const n = src.length;
@@ -3988,7 +3395,7 @@ function markerFreePushMaskText__o(src: string): string {
 }
 
 // [open, close] brace spans of every `fn` body.
-function markerFreePushFnRegions__o(masked: string): Array<[number, number]> {
+function markerFreePushFnRegions (masked: string): Array<[number, number]> {
     const regions: Array<[number, number]> = [];
     const head = /\bfn\s+[A-Za-z0-9_]*\s*[(<]/g;
     let m: RegExpExecArray | null;
@@ -4017,7 +3424,7 @@ function markerFreePushFnRegions__o(masked: string): Array<[number, number]> {
 }
 
 // Index of the `)` matching the `(` at `open`, or -1.
-function markerFreePushCloseParen__o(src: string, open: number): number {
+function markerFreePushCloseParen (src: string, open: number): number {
     let depth = 0;
     for (let i = open; i < src.length; i++) {
         const c = src[i];
@@ -4028,7 +3435,7 @@ function markerFreePushCloseParen__o(src: string, open: number): number {
 }
 
 // Index of the `;` ending the expression that starts at `from` (depth 0), or -1.
-function exprEnd__o(masked: string, from: number): number {
+function exprEnd (masked: string, from: number): number {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -4039,7 +3446,7 @@ function exprEnd__o(masked: string, from: number): number {
     return -1;
 }
 
-function rustVecPushInline__o(content: string): string {
+function rustVecPushInline (content: string): string {
     if (!content.includes (helperName + '(')) return content;
     const masked = markerFreePushMaskText (content);
     const regions = markerFreePushFnRegions (masked);
@@ -4211,7 +3618,7 @@ const fileHead = `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE O
 
 `;
 
-function rustVecPushInlineSelfTest__o(): string[] {
+function rustVecPushInlineSelfTest (): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) { problems.push ('rust vec push inline self: ' + what); } };
     const run = (body: string, header = '    pub fn k(&mut self, other: Value) -> Value {') => rustVecPushInline (fileHead + header + '\n' + body + '\n    }\n');
@@ -4277,7 +3684,7 @@ const SCALAR: VSet = new Set([ 'str', 'int', 'float', 'bool', 'null' ]);
 const NATIVE_TY = new Set([ 'String', 'Vec<String>', 'i64', 'f64', 'bool', 'usize', 'u32', 'isize' ]);
 
 /** Blank string literals and comments, same length as the input. */
-function stringNativesMaskText__o(src: string): string {
+function stringNativesMaskText(src: string): string {
     const out = src.split('');
     let i = 0;
     while (i < src.length) {
@@ -4309,7 +3716,7 @@ function stringNativesMaskText__o(src: string): string {
 }
 
 /** Index just past the delimiter matching the one at `open`, or -1. */
-function stringNativesCloseParen__o(masked: string, open: number): number {
+function stringNativesCloseParen(masked: string, open: number): number {
     const openCh = masked[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : '}';
     let depth = 0;
@@ -4322,7 +3729,7 @@ function stringNativesCloseParen__o(masked: string, open: number): number {
 }
 
 /** Split top-level commas in `[from, to)`; undefined when the text is unbalanced. */
-function stringNativesSplitArgs__o(masked: string, from: number, to: number): string[] | undefined {
+function stringNativesSplitArgs(masked: string, from: number, to: number): string[] | undefined {
     const args: string[] = [];
     let depth = 0;
     let start = from;
@@ -4337,7 +3744,7 @@ function stringNativesSplitArgs__o(masked: string, from: number, to: number): st
 }
 
 /** Index of the `;` closing the statement at `from`, or -1. */
-function stringNativesStmtEnd__o(masked: string, from: number): number {
+function stringNativesStmtEnd(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -4351,7 +3758,7 @@ function stringNativesStmtEnd__o(masked: string, from: number): number {
 const STRING_NATIVES_FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
 
 /** `[start, end)` of the fn body holding `pos`. */
-function fnBounds__o(masked: string, pos: number): [number, number] {
+function fnBounds(masked: string, pos: number): [number, number] {
     let start = 0;
     for (const m of masked.matchAll(STRING_NATIVES_FN_HEAD)) {
         const at = m.index as number;
@@ -4361,19 +3768,19 @@ function fnBounds__o(masked: string, pos: number): [number, number] {
 }
 
 /** `&Value::Str("lit".into())` -> `"lit"`, else undefined. */
-function strBox__o(arg: string): string | undefined {
+function strBox(arg: string): string | undefined {
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
 }
 
 /** `&Value::Int(-?n)` -> the digits, else undefined. */
-function intBox__o(arg: string): string | undefined {
+function intBox(arg: string): string | undefined {
     const m = /^&\s*Value::Int\(\s*(-?\d+)\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
 }
 
 /** `'str'` when every element the expression can hold is a `Value::Str`, else undefined. */
-function elemKind__o(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
+function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
     const e = expr.trim().replace(/;$/, '').trim();
     const vec = /^(?:Value::(?:Array|List|from)|vec!)\(?(vec!)?\[/.exec(e) ?? /^vec!\[/.exec(e);
     if (vec !== null) {
@@ -4409,7 +3816,7 @@ function elemKind__o(expr: string, locals: Map<string, Local>, depth = 0): strin
 }
 
 /** Variant set a single write expression can leave in a `Value`, or undefined. */
-function inferSet__o(expr: string, locals: Map<string, Local>): VSet | undefined {
+function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     const e = expr.trim().replace(/;$/, '').trim();
     for (const [ head, variant ] of [ [ 'Value::Str(', 'str' ], [ 'Value::Int(', 'int' ], [ 'Value::Float(', 'float' ], [ 'Value::Bool(', 'bool' ] ]) {
         if (e.startsWith(head)) return new Set([ variant ]);
@@ -4474,7 +3881,7 @@ function inferSet__o(expr: string, locals: Map<string, Local>): VSet | undefined
 }
 
 /** Locals of one fn: declared native type, or the variant set every write of a `Value` local pins. */
-function valueSets__o(region: string, maskedRegion: string, sig: string): Map<string, Local> {
+function valueSets(region: string, maskedRegion: string, sig: string): Map<string, Local> {
     const locals = new Map<string, Local>();
     const declRe = /let\s+(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^=;]+?)\s*=/g;
     const decls: Array<{ name: string, ty: string, at: number, init: number }> = [];
@@ -4539,7 +3946,7 @@ function valueSets__o(region: string, maskedRegion: string, sig: string): Map<st
 }
 
 /** Native replacement for one helper call, or undefined when the operand is unproven. */
-function rewrite__o(name: string, args: string[], locals: Map<string, Local>): string | undefined {
+function rewrite(name: string, args: string[], locals: Map<string, Local>): string | undefined {
     const arg0 = (args[0] ?? '').trim();
     const recv = /^&\s*([A-Za-z_]\w*)$/.exec(arg0);
     const x = recv === null ? undefined : recv[1];
@@ -4613,7 +4020,7 @@ function rewrite__o(name: string, args: string[], locals: Map<string, Local>): s
 }
 
 /** Rewrite the family where the operand type is proven; leave every other site as printed. */
-function rustStringNatives__o(content: string): string {
+function rustStringNatives(content: string): string {
     if (!/to_string_val\(|replace_str\(|replace_all_str\(|split\(|join\(|starts_with\(|ends_with\(|to_fixed\(/.test(content)) return content;
     const masked = stringNativesMaskText(content);
     const rx = /(?<![A-Za-z0-9_:.])(to_string_val|replace_str|replace_all_str|split|join|starts_with|ends_with|to_fixed)\(/g;
@@ -4663,7 +4070,7 @@ function rustStringNatives__o(content: string): string {
 }
 
 /** One case per rule; each fails on the base generator (no such pass). */
-function rustStringNativesSelfTest__o(): string[] {
+function rustStringNativesSelfTest(): string[] {
     const cases: Array<[string, string, string]> = [
         [
             'to-string-scalar-local',
@@ -4746,7 +4153,7 @@ const COERCED = new RegExp('^unsafe\\s*\\{\\s*crate::runtime::coerce_value_to_mu
 const PLAIN_DICT_MAX_LINE = 400;
 
 /** Hide comments and string bodies so brace/paren scans cannot be fooled. */
-function plainDictMaskSrc__o(src: string): string {
+function plainDictMaskSrc(src: string): string {
     const out = src.split('');
     const blank = (from: number, to: number) => {
         for (let i = from; i < to && i < out.length; i++) if (out[i] !== '\n') out[i] = ' ';
@@ -4789,7 +4196,7 @@ function plainDictMaskSrc__o(src: string): string {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function plainDictArgSpans__o(masked: string, open: number): Array<[number, number]> | undefined {
+function plainDictArgSpans(masked: string, open: number): Array<[number, number]> | undefined {
     let depth = 0;
     const spans: Array<[number, number]> = [];
     let start = open + 1;
@@ -4808,7 +4215,7 @@ function plainDictArgSpans__o(masked: string, open: number): Array<[number, numb
 }
 
 /** Offset of the `)` closing the `(` at `open`, or -1. */
-function closeOf__o(masked: string, open: number): number {
+function closeOf(masked: string, open: number): number {
     let depth = 0;
     for (let j = open; j < masked.length; j++) {
         const c = masked[j];
@@ -4825,7 +4232,7 @@ interface Hop { recv: string, key: string, literal: string | undefined, close: n
 interface Chain { hops: Hop[], root: string }
 
 /** One `get_value_mut(<recv>, <key>)` call starting at `at`. */
-function hopAt__o(content: string, masked: string, at: number): Hop | undefined {
+function hopAt(content: string, masked: string, at: number): Hop | undefined {
     if (!/^get_value_mut\(/.test(masked.slice(at, at + 14))) return undefined;
     const open = at + 'get_value_mut'.length;
     const spans = plainDictArgSpans(masked, open);
@@ -4843,7 +4250,7 @@ function hopAt__o(content: string, masked: string, at: number): Hop | undefined 
 }
 
 /** The chain at `at`: hops outermost first, plus the innermost receiver. */
-function chainAt__o(content: string, masked: string, at: number): Chain | undefined {
+function chainAt(content: string, masked: string, at: number): Chain | undefined {
     const hops: Hop[] = [];
     let cur = at;
     for (let n = 0; n < 8; n++) {
@@ -4860,7 +4267,7 @@ function chainAt__o(content: string, masked: string, at: number): Chain | undefi
 interface PlainDictRw { start: number, end: number, text: string }
 
 /** `&ident` key whose binding in the enclosing fn is a proven `Value` (local or param). */
-function valueIdentKey__o(masked: string, at: number, key: string): string {
+function valueIdentKey(masked: string, at: number, key: string): string {
     const id = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(key);
     if (id === null) return '';
     const fnHead = /(?:^|\n)[ \t]*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*/g;
@@ -4882,7 +4289,7 @@ function valueIdentKey__o(masked: string, at: number, key: string): string {
     return '';
 }
 
-function plainDictRunPass__o(content: string): string {
+function plainDictRunPass(content: string): string {
     if (!content.includes('get_value_mut(')) return content;
     const masked = plainDictMaskSrc(content);
     const headRe = /if let Value::Dict\(\s*(\w+)\s*\)\s*=\s*get_value_mut\(/g;
@@ -4971,7 +4378,7 @@ function plainDictRunPass__o(content: string): string {
     return out + content.slice(at);
 }
 
-function plainDictChains__o(content: string): string {
+function plainDictChains(content: string): string {
     return plainDictRunPass(content);
 }
 
@@ -4983,7 +4390,7 @@ const CLIENT_HANDLE_KEYS = ['subscriptions', 'futures', 'rejections', 'url'];
 const CLIENT_HANDLE_TYPE = 'crate::pro::ws_client::ClientHandle';
 
 /** Blank out comments and string bodies, keeping every index in place. */
-function clientHandleMask__o(src: string): string {
+function clientHandleMask(src: string): string {
     let out = '';
     let i = 0;
     const n = src.length;
@@ -5027,7 +4434,7 @@ function clientHandleMask__o(src: string): string {
  * block, and ends where the brace depth returns to that level; brace counting
  * skips comment and string spans per line.
  */
-function clientHandleViews__o(content: string): string {
+function clientHandleViews(content: string): string {
     if (!content.includes('&client')) return content;
     const lines = content.split('\n');
     const braces = clientHandleBraceDeltas(content).split('\n');
@@ -5069,7 +4476,7 @@ const CLIENT_HANDLE_SUBS_WRITES: Array<[RegExp, string]> = [
  * `subscriptions` snapshot and the write that persists to the live client, so the venue code
  * names the operation instead of dispatching a dynamic helper on a Value.
  */
-function clientHandleSubsWrites__o(content: string): string {
+function clientHandleSubsWrites(content: string): string {
     if (!content.includes('&mut __ch.subscriptions')) return content;
     let text = content;
     for (const [rx, repl] of CLIENT_HANDLE_SUBS_WRITES) {
@@ -5094,7 +4501,7 @@ const CLIENT_HANDLE_NAMES: { [k: string]: string } = { subscriptions: 'subscript
  * `get_subscription(k)` / `get_future(k)`, `object_keys(..)` -> `subscription_keys()` /
  * `future_keys()`. The methods read the same snapshot value the helpers did.
  */
-function clientHandleTypedReads__o(content: string): string {
+function clientHandleTypedReads(content: string): string {
     if (!content.includes('__ch.')) return content;
     return content
         .replace(/matches!\(\(&__ch\.(subscriptions|futures)\.clone\(\), (&[^\n]+?)\), \(Value::Dict\(__d\), Value::Str\(__k\)\) if __d\.contains_key\(__k\.as_ref\(\)\)\)/g,
@@ -5106,12 +4513,12 @@ function clientHandleTypedReads__o(content: string): string {
 }
 
 /** The masked text (comments, strings, char literals blanked) for structure. */
-function clientHandleBraceDeltas__o(content: string): string {
+function clientHandleBraceDeltas(content: string): string {
     return clientHandleMask(content);
 }
 
 /** Brace delta of one line of the masked text. */
-function clientHandleDeltaAt__o(maskedLines: string[], idx: number): number {
+function clientHandleDeltaAt(maskedLines: string[], idx: number): number {
     const line = maskedLines[idx] ?? '';
     let d = 0;
     for (let i = 0; i < line.length; i++) {
@@ -5128,7 +4535,7 @@ const CLIENT_HANDLE_REASSIGN = /^\s*client\s*=[^=]/;
 const CLIENT_HANDLE_COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*)/;
 
 /** One method block (header + body + closing `    }`). */
-function clientHandleBlock__o(block: string[]): string[] {
+function clientHandleBlock(block: string[]): string[] {
     const header = block[0];
     const fromParam = /\bclient\s*:\s*Value\b/.test(header);
     let anchor: number;      // binding line goes right after this index
@@ -5205,12 +4612,12 @@ function clientHandleBlock__o(block: string[]): string[] {
 }
 
 /** A replacement span encoded as `col:length:text`, kept sortable per line. */
-function clientHandleSpan__o(col: number, len: number, text: string): string[] {
+function clientHandleSpan(col: number, len: number, text: string): string[] {
     return [col + ':' + len + ':' + text];
 }
 
 /** Apply `col:length:text` spans (rightmost first) to one line. */
-function clientHandleApply__o(line: string, spans: string[]): string {
+function clientHandleApply(line: string, spans: string[]): string {
     const parsed = spans.map((s) => {
         const first = s.indexOf(':');
         const second = s.indexOf(':', first + 1);
@@ -5221,7 +4628,7 @@ function clientHandleApply__o(line: string, spans: string[]): string {
     return out;
 }
 
-function clientHandleSelfTest__o(): string[] {
+function clientHandleSelfTest(): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) problems.push('client handle self test: ' + what); };
     const head = '// PLEASE DO NOT EDIT THIS FILE\n';
@@ -5337,23 +4744,23 @@ function clientHandleSelfTest__o(): string[] {
 const MAP_PARAM_RE = /:\s*&mut\s+indexmap::IndexMap<String, Value>/;
 
 /** `'map'` for a printed native-map parameter, undefined for any other shape. */
-function mapParamKind__o(printedParam: string): 'map' | undefined {
+function mapParamKind(printedParam: string): 'map' | undefined {
     return MAP_PARAM_RE.test(printedParam) ? 'map' : undefined;
 }
 
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
-function mapParamDispatchArg__o(index: number): string {
+function mapParamDispatchArg(index: number): string {
     return `&mut { let mut __m = args.get(${index}).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }`;
 }
 
 /** Split a printed parameter list on top-level commas: a generic argument list
  *  (`IndexMap<String, Value>`) carries its own. */
-function mapParamSplitArgs__o(argList: string): string[] {
+function mapParamSplitArgs(argList: string): string[] {
     return mapParamSplitTopLevel(argList);
 }
 
-function mapParamSplitTopLevel__o(argList: string): string[] {
+function mapParamSplitTopLevel(argList: string): string[] {
     const out: string[] = [];
     let depth = 0;
     let current = '';
@@ -5379,7 +4786,7 @@ const REF_MAP_PARAM_RE = /([A-Za-z_][A-Za-z0-9_]*)\s*:\s*&mut\s+indexmap::IndexM
 
 /** Names a file prints as `&mut IndexMap` parameters. Copying one is the only
  *  way to box it, so a dead-clone pass must not turn that copy into a move. */
-function refMapParamNames__o(content: string): Set<string> {
+function refMapParamNames(content: string): Set<string> {
     const names = new Set<string>();
     REF_MAP_PARAM_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
@@ -5399,7 +4806,7 @@ const MAP_PARAM_CASES: Array<{ name: string, got: () => any, want: any }> = [
     { name: 'the dispatch argument builds an owned map', got: () => mapParamDispatchArg(4), want: '&mut { let mut __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }' },
 ];
 
-function mapParamDispatchSelfTest__o(): number {
+function mapParamDispatchSelfTest(): number {
     let failures = 0;
     for (const c of MAP_PARAM_CASES) {
         const got = c.got();
@@ -5425,7 +4832,7 @@ function mapParamDispatchSelfTest__o(): number {
  * the same lookup and default rules. Any other use, a `{:?}` sink or a non-`Str` default
  * keeps `Value`.
  */
-function narrowStrSinkLocals__o(content: string): string {
+function narrowStrSinkLocals(content: string): string {
     // Boxed family -> its `Option<String>` twin on the same `Exchange` impl.
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
@@ -5574,7 +4981,7 @@ function narrowStrSinkLocals__o(content: string): string {
  * `Value::from`, which builds the `Value::Str` the helper returned. Any other use, a
  * `&mut`, an assignment or a closure keeps `Value`.
  */
-function narrowStrNullLocals__o(content: string): string {
+function narrowStrNullLocals(content: string): string {
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
         safe_string_k: 'safe_string_k_opt',
@@ -5782,45 +5189,13 @@ function narrowStrNullLocals__o(content: string): string {
     return out;
 }
 
-// ---- sign api str local ----
-// Rust: `let mut apiName: Value = api.get(0)...` whose every later use is `apiName.as_str() == Some("lit")` is a
-// native Option<String>, exactly what the safe_string form was typed as before the element read.
-function rustSignApiStr__o(content: string): string {
-    // an unbound `api` / `section` read: the bounds-checked nth of the list view, no closure
-    content = content.replace (/\b(api|section)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\((\d+)\)\)/g, '$1.as_array().into_iter().flatten().nth($2)');
-    if (content.indexOf ('.get(') < 0) { return content; }
-    const lines = content.split ('\n');
-    const decl = /^(\s*)let mut (\w+): Value = (?:api|section)\.get\((\d+)\)\.cloned\(\)\.unwrap_or\(Value::Null\);$/;
-    const fnHead = /^ {4}(?:pub )?(?:async )?fn /;
-    for (let i = 0; i < lines.length; i++) {
-        const m = decl.exec (lines[i]);
-        if (m === null) { continue; }
-        let end = i + 1;
-        while ((end < lines.length) && !fnHead.test (lines[end])) { end++; }
-        const name = new RegExp ('(?<![\\w.])' + m[2] + '(?![\\w])', 'g');
-        const use = new RegExp ('(?<![\\w.])' + m[2] + '\\.as_str\\(\\) (==|!=) Some\\("', 'g');
-        let uses = 0;
-        let others = 0;
-        for (let j = i + 1; j < end; j++) {
-            const masked = lines[j].replace (/"(?:[^"\\]|\\.)*"/g, '""');
-            uses += (lines[j].match (use) ?? []).length;
-            others += (masked.match (name) ?? []).length;
-        }
-        if ((uses === 0) || (uses !== others)) { continue; }
-        lines[i] = m[1] + 'let mut ' + m[2] + ': Option<String> = ' + ((m[0].indexOf ('section') >= 0 ? 'section' : 'api')) + '.get(' + m[3] + ').and_then(Value::as_str).map(str::to_owned);';
-        for (let j = i + 1; j < end; j++) {
-            lines[j] = lines[j].replace (use, (all, op) => m[2] + '.as_deref() ' + op + ' Some("');
-        }
-    }
-    return lines.join ('\n');
-}
 
 // ---- bool_k local -> Option<bool> ----
 /**
  * `let mut X: Value = self.safe_bool_k(obj, "k", &[..])` (or `safe_bool`) whose every later use is a native-able bool
  * read becomes `Option<bool>` (default `&[]`) or `bool` (literal default). Any other use or a closure keeps `Value`.
  */
-function rustBoolKLocalOptionBool__o(content: string): string {
+function rustBoolKLocalOptionBool(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_k|safe_bool)\(/gm;
     const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
     const maskText = (src: string): string => {
@@ -5983,7 +5358,7 @@ function rustBoolKLocalOptionBool__o(content: string): string {
  * (becomes `None`), and every other use is a null test, an `as_str()` compare or a `Value`
  * operand (re-boxed with `Value::from`). Any other use keeps `Value`.
  */
-function strLocalReassign__o(content: string): string {
+function strLocalReassign(content: string): string {
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
         safe_string_k: 'safe_string_k_opt',
@@ -6192,7 +5567,7 @@ function strLocalReassign__o(content: string): string {
  * `let mut X: Value = self.safe_bool2(obj, k1, k2, &[..])` whose every later use is a native-able bool read becomes
  * `Option<bool>` / `bool` (same uses as the bool_k pass); a non-literal default, shadowing or closure keeps `Value`.
  */
-function rustBool2LocalOptionBool__o(content: string): string {
+function rustBool2LocalOptionBool(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool2)\(/gm;
     const maskText = (src: string): string => {
         let out = ''; let i = 0;
@@ -6347,7 +5722,7 @@ function rustBool2LocalOptionBool__o(content: string): string {
  * `let mut X: Value = self.safe_bool_n(obj, Value::from(vec![..]), &[..])` whose every later use is a native-able bool
  * read becomes `Option<bool>` / `bool` (same uses as the bool_k pass). Any other use or a closure keeps `Value`.
  */
-function rustBoolNLocalOptionBool__o(content: string): string {
+function rustBoolNLocalOptionBool(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_n)\(/gm;
     const keyListRe = /^Value::from\(vec!\[Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)(?:, Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\))*\]\)$/;
     const maskText = (src: string): string => {
@@ -6511,7 +5886,7 @@ function rustBoolNLocalOptionBool__o(content: string): string {
  *   `X = Value::Null | Value::Int(n) | self.safe_integer*(..);` -> `None` / `Some(n)` / `.as_i64()`
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustInt2IntNLocalOptionI64__o(content: string): string {
+function rustInt2IntNLocalOptionI64(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_integer(2|_n)\(/gm;
     const closeOf = (src: string, open: number): number => {
         let depth = 0; let inStr = false; let esc = false; let inLine = false;
@@ -6683,7 +6058,7 @@ function rustInt2IntNLocalOptionI64__o(content: string): string {
  *   `X = Value::Null | Value::Int(n) | self.safe_integer*(..);` -> `None` / `Some(n)` / `.as_i64()`
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustIntLocalNullSinkOptionI64__o(content: string): string {
+function rustIntLocalNullSinkOptionI64(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_integer(_k|2)?\(/gm;
     const closeOf = (src: string, open: number): number => {
         let depth = 0; let inStr = false; let esc = false; let inLine = false;
@@ -6852,7 +6227,7 @@ function rustIntLocalNullSinkOptionI64__o(content: string): string {
  * (-> `is_some()` / `is_none()`) or `X.as_f64() == / != Some(<n>.0)` (-> `X == / != Some(<n>.0)`).
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustNumber2LocalOptionF64__o(content: string): string {
+function rustNumber2LocalOptionF64(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
     const mask = (src: string): string => {
         let out = ''; let i = 0;
@@ -6977,7 +6352,7 @@ function rustNumber2LocalOptionF64__o(content: string): string {
  * `X != / == Value::Null`, `X.as_f64() == / != Some(<n>.0)`, `X.clone()` (-> `Value::from(X)`), or a bare `X`
  * as the last arg of `m.insert("k".to_string(), X);` or `self.price_to_precision(<arg>, X)`.
  */
-function rustNumber2SinkLocalOptionF64R2__o(content: string): string {
+function rustNumber2SinkLocalOptionF64R2(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
     const mask = (src: string): string => {
         let out = ''; let i = 0;
@@ -7105,7 +6480,7 @@ function rustNumber2SinkLocalOptionF64R2__o(content: string): string {
 // `let [mut] X: Value = self.safe_string2(obj, k1, k2, &[..])` narrowed to `Option<String>` via `safe_string2_opt`.
 // Uses and sinks as in narrowStrNullLocals; default `&[]` or a `Value::Str` literal.
 
-function rustStr2LocalOptionString__o(content: string): string {
+function rustStr2LocalOptionString(content: string): string {
     const opt = 'safe_string2_opt';
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string2)\(/gm;
     const maskText = (src: string): string => {
@@ -7275,7 +6650,7 @@ function rustStr2LocalOptionString__o(content: string): string {
  * the literal was. Any other use (`&X`, `&mut`, a closure, a second binding, a write from
  * another expression) keeps `Value`.
  */
-function rustStrLiteralLocalNativeString__o(content: string): string {
+function rustStrLiteralLocalNativeString(content: string): string {
     const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);[ \t]*$/gm;
     const litWriteRe = /^\s*=\s*Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);/;
     // Blank string bodies and line comments; same length, quotes kept.
@@ -7443,7 +6818,7 @@ function rustStrLiteralLocalNativeString__o(content: string): string {
 // `let [mut] X: Value = self.safe_string_n(obj, keys, &[..])` narrowed to `Option<String>` via `safe_string_n_opt`.
 // Uses and sinks as in the str2 pass; default `&[]` or a `Value::Str` literal.
 
-function rustStrNLocalOptionString__o(content: string): string {
+function rustStrNLocalOptionString(content: string): string {
     const opt = 'safe_string_n_opt';
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string_n)\(/gm;
     const maskText = (src: string): string => {
@@ -7626,10 +7001,10 @@ if (platform === 'win32' && __dirname[0] === '/') {
 // enters the pipeline and restore the borrowed form at write time.
 const RUST_LITERAL_BOX_INTO = /Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)/g;
 const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
-function allocLiteralBoxes__o(content: string): string {
+function allocLiteralBoxes(content: string): string {
     return content.replace(RUST_LITERAL_BOX_INTO, 'Value::Str($1.to_string())');
 }
-function borrowLiteralBoxes__o(content: string): string {
+function borrowLiteralBoxes(content: string): string {
     return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
 }
 
@@ -7639,7 +7014,7 @@ function borrowLiteralBoxes__o(content: string): string {
 // which Rust folds away, so literal contents stay identical. Strings, chars,
 // raw strings and comments are tracked across lines so nothing inside them is
 // split. Runs on the final text only.
-function splitLongRustLines__o(content: string, max = 400): string {
+function splitLongRustLines(content: string, max = 400): string {
     if (!new RegExp(`[^\\n]{${max + 1}}`).test(content)) return content;
     let mode = 0; // 0 code, 1 string, 2 raw string, 3 block comment
     let rawHashes = 0;
@@ -7714,7 +7089,7 @@ function splitLongRustLines__o(content: string, max = 400): string {
     return outLines.join('\n');
 }
 
-function overwriteFileAndFolder__o(filePath: string, content: string) {
+function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
@@ -7723,12 +7098,12 @@ function overwriteFileAndFolder__o(filePath: string, content: string) {
     writeFile(filePath, content);
 }
 
-function capitalize__o(s: string): string {
+function capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // Converts camelCase or PascalCase to snake_case
-function toSnakeCase__o(s: string): string {
+function toSnakeCase(s: string): string {
     return s
         .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
         .replace(/([a-z\d])([A-Z])/g, '$1_$2')
@@ -7810,11 +7185,7 @@ export class RustTranspilerBuilder {
     regexAll(text: string, rules: any[]): string {
         for (const [pattern, replacement] of rules) {
             const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
-            const before = text;
             text = text.replace(rx, replacement);
-            const k = 'rx:' + String(rx);
-            __C[k] = (__C[k] || 0) + 1;
-            if (text !== before) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0;
         }
         return text;
     }
@@ -8234,67 +7605,6 @@ export class RustTranspilerBuilder {
         );
     }
 
-    // JS builds a subscribe request by aliasing a local array into a dict
-    // literal and then mutating the array: `const args = []; const req = {
-    // 'params': args }; ... args.push(x); ... this.watch(url, hash, req)`.
-    // In JS `req.params` and `args` are the same reference, so the pushes are
-    // visible; in Rust `m.insert("params", args.clone())` snapshots an *empty*
-    // clone, so the request ships `params: []` (e.g. aster times out). When a
-    // dict-literal field aliases a bare local that is subsequently mutated
-    // (push/set) before the dict is consumed (`req.clone()`), re-materialise
-    // the field with a write-back right before that consumption. Venues that
-    // populate the array *before* the literal (binance) mutate nothing after
-    // the binding, so they match nothing here — no behaviour change.
-    writeBackAliasedArrayMutations(content: string): string {
-        const lines = content.split('\n');
-        const bindStartRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = Value::Map\(\{\s*$/;
-        const insertRe = /^\s*m\.insert\("([^"]+)"\.to_string\(\), ([a-zA-Z_]\w*)\.clone\(\)\);\s*$/;
-        const litEndRe = /^\s*\}\);\s*$/;
-        const fnRe = /^\s{4}(pub\s+)?(async\s+)?fn /;
-        const inserts = new Map<number, string[]>(); // line index → lines to emit before it
-        let i = 0;
-        while (i < lines.length) {
-            const bm = lines[i].match(bindStartRe);
-            if (!bm) { i++; continue; }
-            const [, indent, req] = bm;
-            const aliases: { key: string; varName: string }[] = [];
-            let j = i + 1;
-            while (j < lines.length && !litEndRe.test(lines[j])) {
-                const im = lines[j].match(insertRe);
-                if (im) aliases.push({ key: im[1], varName: im[2] });
-                j++;
-            }
-            if (j >= lines.length || aliases.length === 0) { i++; continue; }
-            const litEnd = j;
-            const mutated = new Set<string>();
-            let consumeIdx = -1;
-            for (let k = litEnd + 1; k < lines.length; k++) {
-                if (fnRe.test(lines[k])) break; // left the method
-                for (const a of aliases) {
-                    const mre = new RegExp(`\\b(append_to_array|add_element_to_object|set_value|crate::set_value)\\(&mut ${a.varName}[,)]`);
-                    if (mre.test(lines[k])) mutated.add(a.varName);
-                }
-                if (lines[k].includes(`${req}.clone()`)) { consumeIdx = k; break; }
-            }
-            if (consumeIdx >= 0) {
-                const writeBacks = aliases
-                    .filter((a) => mutated.has(a.varName))
-                    .map((a) => `${indent}crate::set_value(&mut ${req}, &crate::Value::Str("${a.key}".to_string()), ${a.varName}.clone());`);
-                if (writeBacks.length) {
-                    inserts.set(consumeIdx, (inserts.get(consumeIdx) || []).concat(writeBacks));
-                }
-            }
-            i = litEnd + 1;
-        }
-        if (inserts.size === 0) return content;
-        const out: string[] = [];
-        for (let k = 0; k < lines.length; k++) {
-            const pre = inserts.get(k);
-            if (pre) out.push(...pre);
-            out.push(lines[k]);
-        }
-        return out.join('\n');
-    }
 
     // Walks Rust source from a `{` to its matching `}` while skipping
     // line and block comments and string literals — an unbalanced `{`
@@ -8805,17 +8115,7 @@ export class RustTranspilerBuilder {
                 const snake = toSnakeCase(n);
                 return `crate::exchange_errors::${snake}`;
             }],
-            // Clean up legacy `crate::exchange_errors::X::new(...)` patterns
-            // (the transpiler emitted `X::new(...)`, our post-proc converted
-            // X to a fn path → drop the trailing `::new`).
-            [/crate::exchange_errors::([a-z_][a-z_0-9]*)::new\(/g,
-                'crate::exchange_errors::$1('],
 
-            // `BadRequest::new(...)` style references that escaped the
-            // earlier regex (because lookahead saw `::` not `(`). Route them
-            // through the runtime constructors.
-            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)::new\(/g,
-                (_: string, n: string) => `crate::exchange_errors::${toSnakeCase(n)}(`],
 
 
             // Mark async methods with async keyword (transpiler strips it)
@@ -8918,10 +8218,6 @@ export class RustTranspilerBuilder {
             // Trailing `};` after blocks
             [/\};(\s*\n)/g, '}$1'],
 
-            // `let mut x: Value = ...` is fine, but transpiler sometimes emits
-            // `let mut : Value = X;` (missing identifier from spread / destructure).
-            // Strip those broken declarations to keep the file syntactically valid.
-            [/let mut\s+:\s+Value\s*=\s*[^;]+;\s*\n/g, '// stripped: invalid let mut\n'],
 
             // `self.X = self.Y(...)` causes borrow conflicts. Split into a
             // temp + assignment.
@@ -8933,21 +8229,10 @@ export class RustTranspilerBuilder {
             // Make all function parameters `mut` — transpiled bodies reassign
             // params frequently (`params = self.omit(params, ...)` etc).
             [/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\b(?=\s*[,)])/g, 'mut $1: Value'],
-            [/\bmut\s+mut\s+/g, 'mut '],
-            // Don't apply `mut` to slice params (optional_args: &[Value]).
-            [/\bmut\s+optional_args\s*:/g, 'optional_args:'],
 
-            // `let x: Value = ...` → `let mut x: Value = ...` so transpiled
-            // bodies can reassign locals.
-            [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=/g, 'let mut $1: Value ='],
             // `let params = get_arg(...)` (no annotation) — also make mut.
             [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*get_arg\(/g, 'let mut $1 = get_arg('],
-            [/\blet\s+mut\s+mut\s+/g, 'let mut '],
 
-            // Strip outer parens around bool helper calls used as full-expr
-            // RHS so the wrap below catches them. `(is_X(...))` → `is_X(...)`.
-            [/=\s*\((!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^()]*(?:\([^()]*\)[^()]*)*\))\)\s*;/g,
-                '= $1;'],
 
             // `let mut X: Value = <bool_expr>;` — wrap RHS in Value::Bool(...).
             // Triggers when the RHS starts with one of the bool helpers we
@@ -8968,9 +8253,6 @@ export class RustTranspilerBuilder {
             [/\breturn\s+(!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+);/g,
                 (_: string, e: string) => `return Value::Bool(${e});`],
 
-            // Paren-wrapped `return (is_X(...));`
-            [/\breturn\s+\((!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+)\)\s*;/g,
-                (_: string, e: string) => `return Value::Bool(${e});`],
 
             // Plain assignment `ident = <bool_expr>;` (allows trailing comment)
             [/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+);/gm,
@@ -8992,13 +8274,6 @@ export class RustTranspilerBuilder {
                     return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
                 }],
 
-            // `ternary(<cond>, <a>, <bare_ident>)` — clone the trailing
-            // identifier arg.
-            [/\bternary\(([^,]+?,\s*[^,]+?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)/g,
-                (whole: string, prefix: string, ident: string) => {
-                    if (ident === 'self') return whole;
-                    return `ternary(${prefix}${ident}.clone())`;
-                }],
 
             // `set_value(...)`, `append_to_array(...)`, and
             // `add_element_to_object(...)` take the value arg by move.
@@ -9017,37 +8292,6 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, lhs: string, expr: string) =>
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
-            // Bool expressions inside `&[...]` slice literals — wrap each
-            // bool element in `Value::Bool(...)`. Match only after `, &[`
-            // (call-arg position). Element is `is_X(...)`.
-            [/([,(])\s*&\[([^;]*?)\]\)/g,
-                (whole: string, prefix: string, inside: string) => {
-                    // Only operate if inside has any `is_X(` bool call.
-                    if (!/\b(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(inside)) {
-                        return whole;
-                    }
-                    // Split by commas at depth 0
-                    const parts: string[] = [];
-                    let depth = 0;
-                    let start = 0;
-                    for (let i = 0; i < inside.length; i++) {
-                        const c = inside[i];
-                        if (c === '(' || c === '[' || c === '{') depth++;
-                        else if (c === ')' || c === ']' || c === '}') depth--;
-                        else if (c === ',' && depth === 0) {
-                            parts.push(inside.slice(start, i).trim());
-                            start = i + 1;
-                        }
-                    }
-                    parts.push(inside.slice(start).trim());
-                    const wrapped = parts.map(p => {
-                        if (/^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(p)) {
-                            return `Value::Bool(${p})`;
-                        }
-                        return p;
-                    }).join(', ');
-                    return `${prefix} &[${wrapped}])`;
-                }],
 
             // (Auto-clone in `Value::Array(vec![...])` is done by the
             // paren-balanced `cloneInArrayLiterals` walker below; running a
@@ -9083,34 +8327,12 @@ export class RustTranspilerBuilder {
                     return `${prefix}${ident}.clone()${suffix}`;
                 }],
 
-            // Same pattern for `add_element_to_object(...)` calls whose
-            // value arg is a bare identifier.
-            //   add_element_to_object(..., x); → ... x.clone());
-            [/(\badd_element_to_object\([^,]+,\s*[^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
-            // `append_to_array(&mut X, ident)` — clone the second arg.
-            [/(\bappend_to_array\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self' || ident === 'true' || ident === 'false') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
             // `m.insert("X", is_true(&Y) && ...)` — wrap bool exprs in Value::Bool.
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
-            // `Value::Int(<float literal>)` — the transpiler emits `1e-8`
-            // as Int but it's a float. Detect scientific or decimal notation
-            // and route to Value::Float.
-            [/Value::Int\(([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\)/g,
-                (_: string, n: string) => {
-                    if (n.includes('.') || /[eE]/.test(n)) return `Value::Float(${n})`;
-                    return `Value::Int(${n})`;
-                }],
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
@@ -9136,24 +8358,7 @@ export class RustTranspilerBuilder {
             // Look-ahead pattern: stop short of `.`, `(`, `=`, or `[`.
             [/(?<!&)\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\b(?![.\(\[]|\s*=[^=])/g,
                 (_: string, name: string) => `self.${name}.clone()`],
-            // Undo double-clone if we accidentally matched again.
-            [/\.clone\(\)\.clone\(\)/g, '.clone()'],
 
-            // Array destructuring assignment: TS `[a, b] = expr` was emitted
-            // by the transpiler as `Value::Array(vec![a, b]) = expr;` which
-            // is invalid Rust. Rewrite to a temp + element-wise reads. We
-            // strip any `.clone()` suffix that earlier passes may have
-            // appended — destructuring targets must be plain identifiers.
-            [/Value::Array\(vec!\[([^\]]+)\]\)\s*=\s*([^;]+);/g,
-                (_: string, names: string, expr: string) => {
-                    const ids = names.split(',')
-                        .map(s => s.trim().replace(/\.clone\(\)$/, ''))
-                        .filter(s => s.length > 0);
-                    const lines = ids.map((n, i) =>
-                        `${n} = crate::get_value(&__ad_tmp, &Value::Int(${i}));`
-                    ).join(' ');
-                    return `{ let __ad_tmp = ${expr.trim()}; ${lines} }`;
-                }],
         ];
 
         return rules;
@@ -9237,7 +8442,6 @@ export class RustTranspilerBuilder {
 
     getWsRegexes(): any[] {
         return [
-            [/new (\w+)Rest\(\)/g, `crate::$1::new()`],
         ];
     }
 
@@ -9832,62 +9036,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * The transpiler lowers a TS `for (i=0; cond; i++)` to a Rust
-     * `while cond { … i = add(&i, 1); }` with a *manual* trailing
-     * increment. A `continue` inside that `while` jumps straight to the
-     * condition, skipping the increment → infinite loop.
-     *
-     * Fix: for every `while` whose body ends with `<v> = add(&<v>, …);`
-     * and contains a `continue`, wrap the body (minus the increment) in
-     * a labelled block and rewrite `continue` → `break '<label>` so the
-     * increment still runs. Processes innermost loops first so a
-     * `continue` always binds to its own loop.
-     */
-    fixForLoopContinue(content: string): string {
-        let label = 0;
-        const fix = (text: string): string => {
-            let out = '';
-            let i = 0;
-            while (i < text.length) {
-                const m = text.slice(i).match(/\bwhile\b[^{]*\{/);
-                if (!m || m.index === undefined) { out += text.slice(i); break; }
-                const absHeader = i + m.index;
-                const bodyStart = absHeader + m[0].length;
-                let depth = 1, j = bodyStart, inStr = false, escape = false;
-                while (j < text.length && depth > 0) {
-                    const c = text[j];
-                    if (escape) { escape = false; j++; continue; }
-                    if (c === '\\') { escape = true; j++; continue; }
-                    if (c === '"') { inStr = !inStr; j++; continue; }
-                    if (!inStr) {
-                        if (c === '{') depth++;
-                        else if (c === '}') depth--;
-                    }
-                    if (depth === 0) break;
-                    j++;
-                }
-                if (depth !== 0) { out += text.slice(i); break; }
-                out += text.slice(i, bodyStart);
-                // Recurse into this loop's body (innermost first).
-                let body = fix(text.slice(bodyStart, j));
-                // Trailing manual increment `<v> = add(&<v>, …);`?
-                const incRe = /\n?[ \t]*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*add\(&\1\s*,[^;]*\);[ \t]*\n?[ \t]*$/;
-                const incMatch = body.match(incRe);
-                if (incMatch && /\bcontinue\b/.test(body)) {
-                    const inc = incMatch[0];
-                    const main = body.slice(0, body.length - inc.length);
-                    const lbl = `'cont${label++}`;
-                    const wrapped = main.replace(/\bcontinue\b/g, `break ${lbl}`);
-                    body = `\n        ${lbl}: {${wrapped}\n        }${inc}`;
-                }
-                out += body + '}';
-                i = j + 1;
-            }
-            return out;
-        };
-        return fix(content);
-    }
 
     /**
      * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
@@ -10104,71 +9252,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    unwrapCatchUnwind(content: string): string {
-        const marker = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const idx = content.indexOf(marker, i);
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            // Walk to the matching closing `}` of the closure body.
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '{') depth++;
-                    else if (c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            // After the closure `}`, find the `;` of the let-stmt.
-            const semi = content.indexOf(';', j);
-            const inner = content.slice(idx + marker.length, j);
-            // Then look for an optional sibling
-            //   `if let Err(<name>) = _try_result { … }`
-            // and consume it as the catch handler so its body doesn't
-            // dangle with undefined `_try_result` / `_e` identifiers.
-            let after = semi + 1;
-            while (after < content.length && /\s/.test(content[after])) after++;
-            const ifLetRx = /^if\s+let\s+Err\(([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=\s*_try_result\s*\{/;
-            const tail = content.slice(after);
-            const ifMatch = tail.match(ifLetRx);
-            let consumeEnd = semi + 1;
-            if (ifMatch) {
-                let d2 = 1;
-                let k = after + ifMatch[0].length;
-                let inStr2 = false, esc2 = false;
-                while (k < content.length && d2 > 0) {
-                    const c = content[k];
-                    if (esc2) { esc2 = false; k++; continue; }
-                    if (c === '\\' && inStr2) { esc2 = true; k++; continue; }
-                    if (c === '"') { inStr2 = !inStr2; k++; continue; }
-                    if (!inStr2) {
-                        if (c === '{') d2++;
-                        else if (c === '}') d2--;
-                    }
-                    if (d2 === 0) break;
-                    k++;
-                }
-                if (d2 === 0) consumeEnd = k + 1;
-            }
-            // Emit the try body as a plain block; drop the catch handler.
-            // Recurse on `inner` so any nested catch_unwind block is also
-            // unwrapped (otherwise it'd be embedded verbatim and the next
-            // outer-loop iteration would skip past it).
-            out += `{${this.unwrapCatchUnwind(inner)}}`;
-            i = consumeEnd;
-        }
-        return out;
-    }
 
     /**
      * Innermost `fn` containing `idx` returns `()` (no `->` in its header)?
@@ -10446,22 +9529,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Upstream's Java port introduced a `const finalX = X; // java req`
-     * idiom in ~14 TS files where the alias is later mutated independently
-     * (Java's mutable locals). TS does value-copy semantics so the original
-     * stays live; the Rust transpiler emits `let mut finalX: Value = X;`
-     * which MOVES the value, and subsequent `&X` references then fail to
-     * borrow. The TS author marked these with a trailing `// java req`
-     * comment — append `.clone()` to every emitted `... = <ident>; // java req`
-     * line so the original `X` survives the alias.
-     */
-    rewriteJavaReqAliases(content: string): string {
-        return content.replace(
-            /^(\s*let\s+(?:mut\s+)?\w+\s*:\s*Value\s*=\s*)(\w+)(\s*;\s*\/\/\s*java\s*req\s*)$/gm,
-            (_, lhs, ident, tail) => `${lhs}${ident}.clone()${tail}`,
-        );
-    }
 
     /**
      * rust-05: drop the `.clone()` on the by-value `obj` argument of the five
@@ -10643,41 +9710,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    stripCatchBlocks(content: string): string {
-        const pattern = /\}\s*catch\s+\w+\s+\w+\s*\{/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            // Emit content up to the `}` that closed the try block.
-            out += rest.slice(0, m.index + 1); // include trailing `}`
-            // Find matching `}` for the catch block.
-            const absStart = i + m.index;
-            const bodyStart = absStart + m[0].length;
-            let depth = 1;
-            let j = bodyStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '{') depth++;
-                    else if (c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart + 1); break; }
-            // skip past the catch's closing `}`
-            i = j + 1;
-        }
-        return out;
-    }
 
 
 
@@ -11401,191 +10433,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Native-typed `safe_list` locals: `let mut X: Value = self.safe_list_k(..)`
-     * becomes `let mut X: Vec<Value>`, and every index read of X becomes the
-     * `.get()` the runtime's array branch takes.
-     *
-     * `safe_list_k`/`safe_list` yield the stored `Value::Arr` or their default,
-     * so the local holds an array (or the default) on every path. The local is
-     * retyped only when the declaration is its only writer and every later use
-     * is either `.len()` / `.is_empty()` — identical on `Vec<Value>` — or an
-     * index read `get_value(&X, &K)`. Any other use keeps it boxed: a
-     * `.clone()` into a `Value` sink, `as_array()`, `&mut X`, a second
-     * binding of the name, an assignment (the D2 later-write scan).
-     *
-     * A rewritten read keeps the runtime's exact semantics for every key
-     * kind — Int by value (a negative or out-of-range index misses), a numeric
-     * string, anything else misses — and a miss is `Value::Null`.
-     */
-    typeSafeListLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (self\.safe_list(?:_k)?\()/gm;
-
-        // Blank strings and line comments; same length as the input, so every
-        // index found below also addresses the original text.
-        const maskText = (src: string): string => {
-            let out = ''; let i = 0;
-            while (i < src.length) {
-                const c = src[i];
-                if (c === '/' && src[i + 1] === '/') {
-                    while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                    continue;
-                }
-                if (c === '"') {
-                    out += ' '; i++;
-                    while (i < src.length && src[i] !== '"') {
-                        if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                        out += src[i] === '\n' ? '\n' : ' ';
-                        i++;
-                    }
-                    if (i < src.length) { out += ' '; i++; }
-                    continue;
-                }
-                out += c; i++;
-            }
-            return out;
-        };
-        // Index just past the `)` matching the `(` at `open`, or -1.
-        const closeParen = (src: string, open: number): number => {
-            let depth = 0;
-            for (let k = open; k < src.length; k++) {
-                const c = src[k];
-                if (c === '(') depth++;
-                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-            }
-            return -1;
-        };
-        // End of the enclosing fn body: the first `}` that takes the depth below 0.
-        const braceEnd = (src: string, from: number): number => {
-            let depth = 0;
-            for (let k = from; k < src.length; k++) {
-                const c = src[k];
-                if (c === '{') depth++;
-                else if (c === '}') { depth--; if (depth < 0) return k; }
-            }
-            return src.length;
-        };
-
-        const masked = maskText(content);
-        const jobs: Array<{
-            declStart: number, callClose: number, stmtEnd: number, indent: string, name: string,
-            reads: Array<{ start: number, end: number, text: string }>,
-        }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(masked)) !== null) {
-            const declStart = m.index;
-            const name = m[2];
-            const callStart = declStart + m[0].length - m[3].length; // `self.safe_list…(`
-            const callClose = closeParen(masked, callStart + m[3].length - 1);
-            if (callClose < 0) continue;
-            const tail = /^\)?;/.exec(masked.slice(callClose, callClose + 2));
-            if (tail === null) continue; // the call is not the whole initializer
-            const stmtEnd = callClose + tail[0].length;
-            const initText = content.slice(callStart, callClose);
-            // The reader's default must be the empty slice or a list literal:
-            // any other default (a dict, a scalar) would be lost by the
-            // `Vec` conversion, and `safe_list*` returns it verbatim when the
-            // stored value is not an array.
-            if (!/,\s*&\[\s*\]\s*\)$/.test(initText) && !/,\s*&\[\s*Value::List\(/.test(initText)) continue;
-            const body = masked.slice(stmtEnd, braceEnd(masked, stmtEnd));
-
-            let ok = true;
-            // 1. index reads `get_value(&name, &KEY)` — the only rewritable use.
-            const reads: Array<{ start: number, end: number, key: string }> = [];
-            const readRe = new RegExp(`get_value\\(&${name}(?![A-Za-z0-9_])`, 'g');
-            let r: RegExpExecArray | null;
-            while ((r = readRe.exec(body)) !== null) {
-                const gv = r.index;
-                if (body.slice(Math.max(0, gv - 2), gv) === '::') { ok = false; break; } // crate::value::get_value
-                if (/&mut\s*$/.test(body.slice(Math.max(0, gv - 6), gv))) { ok = false; break; } // `&mut get_value(..)`
-                const identEnd = gv + 'get_value(&'.length + name.length;
-                const rest = /^\s*,\s*&/.exec(body.slice(identEnd));
-                if (rest === null) { ok = false; break; }
-                const keyStart = identEnd + rest[0].length;
-                // The key is the call's last argument: walk to the `)` that
-                // closes `get_value(` at depth 0.
-                let depth = 0; let keyEnd = -1;
-                for (let k = keyStart; k < body.length; k++) {
-                    const c = body[k];
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')') { if (depth === 0) { keyEnd = k; break; } depth--; }
-                    else if (c === ']' || c === '}') depth--;
-                    else if (depth === 0 && (c === ';' || c === '\n')) break;
-                }
-                if (keyEnd < 0) { ok = false; break; }
-                reads.push({ start: gv, end: keyEnd + 1, key: content.slice(stmtEnd + keyStart, stmtEnd + keyEnd) });
-            }
-            if (!ok) continue;
-
-            // 2. every other use of the name must be a length sink; anything
-            //    else (clone, as_array, &mut, re-binding, assignment) keeps the box.
-            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-            let u: RegExpExecArray | null;
-            while ((u = useRe.exec(body)) !== null) {
-                const s = u.index; const e = s + name.length;
-                if (reads.some(rd => s >= rd.start && e <= rd.end)) continue;
-                if (/^\s*\.\s*(len|is_empty)\s*\(\s*\)/.test(body.slice(e))) continue;
-                ok = false; break;
-            }
-            if (!ok) continue;
-
-            const readText = (rd: { key: string }) =>
-                `match &${rd.key} { Value::Int(__n) => ${name}.get(*__n as usize), `
-                + `Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| ${name}.get(__n)), _ => None }`
-                + `.cloned().unwrap_or(Value::Null)`;
-            jobs.push({
-                declStart,
-                callClose,
-                stmtEnd,
-                indent: m[1],
-                name,
-                reads: reads.map(rd => ({
-                    start: stmtEnd + rd.start,
-                    end: stmtEnd + rd.end,
-                    text: readText(rd),
-                })),
-            });
-        }
-
-        // A read can sit inside another retyped local's initializer
-        // (`self.safe_list_k(get_value(&data, &i), "data", ..)`), so the
-        // declaration text is rebuilt with those reads already spliced in —
-        // otherwise the outer call would keep a `get_value` on a `Vec` local.
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        const allReads = jobs.flatMap(j => j.reads);
-        for (const job of jobs) {
-            let init = content.slice(job.declStart, job.callClose);
-            const inner = allReads
-                .filter(rd => rd.start >= job.declStart && rd.end <= job.callClose)
-                .sort((a, b) => b.start - a.start);
-            for (const rd of inner) {
-                init = init.slice(0, rd.start - job.declStart) + rd.text + init.slice(rd.end - job.declStart);
-            }
-            // `init` still carries the `= ` head; keep everything up to the call.
-            const callIdx = init.indexOf('self.safe_list');
-            rewrites.push({
-                start: job.declStart,
-                end: job.stmtEnd,
-                text: `${job.indent}let mut ${job.name}: Vec<Value> = `
-                    + `${init.slice(callIdx)}.as_array().cloned().unwrap_or_default();`,
-            });
-        }
-        for (const rd of allReads) {
-            // Covered by the retyped declaration that contains it.
-            if (jobs.some(j => rd.start >= j.declStart && rd.end <= j.callClose)) continue;
-            rewrites.push({ start: rd.start, end: rd.end, text: rd.text });
-        }
-        if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
-        let out = ''; let last = 0;
-        for (const r of rewrites) {
-            if (r.start < last) continue; // overlapping — keep the first
-            out += content.slice(last, r.start) + r.text;
-            last = r.end;
-        }
-        out += content.slice(last);
-        return out;
-    }
 
     /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
@@ -12077,69 +10924,6 @@ export class RustTranspilerBuilder {
 
     private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
 
-    /**
-     * D-32: `is_true(&x)` over a local the printer declares with an `Option`
-     * payload type — the typed shadows the batch-D param/return units emit
-     * (`let x: Option<bool> = …`, `let x: Option<f64> = ….as_f64()`). The
-     * runtime's `is_truthy` on the boxed value is exactly these native tests:
-     *
-     *   Option<bool>  ->  x == Some(true)                (None = Value::Null)
-     *   Option<f64>   ->  x.is_some_and(|v| v != 0.0)    (Float(f) truthy iff f != 0)
-     *   Option<i64>   ->  x.is_some_and(|v| v != 0)
-     *
-     * A name qualifies only with exactly ONE `: Option<…>` declaration in its
-     * fn and no other `let` binding of the name (scope ambiguity keeps the
-     * helper), and only in a proven bool slot. Sites before the declaration are
-     * left alone. Idempotent.
-     */
-    dropOptionShadowIsTrue(content: string): string {
-        if (!content.includes(': Option<')) return content;
-        const masked = this.maskStringsAndComments(content);
-        const headers: number[] = [];
-        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
-        let hm: RegExpExecArray | null;
-        while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const to = headers[h + 1];
-            const region = masked.slice(from, to);
-            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(Option<bool>|Option<f64>|Option<i64>)\s*=/g;
-            const declared = new Map<string, string>();
-            let dm: RegExpExecArray | null;
-            while ((dm = declRe.exec(region)) !== null) declared.set(dm[1], dm[2]);
-            for (const [name, kind] of declared) {
-                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
-                if (declCount !== 1) continue;
-                const declAt = region.search(new RegExp(`let (?:mut )?${name}\\s*:`));
-                const siteRe = new RegExp(`is_true\\(&\\s*\\(?\\s*${name}\\s*\\)?\\s*\\)`, 'g');
-                let sm: RegExpExecArray | null;
-                while ((sm = siteRe.exec(region)) !== null) {
-                    if (sm.index < declAt) continue;
-                    const start = from + sm.index;
-                    const end = start + sm[0].length;
-                    const slot = this.rustIsTrueBoolSlot(content, start, end);
-                    if (slot === undefined) continue;
-                    const native = kind === 'Option<bool>'
-                        ? `${name} == Some(true)`
-                        : kind === 'Option<f64>'
-                            ? `${name}.is_some_and(|v| v != 0.0)`
-                            : `${name}.is_some_and(|v| v != 0)`;
-                    rewrites.push({ start, end, text: slot === 'negated' ? `(${native})` : native });
-                }
-            }
-        }
-        if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
 
     /**
      * Copies `text[from, to)` while tracking visible `let` bindings, so an
@@ -12864,165 +11648,8 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Walks `add_element_to_object(get_value_mut(&mut X, ...), KEY, EXPR);`
-     * statements. When EXPR mentions `&X` or `X.clone()`, splits into a
-     * temp + statement to avoid the same-name &mut + & borrow conflict.
-     */
-    splitGetValueMutAdds(content: string): string {
-        const pattern = /add_element_to_object\(\s*get_value_mut\(&mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*,/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            const absStart = i + m.index;
-            out += rest.slice(0, m.index);
-            const name = m[1];
-            // Walk to the closing `)` of the OUTER add_element_to_object,
-            // brace/paren balanced.
-            const callStart = absStart + 'add_element_to_object('.length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            // Get the args
-            const inside = content.slice(callStart, j);
-            const args = this.splitArgs(inside) ?? [];
-            // Must be 3 args.
-            const trailingSemi = content[j + 1] === ';';
-            if (args.length !== 3 || !trailingSemi) {
-                out += content.slice(absStart, j + 2);
-                i = j + 2;
-                continue;
-            }
-            const expr = args[2];
-            const refersToName = new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
-            if (!refersToName) {
-                out += content.slice(absStart, j + 2);
-                i = j + 2;
-                continue;
-            }
-            out += `{ let __be_tmp = ${expr.trim()}; add_element_to_object(${args[0]}, ${args[1]}, __be_tmp); }`;
-            i = j + 2; // include `;`
-        }
-        return out;
-    }
 
-    /**
-     * `fn` item headers of `content` (offset of the header line, its text and
-     * the offset where its body region starts). Generated code has no nested
-     * `fn` items, so the region between one header and the next is exactly one
-     * fn body — used to attribute a call site to the fn it sits in.
-     */
-    fnItemHeaders(content: string): Array<{ start: number; end: number; header: string }> {
-        const headers: Array<{ start: number; end: number; header: string }> = [];
-        const re = /^[ \t]*(?:pub(?:\s*\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*[(<]/gm;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const nl = content.indexOf('\n', m.index);
-            headers.push({ start: m.index, end: -1, header: content.slice(m.index, nl < 0 ? content.length : nl) });
-        }
-        for (let i = 0; i < headers.length; i++) {
-            headers[i].end = i + 1 < headers.length ? headers[i + 1].start : content.length;
-        }
-        return headers;
-    }
 
-    /**
-     * `add_element_to_object(&mut request, &Value::Str("k".to_string()), v)`
-     * → `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("k".to_string(), v); }`
-     * when `request` is a fresh object-literal dict local: exactly one
-     * `let mut request: Value = Value::Map({…})` declaration in the enclosing
-     * fn, no `request = …` reassignment and no `"__…"` key literal in that fn.
-     *
-     * `Value::Map(…)` builds a new dict, so such a local can never carry the
-     * runtime tag keys (`__book_id` / `__cache_backref` / `__ws_subs_url` /
-     * `__ws_sub_ref` — inserted only into dicts the runtime itself builds),
-     * which makes the helper's four write-through branches provably dead. The
-     * `if let` reproduces the helper's `_ => {}` arm for a non-Dict receiver.
-     * A computed key keeps the helper (`stringify_simple` semantics).
-     */
-    nativeRequestDictInserts(content: string): string {
-        const call = 'add_element_to_object(';
-        const spans = this.fnItemHeaders(content);
-        const verdict = new Map<number, boolean>();
-        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }): boolean => {
-            const cached = verdict.get(span.start);
-            if (cached !== undefined) return cached;
-            const body = content.slice(span.start, span.end);
-            const ok = !/\bfn\s+\w+\s*\([^)]*\brequest\b/.test(span.header)
-                && (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
-                && !/(^|[^.\w])request\s*=(?!=)/m.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
-                && !body.includes('"__');
-            verdict.set(span.start, ok);
-            return ok;
-        };
-
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const at = content.indexOf(call, i);
-            if (at < 0) { out += content.slice(i); break; }
-            out += content.slice(i, at);
-            // Paren-balanced walk to the closing `)` of this call.
-            const openParen = at + call.length - 1;
-            let depth = 1;
-            let j = openParen + 1;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(at); break; }
-            const args = this.splitArgs(content.slice(openParen + 1, j));
-            const keyMatch = args && args.length === 3 && args[0].trim() === '&mut request'
-                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.to_string\(\)\)$/)
-                : null;
-            const value = args ? args[2].trim() : '';
-            if (!keyMatch || /\brequest\b/.test(value)) {
-                out += content.slice(at, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const span = spans.find(sp => sp.start <= at && at < sp.end);
-            if (!span || !fnAllowsNativeInsert(span)) {
-                out += content.slice(at, j + 1);
-                i = j + 1;
-                continue;
-            }
-            let end = j + 1;
-            let k = end;
-            while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
-            if (content[k] === ';') end = k + 1;
-            out += `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
-            i = end;
-        }
-        return out;
-    }
 
     /**
      * `self.call_method(Value::Str("<name>".to_string()), <args>)` →
@@ -13071,36 +11698,6 @@ export class RustTranspilerBuilder {
         );
     }
 
-    /**
-     * Paren-balanced walker over `ternary(...)` calls. Clones bare-ident
-     * args (otherwise they get moved).
-     */
-    cloneInTernary(content: string): string {
-        const pattern = /\bternary\(/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const callStart = absStart + m[0].length;
-            const j = balancedCloseIndex(content, callStart);
-            if (j >= content.length) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            const inside = this.cloneInTernary(rawInside);
-            const args = this.splitArgs(inside) ?? [];
-            const cloned = args.map(a => {
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self' && t !== 'true' && t !== 'false'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            out += `ternary(${cloned})`;
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Paren-balanced walker over `&[...]` slice literals in call-arg
@@ -13657,42 +12254,6 @@ export class RustTranspilerBuilder {
         return out + content.slice(last);
     }
 
-    /**
-     * Paren-balanced walker. For every call whose head matches one of
-     * the given patterns, clones bare-identifier args *after the first*
-     * (the first arg is left alone — for `shared::*` it's a borrowed
-     * receiver, for `ternary` it's the bool condition). Avoids
-     * "use of moved value" when a local is reused after the call.
-     */
-    cloneNonFirstIdentArgs(content: string, heads: RegExp[]): string {
-        const combined = new RegExp(
-            heads.map(r => `(?:${r.source})`).join('|'),
-        );
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(combined);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const callStart = absStart + m[0].length;
-            const j = balancedCloseIndex(content, callStart, true);
-            if (j >= content.length) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            const inside = this.cloneNonFirstIdentArgs(rawInside, heads); // recurse
-            const args = this.splitArgs(inside) ?? [];
-            const cloned = args.map((a, idx) => {
-                if (idx === 0) return a;
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            out += content.slice(absStart, callStart) + cloned + ')';
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Walks ALL `self.<async_fn>(args)` occurrences, balanced-paren aware,
@@ -14850,15 +13411,12 @@ ${arms.join('\n')}
         // Must run AFTER rewriteValueFieldAccess so `precise.decimals = X`
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
         content = this.rewriteGetValueAssignments(content);
-        content = this.cloneInTernary(content);
         content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
-        content = this.splitGetValueMutAdds(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.rewriteCallMethodToDirect(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
-        content = this.writeBackAliasedArrayMutations(content);
         content = this.serializeAwaitedSpawns(content);
         content = this.lowerAwaitedFlights(content);
         // Propagate async-ness through the call graph: keep iterating
@@ -15326,7 +13884,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.dropDeadFirstArgClones(rustContent);
-                rustContent = this.rewriteJavaReqAliases(rustContent);
                 // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
                 // whose every sink is Option-native.
                 rustContent = this.narrowOptionalSafeLocals(rustContent);
@@ -15347,8 +13904,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
-                rustContent = this.dropOptionShadowIsTrue(rustContent);
-                rustContent = this.rustBoolParamIsTrue(rustContent);
                 rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
                 rustContent = this.rustNativeBoolEquals(rustContent);
                 rustContent = this.rustNativeBoolIsTrue(rustContent);
@@ -15358,7 +13913,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // afterwards (those callees take the Value by value).
                 rustContent = this.dropDeadLastUseArgClones(rustContent);
                 // Last: element writes into a fresh dict local go native.
-                rustContent = this.nativeRequestDictInserts(rustContent);
                 // Last: payload accessors on a local whose declaration pins its
                 // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
                 rustContent = this.nativePayloadAccessorDrops(rustContent);
@@ -15366,7 +13920,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // length sink or an index read. Must see the final text (the
                 // write-back pass appends `set_value(&mut X, ..)` lines those
                 // locals must keep the box for).
-                rustContent = this.typeSafeListLocals(rustContent);
                 // `append_to_array` on an Arr-only local is a plain `Vec` push.
                 rustContent = arrOnlyVecPush(rustContent);
                 // append_to_array on a marker-free local receiver is a plain Vec push.
@@ -15382,18 +13935,13 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.rustNativeTruthAndEquality(rustContent);
                 rustContent = nativeBoolScalars(rustContent);
                 rustContent = nativeBoolCallee(rustContent);
-                rustContent = this.rustInlineCollectionHelpers(rustContent);
-                rustContent = this.rustInlineStringHelpers(rustContent);
-                rustContent = this.rustNativeObjectHelpers(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
-                rustContent = nativeGetValue(rustContent);
                 rustContent = nativeInserts(rustContent);
                 rustContent = nativeContainerOps(rustContent);
                 // Typed locals run last, on the final text.
                 rustContent = rustTypedLocals(rustContent);
                 rustContent = rustStringNatives(rustContent);
-                rustContent = rustSignApiStr(rustContent);
                 rustContent = calleeShapeContainerOps(rustContent);
                 rustContent = fieldChainInserts(rustContent);
                 rustContent = plainDictChains(rustContent);
@@ -15818,7 +14366,6 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.cloneInRefSlices(basePart);
 
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
-        basePart = this.cloneInTernary(basePart);
 
         // Auto-clone simple identifier args in every `self.X(...)` call.
         basePart = this.autoCloneCallArgs(basePart);
@@ -15832,7 +14379,6 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteValueFieldAccess(basePart);
 
         // Clone bare identifier args in `ternary(...)` calls.
-        basePart = this.cloneInTernary(basePart);
 
         // Fix borrow conflicts: `add_element_to_object(&mut X, KEY, EXPR)`
         // where EXPR refers to `X` either via `.clone()`, `&X`, or
@@ -15843,7 +14389,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
-        basePart = this.splitGetValueMutAdds(basePart);
         basePart = this.rewriteSelfFieldMutCloneCast(basePart);
         basePart = this.rewriteCallMethodToDirect(basePart);
         // Write COW-detached `let x = get_value(&C,&K); mutate x` back to C[K]
@@ -15851,7 +14396,6 @@ impl std::ops::DerefMut for ${coreName} {
         // convertOHLCVToTradingView etc. — review P0-C).
         basePart = this.writeBackIndexedMutations(basePart);
         basePart = this.rewriteInlineFieldAppends(basePart);
-        basePart = this.writeBackAliasedArrayMutations(basePart);
         basePart = this.serializeAwaitedSpawns(basePart);
 
         // The prediction tier has many methods that mutate instance state
@@ -15871,7 +14415,6 @@ impl std::ops::DerefMut for ${coreName} {
             // self-field mut-clone cleanup now that they are `&mut self`.
             basePart = this.stripMutSelfFieldClones(basePart);
             basePart = this.splitAddElementBorrowConflicts(basePart);
-            basePart = this.splitGetValueMutAdds(basePart);
             basePart = this.rewriteSelfFieldMutCloneCast(basePart);
             // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
             // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
@@ -16092,7 +14635,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.dropDeadFirstArgClones(finalFile);
-        finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowOptionalSafeLocals(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.narrowFloatLocals(finalFile);
@@ -16102,15 +14644,11 @@ impl std::ops::DerefMut for ${coreName} {
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
-        finalFile = this.dropOptionShadowIsTrue(finalFile);
-        finalFile = this.rustBoolParamIsTrue(finalFile);
         finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
         finalFile = this.rustNativeBoolEquals(finalFile);
         finalFile = this.rustNativeBoolIsTrue(finalFile);
         finalFile = this.rustInlineLiteralIsEqual(finalFile);
-        finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
-        finalFile = this.typeSafeListLocals(finalFile);
         // `append_to_array` on an Arr-only local is a plain `Vec` push.
         finalFile = arrOnlyVecPush(finalFile);
         finalFile = rustVecPushInline(finalFile);
@@ -16123,16 +14661,11 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rustNativeTruthAndEquality(finalFile);
         finalFile = nativeBoolScalars(finalFile);
         finalFile = nativeBoolCallee(finalFile);
-        finalFile = this.rustInlineCollectionHelpers(finalFile);
-        finalFile = this.rustInlineStringHelpers(finalFile);
-        finalFile = this.rustNativeObjectHelpers(finalFile);
         // Last of all: native get_value on a pinned receiver.
-        finalFile = nativeGetValue(finalFile);
         finalFile = nativeInserts(finalFile);
         finalFile = nativeContainerOps(finalFile);
         finalFile = rustTypedLocals(finalFile);
         finalFile = rustStringNatives(finalFile);
-        finalFile = rustSignApiStr(finalFile);
                 finalFile = calleeShapeContainerOps(finalFile);
         finalFile = fieldChainInserts(finalFile);
         finalFile = plainDictChains(finalFile);
@@ -16287,7 +14820,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
-                content = this.splitGetValueMutAdds(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.rewriteCallMethodToDirect(content);
                 // Async propagation — mark fns async when their body
@@ -16340,12 +14872,7 @@ impl std::ops::DerefMut for ${coreName} {
                     // emitted by the per-exchange pipeline above must
                     // be retargeted at the ccxt crate.
                     [/\bcrate::runtime\b/g,           'ccxt::runtime'],
-                    [/\bcrate::Value\b/g,             'ccxt::Value'],
-                    [/\bcrate::get_value\b/g,         'ccxt::get_value'],
                     [/\bcrate::set_value\b/g,         'ccxt::set_value'],
-                    [/\bcrate::value\b/g,             'ccxt::value'],
-                    [/\bcrate::exchange_errors\b/g,   'ccxt::exchange_errors'],
-                    [/\bcrate::exchange::/g,          'ccxt::exchange::'],
                     [/\bcrate::precise\b/g,           'ccxt::precise'],
                     // `new ccxt.Exchange({...})` → `ccxt::Exchange::new(...)`.
                     [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
@@ -16357,13 +14884,10 @@ impl std::ops::DerefMut for ${coreName} {
                     // `crate::tests_support::shared::assert_deep_equal(...)`.
                     [/\btestSharedMethods\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g, (_: string, name: string) =>
                         `crate::tests_support::shared::${toSnakeCase(name)}(`],
-                    // `EqualsMethod` is a TS-only marker we don't need.
-                    [/\bEqualsMethod\b/g, ''],
                     // TS `assert (cond, msg)` → Rust `assert!(cond, "msg")`.
                     // The transpiler emits `assert(cond, Value::Str("…"))`
                     // and we need a string literal as the format arg.
                     [/\bassert\s*\(/g, 'assert!('],
-                    [/assert!!+\(/g,   'assert!('],
                 ]).trim();
                 // `crate::tests_support::shared::assert_X(e, …)` calls
                 // — fold trailing args into `&[…]` to match the unified
@@ -16424,10 +14948,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // 2nd/3rd args of `ternary(...)` are taken by value and
                 // may be plain locals reused later — clone bare-ident
                 // args so they don't move. Paren-balanced.
-                content = this.cloneNonFirstIdentArgs(content, [
-                    /\bcrate::tests_support::shared::[a-zA-Z_][a-zA-Z0-9_]*\(/,
-                    /\bternary\(/,
-                ]);
                 // `get_value(&exchange, &Value::Str("X"))` — exchange
                 // is the typed Exchange struct, not a Value, so the
                 // generic `get_value` chokes. Route through the
@@ -16737,15 +15257,12 @@ impl std::ops::DerefMut for ${coreName} {
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
                 content = this.autoCloneCallArgs(content);
                 content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
-                content = this.splitGetValueMutAdds(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
                 content = this.rewriteCallMethodToDirect(content);
                 content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -17304,7 +15821,6 @@ impl std::ops::DerefMut for ${coreName} {
         // they get moved on the path-taken branch (test.ticker.rs has
         // `ternary(.., symbol, ..)` followed by a later `symbol.clone()`
         // which fails to compile without this).
-        content = this.cloneInTernary(content);
         content = this.rewriteValueFieldAccess(content);
         content = this.rewriteGetValueAssignments(content);
         // MUST run after `rewriteValueFieldAccess` — that pass is what
@@ -17319,7 +15835,6 @@ impl std::ops::DerefMut for ${coreName} {
             'crate::tests_support::shared::market_exists(&exchange, &$1)',
         );
         content = this.splitAddElementBorrowConflicts(content);
-        content = this.splitGetValueMutAdds(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.rewriteCallMethodToDirect(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -17350,20 +15865,13 @@ impl std::ops::DerefMut for ${coreName} {
             [/^(\s*)fn (test[A-Za-z0-9_]*)\(/gm, '$1pub fn $2('],
             [/^(\s*)async fn (test[A-Za-z0-9_]*)\(/gm, '$1pub async fn $2('],
             [/\bcrate::runtime\b/g,         'ccxt::runtime'],
-            [/\bcrate::Value\b/g,           'ccxt::Value'],
-            [/\bcrate::get_value\b/g,       'ccxt::get_value'],
             [/\bcrate::set_value\b/g,       'ccxt::set_value'],
-            [/\bcrate::value\b/g,           'ccxt::value'],
-            [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
-            [/\bcrate::exchange::/g,        'ccxt::exchange::'],
             [/\bcrate::precise\b/g,         'ccxt::precise'],
             [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
             [/ccxt::Exchange::new\(/g, 'crate::tests_support::make_exchange('],
             [/\btestSharedMethods\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g, (_: string, name: string) =>
                 `crate::tests_support::shared::${toSnakeCase(name)}(`],
-            [/\bEqualsMethod\b/g, ''],
             [/\bassert\s*\(/g, 'assert!('],
-            [/assert!!+\(/g,   'assert!('],
         ]).trim();
         content = this.wrapSharedHelperCalls(content);
         // Go-style: retype exchange-method calls to dispatch through
@@ -17720,10 +16228,8 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
-            content = this.cloneInTernary(content);
             content = this.stripMutSelfFieldClones(content);
             content = this.splitAddElementBorrowConflicts(content);
-            content = this.splitGetValueMutAdds(content);
             content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.rewriteCallMethodToDirect(content);
             content = this.appendValueNullToVoidEnds(content);
@@ -17737,12 +16243,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // not `ccxt` — retarget bare `crate::` paths emitted by
                 // the per-exchange pipeline at the `ccxt` crate.
                 [/\bcrate::runtime\b/g,         'ccxt::runtime'],
-                [/\bcrate::Value\b/g,           'ccxt::Value'],
-                [/\bcrate::get_value\b/g,       'ccxt::get_value'],
                 [/\bcrate::set_value\b/g,       'ccxt::set_value'],
-                [/\bcrate::value\b/g,           'ccxt::value'],
-                [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
-                [/\bcrate::exchange::/g,        'ccxt::exchange::'],
                 [/\bcrate::precise\b/g,         'ccxt::precise'],
                 // The transpiled `new()` emits the lowercase class name
                 // (`testMainClass`) as the struct literal even though
@@ -17802,7 +16303,6 @@ impl std::ops::DerefMut for ${coreName} {
             );
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
-            content = this.fixForLoopContinue(content);
             // `while (true)` → `loop {` (rustc's `while_true` lint; the file
             // header's `clippy::all` allow does not cover rustc lints).
             content = this.whileTrueToLoop(content);
@@ -18671,76 +17171,6 @@ impl std::ops::DerefMut for ${coreName} {
     /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
     private rustHandRuntimeCallText: string | undefined;
 
-    rustBoolParamIsTrue(content: string): string {
-        if (!content.includes('is_true(&')) return content;
-        if (this.rustHandRuntimeCallText === undefined) {
-            const parts: string[] = [];
-            const walk = (dir: string) => {
-                let entries: fs.Dirent[] = [];
-                try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
-                for (const e of entries) {
-                    if (e.isDirectory()) walk(`${dir}/${e.name}`);
-                    else if (e.name.endsWith('.rs') && !e.name.includes('generated')) parts.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
-                }
-            };
-            walk(RUST_CORE);
-            this.rustHandRuntimeCallText = parts.join('\n');
-        }
-        const hand = this.rustHandRuntimeCallText;
-        const masked = this.maskStringsAndComments(content);
-        const headers: number[] = [];
-        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const region = masked.slice(from, headers[h + 1]);
-            const fm = /fn ([a-z_][a-z0-9_]*)\s*\(/.exec(region);
-            const brace = region.indexOf('{');
-            if (fm === null || brace < 0) continue;
-            const snake = fm[1];
-            const header = region.slice(0, brace);
-            const body = region.slice(brace);
-            if (new RegExp(`\\b${snake}\\s*\\(`).test(hand)) continue;
-            const method = snake.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase());
-            const proven = new Map<string, boolean>();
-            const isParam = (name: string): boolean => {
-                if (proven.has(name)) return proven.get(name) as boolean;
-                const declared = new RegExp(`\\bmut ${name}: Value\\b`).test(header)
-                    || new RegExp(`let mut ${name} = get_arg\\(optional_args, \\d+, Value::(?:Bool\\((?:true|false)\\)|Null)\\);`).test(body);
-                const ok = declared
-                    && (body.match(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g')) ?? []).length <= 1
-                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)?=(?!=)`).test(body.replace(/let mut \w+ = get_arg\(/g, ''))
-                    && !new RegExp(`&mut\\s+${name}\\b`).test(body)
-                    && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
-                    && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
-                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
-                    && this.rustBoolOnlyParam(method, name);
-                proven.set(name, ok);
-                return ok;
-            };
-            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&([A-Za-z_][A-Za-z0-9_]*)\)/g)) {
-                const start = from + (sm.index as number);
-                const end = start + sm[0].length;
-                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
-                const lead = content.slice(Math.max(0, start - 12), start);
-                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
-                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
-                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
-                if (slot === undefined || !isParam(sm[1])) continue;
-                const cmp = `${sm[1]}.as_bool() == Some(true)`;
-                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
 
     // `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
     // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
@@ -18918,117 +17348,8 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // Collection helpers (`in_op` / `object_keys` / `remove`): only a proven-map `in_op` goes native;
-    // everything else keeps the runtime helper. Not for rust/tests (no `crate::value`); innermost-first.
-    rustInlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'remove' ];
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            // in_op: no inline `match`. Native `contains_key` only on a local declared as a
-            // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
-            // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
-            if (name === 'in_op') return rustInlineInOp(a, content);
-            // No inline `match` for `object_keys`: every generated receiver is a `Value` (no
-            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
-            // tags, so no site is proven; `runtime::object_keys(..)` stays the helper call.
-            if (name === 'object_keys') return undefined;
-            // `get_array_length` is not rewritten: `Value::len` counts chars and the helper also unwraps
-            // book/cache/side markers, so no plain `.len()` on a `&Value` matches it.
-            // `remove` is never inlined. Every generated receiver is a `Value` (no typed
-            // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
-            // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
-            if (name === 'remove') return undefined;
-            return undefined;
-        };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // get_array_length is not a target
-        // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                // `fn remove(` declarations / `.remove(` methods never match (lookbehind + `fn ` check).
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                // A retained `in_op(` / `get_array_length(` helper call inside the args does not block the outer rewrite.
-                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
-        }
-        return content;
-    }
 
-    // string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
-    // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
-    // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
-    rustInlineStringHelpers(content: string): string {
-        // pad_start/pad_end/to_fixed (and slice) are not targets: no site has a proven `&str`/number
-        // operand with in-range bounds, so the `runtime::` helper call stays. Never print their bodies inline.
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // starts_with/ends_with via x39Affix
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            if (name === 'to_string_val') return this.x42ToStr(a); // proven native or helper
-            // split/join/replace_str are never inlined. Every site reaches this pass as a
-            // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
-            // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
-            // element type), so the plain `runtime::*` helper call stays.
-            if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
-            // starts_with/ends_with are handled by x39Affix (proven Str boxes only).
-            return undefined;
-        };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g;
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // helper-call args do not block the outer site
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
-        }
-        return content;
-    }
 
-    // Identity pass: is_instance / is_function / object_values / shift keep the `runtime::*` helper, since no
-    // site proves a native op equivalent (errorHierarchy walk, arg evaluation, ws tag keys, by-value pop).
-    // Kept wired in both pipelines so call sites stay stable.
-    rustNativeObjectHelpers(content: string): string {
-        return content;
-    }
 
     // `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
     // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
@@ -19137,34 +17458,21 @@ impl std::ops::DerefMut for ${coreName} {
         }).join('\n');
     }
 
-    // `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
-    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
-    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
-    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
-    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined here.
-    x42ToStr(a: string[]): string | undefined {
-        if (a.length !== 1) return undefined;
-        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
-        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
-        return m[1];
-    }
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
 
 // `tsx build/rustTranspiler.ts --self-test`: the final-text passes' own fixtures; prints every failure, exits 1 on any.
-function rustPassesSelfTest__o(): string[] {
+function rustPassesSelfTest(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
         nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest, calleeShapeContainerOpsSelfTest,
         nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, clientHandleSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
-    if (rustNativeGetValueSelfTest() !== 0) problems.push('rustNativeGetValueSelfTest');
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
     const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(msg); };
     ok(narrowStrSinkLocals('pub fn f(&mut self) -> Value {\n    let mut s: Value = self.safe_string_k(x.clone(), "id", &[]);\n    let t: String = format!("a{}", s);\n    return Value::Null;\n}\n').includes('safe_string_k_opt'), 'narrowStrSinkLocals: format!-only local');
-    ok(rustSignApiStr('fn f() { let x = 1; }\n') === 'fn f() { let x = 1; }\n', 'rustSignApiStr: unrelated text');
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');
     ok(plainDictChains(chain.replace('symbol: Value', 'symbol: &str')).includes('get_value_mut'), 'plainDictChains: unknown key type');
@@ -19185,16 +17493,6 @@ function rustPassesSelfTest__o(): string[] {
     return problems;
 }
 
-
-for (const __cls of [RustTranspilerBuilder] as any[]) {
-    for (const __n of Object.getOwnPropertyNames(__cls.prototype)) {
-        if (__n === 'constructor' || __n === 'regexAll') continue;
-        const __d = Object.getOwnPropertyDescriptor(__cls.prototype, __n);
-        if (!__d || typeof __d.value !== 'function') continue;
-        const __f = __d.value;
-        __cls.prototype[__n] = function (this: any, ...a: any[]) { return __hit('m:' + __n, __f, this, a); };
-    }
-}
 if (isMainEntry(import.meta.url) && process.argv.includes('--self-test')) {
     const log = console.log;
     console.log = () => undefined;
@@ -19239,19 +17537,3 @@ if (isMainEntry(import.meta.url)) {
     }
 }
 
-// `in_op` arm of rustInlineCollectionHelpers: plain native op on a proven map, else the helper call.
-function rustInlineInOp__o(a: string[], content: string): string | undefined {
-    if (a.length !== 2) return undefined;
-    const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
-    const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
-    if (recv === null || key === null) return undefined;
-    const x = recv[1];
-    const declRe = new RegExp('\\blet\\s+(?:mut\\s+)?' + x + '\\s*:\\s*([^=;]+?)\\s*=', 'g');
-    const types = [ ...content.matchAll(declRe) ].map(m => m[1].replace(/\s+/g, ''));
-    const mapTy = /^(?:(?:std::sync::)?Arc<)?(?:indexmap::)?IndexMap<String,Value>>?$/;
-    if (types.length === 0 || !types.every(t => mapTy.test(t))) return undefined;
-    // A parameter / closure binding of the same name could shadow the proven local: require no `x:` binder outside `let`.
-    const binder = new RegExp('(?<!let\\s(?:mut\\s)?)[(,|]\\s*(?:mut\\s+)?' + x + '\\s*:');
-    if (binder.test(content)) return undefined;
-    return `${x}.contains_key(${key[1]})`;
-}
