@@ -10,6 +10,197 @@ import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 
+
+const __H: Record<string, number> = {};
+const __C: Record<string, number> = {};
+function __hit(k: string, f: any, self: any, a: any[]): any {
+    const r = f.apply(self, a);
+    if (typeof a[0] === 'string') { __C[k] = (__C[k] || 0) + 1; if (typeof r === 'string' && r !== a[0]) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0; }
+    return r;
+}
+process.on('exit', () => { process.stderr.write('RUSTHITS ' + JSON.stringify({ hits: __H, calls: __C }) + '\n'); });
+
+function maskText(...a: any[]): any { return __hit('fn:maskText', maskText__o, this, a); }
+function closeBracket(...a: any[]): any { return __hit('fn:closeBracket', closeBracket__o, this, a); }
+function statementEnd(...a: any[]): any { return __hit('fn:statementEnd', statementEnd__o, this, a); }
+function literalIndex(...a: any[]): any { return __hit('fn:literalIndex', literalIndex__o, this, a); }
+function literalStrKey(...a: any[]): any { return __hit('fn:literalStrKey', literalStrKey__o, this, a); }
+function identKey(...a: any[]): any { return __hit('fn:identKey', identKey__o, this, a); }
+function callArgs(...a: any[]): any { return __hit('fn:callArgs', callArgs__o, this, a); }
+function intPinned(...a: any[]): any { return __hit('fn:intPinned', intPinned__o, this, a); }
+function nativeGetValue(...a: any[]): any { return __hit('fn:nativeGetValue', nativeGetValue__o, this, a); }
+function arrayPayload(...a: any[]): any { return __hit('fn:arrayPayload', arrayPayload__o, this, a); }
+function insertedKeys(...a: any[]): any { return __hit('fn:insertedKeys', insertedKeys__o, this, a); }
+function rustNativeGetValueSelfTest(...a: any[]): any { return (rustNativeGetValueSelfTest__o as any)(...a); }
+function isWordChar(...a: any[]): any { return __hit('fn:isWordChar', isWordChar__o, this, a); }
+function splitArgs(...a: any[]): any { return __hit('fn:splitArgs', splitArgs__o, this, a); }
+function balancedCloseIndex(...a: any[]): any { return __hit('fn:balancedCloseIndex', balancedCloseIndex__o, this, a); }
+function closeParenAt(...a: any[]): any { return __hit('fn:closeParenAt', closeParenAt__o, this, a); }
+function fnRegions(...a: any[]): any { return __hit('fn:fnRegions', fnRegions__o, this, a); }
+function regionAt(...a: any[]): any { return __hit('fn:regionAt', regionAt__o, this, a); }
+function firstArg(...a: any[]): any { return __hit('fn:firstArg', firstArg__o, this, a); }
+function insertChainCallArgs(...a: any[]): any { return __hit('fn:insertChainCallArgs', insertChainCallArgs__o, this, a); }
+function keyConv(...a: any[]): any { return __hit('fn:keyConv', keyConv__o, this, a); }
+function nativeInserts(...a: any[]): any { return __hit('fn:nativeInserts', nativeInserts__o, this, a); }
+function containerOpMask(...a: any[]): any { return __hit('fn:containerOpMask', containerOpMask__o, this, a); }
+function containerOpClose(...a: any[]): any { return __hit('fn:containerOpClose', containerOpClose__o, this, a); }
+function containerOpSplit(...a: any[]): any { return __hit('fn:containerOpSplit', containerOpSplit__o, this, a); }
+function containerOpStmtEnd(...a: any[]): any { return __hit('fn:containerOpStmtEnd', containerOpStmtEnd__o, this, a); }
+function containerOpParens(...a: any[]): any { return __hit('fn:containerOpParens', containerOpParens__o, this, a); }
+function containerOpIsCall(...a: any[]): any { return __hit('fn:containerOpIsCall', containerOpIsCall__o, this, a); }
+function containerOpKeyText(...a: any[]): any { return __hit('fn:containerOpKeyText', containerOpKeyText__o, this, a); }
+function nativeContainerOps(...a: any[]): any { return __hit('fn:nativeContainerOps', nativeContainerOps__o, this, a); }
+function nativeContainerOpsSelfTest(...a: any[]): any { return (nativeContainerOpsSelfTest__o as any)(...a); }
+function mask(...a: any[]): any { return __hit('fn:mask', mask__o, this, a); }
+function closeParen(...a: any[]): any { return __hit('fn:closeParen', closeParen__o, this, a); }
+function splitTopLevel(...a: any[]): any { return __hit('fn:splitTopLevel', splitTopLevel__o, this, a); }
+function stripOuter(...a: any[]): any { return __hit('fn:stripOuter', stripOuter__o, this, a); }
+function statementBefore(...a: any[]): any { return __hit('fn:statementBefore', statementBefore__o, this, a); }
+function fnRegionOf(...a: any[]): any { return __hit('fn:fnRegionOf', fnRegionOf__o, this, a); }
+function rhsAfter(...a: any[]): any { return __hit('fn:rhsAfter', rhsAfter__o, this, a); }
+function stripTrailingOperand(...a: any[]): any { return __hit('fn:stripTrailingOperand', stripTrailingOperand__o, this, a); }
+function boolSlotAt(...a: any[]): any { return __hit('fn:boolSlotAt', boolSlotAt__o, this, a); }
+function variantOf(...a: any[]): any { return __hit('fn:variantOf', variantOf__o, this, a); }
+function safeBoolVariants(...a: any[]): any { return __hit('fn:safeBoolVariants', safeBoolVariants__o, this, a); }
+function boolDefault(...a: any[]): any { return __hit('fn:boolDefault', boolDefault__o, this, a); }
+function proveLocal(...a: any[]): any { return __hit('fn:proveLocal', proveLocal__o, this, a); }
+function pushEdit(...a: any[]): any { return __hit('fn:pushEdit', pushEdit__o, this, a); }
+function nativeBoolScalars(...a: any[]): any { return __hit('fn:nativeBoolScalars', nativeBoolScalars__o, this, a); }
+function nativeBoolScalarsSelfTest(...a: any[]): any { return (nativeBoolScalarsSelfTest__o as any)(...a); }
+function vecPushMaskText(...a: any[]): any { return __hit('fn:vecPushMaskText', vecPushMaskText__o, this, a); }
+function vecPushFnRegions(...a: any[]): any { return __hit('fn:vecPushFnRegions', vecPushFnRegions__o, this, a); }
+function vecPushCloseParen(...a: any[]): any { return __hit('fn:vecPushCloseParen', vecPushCloseParen__o, this, a); }
+function vecPushExprEnd(...a: any[]): any { return __hit('fn:vecPushExprEnd', vecPushExprEnd__o, this, a); }
+function vecPushIsArrInit(...a: any[]): any { return __hit('fn:vecPushIsArrInit', vecPushIsArrInit__o, this, a); }
+function vecPushBalanced(...a: any[]): any { return __hit('fn:vecPushBalanced', vecPushBalanced__o, this, a); }
+function vecPushGuardClone(...a: any[]): any { return __hit('fn:vecPushGuardClone', vecPushGuardClone__o, this, a); }
+function arrOnlyVecPush(...a: any[]): any { return __hit('fn:arrOnlyVecPush', arrOnlyVecPush__o, this, a); }
+function arrOnlyVecPushSelfTest(...a: any[]): any { return (arrOnlyVecPushSelfTest__o as any)(...a); }
+function typedLocalsMaskText(...a: any[]): any { return __hit('fn:typedLocalsMaskText', typedLocalsMaskText__o, this, a); }
+function typedLocalsCloseParen(...a: any[]): any { return __hit('fn:typedLocalsCloseParen', typedLocalsCloseParen__o, this, a); }
+function closeAt(...a: any[]): any { return __hit('fn:closeAt', closeAt__o, this, a); }
+function closeBrace(...a: any[]): any { return __hit('fn:closeBrace', closeBrace__o, this, a); }
+function stmtEnd(...a: any[]): any { return __hit('fn:stmtEnd', stmtEnd__o, this, a); }
+function typedLocalsSplitArgs(...a: any[]): any { return __hit('fn:typedLocalsSplitArgs', typedLocalsSplitArgs__o, this, a); }
+function openerMap(...a: any[]): any { return __hit('fn:openerMap', openerMap__o, this, a); }
+function valueSlot(...a: any[]): any { return __hit('fn:valueSlot', valueSlot__o, this, a); }
+function typedLocalsFnRegions(...a: any[]): any { return __hit('fn:typedLocalsFnRegions', typedLocalsFnRegions__o, this, a); }
+function boxed(...a: any[]): any { return __hit('fn:boxed', boxed__o, this, a); }
+function initShape(...a: any[]): any { return __hit('fn:initShape', initShape__o, this, a); }
+function rebound(...a: any[]): any { return __hit('fn:rebound', rebound__o, this, a); }
+function classify(...a: any[]): any { return __hit('fn:classify', classify__o, this, a); }
+function blockHeader(...a: any[]): any { return __hit('fn:blockHeader', blockHeader__o, this, a); }
+function inRepeatedBlock(...a: any[]): any { return __hit('fn:inRepeatedBlock', inRepeatedBlock__o, this, a); }
+function assignRewrite(...a: any[]): any { return __hit('fn:assignRewrite', assignRewrite__o, this, a); }
+function rustTypedLocals(...a: any[]): any { return __hit('fn:rustTypedLocals', rustTypedLocals__o, this, a); }
+function rustTypedLocalsSelfTest(...a: any[]): any { return (rustTypedLocalsSelfTest__o as any)(...a); }
+function calleeShapeMask(...a: any[]): any { return __hit('fn:calleeShapeMask', calleeShapeMask__o, this, a); }
+function calleeShapeClose(...a: any[]): any { return __hit('fn:calleeShapeClose', calleeShapeClose__o, this, a); }
+function calleeShapeArgs(...a: any[]): any { return __hit('fn:calleeShapeArgs', calleeShapeArgs__o, this, a); }
+function calleeShapeStmtEnd(...a: any[]): any { return __hit('fn:calleeShapeStmtEnd', calleeShapeStmtEnd__o, this, a); }
+function calleeShapeReturns(...a: any[]): any { return __hit('fn:calleeShapeReturns', calleeShapeReturns__o, this, a); }
+function calleeShapeTail(...a: any[]): any { return __hit('fn:calleeShapeTail', calleeShapeTail__o, this, a); }
+function calleeShapeTailIsDead(...a: any[]): any { return __hit('fn:calleeShapeTailIsDead', calleeShapeTailIsDead__o, this, a); }
+function freshCalleeShape(...a: any[]): any { return __hit('fn:freshCalleeShape', freshCalleeShape__o, this, a); }
+function calleeShapeDecl(...a: any[]): any { return __hit('fn:calleeShapeDecl', calleeShapeDecl__o, this, a); }
+function methodCalleeShapes(...a: any[]): any { return __hit('fn:methodCalleeShapes', methodCalleeShapes__o, this, a); }
+function baseCalleeShapeTable(...a: any[]): any { return __hit('fn:baseCalleeShapeTable', baseCalleeShapeTable__o, this, a); }
+function calleeShapeLiteralKey(...a: any[]): any { return __hit('fn:calleeShapeLiteralKey', calleeShapeLiteralKey__o, this, a); }
+function calleeShapePlainReceiver(...a: any[]): any { return __hit('fn:calleeShapePlainReceiver', calleeShapePlainReceiver__o, this, a); }
+function calleeShapeSingleWrite(...a: any[]): any { return __hit('fn:calleeShapeSingleWrite', calleeShapeSingleWrite__o, this, a); }
+function calleeShapeContainerOps(...a: any[]): any { return __hit('fn:calleeShapeContainerOps', calleeShapeContainerOps__o, this, a); }
+function calleeShapeBoolPosition(...a: any[]): any { return __hit('fn:calleeShapeBoolPosition', calleeShapeBoolPosition__o, this, a); }
+function calleeShapeContainerOpsSelfTest(...a: any[]): any { return (calleeShapeContainerOpsSelfTest__o as any)(...a); }
+function boolCalleeMask(...a: any[]): any { return __hit('fn:boolCalleeMask', boolCalleeMask__o, this, a); }
+function boolCalleeClose(...a: any[]): any { return __hit('fn:boolCalleeClose', boolCalleeClose__o, this, a); }
+function boolCalleeStrip(...a: any[]): any { return __hit('fn:boolCalleeStrip', boolCalleeStrip__o, this, a); }
+function boolCalleeRegions(...a: any[]): any { return __hit('fn:boolCalleeRegions', boolCalleeRegions__o, this, a); }
+function boolCalleeRetExprs(...a: any[]): any { return __hit('fn:boolCalleeRetExprs', boolCalleeRetExprs__o, this, a); }
+function boolCalleeSafeBoolDefault(...a: any[]): any { return __hit('fn:boolCalleeSafeBoolDefault', boolCalleeSafeBoolDefault__o, this, a); }
+function boolCalleeVariant(...a: any[]): any { return __hit('fn:boolCalleeVariant', boolCalleeVariant__o, this, a); }
+function boolCalleeReturnVariant(...a: any[]): any { return __hit('fn:boolCalleeReturnVariant', boolCalleeReturnVariant__o, this, a); }
+function boolCalleeWrites(...a: any[]): any { return __hit('fn:boolCalleeWrites', boolCalleeWrites__o, this, a); }
+function boolCalleeStmtBefore(...a: any[]): any { return __hit('fn:boolCalleeStmtBefore', boolCalleeStmtBefore__o, this, a); }
+function boolCalleeDropOperand(...a: any[]): any { return __hit('fn:boolCalleeDropOperand', boolCalleeDropOperand__o, this, a); }
+function boolCalleeBoolSlot(...a: any[]): any { return __hit('fn:boolCalleeBoolSlot', boolCalleeBoolSlot__o, this, a); }
+function nativeBoolCallee(...a: any[]): any { return __hit('fn:nativeBoolCallee', nativeBoolCallee__o, this, a); }
+function boolCalleeFixture(...a: any[]): any { return __hit('fn:boolCalleeFixture', boolCalleeFixture__o, this, a); }
+function nativeBoolCalleeSelfTest(...a: any[]): any { return (nativeBoolCalleeSelfTest__o as any)(...a); }
+function maskSrc(...a: any[]): any { return __hit('fn:maskSrc', maskSrc__o, this, a); }
+function argSpans(...a: any[]): any { return __hit('fn:argSpans', argSpans__o, this, a); }
+function callEnd(...a: any[]): any { return __hit('fn:callEnd', callEnd__o, this, a); }
+function fieldChainIsStatement(...a: any[]): any { return __hit('fn:fieldChainIsStatement', fieldChainIsStatement__o, this, a); }
+function fieldChainFirstArg(...a: any[]): any { return __hit('fn:fieldChainFirstArg', fieldChainFirstArg__o, this, a); }
+function chainField(...a: any[]): any { return __hit('fn:chainField', chainField__o, this, a); }
+function fnSpan(...a: any[]): any { return __hit('fn:fnSpan', fnSpan__o, this, a); }
+function identKeyArg(...a: any[]): any { return __hit('fn:identKeyArg', identKeyArg__o, this, a); }
+function runPass(...a: any[]): any { return __hit('fn:runPass', runPass__o, this, a); }
+function fieldChainInserts(...a: any[]): any { return __hit('fn:fieldChainInserts', fieldChainInserts__o, this, a); }
+function markerFreePushMaskText(...a: any[]): any { return __hit('fn:markerFreePushMaskText', markerFreePushMaskText__o, this, a); }
+function markerFreePushFnRegions(...a: any[]): any { return __hit('fn:markerFreePushFnRegions', markerFreePushFnRegions__o, this, a); }
+function markerFreePushCloseParen(...a: any[]): any { return __hit('fn:markerFreePushCloseParen', markerFreePushCloseParen__o, this, a); }
+function exprEnd(...a: any[]): any { return __hit('fn:exprEnd', exprEnd__o, this, a); }
+function rustVecPushInline(...a: any[]): any { return __hit('fn:rustVecPushInline', rustVecPushInline__o, this, a); }
+function rustVecPushInlineSelfTest(...a: any[]): any { return (rustVecPushInlineSelfTest__o as any)(...a); }
+function stringNativesMaskText(...a: any[]): any { return __hit('fn:stringNativesMaskText', stringNativesMaskText__o, this, a); }
+function stringNativesCloseParen(...a: any[]): any { return __hit('fn:stringNativesCloseParen', stringNativesCloseParen__o, this, a); }
+function stringNativesSplitArgs(...a: any[]): any { return __hit('fn:stringNativesSplitArgs', stringNativesSplitArgs__o, this, a); }
+function stringNativesStmtEnd(...a: any[]): any { return __hit('fn:stringNativesStmtEnd', stringNativesStmtEnd__o, this, a); }
+function fnBounds(...a: any[]): any { return __hit('fn:fnBounds', fnBounds__o, this, a); }
+function strBox(...a: any[]): any { return __hit('fn:strBox', strBox__o, this, a); }
+function intBox(...a: any[]): any { return __hit('fn:intBox', intBox__o, this, a); }
+function elemKind(...a: any[]): any { return __hit('fn:elemKind', elemKind__o, this, a); }
+function inferSet(...a: any[]): any { return __hit('fn:inferSet', inferSet__o, this, a); }
+function valueSets(...a: any[]): any { return __hit('fn:valueSets', valueSets__o, this, a); }
+function rewrite(...a: any[]): any { return __hit('fn:rewrite', rewrite__o, this, a); }
+function rustStringNatives(...a: any[]): any { return __hit('fn:rustStringNatives', rustStringNatives__o, this, a); }
+function rustStringNativesSelfTest(...a: any[]): any { return (rustStringNativesSelfTest__o as any)(...a); }
+function plainDictMaskSrc(...a: any[]): any { return __hit('fn:plainDictMaskSrc', plainDictMaskSrc__o, this, a); }
+function plainDictArgSpans(...a: any[]): any { return __hit('fn:plainDictArgSpans', plainDictArgSpans__o, this, a); }
+function closeOf(...a: any[]): any { return __hit('fn:closeOf', closeOf__o, this, a); }
+function hopAt(...a: any[]): any { return __hit('fn:hopAt', hopAt__o, this, a); }
+function chainAt(...a: any[]): any { return __hit('fn:chainAt', chainAt__o, this, a); }
+function valueIdentKey(...a: any[]): any { return __hit('fn:valueIdentKey', valueIdentKey__o, this, a); }
+function plainDictRunPass(...a: any[]): any { return __hit('fn:plainDictRunPass', plainDictRunPass__o, this, a); }
+function plainDictChains(...a: any[]): any { return __hit('fn:plainDictChains', plainDictChains__o, this, a); }
+function clientHandleMask(...a: any[]): any { return __hit('fn:clientHandleMask', clientHandleMask__o, this, a); }
+function clientHandleViews(...a: any[]): any { return __hit('fn:clientHandleViews', clientHandleViews__o, this, a); }
+function clientHandleSubsWrites(...a: any[]): any { return __hit('fn:clientHandleSubsWrites', clientHandleSubsWrites__o, this, a); }
+function clientHandleTypedReads(...a: any[]): any { return __hit('fn:clientHandleTypedReads', clientHandleTypedReads__o, this, a); }
+function clientHandleBraceDeltas(...a: any[]): any { return __hit('fn:clientHandleBraceDeltas', clientHandleBraceDeltas__o, this, a); }
+function clientHandleDeltaAt(...a: any[]): any { return __hit('fn:clientHandleDeltaAt', clientHandleDeltaAt__o, this, a); }
+function clientHandleBlock(...a: any[]): any { return __hit('fn:clientHandleBlock', clientHandleBlock__o, this, a); }
+function clientHandleSpan(...a: any[]): any { return __hit('fn:clientHandleSpan', clientHandleSpan__o, this, a); }
+function clientHandleApply(...a: any[]): any { return __hit('fn:clientHandleApply', clientHandleApply__o, this, a); }
+function clientHandleSelfTest(...a: any[]): any { return (clientHandleSelfTest__o as any)(...a); }
+function mapParamKind(...a: any[]): any { return __hit('fn:mapParamKind', mapParamKind__o, this, a); }
+function mapParamDispatchArg(...a: any[]): any { return __hit('fn:mapParamDispatchArg', mapParamDispatchArg__o, this, a); }
+function mapParamSplitArgs(...a: any[]): any { return __hit('fn:mapParamSplitArgs', mapParamSplitArgs__o, this, a); }
+function mapParamSplitTopLevel(...a: any[]): any { return __hit('fn:mapParamSplitTopLevel', mapParamSplitTopLevel__o, this, a); }
+function refMapParamNames(...a: any[]): any { return __hit('fn:refMapParamNames', refMapParamNames__o, this, a); }
+function mapParamDispatchSelfTest(...a: any[]): any { return (mapParamDispatchSelfTest__o as any)(...a); }
+function narrowStrSinkLocals(...a: any[]): any { return __hit('fn:narrowStrSinkLocals', narrowStrSinkLocals__o, this, a); }
+function narrowStrNullLocals(...a: any[]): any { return __hit('fn:narrowStrNullLocals', narrowStrNullLocals__o, this, a); }
+function rustSignApiStr(...a: any[]): any { return __hit('fn:rustSignApiStr', rustSignApiStr__o, this, a); }
+function rustBoolKLocalOptionBool(...a: any[]): any { return __hit('fn:rustBoolKLocalOptionBool', rustBoolKLocalOptionBool__o, this, a); }
+function strLocalReassign(...a: any[]): any { return __hit('fn:strLocalReassign', strLocalReassign__o, this, a); }
+function rustBool2LocalOptionBool(...a: any[]): any { return __hit('fn:rustBool2LocalOptionBool', rustBool2LocalOptionBool__o, this, a); }
+function rustBoolNLocalOptionBool(...a: any[]): any { return __hit('fn:rustBoolNLocalOptionBool', rustBoolNLocalOptionBool__o, this, a); }
+function rustInt2IntNLocalOptionI64(...a: any[]): any { return __hit('fn:rustInt2IntNLocalOptionI64', rustInt2IntNLocalOptionI64__o, this, a); }
+function rustIntLocalNullSinkOptionI64(...a: any[]): any { return __hit('fn:rustIntLocalNullSinkOptionI64', rustIntLocalNullSinkOptionI64__o, this, a); }
+function rustNumber2LocalOptionF64(...a: any[]): any { return __hit('fn:rustNumber2LocalOptionF64', rustNumber2LocalOptionF64__o, this, a); }
+function rustNumber2SinkLocalOptionF64R2(...a: any[]): any { return __hit('fn:rustNumber2SinkLocalOptionF64R2', rustNumber2SinkLocalOptionF64R2__o, this, a); }
+function rustStr2LocalOptionString(...a: any[]): any { return __hit('fn:rustStr2LocalOptionString', rustStr2LocalOptionString__o, this, a); }
+function rustStrLiteralLocalNativeString(...a: any[]): any { return __hit('fn:rustStrLiteralLocalNativeString', rustStrLiteralLocalNativeString__o, this, a); }
+function rustStrNLocalOptionString(...a: any[]): any { return __hit('fn:rustStrNLocalOptionString', rustStrNLocalOptionString__o, this, a); }
+function allocLiteralBoxes(...a: any[]): any { return __hit('fn:allocLiteralBoxes', allocLiteralBoxes__o, this, a); }
+function borrowLiteralBoxes(...a: any[]): any { return __hit('fn:borrowLiteralBoxes', borrowLiteralBoxes__o, this, a); }
+function splitLongRustLines(...a: any[]): any { return __hit('fn:splitLongRustLines', splitLongRustLines__o, this, a); }
+function overwriteFileAndFolder(...a: any[]): any { return __hit('fn:overwriteFileAndFolder', overwriteFileAndFolder__o, this, a); }
+function capitalize(...a: any[]): any { return __hit('fn:capitalize', capitalize__o, this, a); }
+function toSnakeCase(...a: any[]): any { return __hit('fn:toSnakeCase', toSnakeCase__o, this, a); }
+function rustPassesSelfTest(...a: any[]): any { return (rustPassesSelfTest__o as any)(...a); }
+function rustInlineInOp(...a: any[]): any { return __hit('fn:rustInlineInOp', rustInlineInOp__o, this, a); }
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
 // ---- native get_value ----
@@ -25,7 +216,7 @@ const MARKER_KEYS = ['__book_id', '__cache_id', '__cacheKind', '__sideKind', '__
 // Keys the Dict branch special-cases on the way through.
 const ROUTED_KEYS = ['cache', 'hashmap', 'subscriptions', 'futures', 'timestamp', 'datetime', 'nonce', 'symbol', 'checksum'];
 
-function maskText(src: string): string {
+function maskText__o(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -51,7 +242,7 @@ function maskText(src: string): string {
     return out;
 }
 
-function closeBracket(src: string, open: number): number {
+function closeBracket__o(src: string, open: number): number {
     let depth = 0;
     for (let k = open; k < src.length; k++) {
         const c = src[k];
@@ -64,7 +255,7 @@ function closeBracket(src: string, open: number): number {
     return -1;
 }
 
-function statementEnd(src: string, from: number): number {
+function statementEnd__o(src: string, from: number): number {
     let depth = 0;
     for (let k = from; k < src.length; k++) {
         const c = src[k];
@@ -89,7 +280,7 @@ const INDEXED = '.cloned().unwrap_or(Value::Null)';
 
 type Edit = { start: number, end: number, text: string };
 
-function literalIndex(keyText: string): number {
+function literalIndex__o(keyText: string): number {
     const key = keyText.trim().replace(/^&/, '').trim();
     const int = /^Value::Int\(\s*(\d+)\s*\)$/.exec(key);
     if (int !== null) return Number(int[1]);
@@ -98,20 +289,20 @@ function literalIndex(keyText: string): number {
     return -1;
 }
 
-function literalStrKey(keyText: string): string | undefined {
+function literalStrKey__o(keyText: string): string | undefined {
     const key = keyText.trim().replace(/^&/, '').trim();
     const m = /^Value::Str\(\s*"([^"\\]*)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(key);
     return m === null ? undefined : m[1];
 }
 
 /** Bare identifier used as a key, or undefined. */
-function identKey(keyText: string): string | undefined {
+function identKey__o(keyText: string): string | undefined {
     const m = /^&?([A-Za-z_][A-Za-z0-9_]*)$/.exec(keyText.trim());
     return m === null ? undefined : m[1];
 }
 
 /** Split `get_value(&RECV, &KEY)` at `callStart`; returns [recvEnd, close]. */
-function callArgs(masked: string, callStart: number, recv: string): [number, number] | undefined {
+function callArgs__o(masked: string, callStart: number, recv: string): [number, number] | undefined {
     const head = 'get_value(&' + recv;
     if (masked.slice(callStart, callStart + head.length) !== head) return undefined;
     const afterRecv = callStart + head.length;
@@ -126,7 +317,7 @@ function callArgs(masked: string, callStart: number, recv: string): [number, num
  * declaration initialised with an int literal, mutated only by the printer's
  * `if let Value::Int(n) = &mut name { *n += 1; }` counter step.
  */
-function intPinned(region: string, name: string): boolean {
+function intPinned__o(region: string, name: string): boolean {
     const declRe = new RegExp('^[ \\t]*let (?:mut )?' + name + ':\\s*(?:crate::)?Value\\s*=\\s*Value::Int\\(\\s*\\d+\\s*\\);', 'm');
     const decl = declRe.exec(region);
     if (decl === null) return false;
@@ -149,7 +340,7 @@ function intPinned(region: string, name: string): boolean {
 type NativeGetValueStats = { seqLocals: number, seqReads: number, dictLocals: number, dictReads: number };
 
 /** Native `get_value` on statically pinned receivers. `stats` counts rewritten locals and reads. */
-function nativeGetValue(content: string, stats?: NativeGetValueStats): string {
+function nativeGetValue__o(content: string, stats?: NativeGetValueStats): string {
     const masked = maskText(content);
     const edits: Edit[] = [];
 
@@ -312,7 +503,7 @@ function nativeGetValue(content: string, stats?: NativeGetValueStats): string {
  * The `Vec<Value>` expression inside an array-valued `Value` constructor, or
  * undefined when the initializer is a call whose result must be unwrapped.
  */
-function arrayPayload(initExpr: string): string | undefined {
+function arrayPayload__o(initExpr: string): string | undefined {
     const strip = (text: string, prefix: string): string | undefined => {
         if (!text.startsWith(prefix) || !text.endsWith(')')) return undefined;
         return text.slice(prefix.length, -1).trim();
@@ -326,7 +517,7 @@ function arrayPayload(initExpr: string): string | undefined {
     return inner;
 }
 
-function insertedKeys(initText: string): string[] | undefined {
+function insertedKeys__o(initText: string): string[] | undefined {
     const keys: string[] = [];
     const insertRe = /\.insert\(\s*(?:"([^"\\]*)"\s*(?:\.to_string\(\)|\.into\(\))|([^,]+?))\s*,/g;
     let im: RegExpExecArray | null;
@@ -476,7 +667,7 @@ const CASES: Case[] = [
     },
 ];
 
-function rustNativeGetValueSelfTest(): number {
+function rustNativeGetValueSelfTest__o(): number {
     let failures = 0;
     for (const c of CASES) {
         const out = nativeGetValue(c.src);
@@ -549,12 +740,12 @@ const INSERT_CHAIN_IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 interface Region { start: number, end: number }
 
-function isWordChar (c: string): boolean {
+function isWordChar__o(c: string): boolean {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '_';
 }
 
 /** Split on top-level commas, honouring strings and bracket nesting. */
-function splitArgs (text: string): string[] | undefined {
+function splitArgs__o(text: string): string[] | undefined {
     const out: string[] = [];
     let depth = 0, inStr = false, esc = false, cur = 0;
     for (let i = 0; i < text.length; i++) {
@@ -577,7 +768,7 @@ function splitArgs (text: string): string[] | undefined {
 /** Index just past the closing `)` of the call whose `(` is at `open`. */
 /** Index of the bracket closing an already-open one, scanning from `from` (string-aware); `content.length` if none.
  *  `escapeAnywhere`: a backslash outside a string literal also skips the next char. */
-function balancedCloseIndex(content: string, from: number, escapeAnywhere = false): number {
+function balancedCloseIndex__o(content: string, from: number, escapeAnywhere = false): number {
     let depth = 1, inStr = false, escape = false;
     for (let j = from; j < content.length; j++) {
         const c = content[j];
@@ -592,7 +783,7 @@ function balancedCloseIndex(content: string, from: number, escapeAnywhere = fals
     return content.length;
 }
 
-function closeParenAt (content: string, open: number): number {
+function closeParenAt__o(content: string, open: number): number {
     let depth = 0, inStr = false, esc = false;
     for (let i = open; i < content.length; i++) {
         const c = content[i];
@@ -613,7 +804,7 @@ function closeParenAt (content: string, open: number): number {
 }
 
 /** Function bodies, sliced from one `fn` header line to the next. */
-function fnRegions (content: string): Region[] {
+function fnRegions__o(content: string): Region[] {
     const headers: number[] = [];
     const rx = /^[ \t]*(?:pub )?(?:async )?fn [A-Za-z0-9_]+/gm;
     let m: RegExpExecArray | null;
@@ -625,7 +816,7 @@ function fnRegions (content: string): Region[] {
     return out;
 }
 
-function regionAt (regions: Region[], pos: number): Region | undefined {
+function regionAt__o(regions: Region[], pos: number): Region | undefined {
     let lo = 0, hi = regions.length - 1, hit: Region | undefined;
     while (lo <= hi) {
         const mid = (lo + hi) >> 1;
@@ -635,7 +826,7 @@ function regionAt (regions: Region[], pos: number): Region | undefined {
 }
 
 /** First argument of the call spelled at `text`, or undefined when truncated. */
-function firstArg (text: string): string | undefined {
+function firstArg__o(text: string): string | undefined {
     const open = text.indexOf('(');
     if (open < 0) return undefined;
     let depth = 0, inStr = false, esc = false;
@@ -751,14 +942,14 @@ class Proof {
 }
 
 /** Arguments of `text` when it is exactly one `<name>(...)` call. */
-function insertChainCallArgs (text: string, name: string): string[] | undefined {
+function insertChainCallArgs__o(text: string, name: string): string[] | undefined {
     if (!text.startsWith(name + '(')) return undefined;
     const after = closeParenAt(text, name.length);
     if (after !== text.length) return undefined;
     return splitArgs(text.slice(name.length + 1, after - 1));
 }
 
-function keyConv (arg: string, intermediate: boolean): string | undefined {
+function keyConv__o(arg: string, intermediate: boolean): string | undefined {
     const lit = arg.trim().match(LITERAL_KEY);
     if (lit !== null) return lit[1] + '.to_string()';
     if (intermediate) return undefined;
@@ -771,7 +962,7 @@ function keyConv (arg: string, intermediate: boolean): string | undefined {
  * Rewrite `x[k] = v` / nested `x[a][b] = v` writes on a proven tag-free
  * receiver into the native `insert` the helper performs on one.
  */
-function nativeInserts (content: string): string {
+function nativeInserts__o(content: string): string {
     if (!content.includes(CALL)) return content;
     const regions = fnRegions(content);
     const proof = new Proof(content, regions);
@@ -922,7 +1113,7 @@ const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_a
 const CONTAINER_OP_SHAPE_WRITES = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|(?:^|[^A-Za-z0-9_:.])if let (?:Value::(?:Dict|Arr)\(__[a-z]+\)|\(Value::(?:Dict|Arr)\(__[a-z]+\), ?(?:&mut )?[a-z_][A-Za-z0-9_]*\)) = )$/;
 
 // Blank out string literals and comments, preserving every offset.
-function containerOpMask (content: string): string {
+function containerOpMask__o(content: string): string {
     const out = content.split ('');
     let i = 0;
     while (i < content.length) {
@@ -946,7 +1137,7 @@ function containerOpMask (content: string): string {
 }
 
 // Index of the bracket closing the one at `open`, or -1.
-function containerOpClose (content: string, open: number): number {
+function containerOpClose__o(content: string, open: number): number {
     const pairs: Record<string, string> = { '(': ')', '[': ']', '{': '}' };
     const close = pairs[content[open]];
     if (close === undefined) return -1;
@@ -973,7 +1164,7 @@ function containerOpClose (content: string, open: number): number {
     return -1;
 }
 
-function containerOpSplit (inner: string): string[] {
+function containerOpSplit__o(inner: string): string[] {
     const parts: string[] = [];
     let depth = 0;
     let cur = '';
@@ -1006,7 +1197,7 @@ function containerOpSplit (inner: string): string[] {
 }
 
 // End offset of the statement starting at `i` (the `;` at depth 0), or -1.
-function containerOpStmtEnd (content: string, i: number): number {
+function containerOpStmtEnd__o(content: string, i: number): number {
     let depth = 0;
     while (i < content.length) {
         const c = content[i];
@@ -1031,14 +1222,14 @@ function containerOpStmtEnd (content: string, i: number): number {
     return -1;
 }
 
-function containerOpParens (e: string): string {
+function containerOpParens__o(e: string): string {
     let t = e.trim ();
     while (t.startsWith ('(') && containerOpClose (t, 0) === t.length - 1) t = t.slice (1, -1).trim ();
     return t;
 }
 
 // True when `e` is exactly one call to `name(` … `)`.
-function containerOpIsCall (e: string, name: string): boolean {
+function containerOpIsCall__o(e: string, name: string): boolean {
     if (!e.startsWith (name + '(')) return false;
     return containerOpClose (e, name.length) === e.length - 1;
 }
@@ -1173,7 +1364,7 @@ class ContainerOpProver {
     }
 }
 
-function containerOpKeyText (key: string): string | undefined {
+function containerOpKeyText__o(key: string): string | undefined {
     const lit = CONTAINER_OP_LITERAL_KEY.exec (key);
     if (lit !== null) return lit[1];
     const ident = CONTAINER_OP_IDENT_ARG.exec (key);
@@ -1181,7 +1372,7 @@ function containerOpKeyText (key: string): string | undefined {
     return undefined;
 }
 
-function nativeContainerOps (content: string): string {
+function nativeContainerOps__o(content: string): string {
     if (!/\b(?:in_op|object_keys|object_values|get_array_length)\(&/.test (content)) return content;
     const prover = new ContainerOpProver (content);
     for (let round = 0; round < 6; round++) {
@@ -1253,7 +1444,7 @@ function nativeContainerOps (content: string): string {
 }
 
 // Self-test cases: each must stay unchanged on the base generator and rewrite here.
-function nativeContainerOpsSelfTest (): string[] {
+function nativeContainerOpsSelfTest__o(): string[] {
     const problems: string[] = [];
     const check = (name: string, input: string, expected: string) => {
         // A case whose input already equals the native text proves nothing.
@@ -1299,7 +1490,7 @@ type VariantSet = Set<Variant>
 interface FnRegion { start: number, end: number, header: string }
 
 /** Blank out string literals and line comments, preserving every offset. */
-function mask (content: string): string {
+function mask__o(content: string): string {
     const out = content.split('');
     let i = 0;
     while (i < out.length) {
@@ -1324,7 +1515,7 @@ function mask (content: string): string {
     return out.join('');
 }
 
-function closeParen (masked: string, open: number): number {
+function closeParen__o(masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -1337,7 +1528,7 @@ function closeParen (masked: string, open: number): number {
     return -1;
 }
 
-function splitTopLevel (src: string, sep: string): string[] {
+function splitTopLevel__o(src: string, sep: string): string[] {
     const parts: string[] = [];
     let depth = 0;
     let cur = '';
@@ -1360,14 +1551,14 @@ function splitTopLevel (src: string, sep: string): string[] {
     return parts.map((p) => p.trim());
 }
 
-function stripOuter (src: string): string {
+function stripOuter__o(src: string): string {
     let s = src.trim();
     while (s.startsWith('(') && closeParen(s, 0) === s.length - 1) s = s.slice(1, -1).trim();
     return s;
 }
 
 /** Text from the start of the statement holding `pos` up to `pos`. */
-function statementBefore (masked: string, pos: number): string {
+function statementBefore__o(masked: string, pos: number): string {
     let depth = 0;
     for (let i = pos; i > 0; i--) {
         const c = masked[i - 1];
@@ -1378,7 +1569,7 @@ function statementBefore (masked: string, pos: number): string {
     return masked.slice(0, pos);
 }
 
-function fnRegionOf (masked: string, pos: number): FnRegion {
+function fnRegionOf__o(masked: string, pos: number): FnRegion {
     const heads: number[] = [0];
     for (const m of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) heads.push((m.index as number) + 1);
     heads.push(masked.length);
@@ -1389,7 +1580,7 @@ function fnRegionOf (masked: string, pos: number): FnRegion {
     return { start: heads[lo], end: heads[lo + 1], header: brace < 0 ? body : body.slice(0, brace) };
 }
 
-function rhsAfter (masked: string, from: number): string {
+function rhsAfter__o(masked: string, from: number): string {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -1401,7 +1592,7 @@ function rhsAfter (masked: string, from: number): string {
 }
 
 /** Drop the balanced expression ending `s` (an operand of `&&` / `||`). */
-function stripTrailingOperand (s: string): string {
+function stripTrailingOperand__o(s: string): string {
     let depth = 0;
     for (let i = s.length - 1; i >= 0; i--) {
         const c = s[i];
@@ -1424,7 +1615,7 @@ function stripTrailingOperand (s: string): string {
 }
 
 /** True when a `bool` is legal at `start` (condition, bool decl, Value::Bool box). */
-function boolSlotAt (masked: string, start: number): boolean {
+function boolSlotAt__o(masked: string, start: number): boolean {
     let prefix = statementBefore(masked, start);
     for (let hop = 0; hop < 60; hop++) {
         prefix = prefix.replace(/[\s!]+$/, '');
@@ -1444,7 +1635,7 @@ const UNION: Variant[] = ['bool', 'null'];
  * Runtime variants a write can produce, or undefined when not provable.
  * `safe_bool*` is admitted only when its default cannot be a non-bool value.
  */
-function variantOf (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function variantOf__o(expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const e = stripOuter(expr);
     const lit = /^Value::(Bool|Int|Float|Str)\(/.exec(e);
     if (lit !== null && closeParen(e, 'Value::'.length + lit[1].length) === e.length - 1) {
@@ -1470,7 +1661,7 @@ function variantOf (expr: string, masked: string, region: FnRegion, depth: numbe
 }
 
 /** `safe_bool*(obj, key, &[])` is `Bool` or `Null`; a proven bool default is `Bool`. */
-function safeBoolVariants (call: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function safeBoolVariants__o(call: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const open = call.indexOf('(');
     const args = splitTopLevel(call.slice(open + 1, closeParen(call, open)), ',');
     const list = /^&\[(.*)\]$/.exec(args[args.length - 1] ?? '');
@@ -1480,7 +1671,7 @@ function safeBoolVariants (call: string, masked: string, region: FnRegion, depth
     return boolDefault(items, masked, region, depth);
 }
 
-function boolDefault (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
+function boolDefault__o(expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
     const e = stripOuter(expr);
     if (/^Value::Bool\(/.test(e) || e === 'Value::Null') return new Set<Variant>(UNION);
     const name = /^([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
@@ -1493,7 +1684,7 @@ function boolDefault (expr: string, masked: string, region: FnRegion, depth: num
 interface LocalProof { kind: 'variant' | 'none', variants?: VariantSet }
 
 /** Variant proof for every write of `name` inside one fn region. */
-function proveLocal (masked: string, name: string, region: FnRegion, depth: number): LocalProof {
+function proveLocal__o(masked: string, name: string, region: FnRegion, depth: number): LocalProof {
     if (depth > 3) return { kind: 'none' };
     const body = masked.slice(region.start, region.end);
     const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1534,7 +1725,7 @@ function proveLocal (masked: string, name: string, region: FnRegion, depth: numb
 const isBoolOnly = (v: VariantSet): boolean => [...v].every((x) => x === 'bool' || x === 'null');
 
 /** `!is_true(&X)` flips the comparison instead of wrapping it. */
-function pushEdit (edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
+function pushEdit__o(edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
     let k = start - 1;
     while (k >= 0 && (masked[k] === ' ' || masked[k] === '\t')) k--;
     if (k >= 0 && masked[k] === '!' && masked[k - 1] !== '=') {
@@ -1544,7 +1735,7 @@ function pushEdit (edits: Array<{ start: number, end: number, text: string }>, m
     edits.push({ start, end: close + 1, text });
 }
 
-function nativeBoolScalars (content: string): string {
+function nativeBoolScalars__o(content: string): string {
     if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
     const masked = mask(content);
     const edits: Array<{ start: number, end: number, text: string }> = [];
@@ -1607,7 +1798,7 @@ const BOOL_SCALAR_CASES: Array<[string, string, string]> = [
 ];
 
 /** Each case: the native text must appear, and the helper must be gone unless the case keeps it. */
-function nativeBoolScalarsSelfTest (): string[] {
+function nativeBoolScalarsSelfTest__o(): string[] {
     const bad: string[] = [];
     for (const [name, body, want] of BOOL_SCALAR_CASES) {
         const src = `    pub fn f(&mut self) -> Value {\n        ${body} return Value::Null; }\n    Value::Null\n}\n`;
@@ -1636,7 +1827,7 @@ const VEC_PUSH_ARR_INIT = [
 ];
 
 // Blank strings and comments; same length as the input, so indices stay valid.
-function vecPushMaskText (src: string): string {
+function vecPushMaskText__o(src: string): string {
     const out: string[] = [];
     let i = 0;
     const n = src.length;
@@ -1667,7 +1858,7 @@ function vecPushMaskText (src: string): string {
 }
 
 // [open, close] brace spans of every `fn` body.
-function vecPushFnRegions (masked: string): Array<[number, number]> {
+function vecPushFnRegions__o(masked: string): Array<[number, number]> {
     const regions: Array<[number, number]> = [];
     const head = /\bfn\s+[A-Za-z0-9_]*\s*[(<]/g;
     let m: RegExpExecArray | null;
@@ -1696,7 +1887,7 @@ function vecPushFnRegions (masked: string): Array<[number, number]> {
 }
 
 // Index of the `)` matching the `(` at `open`, or -1.
-function vecPushCloseParen (src: string, open: number): number {
+function vecPushCloseParen__o(src: string, open: number): number {
     let depth = 0;
     for (let i = open; i < src.length; i++) {
         const c = src[i];
@@ -1707,7 +1898,7 @@ function vecPushCloseParen (src: string, open: number): number {
 }
 
 // Index of the `;` ending the expression that starts at `from` (depth 0), or -1.
-function vecPushExprEnd (masked: string, from: number): number {
+function vecPushExprEnd__o(masked: string, from: number): number {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -1718,13 +1909,13 @@ function vecPushExprEnd (masked: string, from: number): number {
     return -1;
 }
 
-function vecPushIsArrInit (init: string): boolean {
+function vecPushIsArrInit__o(init: string): boolean {
     const t = init.trim ();
     return VEC_PUSH_ARR_INIT.some ((rx) => rx.test (t));
 }
 
 // `s` closes its own opening bracket and never dips below it.
-function vecPushBalanced (s: string): boolean {
+function vecPushBalanced__o(s: string): boolean {
     let d = 0;
     for (const c of s) {
         if (c === '(' || c === '[' || c === '{') d++;
@@ -1735,7 +1926,7 @@ function vecPushBalanced (s: string): boolean {
 
 // `y = x.clone();` as the only statement of `if matches!(&x, Value::Arr(_)) { ... }`:
 // the guard makes the copy an array.
-function vecPushGuardClone (masked: string, rhs: string, stmtStart: number, rhsEnd: number): boolean {
+function vecPushGuardClone__o(masked: string, rhs: string, stmtStart: number, rhsEnd: number): boolean {
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)$/.exec (rhs.trim ());
     if (m === null) return false;
     const open = masked.lastIndexOf ('{', stmtStart);
@@ -1748,7 +1939,7 @@ function vecPushGuardClone (masked: string, rhs: string, stmtStart: number, rhsE
     return cm !== null && cm[1] === m[1];
 }
 
-function arrOnlyVecPush (content: string): string {
+function arrOnlyVecPush__o(content: string): string {
     if (!content.includes (VEC_PUSH_HELPER + '(')) return content;
     const masked = vecPushMaskText (content);
     const regions = vecPushFnRegions (masked);
@@ -1845,7 +2036,7 @@ const VEC_PUSH_FILE_HEAD = `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND
 
 `;
 
-function arrOnlyVecPushSelfTest (): string[] {
+function arrOnlyVecPushSelfTest__o(): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) { problems.push ('arr only vec push self: ' + what); } };
     const run = (body: string, header = '    pub fn k(&mut self, other: Value) -> Value {') => arrOnlyVecPush (VEC_PUSH_FILE_HEAD + header + '\n' + body + '\n    }\n');
@@ -1916,7 +2107,7 @@ type Rw = { start: number, end: number, text: string, g?: number };
 const STR_LIT = String.raw`"(?:[^"\\]|\\.)*"`;
 
 /** Blank string literals and line comments, same length as the input. */
-function typedLocalsMaskText(src: string): string {
+function typedLocalsMaskText__o(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -1944,7 +2135,7 @@ function typedLocalsMaskText(src: string): string {
 }
 
 /** Index just past the `)` matching the `(` at `open`, or -1. */
-function typedLocalsCloseParen(masked: string, open: number): number {
+function typedLocalsCloseParen__o(masked: string, open: number): number {
     let depth = 0;
     for (let k = open; k < masked.length; k++) {
         const c = masked[k];
@@ -1955,7 +2146,7 @@ function typedLocalsCloseParen(masked: string, open: number): number {
 }
 
 /** Index just past the delimiter closing the one at `open`, or -1. */
-function closeAt(src: string, open: number): number {
+function closeAt__o(src: string, open: number): number {
     const openCh = src[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : '}';
     let depth = 0;
@@ -1968,7 +2159,7 @@ function closeAt(src: string, open: number): number {
 }
 
 /** Index just past the `}` matching the `{` at `open`, or -1. */
-function closeBrace(masked: string, open: number): number {
+function closeBrace__o(masked: string, open: number): number {
     let depth = 0;
     for (let k = open; k < masked.length; k++) {
         const c = masked[k];
@@ -1979,7 +2170,7 @@ function closeBrace(masked: string, open: number): number {
 }
 
 /** End (index of `;`) of the statement starting at `from`, depth 0. */
-function stmtEnd(masked: string, from: number): number {
+function stmtEnd__o(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -1991,7 +2182,7 @@ function stmtEnd(masked: string, from: number): number {
 }
 
 /** Split top-level commas; undefined when the delimiters are unbalanced. */
-function typedLocalsSplitArgs(masked: string, from: number, to: number): string[] | undefined {
+function typedLocalsSplitArgs__o(masked: string, from: number, to: number): string[] | undefined {
     const args: string[] = [];
     let depth = 0;
     let start = from;
@@ -2006,7 +2197,7 @@ function typedLocalsSplitArgs(masked: string, from: number, to: number): string[
 }
 
 /** Innermost unclosed delimiter at each index, plus its opening index. */
-function openerMap(masked: string): { kind: Uint8Array, at: Int32Array } {
+function openerMap__o(masked: string): { kind: Uint8Array, at: Int32Array } {
     const kind = new Uint8Array(masked.length);
     const at = new Int32Array(masked.length).fill(-1);
     const stack: Array<{ kind: number, at: number }> = [];
@@ -2026,7 +2217,7 @@ function openerMap(masked: string): { kind: Uint8Array, at: Int32Array } {
 const KEYWORDS = new Set(['if', 'while', 'match', 'return', 'for', 'in', 'else', 'loop', 'not']);
 
 /** True when the identifier at `s` is a whole by-value expression slot. */
-function valueSlot(masked: string, content: string, s: number, name: string, open: { kind: Uint8Array, at: Int32Array }): number {
+function valueSlot__o(masked: string, content: string, s: number, name: string, open: { kind: Uint8Array, at: Int32Array }): number {
     const kind = open.kind[s];
     if (kind !== 1 && kind !== 2 && kind !== 3) return 0;
     if (kind === 1) {
@@ -2049,7 +2240,7 @@ function valueSlot(masked: string, content: string, s: number, name: string, ope
 
 const FN_HEADER = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
 
-function typedLocalsFnRegions(masked: string): number[] {
+function typedLocalsFnRegions__o(masked: string): number[] {
     const heads: number[] = [0];
     for (const m of masked.matchAll(FN_HEADER)) heads.push((m.index as number) + 1);
     return heads;
@@ -2067,7 +2258,7 @@ const RUST_TYPE: Record<Shape, string> = {
 };
 
 /** Box a native local back into a `Value` slot. */
-function boxed(shape: Shape, expr: string): string {
+function boxed__o(shape: Shape, expr: string): string {
     switch (shape) {
     case 'String': return `Value::str(${expr})`;
     case 'Int': return `Value::Int(${expr})`;
@@ -2079,7 +2270,7 @@ function boxed(shape: Shape, expr: string): string {
 }
 
 /** Initializer shape, or undefined when the variant is not pinned. */
-function initShape(init: string): { shape: Shape, inner: string, wrapperEnd: number } | undefined {
+function initShape__o(init: string): { shape: Shape, inner: string, wrapperEnd: number } | undefined {
     const pinned = (head: string, shape: Shape): { shape: Shape, inner: string, wrapperEnd: number } | undefined => {
         if (!init.startsWith(head)) return undefined;
         const open = head.length - 1;
@@ -2117,7 +2308,7 @@ function initShape(init: string): { shape: Shape, inner: string, wrapperEnd: num
 }
 
 /** True when `x` is only ever read (never rebound or mutated elsewhere). */
-function rebound(region: string, name: string): boolean {
+function rebound__o(region: string, name: string): boolean {
     const n = name;
     const rx = new RegExp(
         `\\blet\\s+(?:mut\\s+)?${n}\\b|\\bfor\\s+(?:mut\\s+)?${n}\\b`
@@ -2134,7 +2325,7 @@ type Ctx = {
 };
 
 /** Classify one use: rewrites for the use, or null when it cannot be proven. */
-function classify(shape: Shape, ctx: Ctx, masked: string, content: string, where: { kind: Uint8Array, at: Int32Array }): Rw[] | null {
+function classify__o(shape: Shape, ctx: Ctx, masked: string, content: string, where: { kind: Uint8Array, at: Int32Array }): Rw[] | null {
     const { name, useStart: s, before, after } = ctx;
     const open = where;
     const nameEnd = s + name.length;
@@ -2380,7 +2571,7 @@ function classify(shape: Shape, ctx: Ctx, masked: string, content: string, where
 }
 
 /** Source text of the header that owns the block opening at `open`. */
-function blockHeader(masked: string, from: number, open: number): string {
+function blockHeader__o(masked: string, from: number, open: number): string {
     let i = open - 1;
     let depth = 0;
     while (i >= from) {
@@ -2396,7 +2587,7 @@ function blockHeader(masked: string, from: number, open: number): string {
 }
 
 /** True when `pos` sits inside a loop body or a closure (re-runnable). */
-function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1): boolean {
+function inRepeatedBlock__o(masked: string, from: number, pos: number, declAt = -1): boolean {
     const stack: number[] = [];
     for (let k = from; k < pos; k++) {
         const c = masked[k];
@@ -2415,7 +2606,7 @@ function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1)
 }
 
 /** True when the use is a whole-statement `X = <init>;` re-assignment. */
-function assignRewrite(shape: Shape, name: string, s: number, after: string, content: string, masked: string): Rw[] | null {
+function assignRewrite__o(shape: Shape, name: string, s: number, after: string, content: string, masked: string): Rw[] | null {
     const m = /^\s*=\s*/.exec(after);
     if (m === null) return null;
     const rhsStart = s + name.length + m[0].length;
@@ -2460,7 +2651,7 @@ type TypedLocalReject = { shape: Shape, name: string, line: number, text: string
 let typedLocalRejects: TypedLocalReject[] = [];
 
 /** Type the `Value` locals whose initializer pins the variant and whose every use is native. */
-function rustTypedLocals(content: string): string {
+function rustTypedLocals__o(content: string): string {
     typedLocalRejects = [];
     if (!content.includes(': Value = ')) return content;
     const masked = typedLocalsMaskText(content);
@@ -2611,7 +2802,7 @@ function rustTypedLocals(content: string): string {
 }
 
 /** One case per rule; each one fails on the base generator (no such pass). */
-function rustTypedLocalsSelfTest(): string[] {
+function rustTypedLocalsSelfTest__o(): string[] {
     const cases: any[] = [
         [
             'string-equal-and-move-box',
@@ -2718,7 +2909,7 @@ const CALLEE_SHAPE_BASE_FILE = 'rust/ccxt-common/src/exchange_generated.rs';
 let baseCalleeShapes: Map<string, CalleeShape> | undefined = undefined;
 
 /** Blank string literals and line comments, same length as the input. */
-function calleeShapeMask(src: string): string {
+function calleeShapeMask__o(src: string): string {
     let out = '';
     let i = 0;
     while (i < src.length) {
@@ -2746,7 +2937,7 @@ function calleeShapeMask(src: string): string {
 }
 
 /** Index of the delimiter closing the one at `open`, or -1. */
-function calleeShapeClose(src: string, open: number): number {
+function calleeShapeClose__o(src: string, open: number): number {
     const openCh = src[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : openCh === '{' ? '}' : '';
     if (closeCh === '') return -1;
@@ -2763,7 +2954,7 @@ function calleeShapeClose(src: string, open: number): number {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function calleeShapeArgs(masked: string, open: number, close: number): [number, number][] | undefined {
+function calleeShapeArgs__o(masked: string, open: number, close: number): [number, number][] | undefined {
     const spans: [number, number][] = [];
     let depth = 0;
     let start = open + 1;
@@ -2781,7 +2972,7 @@ function calleeShapeArgs(masked: string, open: number, close: number): [number, 
 }
 
 /** End index (the `;`) of the statement starting at `from`, or -1. */
-function calleeShapeStmtEnd(masked: string, from: number): number {
+function calleeShapeStmtEnd__o(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -2795,7 +2986,7 @@ function calleeShapeStmtEnd(masked: string, from: number): number {
 }
 
 /** Depth-0 `return` expressions of a body. */
-function calleeShapeReturns(masked: string): string[] {
+function calleeShapeReturns__o(masked: string): string[] {
     const out: string[] = [];
     const rx = /(?<![A-Za-z0-9_])return\b/g;
     let m: RegExpExecArray | null;
@@ -2808,7 +2999,7 @@ function calleeShapeReturns(masked: string): string[] {
 }
 
 /** The bare tail expression of a body (no trailing `;`), or undefined. */
-function calleeShapeTail(body: string): string | undefined {
+function calleeShapeTail__o(body: string): string | undefined {
     const t = body.replace(/\s+$/, '');
     if (t === '' || t.endsWith(';')) return undefined;
     const cut = t.lastIndexOf(';');
@@ -2818,7 +3009,7 @@ function calleeShapeTail(body: string): string | undefined {
 }
 
 /** True when the bare tail is unreachable: the statement before it returns. */
-function calleeShapeTailIsDead(body: string): boolean {
+function calleeShapeTailIsDead__o(body: string): boolean {
     const cut = body.replace(/\s+$/, '').lastIndexOf(';');
     if (cut < 0) return false;
     let depth = 0;
@@ -2833,7 +3024,7 @@ function calleeShapeTailIsDead(body: string): boolean {
 }
 
 /** Shape of the container a return expression builds from scratch, if it does. */
-function freshCalleeShape(t: string): CalleeShape | undefined {
+function freshCalleeShape__o(t: string): CalleeShape | undefined {
     const s = t.replace(/^\(+/, '').trim();
     if (/^Value::(?:Map|Dict)\(/.test(s)) {
         const open = s.indexOf('(');
@@ -2848,7 +3039,7 @@ function freshCalleeShape(t: string): CalleeShape | undefined {
 }
 
 /** The single declaration of a local in a region, with its initializer text. */
-function calleeShapeDecl(region: string, name: string): { init: string } | undefined {
+function calleeShapeDecl__o(region: string, name: string): { init: string } | undefined {
     const rx = new RegExp('\\blet (?:mut )?' + name + '\\s*(?::\\s*[^=;]+)?=\\s*', 'g');
     let hit: RegExpExecArray | null = null;
     let count = 0;
@@ -2859,7 +3050,7 @@ function calleeShapeDecl(region: string, name: string): { init: string } | undef
 }
 
 /** Arity-independent shape table for `pub fn NAME(...) -> Value` methods. */
-function methodCalleeShapes(content: string, masked: string, loose = false): Map<string, CalleeShape> {
+function methodCalleeShapes__o(content: string, masked: string, loose = false): Map<string, CalleeShape> {
     const shapes = new Map<string, CalleeShape>();
     const hdr = loose ? /\n {4}(?:pub )?fn (\w+)\s*\(/g : /\n {4}pub fn (\w+)\s*\(/g;
     let hm: RegExpExecArray | null;
@@ -2899,7 +3090,7 @@ function methodCalleeShapes(content: string, masked: string, loose = false): Map
 }
 
 /** Base-tier shape table, read from the generated base (cached). */
-function baseCalleeShapeTable(): Map<string, CalleeShape> {
+function baseCalleeShapeTable__o(): Map<string, CalleeShape> {
     if (baseCalleeShapes !== undefined) return baseCalleeShapes;
     baseCalleeShapes = new Map<string, CalleeShape>();
     try {
@@ -2968,14 +3159,14 @@ class CalleeShapeProver {
 }
 
 /** Literal string key of an argument (`&Value::Str("k".into())`), else undefined. */
-function calleeShapeLiteralKey(arg: string | undefined): string | undefined {
+function calleeShapeLiteralKey__o(arg: string | undefined): string | undefined {
     if (arg === undefined) return undefined;
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1].slice(1, -1);
 }
 
 /** True when a `&mut name` receiver is only used by the writes this pass keeps. */
-function calleeShapePlainReceiver(region: string, name: string): boolean {
+function calleeShapePlainReceiver__o(region: string, name: string): boolean {
     const rx = new RegExp('&mut ' + name + '(?![A-Za-z0-9_])', 'g');
     let m: RegExpExecArray | null;
     while ((m = rx.exec(region)) !== null) {
@@ -2988,7 +3179,7 @@ function calleeShapePlainReceiver(region: string, name: string): boolean {
 }
 
 /** True when the local is never reassigned to another expression. */
-function calleeShapeSingleWrite(region: string, name: string): boolean {
+function calleeShapeSingleWrite__o(region: string, name: string): boolean {
     const rx = new RegExp('(?<![A-Za-z0-9_.])' + name + '\\s*=\\s*(?!=)', 'g');
     let m: RegExpExecArray | null;
     while ((m = rx.exec(region)) !== null) {
@@ -3002,7 +3193,7 @@ function calleeShapeSingleWrite(region: string, name: string): boolean {
 interface CalleeShapeStats { sites: number }
 
 /** Rewrite helper calls on a proven callee-shaped local to the native op. */
-function calleeShapeContainerOps(content: string, stats?: CalleeShapeStats): string {
+function calleeShapeContainerOps__o(content: string, stats?: CalleeShapeStats): string {
     if (content.indexOf('add_element_to_object(') < 0 && content.indexOf('get_value(&') < 0
         && content.indexOf('in_op(') < 0 && content.indexOf('object_keys(') < 0
         && content.indexOf('object_values(') < 0 && content.indexOf('get_array_length(') < 0) return content;
@@ -3125,7 +3316,7 @@ function calleeShapeContainerOps(content: string, stats?: CalleeShapeStats): str
 }
 
 /** True when the call at `pos` sits in a Rust bool position (if/while head). */
-function calleeShapeBoolPosition(masked: string, pos: number): boolean {
+function calleeShapeBoolPosition__o(masked: string, pos: number): boolean {
     const lineStart = masked.lastIndexOf('\n', pos) + 1;
     const pre = masked.slice(lineStart, pos).trim();
     const headed = /^(?:\}\s*else\s+)?(?:if|while)$/.test(pre);
@@ -3134,7 +3325,7 @@ function calleeShapeBoolPosition(masked: string, pos: number): boolean {
 }
 
 /** Self-test: the rule fires on a proven callee and leaves an unproven one alone. */
-function calleeShapeContainerOpsSelfTest(): string[] {
+function calleeShapeContainerOpsSelfTest__o(): string[] {
     const problems: string[] = [];
     const dictFn = (body: string) => "\n    pub fn parse_thing(&self, mut x: Value) -> Value {\n" + body + "\n    Value::Null\n}\n";
     const wrapper = (call: string) => "\n    pub fn use_it(&self, mut data: Value) -> Value {\n        let mut parsed: Value = " + call + ";\n        add_element_to_object(&mut parsed, &Value::Str(\"nonce\".into()), self.safe_integer_k(data, \"u\", &[]));\n        let mut n: Value = get_value(&parsed, &Value::Str(\"bids\"));\n        return parsed;\n    }\n";
@@ -3167,7 +3358,7 @@ function calleeShapeContainerOpsSelfTest(): string[] {
 interface BoolCalleeRegion { start: number, end: number, name: string, ret: string, body: string }
 
 /** Blank out string literals and comments, preserving every offset. */
-function boolCalleeMask (text: string): string {
+function boolCalleeMask__o(text: string): string {
     const out = text.split('');
     const n = out.length;
     let i = 0;
@@ -3194,7 +3385,7 @@ function boolCalleeMask (text: string): string {
     return out.join('');
 }
 
-function boolCalleeClose (masked: string, open: number): number {
+function boolCalleeClose__o(masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -3207,7 +3398,7 @@ function boolCalleeClose (masked: string, open: number): number {
     return -1;
 }
 
-function boolCalleeStrip (src: string): string {
+function boolCalleeStrip__o(src: string): string {
     let s = src.trim();
     while (s.startsWith('(') && boolCalleeClose(s, 0) === s.length - 1) s = s.slice(1, -1).trim();
     return s;
@@ -3215,7 +3406,7 @@ function boolCalleeStrip (src: string): string {
 
 const BOOL_CALLEE_FN = /\n[ \t]*(?:pub )?(?:async )?fn (\w+)/g;
 
-function boolCalleeRegions (masked: string): BoolCalleeRegion[] {
+function boolCalleeRegions__o(masked: string): BoolCalleeRegion[] {
     const heads: number[] = [0];
     for (const m of masked.matchAll(BOOL_CALLEE_FN)) heads.push((m.index as number) + 1);
     heads.push(masked.length);
@@ -3234,7 +3425,7 @@ function boolCalleeRegions (masked: string): BoolCalleeRegion[] {
 }
 
 /** Value expressions a `return`/tail can hand back, `undefined` when not a `Value` fn. */
-function boolCalleeRetExprs (region: BoolCalleeRegion): string[] | undefined {
+function boolCalleeRetExprs__o(region: BoolCalleeRegion): string[] | undefined {
     if (!/^\s*->\s*(?:crate::)?Value\s*$/.test(region.ret.replace(/\s+/g, ' '))) return undefined;
     const body = region.body;
     const rets: string[] = [];
@@ -3265,7 +3456,7 @@ function boolCalleeRetExprs (region: BoolCalleeRegion): string[] | undefined {
     return rets;
 }
 
-function boolCalleeSafeBoolDefault (call: string): boolean | undefined {
+function boolCalleeSafeBoolDefault__o(call: string): boolean | undefined {
     const open = call.indexOf('(');
     const close = boolCalleeClose(call, open);
     if (close < 0) return undefined;
@@ -3294,7 +3485,7 @@ const BOOL_CALLEE_BOOLISH = (v: BoolCalleeVariants): boolean => [...v].every((x)
  * Variants an expression can evaluate to, or undefined when unproven.
  * `self.<fn>` resolves through the same file's declarations (depth-limited).
  */
-function boolCalleeVariant (expr: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, region: BoolCalleeRegion, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
+function boolCalleeVariant__o(expr: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, region: BoolCalleeRegion, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
     if (depth > 6) return undefined;
     let e = boolCalleeStrip(expr);
     while (e.endsWith('.clone()')) e = boolCalleeStrip(e.slice(0, -'.clone()'.length));
@@ -3336,7 +3527,7 @@ function boolCalleeVariant (expr: string, masked: string, byName: Map<string, Bo
 }
 
 /** Union of every return expression of every same-file declaration of `name`. */
-function boolCalleeReturnVariant (name: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
+function boolCalleeReturnVariant__o(name: string, masked: string, byName: Map<string, BoolCalleeRegion[]>, depth: number, visiting: Set<string>): BoolCalleeVariants | undefined {
     if (visiting.has(name) || depth > 6) return undefined;
     const decls = byName.get(name);
     if (decls === undefined || decls.length === 0) return undefined;
@@ -3356,7 +3547,7 @@ function boolCalleeReturnVariant (name: string, masked: string, byName: Map<stri
 }
 
 /** Every right-hand side written to local `ident` inside `region`, or undefined when it can be rebound. */
-function boolCalleeWrites (masked: string, ident: string, region: BoolCalleeRegion): string[] | undefined {
+function boolCalleeWrites__o(masked: string, ident: string, region: BoolCalleeRegion): string[] | undefined {
     const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const body = masked.slice(region.start, region.end);
     const shadow = new RegExp(`\\|(?!\\|)[^|\\n]*\\b${esc}\\b[^|\\n]*\\|(?!\\|)|\\bfor [^\\n]*\\b${esc}\\b[^\\n]* in |\\blet \\([^)]*\\b${esc}\\b`);
@@ -3401,7 +3592,7 @@ function boolCalleeWrites (masked: string, ident: string, region: BoolCalleeRegi
 }
 
 /** Text of the statement holding `pos`, up to `pos`. */
-function boolCalleeStmtBefore (masked: string, pos: number): string {
+function boolCalleeStmtBefore__o(masked: string, pos: number): string {
     let depth = 0;
     for (let i = pos; i > 0; i--) {
         const c = masked[i - 1];
@@ -3413,7 +3604,7 @@ function boolCalleeStmtBefore (masked: string, pos: number): string {
 }
 
 /** Drop the balanced operand that ends `s` (an operand of `&&` / `||`). */
-function boolCalleeDropOperand (s: string): string {
+function boolCalleeDropOperand__o(s: string): string {
     let depth = 0;
     for (let i = s.length - 1; i >= 0; i--) {
         const c = s[i];
@@ -3436,7 +3627,7 @@ function boolCalleeDropOperand (s: string): string {
 }
 
 /** A `bool` is legal where `start` begins: a condition, a bool local, or a Value::Bool box. */
-function boolCalleeBoolSlot (masked: string, start: number): boolean {
+function boolCalleeBoolSlot__o(masked: string, start: number): boolean {
     let prefix = boolCalleeStmtBefore(masked, start);
     for (let hop = 0; hop < 60; hop++) {
         prefix = prefix.replace(/[\s!]+$/, '');
@@ -3450,7 +3641,7 @@ function boolCalleeBoolSlot (masked: string, start: number): boolean {
     return false;
 }
 
-function nativeBoolCallee (content: string): string {
+function nativeBoolCallee__o(content: string): string {
     if (!content.includes('is_true(&')) return content;
     const masked = boolCalleeMask(content);
     const regions = boolCalleeRegions(masked);
@@ -3502,7 +3693,7 @@ const BOOL_CALLEE_CASES: Array<[string, string, string]> = [
 ];
 
 /** Three arg shapes per callee body: every arm Bool, one arm mixed, unknown local. */
-function boolCalleeFixture (body: string): string {
+function boolCalleeFixture__o(body: string): string {
     return `    pub fn is_linear(&self, mut t: Value, optional_args: &[Value]) -> Value {\n        if (t == Value::Null) {\n            return Value::Bool(true);\n        }\n        return Value::Bool(false);\n\n    Value::Null\n}\n\n    pub fn opt(&self) -> Option<Value> {
         return Some(Value::Bool(true));
     }
@@ -3510,7 +3701,7 @@ function boolCalleeFixture (body: string): string {
     pub fn mixed(&self) -> Value {\n        return Value::Int(1);\n    }\n\n    pub async fn is_uta(&mut self, optional_args: &[Value]) -> Value {\n        let mut uta: Value = Value::Bool(self.safe_bool_k(self.options.clone(), "uta", &[]).as_bool() == Some(true));\n        return uta;\n\n    Value::Null\n}\n\n    pub fn f(&mut self, mut o: Value) -> Value {\n        ${body}\n        return Value::Null; }\n}\n`;
 }
 
-function nativeBoolCalleeSelfTest (): string[] {
+function nativeBoolCalleeSelfTest__o(): string[] {
     const bad: string[] = [];
     for (const [name, body, want] of BOOL_CALLEE_CASES) {
         const src = boolCalleeFixture(body);
@@ -3533,7 +3724,7 @@ const STR_KEY = '&Value::Str\\("((?:[^"\\\\]|\\\\.)*)"\\.(?:into|to_string)\\(\\
 const MAX_LINE = 400;
 
 /** Hide comments and string bodies so paren/key scans cannot be fooled. */
-function maskSrc(src: string): string {
+function maskSrc__o(src: string): string {
     const out = src.split('');
     const blank = (from: number, to: number) => {
         for (let i = from; i < to && i < out.length; i++) if (out[i] !== '\n') out[i] = ' ';
@@ -3576,7 +3767,7 @@ function maskSrc(src: string): string {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function argSpans(masked: string, open: number): Array<[number, number]> | undefined {
+function argSpans__o(masked: string, open: number): Array<[number, number]> | undefined {
     let depth = 0;
     const spans: Array<[number, number]> = [];
     let start = open + 1;
@@ -3595,7 +3786,7 @@ function argSpans(masked: string, open: number): Array<[number, number]> | undef
 }
 
 /** Offset just past the `)` closing the `(` at `open`, or -1. */
-function callEnd(masked: string, open: number): number {
+function callEnd__o(masked: string, open: number): number {
     let depth = 0;
     for (let j = open; j < masked.length; j++) {
         const c = masked[j];
@@ -3609,7 +3800,7 @@ function callEnd(masked: string, open: number): number {
 }
 
 /** True when the call is a statement (only whitespace between it and a `;`). */
-function fieldChainIsStatement(masked: string, from: number, to: number): boolean {
+function fieldChainIsStatement__o(masked: string, from: number, to: number): boolean {
     let k = to;
     while (k < masked.length && (masked[k] === ' ' || masked[k] === '\t')) k++;
     if (masked[k] !== ';') return false;
@@ -3619,7 +3810,7 @@ function fieldChainIsStatement(masked: string, from: number, to: number): boolea
 }
 
 /** First top-level argument of the call text starting at `expr`'s `(`. */
-function fieldChainFirstArg(expr: string): string {
+function fieldChainFirstArg__o(expr: string): string {
     const open = expr.indexOf('(');
     if (open < 0) return '';
     let depth = 0;
@@ -3637,7 +3828,7 @@ function fieldChainFirstArg(expr: string): string {
 }
 
 /** The whitelisted field a receiver chain is rooted at, or '' when unproven. */
-function chainField(recv: string): string {
+function chainField__o(recv: string): string {
     const direct = new RegExp('^&mut\\s+' + RECV + '$').exec(recv);
     if (direct !== null) return direct[1];
     let expr = recv;
@@ -3657,7 +3848,7 @@ function chainField(recv: string): string {
 const FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*/g;
 
 /** The `fn` body span holding offset `at`. */
-function fnSpan(src: string, at: number): [number, number] {
+function fnSpan__o(src: string, at: number): [number, number] {
     FN_HEAD.lastIndex = 0;
     let start = 0;
     let m: RegExpExecArray | null;
@@ -3669,7 +3860,7 @@ function fnSpan(src: string, at: number): [number, number] {
 }
 
 /** How a `&ident` key may be lowered, or '' when the local's type is unproven. */
-function identKeyArg(body: string, ident: string, header: string): string {
+function identKeyArg__o(body: string, ident: string, header: string): string {
     const asStr = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*String\\s*=');
     const asVal = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*Value\\s*=');
     if (asStr.test(body)) return ident + '.clone()';
@@ -3683,7 +3874,7 @@ function identKeyArg(body: string, ident: string, header: string): string {
 
 interface FieldChainRw { start: number, end: number, text: string }
 
-function runPass(content: string): string {
+function runPass__o(content: string): string {
     if (!content.includes('add_element_to_object(')) return content;
     const masked = maskSrc(content);
     const callRe = /(?<![A-Za-z0-9_:.])(add_element_to_object)\(/g;
@@ -3736,7 +3927,7 @@ function runPass(content: string): string {
     return out + content.slice(at);
 }
 
-function fieldChainInserts(content: string): string {
+function fieldChainInserts__o(content: string): string {
     // Deeper chains (`a[k1][k2][k3]`) resolve one hop per round.
     let out = content;
     for (let i = 0; i < 4; i++) {
@@ -3766,7 +3957,7 @@ const keeperCalls = [ 'add_element_to_object', 'set_value', 'remove' ];
 const literalPrefixes = [ 'Value::Null', 'Value::Int(', 'Value::Float(', 'Value::Bool(', 'Value::Str(', 'Value::Map({', 'Value::Array(' ];
 
 // Blank strings and comments; same length as the input, so indices stay valid.
-function markerFreePushMaskText (src: string): string {
+function markerFreePushMaskText__o(src: string): string {
     const out: string[] = [];
     let i = 0;
     const n = src.length;
@@ -3797,7 +3988,7 @@ function markerFreePushMaskText (src: string): string {
 }
 
 // [open, close] brace spans of every `fn` body.
-function markerFreePushFnRegions (masked: string): Array<[number, number]> {
+function markerFreePushFnRegions__o(masked: string): Array<[number, number]> {
     const regions: Array<[number, number]> = [];
     const head = /\bfn\s+[A-Za-z0-9_]*\s*[(<]/g;
     let m: RegExpExecArray | null;
@@ -3826,7 +4017,7 @@ function markerFreePushFnRegions (masked: string): Array<[number, number]> {
 }
 
 // Index of the `)` matching the `(` at `open`, or -1.
-function markerFreePushCloseParen (src: string, open: number): number {
+function markerFreePushCloseParen__o(src: string, open: number): number {
     let depth = 0;
     for (let i = open; i < src.length; i++) {
         const c = src[i];
@@ -3837,7 +4028,7 @@ function markerFreePushCloseParen (src: string, open: number): number {
 }
 
 // Index of the `;` ending the expression that starts at `from` (depth 0), or -1.
-function exprEnd (masked: string, from: number): number {
+function exprEnd__o(masked: string, from: number): number {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
@@ -3848,7 +4039,7 @@ function exprEnd (masked: string, from: number): number {
     return -1;
 }
 
-function rustVecPushInline (content: string): string {
+function rustVecPushInline__o(content: string): string {
     if (!content.includes (helperName + '(')) return content;
     const masked = markerFreePushMaskText (content);
     const regions = markerFreePushFnRegions (masked);
@@ -4020,7 +4211,7 @@ const fileHead = `// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE O
 
 `;
 
-function rustVecPushInlineSelfTest (): string[] {
+function rustVecPushInlineSelfTest__o(): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) { problems.push ('rust vec push inline self: ' + what); } };
     const run = (body: string, header = '    pub fn k(&mut self, other: Value) -> Value {') => rustVecPushInline (fileHead + header + '\n' + body + '\n    }\n');
@@ -4086,7 +4277,7 @@ const SCALAR: VSet = new Set([ 'str', 'int', 'float', 'bool', 'null' ]);
 const NATIVE_TY = new Set([ 'String', 'Vec<String>', 'i64', 'f64', 'bool', 'usize', 'u32', 'isize' ]);
 
 /** Blank string literals and comments, same length as the input. */
-function stringNativesMaskText(src: string): string {
+function stringNativesMaskText__o(src: string): string {
     const out = src.split('');
     let i = 0;
     while (i < src.length) {
@@ -4118,7 +4309,7 @@ function stringNativesMaskText(src: string): string {
 }
 
 /** Index just past the delimiter matching the one at `open`, or -1. */
-function stringNativesCloseParen(masked: string, open: number): number {
+function stringNativesCloseParen__o(masked: string, open: number): number {
     const openCh = masked[open];
     const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : '}';
     let depth = 0;
@@ -4131,7 +4322,7 @@ function stringNativesCloseParen(masked: string, open: number): number {
 }
 
 /** Split top-level commas in `[from, to)`; undefined when the text is unbalanced. */
-function stringNativesSplitArgs(masked: string, from: number, to: number): string[] | undefined {
+function stringNativesSplitArgs__o(masked: string, from: number, to: number): string[] | undefined {
     const args: string[] = [];
     let depth = 0;
     let start = from;
@@ -4146,7 +4337,7 @@ function stringNativesSplitArgs(masked: string, from: number, to: number): strin
 }
 
 /** Index of the `;` closing the statement at `from`, or -1. */
-function stringNativesStmtEnd(masked: string, from: number): number {
+function stringNativesStmtEnd__o(masked: string, from: number): number {
     let depth = 0;
     for (let k = from; k < masked.length; k++) {
         const c = masked[k];
@@ -4160,7 +4351,7 @@ function stringNativesStmtEnd(masked: string, from: number): number {
 const STRING_NATIVES_FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
 
 /** `[start, end)` of the fn body holding `pos`. */
-function fnBounds(masked: string, pos: number): [number, number] {
+function fnBounds__o(masked: string, pos: number): [number, number] {
     let start = 0;
     for (const m of masked.matchAll(STRING_NATIVES_FN_HEAD)) {
         const at = m.index as number;
@@ -4170,19 +4361,19 @@ function fnBounds(masked: string, pos: number): [number, number] {
 }
 
 /** `&Value::Str("lit".into())` -> `"lit"`, else undefined. */
-function strBox(arg: string): string | undefined {
+function strBox__o(arg: string): string | undefined {
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
 }
 
 /** `&Value::Int(-?n)` -> the digits, else undefined. */
-function intBox(arg: string): string | undefined {
+function intBox__o(arg: string): string | undefined {
     const m = /^&\s*Value::Int\(\s*(-?\d+)\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
 }
 
 /** `'str'` when every element the expression can hold is a `Value::Str`, else undefined. */
-function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
+function elemKind__o(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
     const e = expr.trim().replace(/;$/, '').trim();
     const vec = /^(?:Value::(?:Array|List|from)|vec!)\(?(vec!)?\[/.exec(e) ?? /^vec!\[/.exec(e);
     if (vec !== null) {
@@ -4218,7 +4409,7 @@ function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string |
 }
 
 /** Variant set a single write expression can leave in a `Value`, or undefined. */
-function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
+function inferSet__o(expr: string, locals: Map<string, Local>): VSet | undefined {
     const e = expr.trim().replace(/;$/, '').trim();
     for (const [ head, variant ] of [ [ 'Value::Str(', 'str' ], [ 'Value::Int(', 'int' ], [ 'Value::Float(', 'float' ], [ 'Value::Bool(', 'bool' ] ]) {
         if (e.startsWith(head)) return new Set([ variant ]);
@@ -4283,7 +4474,7 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
 }
 
 /** Locals of one fn: declared native type, or the variant set every write of a `Value` local pins. */
-function valueSets(region: string, maskedRegion: string, sig: string): Map<string, Local> {
+function valueSets__o(region: string, maskedRegion: string, sig: string): Map<string, Local> {
     const locals = new Map<string, Local>();
     const declRe = /let\s+(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^=;]+?)\s*=/g;
     const decls: Array<{ name: string, ty: string, at: number, init: number }> = [];
@@ -4348,7 +4539,7 @@ function valueSets(region: string, maskedRegion: string, sig: string): Map<strin
 }
 
 /** Native replacement for one helper call, or undefined when the operand is unproven. */
-function rewrite(name: string, args: string[], locals: Map<string, Local>): string | undefined {
+function rewrite__o(name: string, args: string[], locals: Map<string, Local>): string | undefined {
     const arg0 = (args[0] ?? '').trim();
     const recv = /^&\s*([A-Za-z_]\w*)$/.exec(arg0);
     const x = recv === null ? undefined : recv[1];
@@ -4422,7 +4613,7 @@ function rewrite(name: string, args: string[], locals: Map<string, Local>): stri
 }
 
 /** Rewrite the family where the operand type is proven; leave every other site as printed. */
-function rustStringNatives(content: string): string {
+function rustStringNatives__o(content: string): string {
     if (!/to_string_val\(|replace_str\(|replace_all_str\(|split\(|join\(|starts_with\(|ends_with\(|to_fixed\(/.test(content)) return content;
     const masked = stringNativesMaskText(content);
     const rx = /(?<![A-Za-z0-9_:.])(to_string_val|replace_str|replace_all_str|split|join|starts_with|ends_with|to_fixed)\(/g;
@@ -4472,7 +4663,7 @@ function rustStringNatives(content: string): string {
 }
 
 /** One case per rule; each fails on the base generator (no such pass). */
-function rustStringNativesSelfTest(): string[] {
+function rustStringNativesSelfTest__o(): string[] {
     const cases: Array<[string, string, string]> = [
         [
             'to-string-scalar-local',
@@ -4555,7 +4746,7 @@ const COERCED = new RegExp('^unsafe\\s*\\{\\s*crate::runtime::coerce_value_to_mu
 const PLAIN_DICT_MAX_LINE = 400;
 
 /** Hide comments and string bodies so brace/paren scans cannot be fooled. */
-function plainDictMaskSrc(src: string): string {
+function plainDictMaskSrc__o(src: string): string {
     const out = src.split('');
     const blank = (from: number, to: number) => {
         for (let i = from; i < to && i < out.length; i++) if (out[i] !== '\n') out[i] = ' ';
@@ -4598,7 +4789,7 @@ function plainDictMaskSrc(src: string): string {
 }
 
 /** Top-level argument spans of the call whose `(` is at `open`. */
-function plainDictArgSpans(masked: string, open: number): Array<[number, number]> | undefined {
+function plainDictArgSpans__o(masked: string, open: number): Array<[number, number]> | undefined {
     let depth = 0;
     const spans: Array<[number, number]> = [];
     let start = open + 1;
@@ -4617,7 +4808,7 @@ function plainDictArgSpans(masked: string, open: number): Array<[number, number]
 }
 
 /** Offset of the `)` closing the `(` at `open`, or -1. */
-function closeOf(masked: string, open: number): number {
+function closeOf__o(masked: string, open: number): number {
     let depth = 0;
     for (let j = open; j < masked.length; j++) {
         const c = masked[j];
@@ -4634,7 +4825,7 @@ interface Hop { recv: string, key: string, literal: string | undefined, close: n
 interface Chain { hops: Hop[], root: string }
 
 /** One `get_value_mut(<recv>, <key>)` call starting at `at`. */
-function hopAt(content: string, masked: string, at: number): Hop | undefined {
+function hopAt__o(content: string, masked: string, at: number): Hop | undefined {
     if (!/^get_value_mut\(/.test(masked.slice(at, at + 14))) return undefined;
     const open = at + 'get_value_mut'.length;
     const spans = plainDictArgSpans(masked, open);
@@ -4652,7 +4843,7 @@ function hopAt(content: string, masked: string, at: number): Hop | undefined {
 }
 
 /** The chain at `at`: hops outermost first, plus the innermost receiver. */
-function chainAt(content: string, masked: string, at: number): Chain | undefined {
+function chainAt__o(content: string, masked: string, at: number): Chain | undefined {
     const hops: Hop[] = [];
     let cur = at;
     for (let n = 0; n < 8; n++) {
@@ -4669,7 +4860,7 @@ function chainAt(content: string, masked: string, at: number): Chain | undefined
 interface PlainDictRw { start: number, end: number, text: string }
 
 /** `&ident` key whose binding in the enclosing fn is a proven `Value` (local or param). */
-function valueIdentKey(masked: string, at: number, key: string): string {
+function valueIdentKey__o(masked: string, at: number, key: string): string {
     const id = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(key);
     if (id === null) return '';
     const fnHead = /(?:^|\n)[ \t]*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*/g;
@@ -4691,7 +4882,7 @@ function valueIdentKey(masked: string, at: number, key: string): string {
     return '';
 }
 
-function plainDictRunPass(content: string): string {
+function plainDictRunPass__o(content: string): string {
     if (!content.includes('get_value_mut(')) return content;
     const masked = plainDictMaskSrc(content);
     const headRe = /if let Value::Dict\(\s*(\w+)\s*\)\s*=\s*get_value_mut\(/g;
@@ -4780,7 +4971,7 @@ function plainDictRunPass(content: string): string {
     return out + content.slice(at);
 }
 
-function plainDictChains(content: string): string {
+function plainDictChains__o(content: string): string {
     return plainDictRunPass(content);
 }
 
@@ -4792,7 +4983,7 @@ const CLIENT_HANDLE_KEYS = ['subscriptions', 'futures', 'rejections', 'url'];
 const CLIENT_HANDLE_TYPE = 'crate::pro::ws_client::ClientHandle';
 
 /** Blank out comments and string bodies, keeping every index in place. */
-function clientHandleMask(src: string): string {
+function clientHandleMask__o(src: string): string {
     let out = '';
     let i = 0;
     const n = src.length;
@@ -4836,7 +5027,7 @@ function clientHandleMask(src: string): string {
  * block, and ends where the brace depth returns to that level; brace counting
  * skips comment and string spans per line.
  */
-function clientHandleViews(content: string): string {
+function clientHandleViews__o(content: string): string {
     if (!content.includes('&client')) return content;
     const lines = content.split('\n');
     const braces = clientHandleBraceDeltas(content).split('\n');
@@ -4878,7 +5069,7 @@ const CLIENT_HANDLE_SUBS_WRITES: Array<[RegExp, string]> = [
  * `subscriptions` snapshot and the write that persists to the live client, so the venue code
  * names the operation instead of dispatching a dynamic helper on a Value.
  */
-function clientHandleSubsWrites(content: string): string {
+function clientHandleSubsWrites__o(content: string): string {
     if (!content.includes('&mut __ch.subscriptions')) return content;
     let text = content;
     for (const [rx, repl] of CLIENT_HANDLE_SUBS_WRITES) {
@@ -4903,7 +5094,7 @@ const CLIENT_HANDLE_NAMES: { [k: string]: string } = { subscriptions: 'subscript
  * `get_subscription(k)` / `get_future(k)`, `object_keys(..)` -> `subscription_keys()` /
  * `future_keys()`. The methods read the same snapshot value the helpers did.
  */
-function clientHandleTypedReads(content: string): string {
+function clientHandleTypedReads__o(content: string): string {
     if (!content.includes('__ch.')) return content;
     return content
         .replace(/matches!\(\(&__ch\.(subscriptions|futures)\.clone\(\), (&[^\n]+?)\), \(Value::Dict\(__d\), Value::Str\(__k\)\) if __d\.contains_key\(__k\.as_ref\(\)\)\)/g,
@@ -4915,12 +5106,12 @@ function clientHandleTypedReads(content: string): string {
 }
 
 /** The masked text (comments, strings, char literals blanked) for structure. */
-function clientHandleBraceDeltas(content: string): string {
+function clientHandleBraceDeltas__o(content: string): string {
     return clientHandleMask(content);
 }
 
 /** Brace delta of one line of the masked text. */
-function clientHandleDeltaAt(maskedLines: string[], idx: number): number {
+function clientHandleDeltaAt__o(maskedLines: string[], idx: number): number {
     const line = maskedLines[idx] ?? '';
     let d = 0;
     for (let i = 0; i < line.length; i++) {
@@ -4937,7 +5128,7 @@ const CLIENT_HANDLE_REASSIGN = /^\s*client\s*=[^=]/;
 const CLIENT_HANDLE_COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*)/;
 
 /** One method block (header + body + closing `    }`). */
-function clientHandleBlock(block: string[]): string[] {
+function clientHandleBlock__o(block: string[]): string[] {
     const header = block[0];
     const fromParam = /\bclient\s*:\s*Value\b/.test(header);
     let anchor: number;      // binding line goes right after this index
@@ -5014,12 +5205,12 @@ function clientHandleBlock(block: string[]): string[] {
 }
 
 /** A replacement span encoded as `col:length:text`, kept sortable per line. */
-function clientHandleSpan(col: number, len: number, text: string): string[] {
+function clientHandleSpan__o(col: number, len: number, text: string): string[] {
     return [col + ':' + len + ':' + text];
 }
 
 /** Apply `col:length:text` spans (rightmost first) to one line. */
-function clientHandleApply(line: string, spans: string[]): string {
+function clientHandleApply__o(line: string, spans: string[]): string {
     const parsed = spans.map((s) => {
         const first = s.indexOf(':');
         const second = s.indexOf(':', first + 1);
@@ -5030,7 +5221,7 @@ function clientHandleApply(line: string, spans: string[]): string {
     return out;
 }
 
-function clientHandleSelfTest(): string[] {
+function clientHandleSelfTest__o(): string[] {
     const problems: string[] = [];
     const ok = (c: boolean, what: string) => { if (!c) problems.push('client handle self test: ' + what); };
     const head = '// PLEASE DO NOT EDIT THIS FILE\n';
@@ -5146,23 +5337,23 @@ function clientHandleSelfTest(): string[] {
 const MAP_PARAM_RE = /:\s*&mut\s+indexmap::IndexMap<String, Value>/;
 
 /** `'map'` for a printed native-map parameter, undefined for any other shape. */
-function mapParamKind(printedParam: string): 'map' | undefined {
+function mapParamKind__o(printedParam: string): 'map' | undefined {
     return MAP_PARAM_RE.test(printedParam) ? 'map' : undefined;
 }
 
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
-function mapParamDispatchArg(index: number): string {
+function mapParamDispatchArg__o(index: number): string {
     return `&mut { let mut __m = args.get(${index}).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }`;
 }
 
 /** Split a printed parameter list on top-level commas: a generic argument list
  *  (`IndexMap<String, Value>`) carries its own. */
-function mapParamSplitArgs(argList: string): string[] {
+function mapParamSplitArgs__o(argList: string): string[] {
     return mapParamSplitTopLevel(argList);
 }
 
-function mapParamSplitTopLevel(argList: string): string[] {
+function mapParamSplitTopLevel__o(argList: string): string[] {
     const out: string[] = [];
     let depth = 0;
     let current = '';
@@ -5188,7 +5379,7 @@ const REF_MAP_PARAM_RE = /([A-Za-z_][A-Za-z0-9_]*)\s*:\s*&mut\s+indexmap::IndexM
 
 /** Names a file prints as `&mut IndexMap` parameters. Copying one is the only
  *  way to box it, so a dead-clone pass must not turn that copy into a move. */
-function refMapParamNames(content: string): Set<string> {
+function refMapParamNames__o(content: string): Set<string> {
     const names = new Set<string>();
     REF_MAP_PARAM_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
@@ -5208,7 +5399,7 @@ const MAP_PARAM_CASES: Array<{ name: string, got: () => any, want: any }> = [
     { name: 'the dispatch argument builds an owned map', got: () => mapParamDispatchArg(4), want: '&mut { let mut __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }' },
 ];
 
-function mapParamDispatchSelfTest(): number {
+function mapParamDispatchSelfTest__o(): number {
     let failures = 0;
     for (const c of MAP_PARAM_CASES) {
         const got = c.got();
@@ -5234,7 +5425,7 @@ function mapParamDispatchSelfTest(): number {
  * the same lookup and default rules. Any other use, a `{:?}` sink or a non-`Str` default
  * keeps `Value`.
  */
-function narrowStrSinkLocals(content: string): string {
+function narrowStrSinkLocals__o(content: string): string {
     // Boxed family -> its `Option<String>` twin on the same `Exchange` impl.
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
@@ -5383,7 +5574,7 @@ function narrowStrSinkLocals(content: string): string {
  * `Value::from`, which builds the `Value::Str` the helper returned. Any other use, a
  * `&mut`, an assignment or a closure keeps `Value`.
  */
-function narrowStrNullLocals(content: string): string {
+function narrowStrNullLocals__o(content: string): string {
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
         safe_string_k: 'safe_string_k_opt',
@@ -5594,7 +5785,7 @@ function narrowStrNullLocals(content: string): string {
 // ---- sign api str local ----
 // Rust: `let mut apiName: Value = api.get(0)...` whose every later use is `apiName.as_str() == Some("lit")` is a
 // native Option<String>, exactly what the safe_string form was typed as before the element read.
-function rustSignApiStr (content: string): string {
+function rustSignApiStr__o(content: string): string {
     // an unbound `api` / `section` read: the bounds-checked nth of the list view, no closure
     content = content.replace (/\b(api|section)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\((\d+)\)\)/g, '$1.as_array().into_iter().flatten().nth($2)');
     if (content.indexOf ('.get(') < 0) { return content; }
@@ -5629,7 +5820,7 @@ function rustSignApiStr (content: string): string {
  * `let mut X: Value = self.safe_bool_k(obj, "k", &[..])` (or `safe_bool`) whose every later use is a native-able bool
  * read becomes `Option<bool>` (default `&[]`) or `bool` (literal default). Any other use or a closure keeps `Value`.
  */
-function rustBoolKLocalOptionBool(content: string): string {
+function rustBoolKLocalOptionBool__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_k|safe_bool)\(/gm;
     const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
     const maskText = (src: string): string => {
@@ -5792,7 +5983,7 @@ function rustBoolKLocalOptionBool(content: string): string {
  * (becomes `None`), and every other use is a null test, an `as_str()` compare or a `Value`
  * operand (re-boxed with `Value::from`). Any other use keeps `Value`.
  */
-function strLocalReassign(content: string): string {
+function strLocalReassign__o(content: string): string {
     const OPT: { [k: string]: string } = {
         safe_string: 'safe_string_opt',
         safe_string_k: 'safe_string_k_opt',
@@ -6001,7 +6192,7 @@ function strLocalReassign(content: string): string {
  * `let mut X: Value = self.safe_bool2(obj, k1, k2, &[..])` whose every later use is a native-able bool read becomes
  * `Option<bool>` / `bool` (same uses as the bool_k pass); a non-literal default, shadowing or closure keeps `Value`.
  */
-function rustBool2LocalOptionBool(content: string): string {
+function rustBool2LocalOptionBool__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool2)\(/gm;
     const maskText = (src: string): string => {
         let out = ''; let i = 0;
@@ -6156,7 +6347,7 @@ function rustBool2LocalOptionBool(content: string): string {
  * `let mut X: Value = self.safe_bool_n(obj, Value::from(vec![..]), &[..])` whose every later use is a native-able bool
  * read becomes `Option<bool>` / `bool` (same uses as the bool_k pass). Any other use or a closure keeps `Value`.
  */
-function rustBoolNLocalOptionBool(content: string): string {
+function rustBoolNLocalOptionBool__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_n)\(/gm;
     const keyListRe = /^Value::from\(vec!\[Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)(?:, Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\))*\]\)$/;
     const maskText = (src: string): string => {
@@ -6320,7 +6511,7 @@ function rustBoolNLocalOptionBool(content: string): string {
  *   `X = Value::Null | Value::Int(n) | self.safe_integer*(..);` -> `None` / `Some(n)` / `.as_i64()`
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustInt2IntNLocalOptionI64(content: string): string {
+function rustInt2IntNLocalOptionI64__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_integer(2|_n)\(/gm;
     const closeOf = (src: string, open: number): number => {
         let depth = 0; let inStr = false; let esc = false; let inLine = false;
@@ -6492,7 +6683,7 @@ function rustInt2IntNLocalOptionI64(content: string): string {
  *   `X = Value::Null | Value::Int(n) | self.safe_integer*(..);` -> `None` / `Some(n)` / `.as_i64()`
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustIntLocalNullSinkOptionI64(content: string): string {
+function rustIntLocalNullSinkOptionI64__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_integer(_k|2)?\(/gm;
     const closeOf = (src: string, open: number): number => {
         let depth = 0; let inStr = false; let esc = false; let inLine = false;
@@ -6661,7 +6852,7 @@ function rustIntLocalNullSinkOptionI64(content: string): string {
  * (-> `is_some()` / `is_none()`) or `X.as_f64() == / != Some(<n>.0)` (-> `X == / != Some(<n>.0)`).
  * Any other use, or a second binding of the name, keeps `Value`.
  */
-function rustNumber2LocalOptionF64(content: string): string {
+function rustNumber2LocalOptionF64__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
     const mask = (src: string): string => {
         let out = ''; let i = 0;
@@ -6786,7 +6977,7 @@ function rustNumber2LocalOptionF64(content: string): string {
  * `X != / == Value::Null`, `X.as_f64() == / != Some(<n>.0)`, `X.clone()` (-> `Value::from(X)`), or a bare `X`
  * as the last arg of `m.insert("k".to_string(), X);` or `self.price_to_precision(<arg>, X)`.
  */
-function rustNumber2SinkLocalOptionF64R2(content: string): string {
+function rustNumber2SinkLocalOptionF64R2__o(content: string): string {
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
     const mask = (src: string): string => {
         let out = ''; let i = 0;
@@ -6914,7 +7105,7 @@ function rustNumber2SinkLocalOptionF64R2(content: string): string {
 // `let [mut] X: Value = self.safe_string2(obj, k1, k2, &[..])` narrowed to `Option<String>` via `safe_string2_opt`.
 // Uses and sinks as in narrowStrNullLocals; default `&[]` or a `Value::Str` literal.
 
-function rustStr2LocalOptionString(content: string): string {
+function rustStr2LocalOptionString__o(content: string): string {
     const opt = 'safe_string2_opt';
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string2)\(/gm;
     const maskText = (src: string): string => {
@@ -7084,7 +7275,7 @@ function rustStr2LocalOptionString(content: string): string {
  * the literal was. Any other use (`&X`, `&mut`, a closure, a second binding, a write from
  * another expression) keeps `Value`.
  */
-function rustStrLiteralLocalNativeString(content: string): string {
+function rustStrLiteralLocalNativeString__o(content: string): string {
     const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);[ \t]*$/gm;
     const litWriteRe = /^\s*=\s*Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);/;
     // Blank string bodies and line comments; same length, quotes kept.
@@ -7252,7 +7443,7 @@ function rustStrLiteralLocalNativeString(content: string): string {
 // `let [mut] X: Value = self.safe_string_n(obj, keys, &[..])` narrowed to `Option<String>` via `safe_string_n_opt`.
 // Uses and sinks as in the str2 pass; default `&[]` or a `Value::Str` literal.
 
-function rustStrNLocalOptionString(content: string): string {
+function rustStrNLocalOptionString__o(content: string): string {
     const opt = 'safe_string_n_opt';
     const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string_n)\(/gm;
     const maskText = (src: string): string => {
@@ -7435,10 +7626,10 @@ if (platform === 'win32' && __dirname[0] === '/') {
 // enters the pipeline and restore the borrowed form at write time.
 const RUST_LITERAL_BOX_INTO = /Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)/g;
 const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
-function allocLiteralBoxes(content: string): string {
+function allocLiteralBoxes__o(content: string): string {
     return content.replace(RUST_LITERAL_BOX_INTO, 'Value::Str($1.to_string())');
 }
-function borrowLiteralBoxes(content: string): string {
+function borrowLiteralBoxes__o(content: string): string {
     return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
 }
 
@@ -7448,7 +7639,7 @@ function borrowLiteralBoxes(content: string): string {
 // which Rust folds away, so literal contents stay identical. Strings, chars,
 // raw strings and comments are tracked across lines so nothing inside them is
 // split. Runs on the final text only.
-function splitLongRustLines(content: string, max = 400): string {
+function splitLongRustLines__o(content: string, max = 400): string {
     if (!new RegExp(`[^\\n]{${max + 1}}`).test(content)) return content;
     let mode = 0; // 0 code, 1 string, 2 raw string, 3 block comment
     let rawHashes = 0;
@@ -7523,7 +7714,7 @@ function splitLongRustLines(content: string, max = 400): string {
     return outLines.join('\n');
 }
 
-function overwriteFileAndFolder(filePath: string, content: string) {
+function overwriteFileAndFolder__o(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
@@ -7532,12 +7723,12 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     writeFile(filePath, content);
 }
 
-function capitalize(s: string): string {
+function capitalize__o(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // Converts camelCase or PascalCase to snake_case
-function toSnakeCase(s: string): string {
+function toSnakeCase__o(s: string): string {
     return s
         .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
         .replace(/([a-z\d])([A-Z])/g, '$1_$2')
@@ -7619,7 +7810,11 @@ export class RustTranspilerBuilder {
     regexAll(text: string, rules: any[]): string {
         for (const [pattern, replacement] of rules) {
             const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
+            const before = text;
             text = text.replace(rx, replacement);
+            const k = 'rx:' + String(rx);
+            __C[k] = (__C[k] || 0) + 1;
+            if (text !== before) __H[k] = (__H[k] || 0) + 1; else if (!(k in __H)) __H[k] = 0;
         }
         return text;
     }
@@ -18958,7 +19153,7 @@ impl std::ops::DerefMut for ${coreName} {
 // ── CLI entry point ───────────────────────────────────────────────────────────
 
 // `tsx build/rustTranspiler.ts --self-test`: the final-text passes' own fixtures; prints every failure, exits 1 on any.
-function rustPassesSelfTest(): string[] {
+function rustPassesSelfTest__o(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
         nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest, calleeShapeContainerOpsSelfTest,
@@ -18990,6 +19185,16 @@ function rustPassesSelfTest(): string[] {
     return problems;
 }
 
+
+for (const __cls of [RustTranspilerBuilder] as any[]) {
+    for (const __n of Object.getOwnPropertyNames(__cls.prototype)) {
+        if (__n === 'constructor' || __n === 'regexAll') continue;
+        const __d = Object.getOwnPropertyDescriptor(__cls.prototype, __n);
+        if (!__d || typeof __d.value !== 'function') continue;
+        const __f = __d.value;
+        __cls.prototype[__n] = function (this: any, ...a: any[]) { return __hit('m:' + __n, __f, this, a); };
+    }
+}
 if (isMainEntry(import.meta.url) && process.argv.includes('--self-test')) {
     const log = console.log;
     console.log = () => undefined;
@@ -19035,7 +19240,7 @@ if (isMainEntry(import.meta.url)) {
 }
 
 // `in_op` arm of rustInlineCollectionHelpers: plain native op on a proven map, else the helper call.
-function rustInlineInOp (a: string[], content: string): string | undefined {
+function rustInlineInOp__o(a: string[], content: string): string | undefined {
     if (a.length !== 2) return undefined;
     const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
     const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
