@@ -8174,19 +8174,6 @@ export class RustTranspilerBuilder {
             [/\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-z][a-zA-Z0-9_]*)\s*;/g,
                 'self.$1 = $2.clone();'],
 
-            // Implicit API method calls (e.g., `self.sapi_post_margin_borrow_repay(params)`)
-            // — these are exchange-specific endpoints emitted from the
-            // `api` block. Open a `__API__&[` marker; the close-pass
-            // balances the original `)` into `])`.
-            //
-            // Avoid false positives: exclude common helpers that share the
-            // `<word>_<verb>_<word>` shape (e.g. `is_post_only`,
-            // `parse_get_X`). Match only when the scope is a known API
-            // prefix or has 2+ segments.
-            [/\bself\.((?:public|private|web|sapi|dapi|fapi|eapi|papi|cmfutures|vfutures|usdmfutures|wallet|spot|spot2|future|futures|delivery|options|broker|signed|main|sub|tickers|account|margin|lending|mining|subaccount|staking|convert|fiat|c2c|gift|nft|loan|algorithmic|portfolio|uta|api|v1|v2|v3|v4|v5)(?:_[a-z][a-z0-9]*)*_(?:get|post|put|delete|patch)_[a-z0-9_]+)\(/g,
-                (_: string, name: string) =>
-                    `self.call_method(Value::Str("${name}".to_string()), __API__&[`],
-
             // Callback fields are also called as methods in TS. The names
             // collide on Exchange (can't be both field + method). Route call
             // sites to `<name>_fn` methods; bare field reads stay as-is.
@@ -9090,93 +9077,6 @@ export class RustTranspilerBuilder {
             i = j + 1;
         }
         return out;
-    }
-
-    /**
-     * The `self.<api_method>(args)` → `self.call_method("name", &[` regex
-     * opens an `&[` slice but leaves the original closing `)` in place.
-     * This pass walks paren-balanced and replaces the matching `)` with `])`.
-     */
-    closeImplicitApiCalls(content: string): string {
-        const marker = '__API__&[';
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const markerIdx = content.indexOf(marker, i);
-            if (markerIdx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, markerIdx);
-            // emit `&[` (drop the `__API__` prefix)
-            out += '&[';
-            // Walk forward from after the `&[` looking for matching `)`.
-            let depth = 1; // we're now "inside" the original call's paren
-            let j = markerIdx + marker.length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(markerIdx + marker.length); break; }
-            // Emit args verbatim up to but not including the closing `)`,
-            // then close the slice + the call_method.
-            out += content.slice(markerIdx + marker.length, j);
-            out += '])';
-            i = j + 1;
-        }
-        return out;
-    }
-
-    /**
-     * Data-driven implicit-API rewrite. The hardcoded-prefix regex in
-     * getRustRegexes() only catches standard api groupings (public,
-     * private, sapi, fapi, …) and silently misses exchange-specific ones
-     * (alpaca's `trader`, bingx's `swap`, weex's `contract`, …), leaving
-     * `self.trader_private_get_v2_clock(...)` as a call to a method that
-     * doesn't exist.
-     *
-     * This reads the auto-generated `ts/src/abstract/<exchange>.ts` — the
-     * exhaustive list of implicit endpoint methods derived from the
-     * exchange's `api` block — and rewrites every `self.<snake_name>(`
-     * call to one of those methods into the same
-     * `self.call_method(Value::Str("<name>"), __API__&[` marker form that
-     * closeImplicitApiCalls() balances.
-     */
-    rewriteImplicitApiCalls(content: string, className: string, isPrediction = false): string {
-        const abstractPath = `./ts/src/abstract/${isPrediction ? 'prediction/' : ''}${className}.ts`;
-        if (!fs.existsSync(abstractPath)) return content;
-        const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Generated method heads look like:
-        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
-        // The name class must allow `_`: versioned endpoints carry an
-        // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
-        // Without it the capture stops at `v2`, the full snake name never
-        // enters `names`, the call isn't routed through call_method(), and its
-        // bare arg never gets folded into the `&[Value]` slice the generated
-        // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
-        const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(abstractSrc)) !== null) {
-            names.add(toSnakeCase(m[1]));
-        }
-        if (names.size === 0) return content;
-        // Rewrite `self.<name>(` for every known implicit method. Calls
-        // the regex in getRustRegexes() already converted are now
-        // `self.call_method(` and no longer match.
-        return content.replace(/\bself\.([a-z][a-z0-9_]*)\(/g, (full, name) => {
-            if (names.has(name)) {
-                return `self.call_method(Value::Str("${name}".to_string()), __API__&[`;
-            }
-            return full;
-        });
     }
 
     /**
@@ -11646,46 +11546,6 @@ export class RustTranspilerBuilder {
 
 
 
-    /**
-     * `self.call_method(Value::Str("<name>".to_string()), <args>)` →
-     * `self.<name>(<args>)`. Routes implicit-API call sites through the
-     * typed wrapper methods generated by `build/generateImplicitAPI.ts`
-     * (`<id>_api.rs`) instead of the dynamic-dispatch fallback. Compiler
-     * now catches typos and IDE jump-to-def works.
-     * Paren-balanced over the args so nested expressions like
-     * `&[self.extend(request.clone(), &[params.clone()])]` are preserved.
-     */
-    rewriteCallMethodToDirect(content: string): string {
-        const head = /self\.call_method\(\s*Value::Str\("([a-z][a-z0-9_]*)"\.to_string\(\)\)\s*,\s*/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = head.exec(content)) !== null) {
-            const name = m[1];
-            // From end of head match, paren-balance to find the closing `)`
-            // of `call_method(...)`. Args start at re.lastIndex.
-            const argsStart = head.lastIndex;
-            const j = balancedCloseIndex(content, argsStart);
-            if (j >= content.length) {
-                // Unbalanced — bail, keep verbatim.
-                continue;
-            }
-            const args = content.slice(argsStart, j).trim();
-            // All implicit-API wrappers are `pub async fn`. The downstream
-            // `appendAwaitToAsyncCalls` pass keys off `self.call_method(` —
-            // once we rename it that pass won't fire, so we must append
-            // `.await` here. Idempotent if the source already had it.
-            const tail = content.slice(j + 1);
-            const alreadyAwaited = tail.startsWith('.await');
-            const suffix = alreadyAwaited ? '' : '.await';
-            out += content.slice(last, m.index) + `self.${name}(${args})${suffix}`;
-            last = j + 1; // past the closing `)`; `.await` (if present) stays in content
-            head.lastIndex = last;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
     rewriteSelfFieldMutCloneCast(content: string): string {
         return content.replace(
             /get_value_mut\(\s*&mut\s+self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*,/g,
@@ -13386,11 +13246,6 @@ ${arms.join('\n')}
         // unwind past the parent method and leave its last_request_*
         // unset).
         content = this.rewriteTryCatchAsync(content);
-        // Data-driven implicit-API rewrite for endpoints the hardcoded
-        // prefix regex missed — must run before closeImplicitApiCalls so
-        // its `__API__&[` markers get balanced.
-        content = this.rewriteImplicitApiCalls(content, className, isPrediction);
-        content = this.closeImplicitApiCalls(content);
         content = this.cloneInRefSlices(content);
         // Recover from the rust-port's stateful methodSignatures leak:
         // call sites that wrap trailing args in `&[...]` for a method
@@ -13409,7 +13264,6 @@ ${arms.join('\n')}
         content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
         content = this.serializeAwaitedSpawns(content);
@@ -14343,9 +14197,6 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteTryCatchAsync(basePart);
 
 
-        // Close implicit API call sites (`self.call_method("X", &[` opened by
-        // the regex above) by replacing their balanced `)` with `])`.
-        basePart = this.closeImplicitApiCalls(basePart);
 
         // Re-apply `&[...]` auto-clone using paren-balanced walker so it
         // handles slices that contain `Value::Str(...)` etc.
@@ -14376,7 +14227,6 @@ impl std::ops::DerefMut for ${coreName} {
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
         basePart = this.rewriteSelfFieldMutCloneCast(basePart);
-        basePart = this.rewriteCallMethodToDirect(basePart);
         // Write COW-detached `let x = get_value(&C,&K); mutate x` back to C[K]
         // (the per-exchange pipeline already does this; the base needs it too for
         // convertOHLCVToTradingView etc. — review P0-C).
@@ -14807,7 +14657,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
                 // Async propagation — mark fns async when their body
                 // contains `.await`.
                 content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -15214,7 +15063,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
-                content = this.rewriteCallMethodToDirect(content);
                 content = this.markMethodsAsyncIfBodyAwaits(content);
                 // `assert (cond, msg)` → `assert!(cond, "msg")` → strip
                 // the second arg → wrap inner in `is_true(&(…))`. Same
@@ -15785,7 +15633,6 @@ impl std::ops::DerefMut for ${coreName} {
         );
         content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
         // Belt + braces: mark a fn async if its body holds `.await`.
         content = content.replace(
@@ -16164,7 +16011,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `try { createOrder } catch { capture last_request_body }`),
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
-            content = this.closeImplicitApiCalls(content);
             content = this.cloneInRefSlices(content);
             content = this.expandSliceForFixedAritySelfCalls(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
@@ -16180,7 +16026,6 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.stripMutSelfFieldClones(content);
             content = this.splitAddElementBorrowConflicts(content);
             content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
             content = this.appendValueNullToVoidEnds(content);
             // Strip `mut` from struct field declarations — Rust fields
             // don't take `mut`, mutability is part of the binding.
