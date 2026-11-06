@@ -9529,7 +9529,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    const baseOut = csharpParamsBagGetValue (csharpScopedEqualityInOp (objectNull, csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull))))))))))))));
+    const baseOut = csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))));
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
@@ -9980,7 +9980,6 @@ export function csharpNativeEmissionSelfTest (): string[] {
     problems.push (...paramsBagGetValueSnippetChecks ());
     problems.push (...typedSubtractMultiplySnippetChecks ());
     problems.push (...inlineHelperSwitchSnippetChecks ());
-    problems.push (...scopedEqualityInOpSelfTest ());
     problems.push (...nonNullDivModNegateSelfTest ());
     return problems.concat (stringAddEqualityTruthSelfTest ());
 }
@@ -12111,195 +12110,6 @@ function nonNullDivModNegateSelfTest (): string[] {
     keep ('divide by object', '        object r = divide(1, o);');
     const tests = 'namespace Tests;\n' + wrap ('        object m = mod(since, 2);').split ('\n').slice (1).join ('\n');
     if (csharpNonNullDivModNegate (tests) !== tests) problems.push ('non null div mod negate tests namespace changed');
-    return problems;
-}
-
-// (a) `isEqual(x, null|"lit")` on the one declaration whose block is open at the read, (b) `isEqual(a, b)`
-// on two bool/bool? names (lifted `==` = the helper's null rows), (c) `inOp(X, "lit")` on params-bag dictionaries.
-// Final (objectNull) pass only: earlier passes run before the identifier-copy retypes.
-export function csharpScopedEqualityInOp (objectNull: boolean, content: string): string {
-    if (!objectNull || !/(?<![A-Za-z0-9_.])(isEqual|inOp)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    const nullable = [ 'string', 'string?', 'Int64?', 'long?', 'int?', 'double?', 'bool?' ];
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    let dicts = Math.max (-1, ...Array.from (content.matchAll (/\binOpDict(\d+)\b/g), (m) => Number (m[1]))) + 1;
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    // top-level split of `c ? a : b` (undefined unless exactly that shape)
-    const ternary = (m: string, o: string) => {
-        let depth = 0;
-        let q = -1;
-        let c = -1;
-        for (let k = 0; k < m.length; k++) {
-            const ch = m[k];
-            if ('([{'.includes (ch)) depth++;
-            else if (')]}'.includes (ch)) depth--;
-            else if ((depth === 0) && (m.substring (k, k + 3) === ' ? ')) { if (q >= 0) return undefined; q = k; }
-            else if ((depth === 0) && (m.substring (k, k + 3) === ' : ') && (q >= 0)) { if (c >= 0) return undefined; c = k; }
-        }
-        return ((q < 0) || (c < 0)) ? undefined : [ o.substring (q + 3, c).trim (), o.substring (c + 3).trim () ];
-    };
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        // names bound by other syntax (foreach/out/pattern/catch/lambda) are never proven
-        const bound = new Set<string> ();
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/(?:\bforeach[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?,]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
-            }
-        }
-        const typeAt = (name: string, line: number): string | undefined => {
-            if (!/^[A-Za-z_]\w*$/.test (name) || bound.has (name)) return undefined;
-            const d = csharpHelperReceiverType (region, name, line, region.params) ?? csharpInOpScopedLocal (region, name, line);
-            return (d === undefined) ? undefined : d.type.replace (/^long(\??)$/, 'Int64$1');
-        };
-        // every write of `name` in the method, as statement texts (undefined when one is not `name = V;`)
-        const writesOf = (name: string): string[] | undefined => {
-            const any = new RegExp ('(?<![\\w.])' + name + '[ ]*(?:\\?\\?=|\\+=|-=|\\+\\+|--|=(?![=>]))|\\b(?:ref|out)[ ]+' + name + '\\b');
-            const stmt = new RegExp ('^[ ]*' + name + '[ ]*=[ ]*(.+);[ ]*$');
-            const out = [];
-            for (let k = start + 1; k < end; k++) {
-                if (!any.test (masked[k]) || (csharpHelperDeclarationOfLine (masked[k])?.name === name) || (masked[k].trim () === `${name} ??= new Dictionary<string, object>();`)) continue;
-                const m = stmt.exec (masked[k]);
-                if (m === null) return undefined;
-                out.push (lines[k].substring (lines[k].indexOf ('=') + 1).trim ().replace (/;[ ]*$/, ''));
-            }
-            return out;
-        };
-        // a params bag (or a value derived from one) is a Dictionary<string, object> box or null
-        const dictName = (name: string, depth: number): boolean => {
-            if ((depth > 6) || !/^[A-Za-z_]\w*$/.test (name) || bound.has (name)) return false;
-            const decls = region.declarations.filter ((d) => d.name === name);
-            if (decls.length === 0) {
-                if (region.params[name] !== 'object') return false;
-                // fetch2's params reach sign/request/rate-limit cost unchanged, list bodies included
-                if (/\b(?:sign|request|fetch2|calculateRateLimiterCost|handleErrors)\(/.test (masked[start].replace (/\(.*$/, '('))) return false;
-                const bag = masked.slice (start + 1, end).some ((l) => l.trim () === `${name} ??= new Dictionary<string, object>();`);
-                const writes = writesOf (name);
-                return bag && (writes !== undefined) && (writes.length === 0) && !masked.slice (start + 1, end).some ((l) => new RegExp ('(?<![\\w.])' + name + '[ ]*(?:=(?![=>])|\\+=)').test (l));
-            }
-            if ((decls.length !== 1) || (region.params[name] !== undefined)) return false;
-            const type = decls[0].type;
-            if ((type === 'IDictionary<string, object>') || (type === 'Dictionary<string, object>')) return true;
-            if (type !== 'object') return false;
-            const writes = writesOf (name);
-            if (writes === undefined) return false;
-            const first = lines[decls[0].line];
-            const init = first.substring (first.indexOf ('=') + 1).trim ().replace (/;[ ]*$/, '');
-            return [ init, ...writes ].every ((v) => dictValue (v, depth + 1));
-        };
-        const dictValue = (v: string, depth: number): boolean => {
-            const m = csharpHelperMaskLine (v);
-            if (/^[A-Za-z_]\w*$/.test (m)) return dictName (m, depth);
-            if (/^new Dictionary<string, object>\(\)/.test (m)) return true;
-            const omit = /^this\.omit\(([A-Za-z_]\w*),/.exec (m);
-            if ((omit !== null) && (csharpHelperCallEnd (m, 9) === m.length - 1)) return dictName (omit[1], depth);
-            const t = /^\(\(.*\)\) \? /.test (m) ? ternary (m, v) : undefined;
-            if (t !== undefined) return dictValue (t[0], depth) && dictValue (t[1], depth);
-            // slot 1 of a base handleParam*/handleOptionAndParams* tuple: the bag or its omit
-            const slot = /^\(([A-Za-z_]\w*) != null && 1 < \1\.Count \? \1\[1\] : null\)$/.exec (m);
-            if (slot !== null) {
-                const tuple = region.declarations.filter ((d) => d.name === slot[1]);
-                if ((tuple.length !== 1) || (tuple[0].type !== 'List<object>') || (writesOf (slot[1])?.length !== 0)) return false;
-                const call = /^this\.(?:handleParam(?:String|Integer|Bool)2?|handleOptionAndParams2?)\(([A-Za-z_]\w*),/.exec (tuple[0].value);
-                return (call !== null) && !new RegExp ('override[^(]*\\b' + call[0].slice (5, -call[1].length - 2) + '\\(').test (content) && dictName (call[1], depth);
-            }
-            return false;
-        };
-        for (let i = start + 1; i < end; i++) {
-            if (!/(?<![A-Za-z0-9_.])(isEqual|inOp)\(/.test (masked[i]) || /^[ ]*(\/\/|\*|\/\*)/.test (masked[i])) continue;
-            const edits = [];
-            const call = /(?<![A-Za-z0-9_.])(isEqual|inOp)\(/g;
-            let m;
-            while ((m = call.exec (masked[i])) !== null) {
-                const open = m.index + m[0].length - 1;
-                const close = csharpHelperCallEnd (masked[i], open);
-                if (close === undefined) continue;
-                const comma = csharpHelperTopLevelComma (masked[i], open, close);
-                if ((comma === undefined) || (csharpHelperTopLevelComma (masked[i], comma, close) !== undefined)) continue;
-                const a = lines[i].substring (open + 1, comma).trim ();
-                const b = lines[i].substring (comma + 1, close).trim ();
-                const lit = /^"(?:[^"\\]|\\.)*"$/;
-                let text: string | undefined = undefined;
-                if (m[1] === 'inOp') {
-                    if (lit.test (b) && dictName (a, 0)) text = `(${a} is IDictionary<string, object> inOpDict${dicts} && inOpDict${dicts}.ContainsKey(${b}))`;
-                } else {
-                    const pair = (x: string, y: string) => {
-                        const tx = typeAt (x, i);
-                        if (tx === undefined) return undefined;
-                        if ((y === 'null') && nullable.includes (tx)) return `(${x} == null)`;
-                        // a non-numeric literal: isEqual is true only for an equal string box
-                        if (lit.test (y) && [ 'object', 'string', 'string?' ].includes (tx) && !/[0-9\\]/.test (y) && !/nan|inf|\u221e/i.test (y)) return `(${x} is ${y})`;
-                        const ty = typeAt (y, i);
-                        if ([ 'bool', 'bool?' ].includes (tx) && [ 'bool', 'bool?' ].includes (ty) && ((tx === 'bool?') || (ty === 'bool?'))) return `(${x} == ${y})`;
-                        return undefined;
-                    };
-                    text = pair (a, b) ?? pair (b, a);
-                }
-                if (text !== undefined) {
-                    if (m[1] === 'inOp') dicts++;
-                    edits.push ({ start: m.index, end: close + 1, text });
-                }
-            }
-            if (edits.length === 0) continue;
-            let out = lines[i];
-            for (const e of edits.sort ((x, y) => y.start - x.start)) out = out.substring (0, e.start) + e.text + out.substring (e.end);
-            lines[i] = out;
-            masked[i] = csharpHelperMaskLine (out);
-            changed = true;
-        }
-    }
-    return changed ? lines.join ('\n') : content;
-}
-
-// snippet checks (run from csharpNativeEmissionSelfTest)
-function scopedEqualityInOpSelfTest (): string[] {
-    const problems: string[] = [];
-    const wrap = (body: string, sig = 'object parameters = null, bool? enable = null, object o = null') => `namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(${sig})\n    {\n        parameters ??= new Dictionary<string, object>();\n${body}\n    }\n}\n`;
-    const cases: [string, string, string][] = [
-        [ 'sibling-block double? null test', '        if (o == null)\n        {\n            string? p = this.safeString(o, "a");\n        } else\n        {\n            double? p = this.safeNumber(o, "a");\n            if (isEqual(p, null))\n            {\n            }\n        }', 'if ((p == null))' ],
-        [ 'sibling-block object literal', '        if (o == null)\n        {\n            string? p = this.safeString(o, "a");\n        } else\n        {\n            object p = getValue(o, "a");\n            if (isEqual(p, "abc"))\n            {\n            }\n        }', 'if ((p is "abc"))' ],
-        [ 'bool? pair', '        bool? was = this.safeBool(this.options, "x", false);\n        if (!isEqual(was, enable))\n        {\n        }', 'if (!(was == enable))' ],
-        [ 'handleParamString slot 1', '        List<object> tp = this.handleParamString(parameters, "tag");\n        object rest = (tp != null && 1 < tp.Count ? tp[1] : null);\n        if (inOp(rest, "key"))\n        {\n        }', 'if ((rest is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("key")))' ],
-        [ 'omit ternary of declared dict', '        IDictionary<string, object> pp = this.safeDict(o, "x");\n        object q = ((o != null)) ? this.omit(pp, new List<object>() {"until"}) : pp;\n        bool b = (inOp(q, "k"));', 'bool b = ((q is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("k")));' ],
-        [ 'reassigned from bag and dict', '        object q = parameters;\n        IDictionary<string, object> h = this.safeDict(o, "h");\n        if (o != null)\n        {\n            q = h;\n        }\n        if (!(inOp(q, "posSide")))\n        {\n        }', 'if (!((q is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("posSide"))))' ],
-    ];
-    const keeps: [string, string][] = [
-        [ 'numeric-looking literal', '        object p = getValue(o, "a");\n        if (isEqual(p, "1"))\n        {\n        }' ],
-        [ 'non-nullable null test', '        Int64 p = this.milliseconds();\n        if (isEqual(p, null))\n        {\n        }' ],
-        [ 'object pair', '        object p = getValue(o, "a");\n        if (isEqual(p, o))\n        {\n        }' ],
-        [ 'object param receiver (no bag)', '        if (inOp(o, "k"))\n        {\n        }' ],
-        [ 'list element receiver', '        List<object> xs = new List<object>() {};\n        object q = (xs != null && 1 < xs.Count ? xs[1] : null);\n        if (inOp(q, "k"))\n        {\n        }' ],
-        [ 'variable key', '        object q = this.omit(parameters, "a");\n        string k = "x";\n        if (inOp(q, k))\n        {\n        }' ],
-        [ 'unknown write', '        object q = this.omit(parameters, "a");\n        q = getValue(o, "x");\n        if (inOp(q, "k"))\n        {\n        }' ],
-        [ 'two open declarations', '        string? p = this.safeString(o, "a");\n        if (o == null)\n        {\n            double? p2 = 1;\n        }\n        if (isEqual(p, o))\n        {\n        }' ],
-    ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpScopedEqualityInOp (true, wrap (body));
-        if (!out.includes (expected)) problems.push (`scoped equality in op self: ${name}: ${out.slice (-500)}`);
-        if (csharpScopedEqualityInOp (true, out) !== out) problems.push (`scoped equality in op self: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpScopedEqualityInOp (true, wrap (body));
-        if (out !== wrap (body)) problems.push (`scoped equality in op self keeps ${name}: ${out.slice (-500)}`);
-    }
-    const early = wrap ('        object s = o;\n        if (isEqual(s, "buy")) { }');
-    if (csharpScopedEqualityInOp (false, early) !== early) problems.push ('scoped equality in op self fired in a non-final pass');
-    const tests = wrap ('        object q = this.omit(parameters, "a");\n        if (inOp(q, "k")) { }').replace ('namespace ccxt;', 'namespace Tests;');
-    if (csharpScopedEqualityInOp (true, tests) !== tests) problems.push ('scoped equality in op self tests namespace changed');
     return problems;
 }
 
