@@ -9080,80 +9080,6 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * The ast-transpiler's methodSignatures map persists across files,
-     * so a later class can pick up an earlier class's "optional param"
-     * shape for a same-named method. E.g. bitget's
-     *   parseFundingHistories(contracts, market = undefined, ...)
-     * makes the rust-port wrap call sites as `self.method(a0, &[a1,a2,a3])`,
-     * but gate's
-     *   parseFundingHistories(response, symbol, since, limit)
-     * has 4 required params. The inherent definition has 4 fixed args,
-     * the call site has 2 (with the trailing 3 in a slice) — mismatch.
-     *
-     * Fix: scan for inherent fixed-arity defs, then walk every call to
-     * `self.X(arg0, &[…])` and expand the slice when X's def has more
-     * fixed args.
-     */
-    expandSliceForFixedAritySelfCalls(content: string): string {
-        // Build name → fixedArity for inherent fixed-shape methods.
-        const fixedArities = new Map<string, number>();
-        const fnRe = /\bpub(?:\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g;
-        let fm: RegExpExecArray | null;
-        while ((fm = fnRe.exec(content)) !== null) {
-            const name = fm[1];
-            const params = fm[2].split(',').map(p => p.trim()).filter(Boolean);
-            const rcvIdx = params.findIndex(p => p === '&self' || p === '&mut self' || p === 'self');
-            const real = rcvIdx >= 0 ? params.slice(rcvIdx + 1) : params;
-            if (real.some(p => /:\s*&\[/.test(p))) continue;  // variadic; skip
-            // The call form `self.X(.., &[rest])` wraps the trailing args
-            // in a slice; any fixed-shape method can have that slice
-            // expanded back into positional args — including a 0-param
-            // method called `self.X(&[])` (collapsed to `self.X()`), the
-            // 1-arg `fetchSpotMarkets(params)`, or the 2-arg
-            // `parseSettlements(settlements, market)`.
-            if (!real.every(p => /:\s*Value\b/.test(p))) continue;
-            fixedArities.set(name, real.length);
-        }
-        if (fixedArities.size === 0) return content;
-        // Walk call sites of form `self.<name>(arg0, &[<inner>])`. Note
-        // we look at the LAST arg being `&[...]` since the rust-port's
-        // wrapper produces exactly two top-level args.
-        const callRe = /\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = callRe.exec(content)) !== null) {
-            const name = m[1];
-            if (!fixedArities.has(name)) continue;
-            // Find balanced close.
-            const j = balancedCloseIndex(content, m.index + m[0].length);
-            if (j >= content.length) continue;
-            const inside = content.slice(m.index + m[0].length, j);
-            const args = this.splitArgs(inside);
-            if (!args || args.length < 1) continue;
-            const lastArg = args[args.length - 1].trim();
-            if (!lastArg.startsWith('&[') || !lastArg.endsWith(']')) continue;
-            // Expand the slice contents into individual args.
-            const sliceInner = lastArg.slice(2, -1).trim();
-            let sliceArgs = sliceInner === '' ? [] : (this.splitArgs(sliceInner) || []);
-            // An empty `&[]` means the caller omitted the trailing
-            // (defaulted) params — fill with Value::Null so the arity of
-            // the fixed-shape method is still satisfied.
-            if (sliceArgs.length === 0) {
-                const needed = (fixedArities.get(name) as number) - (args.length - 1);
-                if (needed > 0) sliceArgs = Array(needed).fill('Value::Null');
-            }
-            const flat = [...args.slice(0, -1), ...sliceArgs].join(', ');
-            out += content.slice(last, m.index + m[0].length) + flat + ')';
-            last = j + 1;
-            callRe.lastIndex = last;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
-
-    /**
      * Innermost `fn` containing `idx` returns `()` (no `->` in its header)?
      * Drives the void-aware try/catch emission below: WS handlers
      * (`handleOrderBook(client, message)` → `fn ...(...) {`) are unit fns, so
@@ -13247,10 +13173,6 @@ ${arms.join('\n')}
         // unset).
         content = this.rewriteTryCatchAsync(content);
         content = this.cloneInRefSlices(content);
-        // Recover from the rust-port's stateful methodSignatures leak:
-        // call sites that wrap trailing args in `&[...]` for a method
-        // whose inherent def actually has fixed Value args get re-expanded.
-        content = this.expandSliceForFixedAritySelfCalls(content);
         // `self.super_X(...)` → `self.parent.X(...)`.
         if (parentCore) {
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
@@ -16012,7 +15934,6 @@ impl std::ops::DerefMut for ${coreName} {
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
             content = this.cloneInRefSlices(content);
-            content = this.expandSliceForFixedAritySelfCalls(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
             // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
             // Mirrors what runExchangeTestPipeline does for the per-test
