@@ -921,8 +921,8 @@ impl BingxCore {
         }
         {
                         let mut j: i64 = 0;
-            let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (trades.len() as i64) } {
+            let mut __for_first_91: bool = true;
+            while { if !__for_first_91 { j += 1; } __for_first_91 = false; j < (trades.len() as i64) } {
             stored.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1326,8 +1326,8 @@ impl BingxCore {
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| unifiedTimeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (candles.len() as i64) } {
+            let mut __for_first_92: bool = true;
+            while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (candles.len() as i64) } {
             let mut candle: Value = candles.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
@@ -1889,8 +1889,8 @@ impl BingxCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (positions.len() as i64) } {
+            let mut __for_first_93: bool = true;
+            while { if !__for_first_93 { i += 1; } __for_first_93 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
@@ -2008,8 +2008,8 @@ impl BingxCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_94: bool = true;
+            while { if !__for_first_94 { i += 1; } __for_first_94 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_ws_position(rawPosition, &[]);
             let mut symbol: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -2026,8 +2026,8 @@ impl BingxCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("swap:positions::".into()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_95: bool = true;
+            while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
@@ -2088,8 +2088,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_6: bool = true;
-                while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (types.len() as i64) } {
+                let mut __for_first_97: bool = true;
+                while { if !__for_first_97 { i += 1; } __for_first_97 = false; i < (types.len() as i64) } {
                 let mut type_var: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut baseUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]);
                 if (baseUrl.is_none()) {
@@ -2101,8 +2101,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_5: bool = true;
-                    while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (messageHashes.len() as i64) } {
+                    let mut __for_first_96: bool = true;
+                    while { if !__for_first_96 { j += 1; } __for_first_96 = false; j < (messageHashes.len() as i64) } {
                     let mut messageHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
                     client.reject(&[Value::from(error.clone()), messageHash]);
                 }
@@ -2308,8 +2308,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (orderId.is_some()) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_7: bool = true;
-                        while { if !__for_first_7 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&stored).as_f64().unwrap_or(f64::NAN) } {
+                        let mut __for_first_98: bool = true;
+                        while { if !__for_first_98 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_98 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&stored).as_f64().unwrap_or(f64::NAN) } {
                         let mut previousOrder: Value = get_value(&stored, &i);
                         if (self.safe_string_k(previousOrder.clone(), "id", &[]).as_str() == orderId.as_deref()) && (self.safe_string_k(previousOrder.clone(), "symbol", &[]).as_str() == self.safe_string_k(parsedOrder.clone(), "symbol", &[]).as_str()) {
                             let mut previousTimestamp: Value = self.safe_integer_k(previousOrder, "lastUpdateTimestamp", &[]);
@@ -2486,8 +2486,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i += 1; } __for_first_99 = false; i < (data.len() as i64) } {
             let mut balance: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2621,8 +2621,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (messageHashes.len() as i64) } {
             let mut unsubHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut subHash: Value = self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);

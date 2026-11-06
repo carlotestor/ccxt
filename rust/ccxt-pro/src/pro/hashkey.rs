@@ -444,8 +444,8 @@ impl HashkeyCore {
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (data.len() as i64) } {
             let mut candle: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -525,9 +525,9 @@ impl HashkeyCore {
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut ticker: Value = self.parse_ticker(self.safe_dict(data, Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]), &[]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[]);
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
@@ -610,8 +610,8 @@ impl HashkeyCore {
             data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1: bool = true;
-                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
+                let mut __for_first_357: bool = true;
+                while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (data.len() as i64) } {
                 let mut trade: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade, &[market.clone()]);
                 stored.append(parsed);
@@ -1014,8 +1014,8 @@ impl HashkeyCore {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_2: bool = true;
-                while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_358: bool = true;
+                while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())); }
             }

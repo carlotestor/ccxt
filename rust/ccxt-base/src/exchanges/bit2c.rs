@@ -591,8 +591,8 @@ impl Bit2cCore {
         let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (codes.len() as i64) } {
+            let mut __for_first_330: bool = true;
+            while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: Value = self.currency(code.clone());
@@ -672,8 +672,8 @@ impl Bit2cCore {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (rawBids.len() as i64) } {
+            let mut __for_first_331: bool = true;
+            while { if !__for_first_331 { i += 1; } __for_first_331 = false; i < (rawBids.len() as i64) } {
             let mut bidRow: Value = rawBids.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut bidAmount: Option<String> = self.safe_string_opt(bidRow.clone(), Value::Int(1), &[]);
             if crate::precise::Precise::stringGt(&bidAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -683,8 +683,8 @@ impl Bit2cCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (rawAsks.len() as i64) } {
+            let mut __for_first_332: bool = true;
+            while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (rawAsks.len() as i64) } {
             let mut askRow: Value = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut askAmount: Option<String> = self.safe_string_opt(askRow.clone(), Value::Int(1), &[]);
             if crate::precise::Precise::stringGt(&askAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -878,8 +878,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (keys.len() as i64) } {
+            let mut __for_first_333: bool = true;
+            while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             let mut fee: Value = self.safe_dict(fees.clone(), marketId, &[]);
@@ -1270,8 +1270,8 @@ impl Bit2cCore {
         let mut strParts: Vec<Value> = Value::Array(if let Some(__s) = str_val.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (strParts.len() as i64) } {
+            let mut __for_first_334: bool = true;
+            while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (strParts.len() as i64) } {
             newString = Value::Str(format!("{}{}", newString, strParts.get(i as usize).cloned().unwrap_or(Value::Null)).into());
         }
         }

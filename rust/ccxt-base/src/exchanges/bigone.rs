@@ -928,8 +928,8 @@ impl BigoneCore {
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { j += 1; } __for_first_220 = false; j < (chains.len() as i64) } {
+            let mut __for_first_262: bool = true;
+            while { if !__for_first_262 { j += 1; } __for_first_262 = false; j < (chains.len() as i64) } {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "gateway_name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1093,8 +1093,8 @@ impl BigoneCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (markets.len() as i64) } {
+            let mut __for_first_263: bool = true;
+            while { if !__for_first_263 { i += 1; } __for_first_263 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseAsset: Value = self.safe_dict_k(market.clone(), "base_asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1180,8 +1180,8 @@ impl BigoneCore {
         let mut contractMarkets: Value = self.to_array(contractResponse);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (contractMarkets.len() as i64) } {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (contractMarkets.len() as i64) } {
             let mut market: Value = contractMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCurrency", &[]);
@@ -1597,8 +1597,8 @@ impl BigoneCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (bidsAsksKeys.len() as i64) } {
+            let mut __for_first_265: bool = true;
+            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
             let mut price: Value = bidsAsksKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.push(Value::from(vec![self.parse_number(price, &[]), self.parse_number(amount, &[])]));
@@ -1964,8 +1964,8 @@ impl BigoneCore {
         let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (balances.len() as i64) } {
+            let mut __for_first_266: bool = true;
+            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(balance.clone(), "asset_symbol", &[]);
             let mut code: Value = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2351,8 +2351,8 @@ impl BigoneCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_225: bool = true;
-            while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (cancelled.len() as i64) } {
+            let mut __for_first_267: bool = true;
+            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2365,8 +2365,8 @@ impl BigoneCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (failed.len() as i64) } {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

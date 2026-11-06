@@ -513,8 +513,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -583,8 +583,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -691,8 +691,8 @@ impl AsterCore {
         let mut use1sFreq: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_20: bool = true;
+            while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             let mut suffix: String = "".to_string();
             if use1sFreq {
@@ -766,8 +766,8 @@ impl AsterCore {
         let mut use1sFreq: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             let mut suffix: String = "".to_string();
             if use1sFreq {
@@ -915,8 +915,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_22: bool = true;
+            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -982,8 +982,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsList.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -1140,8 +1140,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsNormalized.clone(), Value::Int(i), &[Value::Str("".into())]));
             let mut marketId: Option<String> = self.safe_string_lower_k_opt(market.clone(), "id", &[]);
             if (marketId.is_none()) {
@@ -1206,8 +1206,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsNormalized.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@aggTrade".into())).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -1514,8 +1514,8 @@ impl AsterCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsNormalized.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), depthSuffix).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -1581,8 +1581,8 @@ impl AsterCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_27: bool = true;
+            while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: Value = self.market(self.safe_string(symbolsNormalized.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), depthSuffix).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
@@ -1737,8 +1737,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_10 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_28 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
             if (symbolString.is_none()) {
@@ -1810,8 +1810,8 @@ impl AsterCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_11 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_29 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
             if (symbolString.is_none()) {
@@ -2003,8 +2003,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_12: bool = true;
-                while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_30: bool = true;
+                while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (messageHashes.len() as i64) } {
                 let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 client.reject(&[Value::from(error.clone()), messageHash]);
             }
@@ -2189,8 +2189,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut wallet: Value = self.safe_string_k(self.options.clone(), "wallet", &[Value::Str("wb".into())]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_13: bool = true;
-            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (B.len() as i64) } {
+            let mut __for_first_31: bool = true;
+            while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (B.len() as i64) } {
             let mut entry: Value = B.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2245,8 +2245,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_14: bool = true;
-                while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_32: bool = true;
+                while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
             }
@@ -2293,8 +2293,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (positions.len() as i64) } {
+            let mut __for_first_33: bool = true;
+            while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
@@ -2359,8 +2359,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_34: bool = true;
+            while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_ws_position(rawPosition, &[]);
             let mut timestamp: Value = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
@@ -2374,8 +2374,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !(self.is_empty(messageHashes).as_bool() == Some(true)) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_17: bool = true;
-                while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (newPositions.len() as i64) } {
+                let mut __for_first_35: bool = true;
+                while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (newPositions.len() as i64) } {
                 let mut position: Value = newPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())])).into());
                 client.resolve(&[position, symbolMessageHash]);
@@ -2613,8 +2613,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
-                                let mut __for_first_18: bool = true;
-                                while { if !__for_first_18 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_18 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
+                                let mut __for_first_36: bool = true;
+                                while { if !__for_first_36 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_36 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
                                 let mut orderFee: Value = fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                                 if (self.safe_string_k(orderFee.clone(), "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                     let mut feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::get_value_k(&orderFee, "cost")]);

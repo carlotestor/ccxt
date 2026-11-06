@@ -457,8 +457,8 @@ impl BitrueCore {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (balances.len() as i64) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -773,8 +773,8 @@ impl BitrueCore {
         let mut symbols: Vec<Value> = object_keys(&markets).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_135: bool = true;
+            while { if !__for_first_135 { i += 1; } __for_first_135 = false; i < (symbols.len() as i64) } {
             let mut symbolId: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut candidate: Value = self.safe_value(markets.clone(), symbolId.clone(), &[]);
             if !matches!(self.safe_bool_k(candidate.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -799,8 +799,8 @@ impl BitrueCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (bidsAsks.len() as i64) } {
+            let mut __for_first_136: bool = true;
+            while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (bidsAsks.len() as i64) } {
             let mut level: Value = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
             let mut rawAmount: Value = self.safe_number(level, Value::Int(1), &[]);
@@ -928,8 +928,8 @@ impl BitrueCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
+            let mut __for_first_137: bool = true;
+            while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (data.len() as i64) } {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit);
