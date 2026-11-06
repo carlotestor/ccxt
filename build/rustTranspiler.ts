@@ -8031,16 +8031,6 @@ export class RustTranspilerBuilder {
             // but takes `&str`. Route to `parse_json_value`.
             [/\bself\.parse_json\(/g, 'self.parse_json_value('],
 
-            // `binaryConcat()` with no args — the base method is shaped
-            // `(first, ...rest)`; supply an empty first chunk.
-            [/\bself\.binary_concat\(\s*\)/g, 'self.binary_concat(Value::Null, &[])'],
-
-            // `setProperty(this, key, value)` transpiles to
-            // `self.set_property(self, key, value)` — but `self` is a typed
-            // `&Core`, not a `Value`. Drop the redundant receiver arg; the
-            // base `set_property` always mutates `self`.
-            [/\bself\.set_property\(\s*self\s*,/g, 'self.set_property('],
-
             // `self.<field> = <localVar>;` moves the variable, which then
             // can't be used again (e.g. bullish `self.token = token;
             // return token;`). Clone on field assignment — the extra copy
@@ -8048,11 +8038,6 @@ export class RustTranspilerBuilder {
             [/\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-z][a-zA-Z0-9_]*)\s*;/g,
                 'self.$1 = $2.clone();'],
 
-            // Callback fields are also called as methods in TS. The names
-            // collide on Exchange (can't be both field + method). Route call
-            // sites to `<name>_fn` methods; bare field reads stay as-is.
-            [/\bself\.(proxy|proxy_url_callback|http_proxy_callback|https_proxy_callback|socks_proxy_callback|ws_proxy_callback|wss_proxy_callback|ws_socks_proxy_callback)\(/g,
-                'self.$1_fn('],
 
 
 
@@ -8194,9 +8179,6 @@ export class RustTranspilerBuilder {
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
-
-            // `return self;` (chained methods) — `self` isn't a Value.
-            [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
 
             // Last statement in a Value-returning method is a bare expression
             // with `;` — that returns `()`. Wrap the body so a Value::Null
