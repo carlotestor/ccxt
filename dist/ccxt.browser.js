@@ -170931,7 +170931,12 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         if (clientOrderIdList !== undefined) {
             request['origClientOrderIdList'] = clientOrderIdList;
         } else {
-            request['orderIdList'] = ids;
+            // the api takes LONG[] order ids
+            const orderIdList = [];
+            for(let i = 0; i < ids.length; i++){
+                orderIdList.push(this.parseToNumeric(ids[i]));
+            }
+            request['orderIdList'] = orderIdList;
         }
         let response;
         if (this.safeBool(market, 'swap', false)) {
