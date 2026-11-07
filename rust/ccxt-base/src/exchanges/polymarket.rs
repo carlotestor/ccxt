@@ -2059,10 +2059,10 @@ impl PolymarketCore {
         let mut ordersMarkets: Vec<Value> = Vec::new();
         let mut ordersEntries: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1097: bool = true;
-            while { if !__for_first_1097 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1097 { i += 1; } __for_first_1097 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
             let mut type_var: Option<String> = self.safe_string_lower_k_opt(rawOrder.clone(), "type", &[]);
@@ -3942,11 +3942,11 @@ impl PolymarketCore {
         let row = row.as_array().unwrap_or(&__row_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < ((row.len() as i64) as f64) } {
-            if (row.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null) != Value::Null) {
-                result.push(row.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (row.len() as i64) } {
+            if (row.get(i as usize).cloned().unwrap_or(Value::Null) != Value::Null) {
+                result.push(row.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }

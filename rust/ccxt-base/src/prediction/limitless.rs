@@ -1109,10 +1109,10 @@ impl LimitlessCore {
         let rawRows = rawRows.as_array().unwrap_or(&__rawRows_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1299: bool = true;
-            while { if !__for_first_1299 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1299 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRows.len() as i64) as f64) } {
-            let mut raw: Value = rawRows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1299 { i += 1; } __for_first_1299 = false; i < (rawRows.len() as i64) } {
+            let mut raw: Value = rawRows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rowType: Option<String> = self.safe_string_k(raw.clone(), "marketType", &[]).as_str().map(str::to_owned);
             let mut nestedMarkets: Value = self.safe_list_k(raw.clone(), "markets", &[]);
             if (rowType.as_deref() == Some("group")) && (nestedMarkets != Value::Null) {
@@ -4235,10 +4235,10 @@ if _try_result.is_err() {
         }
         let mut wanted: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1325: bool = true;
-            while { if !__for_first_1325 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1325 = false; i.as_f64().unwrap_or(f64::NAN) < ((tags.len() as i64) as f64) } {
-            wanted.push((tags.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
+            while { if !__for_first_1325 { i += 1; } __for_first_1325 = false; i < (tags.len() as i64) } {
+            wanted.push((tags.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
         }
         }
         let mut categoryIds: Vec<Value> = Vec::new();

@@ -2538,11 +2538,11 @@ impl BinanceCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1217: bool = true;
-            while { if !__for_first_1217 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1217 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), self.number_to_string(i.clone())).into()), Value::Str("].orderId".into())).into());
-            request.insert(crate::runtime::stringify_param(&key), ids.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1217 { i += 1; } __for_first_1217 = false; i < (ids.len() as i64) } {
+            let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), self.number_to_string(Value::Int(i))).into()), Value::Str("].orderId".into())).into());
+            request.insert(crate::runtime::stringify_param(&key), ids.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);

@@ -4061,10 +4061,10 @@ impl LbankCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_924: bool = true;
-            while { if !__for_first_924 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_924 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut fee: Value = response.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_924 { i += 1; } __for_first_924 = false; i < (response.len() as i64) } {
+            let mut fee: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut canWithdraw: bool = self.safe_bool_k_opt(fee.clone(), "canWithDraw", &[Value::Bool(false)]).unwrap_or(false);
             if canWithdraw {
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(fee.clone(), "assetCode", &[]), &[]);

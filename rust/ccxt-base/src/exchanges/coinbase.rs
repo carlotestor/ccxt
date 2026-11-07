@@ -6398,10 +6398,10 @@ if _try_result.is_err() {
         let ids = ids.as_array().unwrap_or(&__ids_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_546 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let __ws_arg_59 = self.parse_deposit_method_id(ids.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (ids.len() as i64) } {
+            let __ws_arg_59 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut id: Value = self.extend(__ws_arg_59, &[params.clone()]);
             result.push(id);
         }
