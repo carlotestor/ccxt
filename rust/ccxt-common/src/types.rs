@@ -427,6 +427,7 @@ pub struct Balances {
     pub free:  HashMap<String, f64>,
     pub used:  HashMap<String, f64>,
     pub total: HashMap<String, f64>,
+    pub raw:   Value,
 }
 
 impl Balances {
@@ -454,6 +455,7 @@ impl Balances {
         b.free  = extract("free");
         b.used  = extract("used");
         b.total = extract("total");
+        b.raw = v;
         b
     }
 }
@@ -1912,7 +1914,7 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook);
+raw_struct!(Ticker, Trade, OrderBook, Balances, Market, Currency, Position);
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
