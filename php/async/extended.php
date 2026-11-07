@@ -3144,10 +3144,9 @@ class extended extends Exchange {
         //         "status": "OK"
         //     }
         //
-        $orderId = ($clientOrderId === null) ? $id : null;
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $orderId,
+            'id' => ($clientOrderId === null) ? $id : null,
             'clientOrderId' => $clientOrderId,
             'timestamp' => null,
             'datetime' => null,

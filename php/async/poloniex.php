@@ -2472,8 +2472,7 @@ class poloniex extends Exchange {
             return $this->parse_order($this->safe_dict($raw, 'data', array()));
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $idValue = ($clientOrderId !== null) ? $clientOrderId : $id;
-        $request['id'] = $idValue;
+        $request['id'] = ($clientOrderId !== null) ? $clientOrderId : $id;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
         $response = array();
