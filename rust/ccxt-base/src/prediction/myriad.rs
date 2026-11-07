@@ -5136,7 +5136,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn seed_position_balances(&mut self, mut trader: Value) -> Value {
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions((Value::Null).to_opt_str_vec(), Value::Map({
+        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("address".to_string(), trader);
     m

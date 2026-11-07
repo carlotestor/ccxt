@@ -6750,7 +6750,7 @@ impl MexcCore {
             m
         });
         let __ws_arg_53 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = crate::types::IntoRaw::into_raw(self.fetch_positions((Value::Null).to_opt_str_vec(), __ws_arg_53).await);
+        let mut response: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), __ws_arg_53).await);
         return self.safe_dict(response, Value::Int(0), &[]);
         Value::Null
         })(__it.next().unwrap_or_default(), __it.collect())).await?))
