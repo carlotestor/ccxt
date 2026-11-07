@@ -4753,10 +4753,11 @@ function mapParamKind(printedParam: string): 'map' | undefined {
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
 // Typed unified-method parameters (printer `typedUnified`) and their `args[i]` dispatch lowering.
-const TYPED_PARAM_KINDS = new Set(['str', 'opti64', 'optstrvec', 'params']);
+const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'opti64', 'optstrvec', 'params']);
 
 function typedParamKind(param: string): string | undefined {
     if (/:\s*&str$/.test(param)) return 'str';
+    if (/:\s*Option<&str>$/.test(param)) return 'optstr';
     if (/:\s*Option<i64>$/.test(param)) return 'opti64';
     if (/:\s*Option<Vec<String>>$/.test(param)) return 'optstrvec';
     if (/:\s*impl Into<crate::Params>/.test(param)) return 'params';
@@ -4766,6 +4767,7 @@ function typedParamKind(param: string): string | undefined {
 function typedDispatchArg(kind: string, i: number): string {
     const arg = `args.get(${i}).cloned().unwrap_or_default()`;
     return kind === 'str' ? `args.get(${i}).and_then(|v| v.as_str()).unwrap_or_default()`
+        : kind === 'optstr' ? `args.get(${i}).and_then(|v| v.as_str())`
         : kind === 'opti64' ? `args.get(${i}).and_then(|v| v.as_i64())`
         : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
         : arg;
@@ -7203,7 +7205,7 @@ export class RustTranspilerBuilder {
         return {
             verbose: false,
             // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
-            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades'] },
+            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance'] },
         };
     }
 

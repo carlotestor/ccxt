@@ -427,6 +427,8 @@ pub struct Balances {
     pub free:  HashMap<String, f64>,
     pub used:  HashMap<String, f64>,
     pub total: HashMap<String, f64>,
+    /// The full unified balance dict this was decoded from.
+    pub raw:   Value,
 }
 
 impl Balances {
@@ -454,6 +456,7 @@ impl Balances {
         b.free  = extract("free");
         b.used  = extract("used");
         b.total = extract("total");
+        b.raw   = v;
         b
     }
 }
@@ -1912,7 +1915,28 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook);
+raw_struct!(Ticker, Trade, OrderBook, Order, Balances);
+
+/// A candle row decodes like the typed `watchOHLCV` wrapper did (missing fields read as `0.0`) and
+/// lowers back with an integer timestamp.
+impl FromRaw for OHLCV {
+    fn from_raw(v: Value) -> Self {
+        let mut out = [0.0f64; 6];
+        if let Value::Arr(fields) = &v {
+            for (i, slot) in out.iter_mut().enumerate() {
+                if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; }
+            }
+        }
+        out
+    }
+}
+impl IntoRaw for OHLCV {
+    fn into_raw(self) -> Value {
+        let mut row = vec![Value::Int(self[0] as i64)];
+        row.extend(self[1..].iter().map(|f| Value::Float(*f)));
+        Value::from(row)
+    }
+}
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
