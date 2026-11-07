@@ -14519,8 +14519,6 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ids_empty = Vec::new();
-        let ids = ids.as_array().unwrap_or(&__ids_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -14564,16 +14562,16 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_905: bool = true;
             while { if !__for_first_905 { i += 1; } __for_first_905 = false; i < (ids.len() as i64) } {
-            let mut orderId: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut orderId: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             if uta.as_bool() == Some(true) {
                 if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("orderId".to_string(), orderId.clone());
+                        m.insert("orderId".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
                     m
                 })); }
             }  else {
-                if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(orderId.clone()); }
+                if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(orderId.map(Value::from).unwrap_or(Value::Null)); }
             }
         }
         }
