@@ -96,11 +96,11 @@ impl crate::exchange_generated::ExchangeBase for OpinionCore {
                 "fetch_ohlcv" => self.fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
                 "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => self.fetch_orders(&args[..]).await,
                 "fetch_outcome" => self.fetch_outcome(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_positions" => self.fetch_positions(&args[..]).await,
-                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -127,10 +127,10 @@ impl crate::exchange_generated::ExchangeBase for OpinionCore {
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_opinion_channel" => self.subscribe_opinion_channel(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
-                "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_orders" => self.watch_orders(&args[..]).await,
-                "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -2670,7 +2670,11 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-    pub async fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_order_book(&mut self, outcome: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut outcome: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2708,9 +2712,9 @@ if _try_result.is_err() {
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
     pub async fn seed_order_book(&mut self, mut outcome: Value, mut sym: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -2769,7 +2773,11 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub async fn watch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_ticker(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
+        let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut outcome: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2783,9 +2791,9 @@ if _try_result.is_err() {
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into());
         return self.subscribe_opinion_channel(messageHash, Value::Str("market.last.price".into()), marketId).await;
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
     pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
@@ -2839,7 +2847,11 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub async fn watch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_trades(&mut self, outcome: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut outcome: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -2856,9 +2868,9 @@ if _try_result.is_err() {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into());
         let mut trades: Value = self.subscribe_opinion_channel(messageHash, Value::Str("market.last.trade".into()), marketId).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
@@ -2924,7 +2936,11 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn watch_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2945,9 +2961,9 @@ if _try_result.is_err() {
         let mut orders: Value = self.subscribe_opinion_channel(Value::from(messageHash), Value::Str("trade.order.update".into()), marketId).await;
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[sym, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
 /*
  * @ignore

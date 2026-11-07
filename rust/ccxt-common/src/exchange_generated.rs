@@ -4003,7 +4003,11 @@ pub trait ExchangeBase:
     Value::Null
 } }
 
-    fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(timeframe), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4012,9 +4016,9 @@ pub trait ExchangeBase:
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn convert_trading_view_to_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Str("t".into()));
@@ -6029,15 +6033,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn watch_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_balance(&mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send { async move {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.collect())).await?))
+    } }
 
     fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -10730,7 +10738,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })(__it.next().unwrap_or_default(), __it.collect())).await?))
     } }
 
-    fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10738,9 +10750,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn fetch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
@@ -10788,16 +10800,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
@@ -10993,15 +11009,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })(__it.next().unwrap_or_default(), __it.collect())).await?))
     } }
 
-    fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
@@ -11022,16 +11042,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })(__it.collect())).await?))
     } }
 
-    fn watch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.collect())).await?))
+    } }
 
     fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
@@ -11564,7 +11588,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn watch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn watch_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -11573,9 +11601,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.collect())).await?))
+    } }
 
     fn fetch_open_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
@@ -12032,7 +12060,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_option" => self.fetch_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_option_chain" => self.fetch_option_chain(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+            "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
             "fetch_order_book_ws" => self.fetch_order_book_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_order_books" => self.fetch_order_books(&args[..]).await,
             "fetch_order_status" => self.fetch_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -12065,13 +12093,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_spot_ohlcv" => self.fetch_spot_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_spot_tickers" => self.fetch_spot_tickers(&args[..]).await,
             "fetch_status" => self.fetch_status(&args[..]).await,
-            "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_ticker_ws" => self.fetch_ticker_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_tickers_ws" => self.fetch_tickers_ws(&args[..]).await,
             "fetch_time" => self.fetch_time(&args[..]).await,
             "fetch_total_balance" => self.fetch_total_balance(&args[..]).await,
-            "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).and_then(|v| v.as_i64()), args.get(3).cloned().unwrap_or_default()).await),
+            "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_trades_ws" => self.fetch_trades_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
@@ -12329,7 +12357,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "url_encoder_for_proxy_url" => self.url_encoder_for_proxy_url(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "watch_balance" => self.watch_balance(&args[..]).await,
+            "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
             "watch_bids_asks" => self.watch_bids_asks(&args[..]).await,
             "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "watch_funding_rates" => self.watch_funding_rates(&args[..]).await,
@@ -12342,18 +12370,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "watch_my_liquidations_for_symbols" => self.watch_my_liquidations_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "watch_my_trades" => self.watch_my_trades(&args[..]).await,
             "watch_my_trades_for_symbols" => self.watch_my_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
             "watch_ohlcv_for_symbols" => self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
             "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "watch_orders" => self.watch_orders(&args[..]).await,
+            "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "watch_orders_for_symbols" => self.watch_orders_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "watch_position" => self.watch_position(&args[..]).await,
             "watch_position_for_symbols" => self.watch_position_for_symbols(&args[..]).await,
             "watch_positions" => self.watch_positions(&args[..]).await,
-            "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "watch_tickers" => self.watch_tickers(&args[..]).await,
-            "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+            "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
             "withdraw_ws" => self.withdraw_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,

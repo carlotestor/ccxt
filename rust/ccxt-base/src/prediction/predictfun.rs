@@ -92,13 +92,13 @@ impl crate::exchange_generated::ExchangeBase for PredictfunCore {
                 "fetch_my_trades" => self.fetch_my_trades(&args[..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
                 "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders_helper" => self.fetch_orders_helper(&args[..]).await,
                 "fetch_position" => self.fetch_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_positions" => self.fetch_positions(&args[..]).await,
                 "fetch_raw_topics_by_queries" => self.fetch_raw_topics_by_queries(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).and_then(|v| v.as_i64()), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -127,8 +127,8 @@ impl crate::exchange_generated::ExchangeBase for PredictfunCore {
                 "wallet_event_outcome" => self.wallet_event_outcome(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "wallet_events_topic" => self.wallet_events_topic().await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
-                "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_orders" => self.watch_orders(&args[..]).await,
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_wallet_events" => self.watch_wallet_events(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
@@ -3771,7 +3771,11 @@ impl PredictfunCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-    pub async fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_order_book(&mut self, outcome: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut outcome: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3816,9 +3820,9 @@ impl PredictfunCore {
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.watch(url, messageHash, &[__ws_arg_17, topic, Value::Map(subscription)]).await;
         return orderbook.limit();
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -4035,7 +4039,11 @@ impl PredictfunCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn watch_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4064,9 +4072,9 @@ impl PredictfunCore {
             limitResolved = orders.get_limit(outcomeResolved.clone(), limitResolved.clone());
         }
         return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
 /*
  * @method

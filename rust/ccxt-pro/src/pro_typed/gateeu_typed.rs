@@ -493,12 +493,6 @@ impl Gateeu {
         Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
-    /// Typed wrapper around `watchOHLCV`.
-    pub async fn watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
-    }
-
     /// Typed wrapper around `fetchBorrowInterest`.
     pub async fn fetch_borrow_interest(&mut self, code: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<BorrowInterest>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_borrow_interest(&[code.map(Value::from).unwrap_or(Value::Null), symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -520,12 +514,6 @@ impl Gateeu {
     /// Typed wrapper around `fetchBalance`.
     pub async fn fetch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_balance(&[params.into().into_value()])).await?;
-        Ok(Balances::from_value(v))
-    }
-
-    /// Typed wrapper around `watchBalance`.
-    pub async fn watch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_balance(&[params.into().into_value()])).await?;
         Ok(Balances::from_value(v))
     }
 
@@ -967,18 +955,6 @@ impl Gateeu {
         Ok(vec_from_value(&v, Order::from_value))
     }
 
-    /// Typed wrapper around `watchTrades`.
-    pub async fn watch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_trades(Value::from(symbol), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Trade::from_value))
-    }
-
-    /// Typed wrapper around `watchOrderBook`.
-    pub async fn watch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_order_book(Value::from(symbol), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(OrderBook::from_value(v))
-    }
-
     /// Typed wrapper around `fetchOpenInterest`.
     pub async fn fetch_open_interest(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<OpenInterest> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_open_interest(Value::from(symbol), &[params.into().into_value()])).await?;
@@ -1037,18 +1013,6 @@ impl Gateeu {
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
-    }
-
-    /// Typed wrapper around `watchTicker`.
-    pub async fn watch_ticker(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Ticker> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_ticker(Value::from(symbol), &[params.into().into_value()])).await?;
-        Ok(Ticker::from_value(v))
-    }
-
-    /// Typed wrapper around `watchTickers`.
-    pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
-        Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `fetchOrder`.
@@ -1187,12 +1151,6 @@ impl Gateeu {
     pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_order_trades(Value::from(id), &[symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Trade::from_value))
-    }
-
-    /// Typed wrapper around `watchOrders`.
-    pub async fn watch_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_orders(&[symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
     }
 
     /// Typed wrapper around `fetchOpenOrders`.

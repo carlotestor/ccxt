@@ -216,21 +216,21 @@ impl crate::exchange_generated::ExchangeBase for KucoinCore {
                 "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_balance" => self.watch_balance(&args[..]).await,
+                "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => self.watch_bids_asks(&args[..]).await,
                 "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_mark_price" => self.watch_mark_price(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_multi_helper" => self.watch_multi_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
-                "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_orders" => self.watch_orders(&args[..]).await,
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_position" => self.watch_position(&args[..]).await,
                 "watch_positions" => self.watch_positions(&args[..]).await,
-                "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_tickers" => self.watch_tickers(&args[..]).await,
-                "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_uta_tickers" => self.watch_uta_tickers(&args[..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -795,7 +795,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -823,9 +827,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut query: Value = (if (isFuturesMethod.as_bool() == Some(true)) { paramsUta } else { paramsSpotMethod });
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         return self.subscribe(url, messageHash, topic, &[query]).await;
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -898,7 +902,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -970,9 +978,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
     pub async fn subscribe_public_multiple_uta(&mut self, mut messageHashes: Value, mut channel: Value, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1466,7 +1474,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-    pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::OHLCV>> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(timeframe), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1510,9 +1522,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             limitResolved = ohlcv.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -1723,7 +1735,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-    pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1750,9 +1766,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.filter_by_since_limit(trades, &[since.clone(), limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
         }
         return self.watch_trades_for_symbols(Value::from(vec![symbol]), &[since, limit, paramsUta]).await;
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -2074,7 +2090,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-    pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2120,9 +2140,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return orderbook.limit();
         }
         return self.watch_order_book_for_symbols(Value::from(vec![symbol]), &[limit, paramsUta]).await;
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -2763,7 +2783,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn watch_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2835,9 +2859,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
     pub fn get_orders_message_hash_suffix(&self, mut topic: Value) -> Option<String> {
         let mut suffix: Value = Value::Str("-spot".into());
@@ -3501,7 +3525,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} [params.type] *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-    pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn watch_balance(&mut self, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Balances> {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3576,9 +3604,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return self.watch(url, messageHash, &[message, uniformType]).await;
         }
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
