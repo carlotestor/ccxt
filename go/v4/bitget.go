@@ -9516,12 +9516,12 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
  * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitget) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9745,12 +9745,12 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
-func (this *Bitget) CancelUtaOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bitget) CancelUtaOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelUtaOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bitget) cancelUtaOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Bitget) cancelUtaOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9770,7 +9770,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 	var market map[string]any = this.Market(symbol)
 	var productType *string = SafeStringPtr(GetValue(this.HandleProductTypeAndParams(market, params), 0))
 	var requestList []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		var individualId *string = this.SafeString(ids, i)
 		var order map[string]any = map[string]any{
 			"orderId":  individualId,
@@ -9822,12 +9822,12 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan AsyncResult[[]Order], ids any, o
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bitget) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9874,7 +9874,7 @@ func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 	var trigger *bool = this.SafeBool2(paramsUTA, "stop", "trigger")
 	paramsUTA = this.Omit(paramsUTA, []any{"stop", "trigger"})
 	var orderIdList []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		var individualId *string = this.SafeString(ids, i)
 		var orderId map[string]any = map[string]any{
 			"orderId": individualId,

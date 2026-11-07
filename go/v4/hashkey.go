@@ -3539,12 +3539,12 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hashkey) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3683,12 +3683,12 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hashkey) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3704,7 +3704,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var orderIds string = Join(ids, ",")
+	var orderIds string = strings.Join(ids, ",")
 	request["ids"] = orderIds
 	var market map[string]any = nil
 	if symbol != nil {

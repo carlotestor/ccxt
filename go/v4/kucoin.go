@@ -6531,12 +6531,12 @@ func (this *Kucoin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
  * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
-func (this *Kucoin) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6575,7 +6575,7 @@ func (this *Kucoin) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		r3 := <-this.CancelSpotOrderAsync(StringArg(id), symbol, paramsMarketType)
+		r3 := <-this.CancelSpotOrderAsync(id, symbol, paramsMarketType)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
@@ -6583,7 +6583,7 @@ func (this *Kucoin) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 		return nil
 	} else {
 
-		r4 := <-this.CancelContractOrderAsync(StringArg(id), symbol, paramsMarketType)
+		r4 := <-this.CancelContractOrderAsync(id, symbol, paramsMarketType)
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
@@ -6889,12 +6889,12 @@ func (this *Kucoin) cancelContractOrderBody(ch chan AsyncResult[Order], id strin
  * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
  * @returns Response from the exchange
  */
-func (this *Kucoin) CancelUtaOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kucoin) CancelUtaOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelUtaOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6922,7 +6922,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id any, optio
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
 	} else {
-		if IsEqual(id, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or clientOrderId parameter"))
 		}
 		request["orderId"] = id
@@ -14836,12 +14836,12 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) Position {
  * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kucoin) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

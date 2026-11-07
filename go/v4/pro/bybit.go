@@ -456,7 +456,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
-	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
+	var orderRequest any = this.CancelOrderRequest(ccxt.SafeStringPtr(id), symbol, params)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
