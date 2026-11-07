@@ -2021,6 +2021,8 @@ impl IntoRaw for OHLCV {
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
+        // a ws cache (ArrayCache*) resolves as its marker dict; its rows live in the cache store
+        let v = crate::value::cache_entries_as_value(&v).unwrap_or(v);
         match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
     }
 }
