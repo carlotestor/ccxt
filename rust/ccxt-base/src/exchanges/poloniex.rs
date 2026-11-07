@@ -3331,8 +3331,7 @@ impl PoloniexCore {
 })]), &[]);
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut idValue: Value = (if (clientOrderId != Value::Null) { clientOrderId } else { id });
-        request.insert("id".into(), idValue);
+        request.insert("id".into(), (if (clientOrderId != Value::Null) { clientOrderId } else { id }));
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         let mut response: Value = Value::Map({

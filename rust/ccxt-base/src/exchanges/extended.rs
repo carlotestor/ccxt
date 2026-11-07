@@ -4343,16 +4343,10 @@ impl ExtendedCore {
             let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
             response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await;
         }
-        //
-        //     {
-        //         "status": "OK"
-        //     }
-        //
-        let mut orderId: Value = (if (clientOrderId.is_none()) { id } else { Value::Null });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), orderId);
+        m.insert("id".to_string(), (if (clientOrderId.is_none()) { id } else { Value::Null }));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
