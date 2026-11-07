@@ -188,6 +188,17 @@ const TYPED_CORE_METHODS = new Set([
     'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders',
     'fetch_balance', 'fetch_markets', 'fetch_currencies', 'fetch_positions', 'fetch_position',
     'watch_ticker', 'watch_tickers', 'watch_order_book', 'watch_trades', 'watch_ohlcv', 'watch_orders', 'watch_balance',
+    'watch_trades_for_symbols', 'watch_order_book_for_symbols', 'watch_ohlcv_for_symbols', 'watch_my_trades', 'watch_my_trades_for_symbols', 'watch_orders_for_symbols',
+    'watch_positions', 'watch_position_for_symbols', 'watch_position', 'watch_bids_asks', 'watch_liquidations', 'watch_liquidations_for_symbols',
+    'watch_my_liquidations', 'watch_my_liquidations_for_symbols', 'watch_funding_rate', 'watch_funding_rates', 'watch_funding_rates_for_symbols', 'watch_mark_price',
+    'watch_mark_prices', 'un_watch_bids_asks', 'un_watch_funding_rate', 'un_watch_funding_rates', 'un_watch_mark_price', 'un_watch_mark_prices',
+    'un_watch_my_trades', 'un_watch_ohlcv', 'un_watch_ohlcv_for_symbols', 'un_watch_order_book', 'un_watch_order_book_for_symbols', 'un_watch_orders',
+    'un_watch_positions', 'un_watch_ticker', 'un_watch_tickers', 'un_watch_trades', 'un_watch_trades_for_symbols', 'cancel_all_orders_ws',
+    'cancel_order_ws', 'create_order_ws', 'edit_order_ws', 'fetch_balance_ws', 'fetch_closed_orders_ws', 'fetch_currencies_ws',
+    'fetch_deposits_ws', 'fetch_markets_ws', 'fetch_my_trades_ws', 'fetch_ohlcv_ws', 'fetch_open_orders_ws', 'fetch_order_book_ws',
+    'fetch_orders_by_status_ws', 'fetch_orders_ws', 'fetch_order_ws', 'fetch_positions_for_symbol_ws', 'fetch_positions_ws', 'fetch_position_ws',
+    'fetch_tickers_ws', 'fetch_ticker_ws', 'fetch_trades_ws', 'fetch_trading_fees_ws', 'fetch_withdrawals_ws', 'fetch_events',
+    'fetch_event', 'fetch_settlements',
 ]);
 
 interface ParamInfo {

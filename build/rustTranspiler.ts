@@ -4753,7 +4753,7 @@ function mapParamKind(printedParam: string): 'map' | undefined {
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
 // Typed unified-method parameters (printer `typedUnified`) and their `args[i]` dispatch lowering.
-const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'f64', 'optf64', 'opti64', 'optstrvec', 'params']);
+const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'f64', 'optf64', 'opti64', 'optstrvec', 'strvecvec', 'params']);
 
 function typedParamKind(param: string): string | undefined {
     if (/:\s*&str$/.test(param)) return 'str';
@@ -4762,6 +4762,7 @@ function typedParamKind(param: string): string | undefined {
     if (/:\s*Option<f64>$/.test(param)) return 'optf64';
     if (/:\s*Option<i64>$/.test(param)) return 'opti64';
     if (/:\s*Option<Vec<String>>$/.test(param)) return 'optstrvec';
+    if (/:\s*Vec<Vec<String>>$/.test(param)) return 'strvecvec';
     if (/:\s*impl Into<crate::Params>/.test(param)) return 'params';
     return undefined;
 }
@@ -4774,6 +4775,7 @@ function typedDispatchArg(kind: string, i: number): string {
         : kind === 'optf64' ? `args.get(${i}).and_then(crate::Value::as_f64)`
         : kind === 'opti64' ? `args.get(${i}).and_then(crate::Value::as_i64)`
         : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
+        : kind === 'strvecvec' ? `${arg}.to_str_vec_vec()`
         : arg;
 }
 
@@ -7209,7 +7211,8 @@ export class RustTranspilerBuilder {
         return {
             verbose: false,
             // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
-            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance'] },
+            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance',
+                'watchTradesForSymbols', 'watchOrderBookForSymbols', 'watchOHLCVForSymbols', 'watchMyTrades', 'watchMyTradesForSymbols', 'watchOrdersForSymbols', 'watchPositions', 'watchPositionForSymbols', 'watchPosition', 'watchBidsAsks', 'watchLiquidations', 'watchLiquidationsForSymbols', 'watchMyLiquidations', 'watchMyLiquidationsForSymbols', 'watchFundingRate', 'watchFundingRates', 'watchFundingRatesForSymbols', 'watchMarkPrice', 'watchMarkPrices', 'unWatchBidsAsks', 'unWatchFundingRate', 'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unWatchTicker', 'unWatchTickers', 'unWatchTrades', 'unWatchTradesForSymbols', 'cancelAllOrdersWs', 'cancelOrderWs', 'createOrderWs', 'editOrderWs', 'fetchBalanceWs', 'fetchClosedOrdersWs', 'fetchCurrenciesWs', 'fetchDepositsWs', 'fetchMarketsWs', 'fetchMyTradesWs', 'fetchOHLCVWs', 'fetchOpenOrdersWs', 'fetchOrderBookWs', 'fetchOrdersByStatusWs', 'fetchOrdersWs', 'fetchOrderWs', 'fetchPositionsForSymbolWs', 'fetchPositionsWs', 'fetchPositionWs', 'fetchTickersWs', 'fetchTickerWs', 'fetchTradesWs', 'fetchTradingFeesWs', 'fetchWithdrawalsWs', 'fetchEvents', 'fetchEvent', 'fetchSettlements'] },
         };
     }
 

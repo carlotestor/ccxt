@@ -246,7 +246,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -282,7 +282,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
