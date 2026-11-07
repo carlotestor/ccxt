@@ -3580,10 +3580,9 @@ public class Extended extends ExtendedApi
             //         "status": "OK"
             //     }
             //
-            Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
             HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
             mapLiteral16.put("info", response);
-            mapLiteral16.put("id", orderId);
+            mapLiteral16.put("id", (((java.util.Objects.equals(clientOrderId, null)))) ? id : null);
             mapLiteral16.put("clientOrderId", clientOrderId);
             mapLiteral16.put("timestamp", null);
             mapLiteral16.put("datetime", null);

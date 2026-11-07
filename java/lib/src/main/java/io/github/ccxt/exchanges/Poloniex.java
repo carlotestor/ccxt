@@ -2840,8 +2840,7 @@ public class Poloniex extends PoloniexApi
                 return this.parseOrder(this.safeDict(raw, "data", new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object idValue = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id;
-            request.put("id", idValue);
+            request.put("id", (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "stop")));
             Map<String, Object> response = new HashMap<String, Object>() {{}};
