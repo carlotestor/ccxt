@@ -2386,8 +2386,7 @@ export default class poloniex extends Exchange {
             return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        const idValue = (clientOrderId !== undefined) ? clientOrderId : id;
-        request['id'] = idValue;
+        request['id'] = (clientOrderId !== undefined) ? clientOrderId : id;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         const paramsOmitted = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
         let response = {};

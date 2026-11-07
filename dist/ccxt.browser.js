@@ -353870,10 +353870,9 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         //         "status": "OK"
         //     }
         //
-        const orderId = clientOrderId === undefined ? id : undefined;
         return this.safeOrder({
             'info': response,
-            'id': orderId,
+            'id': clientOrderId === undefined ? id : undefined,
             'clientOrderId': clientOrderId,
             'timestamp': undefined,
             'datetime': undefined,
@@ -488885,8 +488884,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        const idValue = clientOrderId !== undefined ? clientOrderId : id;
-        request['id'] = idValue;
+        request['id'] = clientOrderId !== undefined ? clientOrderId : id;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         const paramsOmitted = this.omit(params, [
             'clientOrderId',
