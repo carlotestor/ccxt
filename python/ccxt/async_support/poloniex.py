@@ -2307,8 +2307,7 @@ class poloniex(Exchange, ImplicitAPI):
             #
             return self.parse_order(self.safe_dict(raw, 'data', {}))
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        idValue = clientOrderId if (clientOrderId is not None) else id
-        request['id'] = idValue
+        request['id'] = clientOrderId if (clientOrderId is not None) else id
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         paramsOmitted = self.omit(params, ['clientOrderId', 'trigger', 'stop'])
         response = {}

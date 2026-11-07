@@ -2830,10 +2830,9 @@ class extended(Exchange, ImplicitAPI):
         #         "status": "OK"
         #     }
         #
-        orderId = id if (clientOrderId is None) else None
         return self.safe_order({
             'info': response,
-            'id': orderId,
+            'id': id if (clientOrderId is None) else None,
             'clientOrderId': clientOrderId,
             'timestamp': None,
             'datetime': None,
