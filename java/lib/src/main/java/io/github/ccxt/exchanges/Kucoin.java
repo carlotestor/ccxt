@@ -13002,10 +13002,9 @@ public class Kucoin extends KucoinApi
                 mapLiteral18.put("clientOid", this.safeString(clientOrderIds, i));
                 ((List<Object>)ordersRequests).add(mapLiteral18);
             }
-            List<Object> idsList = this.toArray(ids);
-            for (var i = 0; i < ((List<?>)idsList).size(); i++)
+            for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                String orderId = this.safeString(idsList, i);
+                Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 if (Boolean.TRUE.equals(uta))
                 {
                     HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
