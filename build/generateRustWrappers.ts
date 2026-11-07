@@ -188,6 +188,14 @@ const TYPED_CORE_METHODS = new Set([
     'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders',
     'fetch_balance', 'fetch_markets', 'fetch_currencies', 'fetch_positions', 'fetch_position',
     'watch_ticker', 'watch_tickers', 'watch_order_book', 'watch_trades', 'watch_ohlcv', 'watch_orders', 'watch_balance',
+    'fetch_open_order', 'fetch_closed_order', 'fetch_canceled_orders', 'fetch_canceled_and_closed_orders',
+    'fetch_order_trades', 'cancel_orders', 'create_orders', 'edit_orders', 'create_limit_order',
+    'create_market_order', 'create_limit_buy_order', 'create_limit_sell_order', 'create_market_buy_order',
+    'create_market_sell_order', 'create_market_order_with_cost', 'create_market_buy_order_with_cost',
+    'create_market_sell_order_with_cost', 'create_post_only_order', 'create_reduce_only_order',
+    'create_stop_order', 'create_stop_limit_order', 'create_stop_market_order', 'create_stop_loss_order',
+    'create_take_profit_order', 'create_trigger_order', 'create_trailing_amount_order',
+    'create_trailing_percent_order', 'create_order_with_take_profit_and_stop_loss', 'create_twap_order',
 ]);
 
 interface ParamInfo {
