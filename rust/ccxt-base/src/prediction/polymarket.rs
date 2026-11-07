@@ -1165,10 +1165,10 @@ impl PolymarketCore {
         });
         let mut rawEvents: Vec<Value> = Vec::new();
         {
-                        let mut qi: Value = Value::Int(0);
+                        let mut qi: i64 = 0;
             let mut __for_first_1403: bool = true;
-            while { if !__for_first_1403 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1403 = false; qi.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-            let mut q: Value = queries.get((qi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1403 { qi += 1; } __for_first_1403 = false; qi < (queries.len() as i64) } {
+            let mut q: Value = queries.get(qi as usize).cloned().unwrap_or(Value::Null);
             let mut baseRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("q".to_string(), q);
@@ -1745,10 +1745,10 @@ impl PolymarketCore {
         let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         let mut tokenIds: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1415: bool = true;
-            while { if !__for_first_1415 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1415 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
-            let mut outcomeSymbol: Value = outcomeSymbols.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1415 { i += 1; } __for_first_1415 = false; i < (outcomeSymbols.len() as i64) } {
+            let mut outcomeSymbol: Value = outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -1810,11 +1810,11 @@ impl PolymarketCore {
             self.populate_outcomes();
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1418: bool = true;
-            while { if !__for_first_1418 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1418 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
-            if !(self.has_outcome(outcomeSymbols.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                self.fetch_outcome(outcomeSymbols.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).await;
+            while { if !__for_first_1418 { i += 1; } __for_first_1418 = false; i < (outcomeSymbols.len() as i64) } {
+            if !(self.has_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
             }
         }
         }
@@ -4237,10 +4237,10 @@ impl PolymarketCore {
         let rawEvents = rawEvents.as_array().unwrap_or(&__rawEvents_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1439: bool = true;
-            while { if !__for_first_1439 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1439 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawEvents.len() as i64) as f64) } {
-            let mut rawEvent: Value = rawEvents.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1439 { i += 1; } __for_first_1439 = false; i < (rawEvents.len() as i64) } {
+            let mut rawEvent: Value = rawEvents.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.parse_event(rawEvent));
         }
         }
@@ -4683,10 +4683,10 @@ if _try_result.is_err() {
         let __message_empty = Vec::new();
         let message = message.as_array().unwrap_or(&__message_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1442: bool = true;
-            while { if !__for_first_1442 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1442 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut event: Value = message.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (message.len() as i64) } {
+            let mut event: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             if (event == Value::Null) || (event == Value::Null) || (!matches!(&event, Value::Dict(_))) {
                 continue;
             }

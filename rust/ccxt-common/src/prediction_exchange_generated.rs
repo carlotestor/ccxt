@@ -1006,10 +1006,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let __outcomeSymbols_empty = Vec::new();
         let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_211: bool = true;
-            while { if !__for_first_211 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_211 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
-            self.fetch_outcome(outcomeSymbols.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).await;
+            while { if !__for_first_211 { i += 1; } __for_first_211 = false; i < (outcomeSymbols.len() as i64) } {
+            self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
         }
         }
         return self.pred().outcomes.clone();
