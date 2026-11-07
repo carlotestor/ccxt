@@ -3377,8 +3377,7 @@ public partial class extended : Exchange
         //         "status": "OK"
         //     }
         //
-        object orderId = ((clientOrderId == null)) ? id : null;
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", orderId },             { "clientOrderId", clientOrderId },             { "timestamp", null },             { "datetime", null },             { "symbol", orderSymbol },             { "status", "canceled" },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((clientOrderId == null)) ? id : null },             { "clientOrderId", clientOrderId },             { "timestamp", null },             { "datetime", null },             { "symbol", orderSymbol },             { "status", "canceled" },         }, market);
     }
 
     /**

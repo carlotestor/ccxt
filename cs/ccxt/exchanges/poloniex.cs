@@ -2736,8 +2736,7 @@ public partial class poloniex : Exchange
             return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object idValue = ((clientOrderId != null)) ? clientOrderId : id;
-        request["id"] = idValue;
+        request["id"] = ((clientOrderId != null)) ? clientOrderId : id;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"}));
         Dictionary<string, object> response = new Dictionary<string, object>() {};
