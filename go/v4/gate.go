@@ -6299,7 +6299,7 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var isTakeProfitOrder bool = (takeProfitPrice != nil)
 	var isTpsl bool = isStopLossOrder || isTakeProfitOrder
 	var nonTriggerOrder bool = !isTpsl && (trigger == nil)
-	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if (*this.SafeBool(market, "spot", false)) || (*this.SafeBool(market, "margin", false)) {
 		if nonTriggerOrder {

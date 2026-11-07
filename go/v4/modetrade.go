@@ -2598,7 +2598,7 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[Order], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")

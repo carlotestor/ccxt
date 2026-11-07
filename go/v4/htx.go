@@ -7428,7 +7428,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		}
 		response = r2.Value
 	} else {
-		var contractRequest map[string]any = this.CreateContractOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+		var contractRequest map[string]any = this.CreateContractOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 		if *this.SafeBool(market, "linear", false) {
 			if isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder {
 

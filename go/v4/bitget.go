@@ -8439,7 +8439,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 	}
 	if isStockOrUta {
-		var request map[string]any = this.CreateUtaOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsUTA)
+		var request map[string]any = this.CreateUtaOrderRequest(&symbol, &typeVar, &side, amount, price, paramsUTA)
 		if isStockSpot {
 
 			r2 := <-this.PrivateUtaPostV3TradePlaceRealityOrder(request)
@@ -8463,7 +8463,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			response = r4.Value
 		}
 	} else {
-		var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsUTA)
+		var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, paramsUTA)
 		if *this.SafeBool(market, "spot", false) {
 			if isTriggerOrder {
 
