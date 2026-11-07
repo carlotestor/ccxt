@@ -1915,7 +1915,8 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position);
+raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position,
+    Transaction, DepositAddress, Transfer, LedgerEntry, TradingFee, DepositWithdrawFee);
 
 /// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
 impl FromRaw for OHLCV {

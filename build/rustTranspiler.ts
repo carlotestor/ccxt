@@ -7209,7 +7209,7 @@ export class RustTranspilerBuilder {
         return {
             verbose: false,
             // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
-            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance'] },
+            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance', 'fetchDeposits', 'fetchWithdrawals', 'fetchDepositsWithdrawals', 'fetchTransactions', 'fetchDepositAddress', 'fetchDepositAddresses', 'withdraw', 'transfer', 'fetchTransfers', 'fetchLedger', 'fetchTradingFee', 'fetchTradingFees', 'fetchDepositWithdrawFees'] },
         };
     }
 

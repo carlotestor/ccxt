@@ -188,6 +188,9 @@ const TYPED_CORE_METHODS = new Set([
     'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders',
     'fetch_balance', 'fetch_markets', 'fetch_currencies', 'fetch_positions', 'fetch_position',
     'watch_ticker', 'watch_tickers', 'watch_order_book', 'watch_trades', 'watch_ohlcv', 'watch_orders', 'watch_balance',
+    'fetch_deposits', 'fetch_withdrawals', 'fetch_deposits_withdrawals', 'fetch_transactions', 'fetch_deposit_address',
+    'fetch_deposit_addresses', 'withdraw', 'transfer', 'fetch_transfers', 'fetch_ledger', 'fetch_trading_fee',
+    'fetch_trading_fees', 'fetch_deposit_withdraw_fees',
 ]);
 
 interface ParamInfo {
