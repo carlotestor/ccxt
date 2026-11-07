@@ -425546,7 +425546,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             });
         }
         for(let i = 0; i < ids.length; i++){
-            const orderId = ids[i];
+            const orderId = this.safeString(ids, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,

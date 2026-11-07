@@ -11159,7 +11159,7 @@ export default class kucoin extends Exchange {
             });
         }
         for (let i = 0; i < ids.length; i++) {
-            const orderId = ids[i];
+            const orderId = this.safeString(ids, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
