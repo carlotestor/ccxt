@@ -219,6 +219,9 @@ func (this *BaseExchange) ToArray(a any) []any {
 	if slice, ok := a.([]any); ok {
 		return slice
 	}
+	if strs, ok := a.([]string); ok {
+		return StringSliceToList(strs)
+	}
 
 	// Check if `a` implements IArrayCache interface (handles all cache types)
 	if cache, ok := a.(IArrayCache); ok {
