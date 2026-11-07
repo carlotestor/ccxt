@@ -179,8 +179,8 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
                 "borrow_cross_margin" => self.borrow_cross_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "borrow_isolated_margin" => self.borrow_isolated_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
-                "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
+                "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_convert_trade" => self.create_convert_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "create_expired_option_market" => self.create_expired_option_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -188,12 +188,14 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
                 "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "create_market_order_with_cost" => self.create_market_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "create_market_sell_order_with_cost" => self.create_market_sell_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
+                    args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_contract_order" => self.edit_contract_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "edit_contract_order_request" => self.edit_contract_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
-                "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
+                    args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_orders" => self.edit_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_spot_order" => self.edit_spot_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "edit_spot_order_request" => self.edit_spot_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
@@ -248,7 +250,7 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
                 "fetch_option" => self.fetch_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_option_positions" => self.fetch_option_positions(&args[..]).await,
                 "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_orders" => self.fetch_orders(&args[..]).await,
                 "fetch_position" => self.fetch_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -258,10 +260,10 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
                 "fetch_positions_risk" => self.fetch_positions_risk(&args[..]).await,
                 "fetch_settlement_history" => self.fetch_settlement_history(&args[..]).await,
                 "fetch_status" => self.fetch_status(&args[..]).await,
-                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => self.fetch_time(&args[..]).await,
-                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).and_then(|v| v.as_i64()), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "fetch_trading_limits" => self.fetch_trading_limits(&args[..]).await,
@@ -10033,7 +10035,11 @@ impl BinanceCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    pub async fn edit_order(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10052,9 +10058,9 @@ impl BinanceCore {
         }  else {
             return self.edit_contract_order(id, symbol, type_var, side, amount, &[price, params]).await;
         }
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -10996,7 +11002,11 @@ impl BinanceCore {
  * @param {string} [params.tradingSession] *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_order(&mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11092,9 +11102,9 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned empty response".into()))));
         }
         return self.parse_order(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -11706,7 +11716,7 @@ impl BinanceCore {
             m
         });
         let __ws_arg_56 = self.extend(Value::Map(req), &[params]);
-        return self.create_order(symbol, Value::Str("market".into()), side, cost, &[Value::Null, __ws_arg_56]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost.as_f64().unwrap_or_default(), None, __ws_arg_56).await);
 
     Value::Null
 }
@@ -11739,7 +11749,7 @@ impl BinanceCore {
             m
         });
         let __ws_arg_57 = self.extend(Value::Map(req), &[params]);
-        return self.create_order(symbol, Value::Str("market".into()), Value::Str("buy".into()), cost, &[Value::Null, __ws_arg_57]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, __ws_arg_57).await);
 
     Value::Null
 }
@@ -11767,7 +11777,7 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), cost.clone()); }
-        return self.create_order(symbol, Value::Str("market".into()), Value::Str("sell".into()), cost, &[Value::Null, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), None, params).await);
 
     Value::Null
 }
@@ -12870,7 +12880,11 @@ impl BinanceCore {
  * @param {boolean} [params.stock] set to true if you would like to cancel a tokenized stock order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut id: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -13002,9 +13016,9 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned empty response".into()))));
         }
         return self.parse_order(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -13030,7 +13044,11 @@ impl BinanceCore {
  * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders(&mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -13141,9 +13159,9 @@ impl BinanceCore {
 }), &[]);
             return Value::from(vec![order]);
         }
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
 /*
  * @method

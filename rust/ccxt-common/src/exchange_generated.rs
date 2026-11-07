@@ -10865,28 +10865,31 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.edit_order(id, symbol, Value::Str("limit".into()), side, &[amount, price, params]).await;
+        return crate::types::IntoRaw::into_raw(self.edit_order(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), "limit", side.as_str().unwrap_or_default(), amount.as_f64(), price.as_f64(), params).await);
 
     Value::Null
 } }
 
-    fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn edit_order(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("edit_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("edit_order", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.cancel_order(id, &[symbol.clone()]).await;
-        return self.create_order(symbol, type_var, side, amount, &[price, params]).await;
-
-    Value::Null
-} }
+        crate::types::IntoRaw::into_raw(self.cancel_order(id.as_str().unwrap_or_default(), symbol.as_str(), Value::Null).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut amount = get_arg(optional_args, 0, Value::Null);
@@ -10900,7 +10903,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("clientOrderId".to_string(), clientOrderId);
             m
         })]);
-        return self.edit_order(Value::Str("".into()), symbol, type_var, side, &[amount, price, extendedParams]).await;
+        return crate::types::IntoRaw::into_raw(self.edit_order("", symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64(), price.as_f64(), extendedParams).await);
 
     Value::Null
 } }
@@ -11098,21 +11101,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn create_order(&mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol); __args.push(type_var); __args.push(side); __args.push(amount); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("create_order", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
     fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -11144,7 +11150,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
         if (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, params]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() is not supported yet".into()))));
 
@@ -11181,7 +11187,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
         if (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, params]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() is not supported yet".into()))));
 
@@ -11206,7 +11212,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if ((self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) || (((self.has.as_map().and_then(|__m|
             __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null) !=
             Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)))) {
-            return self.create_order(symbol, Value::Str("market".into()), side, cost, &[Value::Int(1), params]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketOrderWithCost() is not supported yet".into()))));
 
@@ -11229,7 +11235,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          */
         if ((match &(self.options.as_map().and_then(|__m| __m.get("createMarketBuyOrderRequiresPrice")).cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) || ((self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
-            return self.create_order(symbol, Value::Str("market".into()), Value::Str("buy".into()), cost, &[Value::Int(1), params]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is not supported yet".into()))));
 
@@ -11252,7 +11258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          */
         if ((match &(self.options.as_map().and_then(|__m| __m.get("createMarketSellOrderRequiresPrice")).cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) || ((self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
-            return self.create_order(symbol, Value::Str("market".into()), Value::Str("sell".into()), cost, &[Value::Int(1), params]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() is not supported yet".into()))));
 
@@ -11288,7 +11294,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]);
         if (self.has.as_map().and_then(|__m| __m.get("createTriggerOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTriggerOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, paramsExtended]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsExtended).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createTriggerOrder() is not supported yet".into()))));
 
@@ -11324,7 +11330,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]);
         if (self.has.as_map().and_then(|__m| __m.get("createStopLossOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createStopLossOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, paramsExtended]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsExtended).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createStopLossOrder() is not supported yet".into()))));
 
@@ -11360,7 +11366,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]);
         if (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, paramsExtended]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsExtended).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createTakeProfitOrder() is not supported yet".into()))));
 
@@ -11399,7 +11405,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          */
         let mut paramsValue: Value = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
         if (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.create_order(symbol, type_var, side, amount, &[price, paramsValue]).await;
+            return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), paramsValue).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".into()))));
 
@@ -11421,21 +11427,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn cancel_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("cancel_order", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut id: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
 /*
  * @method
@@ -11457,7 +11466,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("clientOrderId".to_string(), clientOrderId);
             m
         })]);
-        return self.cancel_order(Value::Str("".into()), &[symbol, extendedParams]).await;
+        return crate::types::IntoRaw::into_raw(self.cancel_order("", symbol.as_str(), extendedParams).await);
 
     Value::Null
 } }
@@ -11503,28 +11512,31 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn cancel_all_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn cancel_all_orders(&mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.collect())).await?))
+    } }
 
     fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.cancel_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order, "symbol", &[]), params]).await;
+        return crate::types::IntoRaw::into_raw(self.cancel_order((self.safe_string_k(order.clone(), "id", &[])).as_str().unwrap_or_default(), (self.safe_string_k(order, "symbol", &[])).as_str(), params).await);
 
     Value::Null
 } }
@@ -11670,7 +11682,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("limit".into()), side, amount, &[price, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "limit", side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
 
     Value::Null
 } }
@@ -11681,7 +11693,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("market".into()), side, amount, &[price, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
 
     Value::Null
 } }
@@ -11691,7 +11703,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("limit".into()), Value::Str("buy".into()), amount, &[price, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "limit", "buy", amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
 
     Value::Null
 } }
@@ -11701,7 +11713,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("limit".into()), Value::Str("sell".into()), amount, &[price, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "limit", "sell", amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
 
     Value::Null
 } }
@@ -11711,7 +11723,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("market".into()), Value::Str("buy".into()), amount, &[Value::Null, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", amount.as_f64().unwrap_or_default(), None, params).await);
 
     Value::Null
 } }
@@ -11721,7 +11733,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.create_order(symbol, Value::Str("market".into()), Value::Str("sell".into()), amount, &[Value::Null, params]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", amount.as_f64().unwrap_or_default(), None, params).await);
 
     Value::Null
 } }
@@ -11740,7 +11752,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("postOnly".to_string(), Value::Bool(true));
             m
         })]);
-        return self.create_order(symbol, type_var, side, amount, &[price, query]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), query).await);
 
     Value::Null
 } }
@@ -11759,7 +11771,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("reduceOnly".to_string(), Value::Bool(true));
             m
         })]);
-        return self.create_order(symbol, type_var, side, amount, &[price, query]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), query).await);
 
     Value::Null
 } }
@@ -11782,7 +11794,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("stopPrice".to_string(), triggerPrice);
             m
         })]);
-        return self.create_order(symbol, type_var, side, amount, &[price, query]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), query).await);
 
     Value::Null
 } }
@@ -11800,7 +11812,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("stopPrice".to_string(), triggerPrice);
             m
         })]);
-        return self.create_order(symbol, Value::Str("limit".into()), side, amount, &[price, query]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "limit", side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), query).await);
 
     Value::Null
 } }
@@ -11818,7 +11830,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("stopPrice".to_string(), triggerPrice);
             m
         })]);
-        return self.create_order(symbol, Value::Str("market".into()), side, amount, &[Value::Null, query]).await;
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), None, query).await);
 
     Value::Null
 } }
@@ -11863,12 +11875,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "call_method" => self.call_method(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "cancel_all_contract_orders" => self.cancel_all_contract_orders(&args[..]).await,
-            "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
+            "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
             "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args[..]).await,
             "cancel_all_spot_orders" => self.cancel_all_spot_orders(&args[..]).await,
             "cancel_contract_order" => self.cancel_contract_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
             "cancel_order_with_client_order_id" => self.cancel_order_with_client_order_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -11914,7 +11926,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "create_market_sell_order_with_cost" => self.create_market_sell_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
             "create_market_sell_order_ws" => self.create_market_sell_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
             "create_ohlcv_object" => self.create_ohlcv_object(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+            "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
+                args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
             "create_order_with_take_profit_and_stop_loss" => self.create_order_with_take_profit_and_stop_loss(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
             "create_order_with_take_profit_and_stop_loss_ws" => self.create_order_with_take_profit_and_stop_loss_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
             "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -11951,7 +11964,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "edit_limit_buy_order" => self.edit_limit_buy_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
             "edit_limit_order" => self.edit_limit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
             "edit_limit_sell_order" => self.edit_limit_sell_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-            "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+            "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
+                args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
             "edit_order_with_client_order_id" => self.edit_order_with_client_order_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
             "edit_order_ws" => self.edit_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
             "edit_orders" => self.edit_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -12032,7 +12046,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_option" => self.fetch_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_option_chain" => self.fetch_option_chain(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+            "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
             "fetch_order_book_ws" => self.fetch_order_book_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_order_books" => self.fetch_order_books(&args[..]).await,
             "fetch_order_status" => self.fetch_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -12065,13 +12079,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_spot_ohlcv" => self.fetch_spot_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_spot_tickers" => self.fetch_spot_tickers(&args[..]).await,
             "fetch_status" => self.fetch_status(&args[..]).await,
-            "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_ticker_ws" => self.fetch_ticker_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_tickers_ws" => self.fetch_tickers_ws(&args[..]).await,
             "fetch_time" => self.fetch_time(&args[..]).await,
             "fetch_total_balance" => self.fetch_total_balance(&args[..]).await,
-            "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).and_then(|v| v.as_i64()), args.get(3).cloned().unwrap_or_default()).await),
+            "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_trades_ws" => self.fetch_trades_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,

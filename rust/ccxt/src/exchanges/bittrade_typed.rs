@@ -901,12 +901,6 @@ impl Bittrade {
         Ok(Order::from_value(v))
     }
 
-    /// Typed wrapper around `editOrder`.
-    pub async fn edit_order(&mut self, id: &str, symbol: &str, type_: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().edit_order(Value::from(id), Value::from(symbol), Value::from(type_), Value::from(side), &[amount.map(Value::Float).unwrap_or(Value::Null), price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
     /// Typed wrapper around `editOrderWithClientOrderId`.
     pub async fn edit_order_with_client_order_id(&mut self, client_order_id: &str, symbol: &str, type_: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().edit_order_with_client_order_id(Value::from(client_order_id), Value::from(symbol), Value::from(type_), Value::from(side), &[amount.map(Value::Float).unwrap_or(Value::Null), price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -946,12 +940,6 @@ impl Bittrade {
     /// Typed wrapper around `fetchUnifiedOrder`.
     pub async fn fetch_unified_order(&mut self, order: Value, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_unified_order(order, &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createOrder`.
-    pub async fn create_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(Order::from_value(v))
     }
 
@@ -1015,12 +1003,6 @@ impl Bittrade {
         Ok(vec_from_value(&v, Order::from_value))
     }
 
-    /// Typed wrapper around `cancelOrder`.
-    pub async fn cancel_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().cancel_order(Value::from(id), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
     /// Typed wrapper around `cancelOrderWithClientOrderId`.
     pub async fn cancel_order_with_client_order_id(&mut self, client_order_id: &str, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().cancel_order_with_client_order_id(Value::from(client_order_id), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -1036,12 +1018,6 @@ impl Bittrade {
     /// Typed wrapper around `cancelOrdersWithClientOrderIds`.
     pub async fn cancel_orders_with_client_order_ids(&mut self, client_order_ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
         let v = crate::runtime::call_typed(self.core_mut().cancel_orders_with_client_order_ids(Value::Arr(std::sync::Arc::new(client_order_ids.into_iter().map(Value::from).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
-    }
-
-    /// Typed wrapper around `cancelAllOrders`.
-    pub async fn cancel_all_orders(&mut self, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().cancel_all_orders(&[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Order::from_value))
     }
 

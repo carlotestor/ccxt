@@ -1317,21 +1317,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn create_order(&mut self, outcome: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(outcome), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome); __args.push(type_var); __args.push(side); __args.push(amount); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("create_order", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
 /*
  * @method
@@ -1342,21 +1345,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn cancel_order(&mut self, id: &str, outcome: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(id), Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("cancel_order", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut id: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    } }
 
 /*
  * @method
@@ -1712,7 +1718,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
         if matches!(self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
-            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome, Value::Str("market".into()), Value::Str("buy".into()), cost, &[Value::Int(1), params]).await;
+            return crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is not supported yet".into()))));
 
@@ -1734,7 +1740,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if matches!(self.safe_bool_k(self.options.clone(), "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
-            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome, Value::Str("market".into()), Value::Str("sell".into()), cost, &[Value::Int(1), params]).await;
+            return crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() is not supported yet".into()))));
 
@@ -2552,12 +2558,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             match method {
             "amount_to_prediction_precision" => <Self as crate::prediction_exchange_generated::PredictionBase>::amount_to_prediction_precision(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "apply_event_fetch_params" => <Self as crate::prediction_exchange_generated::PredictionBase>::apply_event_fetch_params(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "cancel_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::cancel_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "cancel_order" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::cancel_order(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
             "cancel_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::cancel_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "cost_to_prediction_precision" => <Self as crate::prediction_exchange_generated::PredictionBase>::cost_to_prediction_precision(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "create_market_buy_order_with_cost" => <Self as crate::prediction_exchange_generated::PredictionBase>::create_market_buy_order_with_cost(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
             "create_market_sell_order_with_cost" => <Self as crate::prediction_exchange_generated::PredictionBase>::create_market_sell_order_with_cost(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-            "create_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+            "create_order" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(),
+                args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
             "create_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::create_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "eth_rpc" => <Self as crate::prediction_exchange_generated::PredictionBase>::eth_rpc(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
             "events_list" => <Self as crate::prediction_exchange_generated::PredictionBase>::events_list(self),
@@ -2568,7 +2575,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             "fetch_ohlcv" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_ohlcv(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_open_interest" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_open_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_open_orders(self, &args[..]).await,
-            "fetch_order_book" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_order_book(self, args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
+            "fetch_order_book" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_order_book(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
             "fetch_order_trades" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_order_trades(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_orders(self, &args[..]).await,
             "fetch_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
@@ -2576,9 +2583,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             "fetch_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_positions" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_positions(self, &args[..]).await,
             "fetch_settlements" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_settlements(self, &args[..]).await,
-            "fetch_ticker" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_ticker(self, args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_ticker" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_ticker(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_tickers" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_tickers(self, args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-            "fetch_trades" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trades(self, args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).and_then(|v| v.as_i64()), args.get(3).cloned().unwrap_or_default()).await),
+            "fetch_trades" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trades(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_trading_fee" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trading_fee(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "filter_by_outcome_since_limit" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_by_outcome_since_limit(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_outcomes_since_limit" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_by_outcomes_since_limit(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
