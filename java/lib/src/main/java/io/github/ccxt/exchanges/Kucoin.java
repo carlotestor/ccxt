@@ -13004,7 +13004,7 @@ public class Kucoin extends KucoinApi
             }
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object orderId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                String orderId = this.safeString(ids, i);
                 if (Boolean.TRUE.equals(uta))
                 {
                     HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
