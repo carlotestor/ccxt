@@ -4059,7 +4059,12 @@ func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	if clientOrderIdList != nil {
 		request["origClientOrderIdList"] = clientOrderIdList
 	} else {
-		request["orderIdList"] = ids
+		// the api takes LONG[] order ids
+		var orderIdList []any = []any{}
+		for i := 0; i < GetArrayLength(ids); i++ {
+			orderIdList = append(orderIdList, this.ParseToNumeric(GetValue(ids, i)))
+		}
+		request["orderIdList"] = orderIdList
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "swap", false) {
@@ -5087,11 +5092,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381119 []any = PositionsToList(r.Value)
-		if retRes381119 == nil {
+		var retRes381619 []any = PositionsToList(r.Value)
+		if retRes381619 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381619)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5100,11 +5105,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381319 []any = PositionsToList(r1.Value)
-		if retRes381319 == nil {
+		var retRes381819 []any = PositionsToList(r1.Value)
+		if retRes381819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381319)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381819)}
 		}
 		return nil
 	} else {
