@@ -3939,7 +3939,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut uta: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), Value::Map({
+        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), uta);
     m

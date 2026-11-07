@@ -2597,7 +2597,7 @@ impl WeexCore {
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut params: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), params).await);
+        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, params).await);
         self.positions = ArrayCacheBySymbolById::new(Value::Null);
         let mut cache: Value = self.positions.clone();
         {

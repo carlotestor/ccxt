@@ -1617,7 +1617,7 @@ impl WoofiproCore {
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), Value::Null).await);
+        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await);
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
         {

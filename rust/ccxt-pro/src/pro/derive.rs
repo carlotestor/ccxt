@@ -1489,7 +1489,7 @@ impl DeriveCore {
                 m
             });
             let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
-            let mut positionsSnapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), snapshotParams).await);
+            let mut positionsSnapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, snapshotParams).await);
             let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey.clone(), &[]);
             {
                                 let mut i: i64 = 0;
