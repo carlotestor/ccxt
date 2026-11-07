@@ -3191,7 +3191,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request map[string]any = this.CreateSpotOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(&symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test", false)
 	if test != nil && *test {
@@ -3411,7 +3411,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateSwapOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(&symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))
 	if r1.Err != nil {

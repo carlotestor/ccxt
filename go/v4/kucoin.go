@@ -5304,7 +5304,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan AsyncResult[Order], symbol strin
 	marginMode, _ := this.HandleMarginModeAndParams("createOrder", paramsSync)
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
 	// don't omit anything before calling createOrderRequest
-	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, paramsSync)
+	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, &side, amount, price, paramsSync)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
 		if isMarginOrder {
@@ -5555,7 +5555,7 @@ func (this *Kucoin) createContractOrderBody(ch chan AsyncResult[Order], symbol s
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var hasTpOrSlOrder bool = (!IsEqual(this.SafeDict(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeDict(paramsOmitted, "takeProfit"), nil))
-	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, paramsOmitted)
+	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, &side, amount, price, paramsOmitted)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
 
@@ -14898,7 +14898,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		})
 	}
 	for i := 0; i < len(ids); i++ {
-		var orderId string = ids[i]
+		var orderId *string = this.SafeString(ids, i)
 		if uta == true {
 			ordersRequests = append(ordersRequests, map[string]any{
 				"orderId": orderId,

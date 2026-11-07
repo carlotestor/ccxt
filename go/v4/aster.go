@@ -3574,7 +3574,7 @@ func (this *Aster) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 

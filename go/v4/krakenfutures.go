@@ -1709,7 +1709,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.PrivatePostSendorder(orderRequest)
 	if r1.Err != nil {

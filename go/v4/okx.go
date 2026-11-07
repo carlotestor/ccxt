@@ -5380,7 +5380,7 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[Order], id string, symbol any
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.EditOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, params)
 	var isAlgoOrder any = nil
 	if (IsEqual(typeVar, "trigger")) || (IsEqual(typeVar, "conditional")) || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
 		isAlgoOrder = true

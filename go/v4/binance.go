@@ -8145,7 +8145,7 @@ func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string
 	}
 	var market map[string]any = this.Market(symbol)
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false)
-	var request map[string]any = this.EditContractOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, paramsPapi)
+	var request map[string]any = this.EditContractOrderRequest(&id, symbol, typeVar, side, amount, price, paramsPapi)
 	var response any = nil
 	if *this.SafeBool(market, "linear", false) {
 		if isPortfolioMargin {
@@ -9331,7 +9331,7 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	// if (isPortfolioMargin) {
 	//     params['portfolioMargin'] = isPortfolioMargin;
 	// }
-	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, this.Extend(paramsOmitted, map[string]any{
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, this.Extend(paramsOmitted, map[string]any{
 		"isAlgoOrder": isAlgoOrder,
 	}))
 	var response map[string]any = nil

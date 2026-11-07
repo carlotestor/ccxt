@@ -3675,7 +3675,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
  * @returns {string[]} the message hashes
  */
 func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(ccxt.SafeStringPtr(marketId)))
+	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(&marketId))
 	var outcomesLength int = len(outcomes)
 	var hashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {

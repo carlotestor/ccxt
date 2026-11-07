@@ -1157,7 +1157,7 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.CreateOrderRequest(nonce, SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(nonce, &symbol, &typeVar, &side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePostTradeOrder(request)
@@ -1324,7 +1324,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.EditOrderRequest(nonce, SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(nonce, &id, symbol, typeVar, side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePutTradeOrder(request)

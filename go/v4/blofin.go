@@ -2152,7 +2152,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		response = r1.Value
 	} else if isTriggerOrder || isSlOrTp {
-		var triggerRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsTpsl)
+		var triggerRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, paramsTpsl)
 
 		r2 := <-this.PrivatePostTradeOrderAlgo(triggerRequest)
 		if r2.Err != nil {
@@ -2160,7 +2160,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		response = r2.Value
 	} else {
-		var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsTpsl)
+		var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, paramsTpsl)
 
 		r3 := <-this.PrivatePostTradeOrder(request)
 		if r3.Err != nil {

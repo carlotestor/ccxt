@@ -3181,7 +3181,7 @@ func (this *Mexc) createSpotOrderBody(ch chan AsyncResult[Order], market map[str
 	}
 	var test *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
-	var request map[string]any = this.CreateSpotOrderRequest(market, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, marginMode, paramsOmitted)
+	var request map[string]any = this.CreateSpotOrderRequest(market, &typeVar, &side, amount, price, marginMode, paramsOmitted)
 	var response map[string]any = nil
 	if test != nil && *test {
 

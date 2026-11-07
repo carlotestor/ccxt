@@ -3043,7 +3043,7 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		if clientOrderId != nil {
 			return clientOrderId
 		}
-		return SafeStringPtr(id)
+		return &id
 	}()
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")

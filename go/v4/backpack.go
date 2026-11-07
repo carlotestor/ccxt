@@ -3392,7 +3392,7 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		ch <- AsyncResult[Order]{Value: OrderFromMap(rfqOrder)}
 		return nil
 	}
-	var orderRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, orderParams)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, orderParams)
 
 	r2 := <-this.PrivatePostApiV1Order(orderRequest)
 	if r2.Err != nil {

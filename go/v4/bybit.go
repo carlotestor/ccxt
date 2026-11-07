@@ -5709,7 +5709,7 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	var isTrailingOrder bool = (this.SafeString2(params, "trailingAmount", "trailingStop") != nil)
 	var isStopLossOrder bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitOrder bool = (this.SafeString(params, "takeProfitPrice") != nil)
-	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params, enableUnifiedAccount)
+	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params, enableUnifiedAccount)
 	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (*this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
 	if (isTrailingOrder || (switchToOco)) && (!(*this.SafeBool(market, "spot", false))) {
@@ -6335,7 +6335,7 @@ func (this *Bybit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	}
 	this.CheckRequiredArgument("editOrder", symbol, "symbol")
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.EditOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostV5OrderAmend(this.Extend(request, params))
 	if r1.Err != nil {
@@ -6547,7 +6547,7 @@ func (this *Bybit) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var requestExtended map[string]any = this.CancelOrderRequest(SafeStringPtr(id), symbol, params)
+	var requestExtended map[string]any = this.CancelOrderRequest(&id, symbol, params)
 
 	r1 := <-this.PrivatePostV5OrderCancel(requestExtended)
 	if r1.Err != nil {

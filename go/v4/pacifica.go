@@ -2095,7 +2095,7 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
+	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
 	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	var operationType *string = SafeStringPtr(requestoperationTypeVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
@@ -2781,7 +2781,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, market, params)
+	var request any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
 	r2 := <-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))

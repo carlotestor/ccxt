@@ -4130,7 +4130,7 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	//
 	var orderId *string = func() *string {
 		if clientOrderId == nil {
-			return SafeStringPtr(id)
+			return &id
 		}
 		return nil
 	}()

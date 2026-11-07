@@ -2916,7 +2916,7 @@ func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var built map[string]any = this.BuildClobOrderBody(ccxt.SafeStringPtr(outcome), ccxt.SafeStringPtr(typeVar), ccxt.SafeStringPtr(side), amount, price, params)
+	var built map[string]any = this.BuildClobOrderBody(&outcome, &typeVar, &side, amount, price, params)
 
 	r2 := <-this.ClobPrivatePostOrder(this.SafeDict(built, "body"))
 	if r2.Err != nil {

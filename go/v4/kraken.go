@@ -2235,7 +2235,7 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
 	}
-	var orderRequest any = this.OrderRequest("createOrder", SafeStringPtr(symbol), SafeStringPtr(typeVar), request, amount, price, params)
+	var orderRequest any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
 	var flags string = *this.SafeString(GetValue(orderRequest, 0), "oflags", "")
 	var isUsingCost bool = (strings.Index(flags, "viqc") > -1)
 
