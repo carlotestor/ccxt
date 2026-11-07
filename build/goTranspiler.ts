@@ -37,7 +37,7 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchCrossBorrowRate': [ 0 ], 'fetchBorrowRate': [ 0 ], 'fetchDepositWithdrawFee': [ 0 ],
     'fetchTransactionFee': [ 0 ], 'fetchOptionChain': [ 0 ], 'createSubAccount': [ 0 ], 'fetchTransfer': [ 0 ],
     'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
-    'editOrder': [ 0 ], 'fetchOrder': [ 0 ], 'fetchOrderRequest': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
+    'editOrder': [ 0 ], 'fetchOrder': [ 0 ], 'cancelOrder': [ 0 ], 'fetchOrderRequest': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
     'transfer': [ 0, 2, 3 ], 'setMarginMode': [ 0 ],
     'parseKrakenAccountName': [ 0 ],  // `account: string` in TS; a string key reads `accountByType[account]` natively, no pointer-key iife
     // required `code: string` currency-code params (every declaration in ts/src is a required string)
@@ -58,6 +58,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
     'createOrders': { 0: '[]any' },
+    'cancelOrders': { 0: '[]string' },
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
