@@ -11665,7 +11665,8 @@ export class RustTranspilerBuilder {
             const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
             const cloned = args.map(a => {
                 const t = a.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self') return `${t}.clone()`;
+                // `None` is a typed `Option` argument (typed unified calls), not a local
+                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self' && t !== 'None') return `${t}.clone()`;
                 if (boolPrefix.test(t)) return `Value::Bool(${t})`;
                 return a;
             }).join(', ');
