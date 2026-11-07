@@ -4768,11 +4768,11 @@ function typedParamKind(param: string): string | undefined {
 
 function typedDispatchArg(kind: string, i: number): string {
     const arg = `args.get(${i}).cloned().unwrap_or_default()`;
-    return kind === 'str' ? `args.get(${i}).and_then(|v| v.as_str()).unwrap_or_default()`
-        : kind === 'optstr' ? `args.get(${i}).and_then(|v| v.as_str())`
-        : kind === 'f64' ? `args.get(${i}).and_then(|v| v.as_f64()).unwrap_or_default()`
-        : kind === 'optf64' ? `args.get(${i}).and_then(|v| v.as_f64())`
-        : kind === 'opti64' ? `args.get(${i}).and_then(|v| v.as_i64())`
+    return kind === 'str' ? `args.get(${i}).and_then(crate::Value::as_str).unwrap_or_default()`
+        : kind === 'optstr' ? `args.get(${i}).and_then(crate::Value::as_str)`
+        : kind === 'f64' ? `args.get(${i}).and_then(crate::Value::as_f64).unwrap_or_default()`
+        : kind === 'optf64' ? `args.get(${i}).and_then(crate::Value::as_f64)`
+        : kind === 'opti64' ? `args.get(${i}).and_then(crate::Value::as_i64)`
         : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
         : arg;
 }
