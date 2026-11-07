@@ -11054,7 +11054,7 @@ class kucoin extends Exchange {
             );
         }
         for ($i = 0; $i < count($ids); $i++) {
-            $orderId = $ids[$i];
+            $orderId = $this->safe_string($ids, $i);
             if ($uta) {
                 $ordersRequests[] = array(
                     'orderId' => $orderId,
