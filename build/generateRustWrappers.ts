@@ -188,6 +188,13 @@ const TYPED_CORE_METHODS = new Set([
     'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders',
     'fetch_balance', 'fetch_markets', 'fetch_currencies', 'fetch_positions', 'fetch_position',
     'watch_ticker', 'watch_tickers', 'watch_order_book', 'watch_trades', 'watch_ohlcv', 'watch_orders', 'watch_balance',
+    'fetch_funding_rate', 'fetch_funding_rates', 'fetch_funding_rate_history', 'fetch_funding_history',
+    'fetch_leverage', 'fetch_leverages', 'set_leverage', 'set_margin_mode', 'fetch_margin_mode',
+    'fetch_margin_modes', 'add_margin', 'reduce_margin', 'fetch_open_interest', 'fetch_open_interest_history',
+    'fetch_mark_price', 'fetch_mark_prices', 'fetch_liquidations', 'fetch_my_liquidations',
+    'fetch_positions_history', 'close_position', 'close_all_positions', 'fetch_leverage_tiers',
+    'fetch_market_leverage_tiers', 'fetch_greeks', 'fetch_option', 'fetch_option_chain', 'fetch_bids_asks',
+    'fetch_last_prices', 'fetch_status', 'fetch_time',
 ]);
 
 interface ParamInfo {

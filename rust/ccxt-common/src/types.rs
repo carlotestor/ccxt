@@ -1916,6 +1916,15 @@ macro_rules! raw_struct {
     )* };
 }
 raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position);
+raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMode, MarginModification, OpenInterest,
+    Liquidation, LeverageTier, Greeks, OptionContract, LastPrice, Status);
+
+/// An untyped unified return (`setLeverage`, `setMarginMode`) passes the payload through.
+impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
+impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
+/// An integral scalar return (`fetchTime`); any other shape reads `None`.
+impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
+impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
 
 /// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
 impl FromRaw for OHLCV {
