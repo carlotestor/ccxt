@@ -4123,21 +4123,20 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		}
 		response = r2.Value
 	}
+
 	//
 	//     {
 	//         "status": "OK"
 	//     }
 	//
-	var orderId *string = func() *string {
-		if clientOrderId == nil {
-			return SafeStringPtr(id)
-		}
-		return nil
-	}()
-
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info":          response,
-		"id":            orderId,
+		"info": response,
+		"id": func() any {
+			if clientOrderId == nil {
+				return id
+			}
+			return nil
+		}(),
 		"clientOrderId": clientOrderId,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -4501,11 +4500,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322319 []any = r1.Value
-		if retRes322319 == nil {
+		var retRes322219 []any = r1.Value
+		if retRes322219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322219)}
 		}
 		return nil
 	}

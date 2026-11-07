@@ -3001,10 +3001,9 @@ export default class extended extends Exchange {
         //         "status": "OK"
         //     }
         //
-        const orderId = (clientOrderId === undefined) ? id : undefined;
         return this.safeOrder ({
             'info': response,
-            'id': orderId,
+            'id': (clientOrderId === undefined) ? id : undefined,
             'clientOrderId': clientOrderId,
             'timestamp': undefined,
             'datetime': undefined,
