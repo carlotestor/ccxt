@@ -12531,7 +12531,7 @@ public partial class kucoin : Exchange
         }
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            string? orderId = ((string)(ids != null && i < ids.Count ? ids[i] : null));
+            string? orderId = this.safeString(ids, i);
             if ((uta == true))
             {
                 ordersRequests.Add(new Dictionary<string, object>() {
