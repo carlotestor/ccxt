@@ -116,8 +116,8 @@ impl crate::exchange_generated::ExchangeBase for ZebpayCore {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => self.fetch_time(&args[..]).await,
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
+                "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -988,7 +988,13 @@ impl ZebpayCore {
  * @param {object} [params.side] side to fetch trading fee
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-    pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_trading_fee(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::TradingFee> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1048,9 +1054,9 @@ impl ZebpayCore {
 })]);
         }
         return self.parse_trading_fee(data, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -1060,7 +1066,12 @@ impl ZebpayCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-    pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_trading_fees(&mut self, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::TradingFees> {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1105,9 +1116,9 @@ impl ZebpayCore {
         }
         }
         return result;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

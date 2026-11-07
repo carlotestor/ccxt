@@ -121,7 +121,7 @@ impl crate::exchange_generated::ExchangeBase for MudrexCore {
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2188,7 +2188,16 @@ impl MudrexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
  */
-    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transfer> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut fromAccount = __it.next().unwrap_or_default();
+        let mut toAccount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2243,7 +2252,7 @@ impl MudrexCore {
         m.insert("status".to_string(), Value::Str("ok".into()));
     m
 });
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 }

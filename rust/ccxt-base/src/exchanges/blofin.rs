@@ -139,12 +139,12 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit" => self.fetch_deposit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_deposit_withdraw_fees" => self.fetch_deposit_withdraw_fees(&args[..]).await,
-                "fetch_deposits" => self.fetch_deposits(&args[..]).await,
+                "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_deposit_withdraw_fees" => crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args[..]).await,
-                "fetch_ledger" => self.fetch_ledger(&args[..]).await,
+                "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_leverages" => self.fetch_leverages(&args[..]).await,
                 "fetch_margin_mode" => self.fetch_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -164,7 +164,7 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -192,8 +192,8 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
                 "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
+                "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -3046,7 +3046,12 @@ impl BlofinCore {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposits(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3085,9 +3090,9 @@ impl BlofinCore {
         let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_19]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, paramsUntil]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3102,7 +3107,12 @@ impl BlofinCore {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3141,9 +3151,9 @@ impl BlofinCore {
         let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, paramsUntil]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn network_code_to_chain_id(&self, mut networkCode: Value, optional_args: &[Value]) -> Option<String> {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -3366,7 +3376,13 @@ impl BlofinCore {
  * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-    pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositAddress> {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3424,9 +3440,9 @@ impl BlofinCore {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned no address for ".into())).into()), code).into()), Value::Str(" on ".into())).into()), self.safe_string_k(Value::Map(request), "chain", &[chain]))));
         }
         return self.parse_deposit_address(first, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -3460,7 +3476,12 @@ impl BlofinCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
  */
-    pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositWithdrawFees> {
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3471,9 +3492,9 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data, Value::Str("currency".into()), &[]);
         return self.parse_deposit_withdraw_fees(dataByCurrencyId, &[codes]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -3657,7 +3678,15 @@ impl BlofinCore {
  * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-    pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut address = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3729,9 +3758,9 @@ impl BlofinCore {
 })]);
         let __ws_arg_25 = self.extend(Value::Map(request), &[data]);
         return self.parse_transaction(__ws_arg_25, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3747,7 +3776,12 @@ impl BlofinCore {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-    pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ledger(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::LedgerEntry>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3783,9 +3817,9 @@ impl BlofinCore {
         let mut response: Value = self.private_get_asset_bills(&[__ws_arg_26]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_ledger(data, &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -4091,7 +4125,16 @@ impl BlofinCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transfer> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut fromAccount = __it.next().unwrap_or_default();
+        let mut toAccount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4117,9 +4160,9 @@ impl BlofinCore {
     m
 })]);
         return self.parse_transfer(data, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);

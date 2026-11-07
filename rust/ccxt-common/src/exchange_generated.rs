@@ -1320,21 +1320,25 @@ pub trait ExchangeBase:
     Value::Null
 } }
 
-    fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::DepositAddress>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
@@ -1735,35 +1739,50 @@ pub trait ExchangeBase:
     Value::Null
 } }
 
-    fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transfer>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("transfer", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code); __args.push(amount); __args.push(fromAccount); __args.push(toAccount); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("transfer", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut fromAccount = __it.next().unwrap_or_default();
+        let mut toAccount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer() is not supported yet".into()))));
+        Value::Null
+        }).await?))
+    } }
 
-    Value::Null
-} }
-
-    fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transaction>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("withdraw", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code); __args.push(amount); __args.push(address); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("withdraw", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut address = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -5795,12 +5814,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_ledger(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_ledger(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::LedgerEntry>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_ledger", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_ledger", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -5809,9 +5832,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -6139,21 +6162,25 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositWithdrawFees>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fees", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFees() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
@@ -6168,7 +6195,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchDepositWithdrawFees")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchDepositWithdrawFees")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFee() is not supported yet".into()))));
         }
-        let mut fees: Value = self.fetch_deposit_withdraw_fees(&[Value::from(vec![code.clone()]), params]).await;
+        let mut fees: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees((Value::from(vec![code.clone()])).to_opt_str_vec(), params).await);
         return self.safe_dict(fees, code, &[]);
 
     Value::Null
@@ -6939,12 +6966,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_deposits_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_deposits_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposits_withdrawals", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6953,16 +6984,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() is not supported yet".into()))));
+        Value::Null
+        }).await?))
+    } }
 
-    Value::Null
-} }
-
-    fn fetch_deposits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_deposits(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_deposits", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposits", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6971,16 +7006,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() is not supported yet".into()))));
+        Value::Null
+        }).await?))
+    } }
 
-    Value::Null
-} }
-
-    fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_withdrawals", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6989,9 +7028,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -7060,18 +7099,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositAddress>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_address", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_address", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut depositAddressesList: Value = self.fetch_deposit_addresses(&[Value::from(vec![code.clone()]), params.clone()]).await;
+            let mut depositAddressesList: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code.clone()])).to_opt_str_vec(), params.clone()).await);
             let mut depositAddresses: Value = self.index_by(depositAddressesList, Value::Str("currency".into()));
             if (self.safe_dict(depositAddresses.clone(), code.clone(), &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a deposit address for ".into())).into()), code).into()), Value::Str(", make sure you have created a corresponding deposit address in your wallet on the exchange website".into()))));
@@ -7091,9 +7135,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() is not supported yet".into()))));
         }
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -8004,20 +8048,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_trading_fees(&mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFees>> + Send { async move {
+        let __args: Vec<Value> = vec![params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fees", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -8534,7 +8582,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn fetch_transactions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_transactions(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8554,11 +8607,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         if (self.has.as_map().and_then(|__m| __m.get("fetchDepositsWithdrawals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositsWithdrawals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return self.fetch_deposits_withdrawals(&[code, since, limit, params]).await;
+            return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), params).await);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTransactions () is not supported yet".into()))));
         }
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
@@ -9590,7 +9645,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_transfers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_transfers(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transfer>>> + Send { async move {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9599,9 +9659,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers () is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
@@ -11933,12 +11993,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_trading_fee(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFee>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11946,12 +12011,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchTradingFees")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchTradingFees")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() is not supported yet".into()))));
         }
-        let mut fees: Value = self.fetch_trading_fees(&[params]).await;
+        let mut fees: Value = crate::types::IntoRaw::into_raw(self.fetch_trading_fees(params).await);
         let mut fee: Value = self.safe_dict(fees, symbol, &[]);
         return fee;
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
     /// Base-method fall-through for a core's `call_dynamic`.
     fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
@@ -12094,13 +12159,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_convert_trade_history" => self.fetch_convert_trade_history(&args[..]).await,
             "fetch_cross_borrow_rate" => self.fetch_cross_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_cross_borrow_rates" => self.fetch_cross_borrow_rates(&args[..]).await,
-            "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_deposit_addresses" => self.fetch_deposit_addresses(&args[..]).await,
+            "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_deposit_addresses_by_network" => self.fetch_deposit_addresses_by_network(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_deposit_withdraw_fee" => self.fetch_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_deposit_withdraw_fees" => self.fetch_deposit_withdraw_fees(&args[..]).await,
-            "fetch_deposits" => self.fetch_deposits(&args[..]).await,
-            "fetch_deposits_withdrawals" => self.fetch_deposits_withdrawals(&args[..]).await,
+            "fetch_deposit_withdraw_fees" => crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+            "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_deposits_ws" => self.fetch_deposits_ws(&args[..]).await,
             "fetch_free_balance" => self.fetch_free_balance(&args[..]).await,
             "fetch_funding_history" => self.fetch_funding_history(&args[..]).await,
@@ -12116,7 +12181,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_l2_order_book" => self.fetch_l2_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_l3_order_book" => self.fetch_l3_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_last_prices" => self.fetch_last_prices(&args[..]).await,
-            "fetch_ledger" => self.fetch_ledger(&args[..]).await,
+            "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_ledger_entry" => self.fetch_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_leverage_tiers" => self.fetch_leverage_tiers(&args[..]).await,
@@ -12185,19 +12250,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_total_balance" => self.fetch_total_balance(&args[..]).await,
             "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_trades_ws" => self.fetch_trades_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_trading_fee" => self.fetch_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
+            "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+            "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
             "fetch_trading_fees_ws" => self.fetch_trading_fees_ws(&args[..]).await,
             "fetch_trading_limits" => self.fetch_trading_limits(&args[..]).await,
             "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
-            "fetch_transactions" => self.fetch_transactions(&args[..]).await,
+            "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_transfer" => self.fetch_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_transfers" => self.fetch_transfers(&args[..]).await,
+            "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_unified_order" => self.fetch_unified_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_used_balance" => self.fetch_used_balance(&args[..]).await,
             "fetch_web_endpoint" => self.fetch_web_endpoint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-            "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+            "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_withdrawals_ws" => self.fetch_withdrawals_ws(&args[..]).await,
             "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_adl_ranks" => self.filter_by_array_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
@@ -12423,7 +12488,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "string_to_base16" => self.string_to_base16(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "symbol" => self.symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "timeframe_from_milliseconds" => self.timeframe_from_milliseconds(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+            "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
             "un_watch_bids_asks" => self.un_watch_bids_asks(&args[..]).await,
             "un_watch_funding_rate" => self.un_watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "un_watch_funding_rates" => self.un_watch_funding_rates(&args[..]).await,
@@ -12467,7 +12532,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+            "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
             "withdraw_ws" => self.withdraw_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Implicit-API endpoints (`publicGetX`) exist only as inherent
                 // methods on the venue's `<id>_api.rs`, which no name-based

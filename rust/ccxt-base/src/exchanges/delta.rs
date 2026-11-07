@@ -139,11 +139,11 @@ impl crate::exchange_generated::ExchangeBase for DeltaCore {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_funding_rates" => self.fetch_funding_rates(&args[..]).await,
                 "fetch_greeks" => self.fetch_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_ledger" => self.fetch_ledger(&args[..]).await,
+                "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_margin_mode" => self.fetch_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
@@ -3385,7 +3385,12 @@ impl DeltaCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-    pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ledger(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::LedgerEntry>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3431,9 +3436,9 @@ impl DeltaCore {
         //
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_ledger(result, &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: indexmap::IndexMap<String, Value> = ({
@@ -3524,7 +3529,13 @@ impl DeltaCore {
  * @param {string} [params.network] unified network code
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-    pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositAddress> {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3565,9 +3576,9 @@ impl DeltaCore {
     m
 })]);
         return self.parse_deposit_address(result, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);

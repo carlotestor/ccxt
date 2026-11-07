@@ -1677,20 +1677,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-    fn fetch_trading_fee(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_trading_fee(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFee>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", __args.clone()).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let mut outcome = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() is not supported yet".into()))));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
 /*
  * @method
@@ -2658,7 +2663,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             "fetch_ticker" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_ticker(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_tickers" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_tickers(self, args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_trades" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trades(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-            "fetch_trading_fee" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trading_fee(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "fetch_trading_fee" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_trading_fee(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "filter_by_outcome_since_limit" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_by_outcome_since_limit(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_outcomes_since_limit" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_by_outcomes_since_limit(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_events_by_search_in" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_events_by_search_in(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),

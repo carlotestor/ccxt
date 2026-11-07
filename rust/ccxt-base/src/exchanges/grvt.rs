@@ -131,7 +131,7 @@ impl crate::exchange_generated::ExchangeBase for GrvtCore {
                 "fee_amount_multiplier" => self.fee_amount_multiplier(),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_deposits" => self.fetch_deposits(&args[..]).await,
+                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_history" => self.fetch_funding_history(&args[..]).await,
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args[..]).await,
                 "fetch_leverages" => self.fetch_leverages(&args[..]).await,
@@ -146,8 +146,8 @@ impl crate::exchange_generated::ExchangeBase for GrvtCore {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transfers" => self.fetch_transfers(&args[..]).await,
-                "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+                "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_transfers_by_type" => self.filter_transfers_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "format_signature_rs" => self.format_signature_rs(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
@@ -177,9 +177,9 @@ impl crate::exchange_generated::ExchangeBase for GrvtCore {
                 "sign_in_with_api_key" => self.sign_in_with_api_key(&args[..]).await,
                 "sign_in_with_private_key" => self.sign_in_with_private_key(&args[..]).await,
                 "time_in_force_to_int" => self.time_in_force_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "uses_private_key" => self.uses_private_key(),
-                "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2406,7 +2406,12 @@ if _try_result.is_err() {
  * @param {int} [params.until] timestamp in ms of the latest item
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposits(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2460,9 +2465,9 @@ if _try_result.is_err() {
             let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
             return self.parse_transactions(result, &[currency, since, limit]);
         }
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2476,7 +2481,12 @@ if _try_result.is_err() {
  * @param {int} [params.until] timestamp in ms of the latest item
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2541,9 +2551,9 @@ if _try_result.is_err() {
             let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
             return self.parse_transactions(result, &[currency, since, limit]);
         }
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub async fn internal_fetch_transfers(&mut self, mut req: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -2715,7 +2725,12 @@ if _try_result.is_err() {
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-    pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transfers(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transfer>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2782,9 +2797,9 @@ if _try_result.is_err() {
         let mut rows: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         let mut transfers: Value = self.parse_transfers(rows, &[currency, since, limit]);
         return self.to_array(self.safe_list(self.filter_transfers_by_type(transfers, Value::Str("internal".into()), &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn filter_transfers_by_type(&self, mut transfers: Value, mut transferType: Value, optional_args: &[Value]) -> Value {
         let onlyMainAccount: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
@@ -2829,7 +2844,16 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transfer> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut fromAccount = __it.next().unwrap_or_default();
+        let mut toAccount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2894,9 +2918,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 })]);
         return self.parse_transfer(result, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -3028,7 +3052,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut address = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3069,9 +3101,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 })]);
         return self.parse_transaction(result, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

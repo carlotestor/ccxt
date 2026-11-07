@@ -117,8 +117,8 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseinternationalCore {
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_deposits" => self.fetch_deposits(&args[..]).await,
-                "fetch_deposits_withdrawals" => self.fetch_deposits_withdrawals(&args[..]).await,
+                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args[..]).await,
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
@@ -132,8 +132,8 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseinternationalCore {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => self.fetch_time(&args[..]).await,
-                "fetch_transfers" => self.fetch_transfers(&args[..]).await,
-                "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+                "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_route_and_params" => self.handle_route_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -2546,7 +2546,12 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.continuation] continuation token for pagination
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-    pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transfers(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transfer>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2633,9 +2638,9 @@ impl CoinbaseinternationalCore {
 })]);
         let mut transfers: Value = self.safe_list_k(result, "logs", &[Value::from(vec![])]);
         return self.parse_transfers(transfers, &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -2939,7 +2944,12 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.continuation] continuation token for pagination
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposits_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3040,9 +3050,9 @@ impl CoinbaseinternationalCore {
         }
         }
         return self.parse_transactions(Value::from(transactions), &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3059,7 +3069,12 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.continuation] continuation token for pagination
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3076,10 +3091,10 @@ impl CoinbaseinternationalCore {
         m.insert("query".to_string(), Value::Str("withdrawal".into()));
     m
 })]);
-        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_9]).await;
-
-    Value::Null
-}
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_9).await);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3096,7 +3111,12 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.continuation] continuation token for pagination
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposits(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3113,10 +3133,10 @@ impl CoinbaseinternationalCore {
         m.insert("query".to_string(), Value::Str("deposit".into()));
     m
 })]);
-        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_10]).await;
-
-    Value::Null
-}
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_10).await);
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);

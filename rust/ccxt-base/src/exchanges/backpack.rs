@@ -131,8 +131,8 @@ impl crate::exchange_generated::ExchangeBase for BackpackCore {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_convert_quote" => self.fetch_convert_quote(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_deposits" => self.fetch_deposits(&args[..]).await,
+                "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_history" => self.fetch_funding_history(&args[..]).await,
                 "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args[..]).await,
@@ -153,7 +153,7 @@ impl crate::exchange_generated::ExchangeBase for BackpackCore {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => self.fetch_time(&args[..]).await,
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_stock_structures" => self.filter_stock_structures(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -176,7 +176,7 @@ impl crate::exchange_generated::ExchangeBase for BackpackCore {
                 "rfq_conversion_market" => self.rfq_conversion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "stock_data_request" => self.stock_data_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-                "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -3293,7 +3293,12 @@ impl BackpackCore {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposits(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3327,9 +3332,9 @@ impl BackpackCore {
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_15]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3343,7 +3348,12 @@ impl BackpackCore {
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawals(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Transaction>> {
+        let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3377,9 +3387,9 @@ impl BackpackCore {
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_16]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3394,7 +3404,15 @@ impl BackpackCore {
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut address = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3427,9 +3445,9 @@ impl BackpackCore {
         let __ws_arg_17 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_wapi_v1_capital_withdrawals(&[__ws_arg_17]).await;
         return self.parse_transaction(response, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -3582,7 +3600,13 @@ impl BackpackCore {
  * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-    pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositAddress> {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3605,9 +3629,9 @@ impl BackpackCore {
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposit_address(&[__ws_arg_18]).await;
         return self.parse_deposit_address(response, &[currency]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
