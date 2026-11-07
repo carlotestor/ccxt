@@ -182,7 +182,7 @@ function isObjectType(t: string) {
 
 // Unified methods the Core itself prints with a typed signature (rustTranspiler `typedUnified`); the
 // wrapper emits no method for them.
-const TYPED_CORE_METHODS = new Set(['fetch_ticker', 'fetch_tickers', 'fetch_order_book', 'fetch_trades']);
+const TYPED_CORE_METHODS = new Set(['fetch_ticker', 'fetch_tickers', 'fetch_order_book', 'fetch_trades', 'create_order', 'edit_order', 'cancel_order', 'cancel_orders', 'cancel_all_orders']);
 
 interface ParamInfo {
     name: string;       // snake_case Rust param name

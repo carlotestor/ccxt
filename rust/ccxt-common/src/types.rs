@@ -1912,7 +1912,7 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook);
+raw_struct!(Ticker, Trade, OrderBook, Order);
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
