@@ -1197,11 +1197,11 @@ impl WhitebitCore {
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value, mut subscriptionHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut response: Value = self.fetch_balance(&[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), type_var);
-            m
-        })]).await;
+        let mut response: Value = crate::types::IntoRaw::into_raw(self.fetch_balance(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("type".to_string(), type_var);
+    m
+})).await);
         { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {

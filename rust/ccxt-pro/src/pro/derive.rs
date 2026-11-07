@@ -1398,7 +1398,7 @@ impl DeriveCore {
                 m
             });
             let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
-            let mut snapshot: Value = self.fetch_balance(&[snapshotParams]).await;
+            let mut snapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_balance(snapshotParams).await);
             let mut emptyBalance: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1489,7 +1489,7 @@ impl DeriveCore {
                 m
             });
             let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
-            let mut positionsSnapshot: Value = self.fetch_positions(&[Value::Null, snapshotParams]).await;
+            let mut positionsSnapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_positions((Value::Null).to_opt_str_vec(), snapshotParams).await);
             let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey.clone(), &[]);
             {
                                 let mut i: i64 = 0;

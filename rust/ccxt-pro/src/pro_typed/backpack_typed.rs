@@ -517,12 +517,6 @@ impl Backpack {
         Ok(LedgerEntry::from_value(v))
     }
 
-    /// Typed wrapper around `fetchBalance`.
-    pub async fn fetch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_balance(&[params.into().into_value()])).await?;
-        Ok(Balances::from_value(v))
-    }
-
     /// Typed wrapper around `watchBalance`.
     pub async fn watch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
         let v = crate::runtime::call_typed(self.core_mut().watch_balance(&[params.into().into_value()])).await?;
@@ -1015,12 +1009,6 @@ impl Backpack {
         Ok(Order::from_value(v))
     }
 
-    /// Typed wrapper around `fetchPosition`.
-    pub async fn fetch_position(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Position> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_position(Value::from(symbol), &[params.into().into_value()])).await?;
-        Ok(Position::from_value(v))
-    }
-
     /// Typed wrapper around `watchPositions`.
     pub async fn watch_positions(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
         let v = crate::runtime::call_typed(self.core_mut().watch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -1030,12 +1018,6 @@ impl Backpack {
     /// Typed wrapper around `watchPositionForSymbols`.
     pub async fn watch_position_for_symbols(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
         let v = crate::runtime::call_typed(self.core_mut().watch_position_for_symbols(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Position::from_value))
-    }
-
-    /// Typed wrapper around `fetchPositions`.
-    pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 

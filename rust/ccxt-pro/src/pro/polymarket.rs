@@ -1448,7 +1448,7 @@ impl PolymarketCore {
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = self.fetch_positions(&[]).await;
+        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None.clone(), Value::Null).await);
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
         {
@@ -1523,7 +1523,7 @@ impl PolymarketCore {
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut balance: Value = self.fetch_balance(&[]).await;
+        let mut balance: Value = crate::types::IntoRaw::into_raw(self.fetch_balance(Value::Null).await);
         { let __t = self.extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {

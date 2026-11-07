@@ -253,18 +253,6 @@ impl std::ops::DerefMut for Okxus {
 }
 
 impl Okxus {
-    /// Typed wrapper around `fetchCurrencies`.
-    pub async fn fetch_currencies(&mut self, params: impl Into<Params>) -> crate::Result<Currencies> {
-        let v = crate::runtime::call_typed(self.core_mut().call_dynamic("fetch_currencies", vec![params.into().into_value()])).await?;
-        Ok(dict_from_value(&v, Currency::from_value))
-    }
-
-    /// Typed wrapper around `fetchMarkets`.
-    pub async fn fetch_markets(&mut self, params: impl Into<Params>) -> crate::Result<Vec<Market>> {
-        let v = crate::runtime::call_typed(self.core_mut().call_dynamic("fetch_markets", vec![params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Market::from_value))
-    }
-
     /// Typed wrapper around `fetchAccounts`.
     pub async fn fetch_accounts(&mut self, params: impl Into<Params>) -> crate::Result<Vec<Account>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_accounts(&[params.into().into_value()])).await?;
@@ -479,12 +467,6 @@ impl Okxus {
     pub async fn fetch_ledger_entry(&mut self, id: &str, code: Option<&str>, params: impl Into<Params>) -> crate::Result<LedgerEntry> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_ledger_entry(Value::from(id), &[code.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(LedgerEntry::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchBalance`.
-    pub async fn fetch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_balance(&[params.into().into_value()])).await?;
-        Ok(Balances::from_value(v))
     }
 
     /// Typed wrapper around `fetchPartialBalance`.
@@ -911,18 +893,6 @@ impl Okxus {
     pub async fn edit_order_with_client_order_id(&mut self, client_order_id: &str, symbol: &str, type_: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().edit_order_with_client_order_id(Value::from(client_order_id), Value::from(symbol), Value::from(type_), Value::from(side), &[amount.map(Value::Float).unwrap_or(Value::Null), price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchPosition`.
-    pub async fn fetch_position(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Position> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_position(Value::from(symbol), &[params.into().into_value()])).await?;
-        Ok(Position::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchPositions`.
-    pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Position::from_value))
     }
 
     /// Typed wrapper around `fetchOrder`.

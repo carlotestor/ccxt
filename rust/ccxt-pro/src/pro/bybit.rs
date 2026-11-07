@@ -2307,17 +2307,17 @@ impl BybitCore {
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        let mut fetchFunctions: Value = Value::from(vec![self.fetch_positions(&[Value::Null, Value::Map({
+        let mut fetchFunctions: Value = Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_positions((Value::Null).to_opt_str_vec(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("subType".to_string(), Value::Str("linear".into()));
     m
-})]).await, self.fetch_positions(&[Value::Null, Value::Map({
+})).await), crate::types::IntoRaw::into_raw(self.fetch_positions((Value::Null).to_opt_str_vec(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("subType".to_string(), Value::Str("inverse".into()));
     m
-})]).await]);
+})).await)]);
         let mut promises: Vec<Value> = promise_all(&fetchFunctions).await.as_array().cloned().unwrap_or_default();
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();

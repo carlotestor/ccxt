@@ -469,12 +469,6 @@ impl Paymium {
         Ok(LedgerEntry::from_value(v))
     }
 
-    /// Typed wrapper around `fetchBalance`.
-    pub async fn fetch_balance(&mut self, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_balance(&[params.into().into_value()])).await?;
-        Ok(Balances::from_value(v))
-    }
-
     /// Typed wrapper around `fetchPartialBalance`.
     pub async fn fetch_partial_balance(&mut self, part: &str, params: impl Into<Params>) -> crate::Result<Balances> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_partial_balance(Value::from(part), &[params.into().into_value()])).await?;
@@ -899,18 +893,6 @@ impl Paymium {
     pub async fn edit_order_with_client_order_id(&mut self, client_order_id: &str, symbol: &str, type_: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().edit_order_with_client_order_id(Value::from(client_order_id), Value::from(symbol), Value::from(type_), Value::from(side), &[amount.map(Value::Float).unwrap_or(Value::Null), price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchPosition`.
-    pub async fn fetch_position(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Position> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_position(Value::from(symbol), &[params.into().into_value()])).await?;
-        Ok(Position::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchPositions`.
-    pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Position::from_value))
     }
 
     /// Typed wrapper around `fetchOrder`.
