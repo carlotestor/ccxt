@@ -5541,10 +5541,11 @@ function strLocalReassign(content: string): string {
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
                 } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
-                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length
-                    && !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(rhsMasked)) {
-                    // `format!` already yields the `String` payload.
-                    edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${rhsRaw.slice('Value::Str('.length, -'.into())'.length)})` });
+                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length) {
+                    // `format!` already yields the `String` payload; only the box ends change.
+                    const rawEnd = rhsStart + rhsRaw.length;
+                    edits.push({ start: rhsStart, end: rhsStart + 'Value::Str('.length, text: 'Some(' });
+                    edits.push({ start: rawEnd - '.into())'.length, end: rawEnd, text: ')' });
                 } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
                     const open = rhsStart + call[0].length - 1;
                     const close = closeParen(masked, open);
