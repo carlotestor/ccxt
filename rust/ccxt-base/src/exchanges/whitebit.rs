@@ -1367,7 +1367,7 @@ impl Whitebit {
         let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "tradesEnabled", &[]);
         let mut isCollateral: bool = self.safe_bool_k_opt(market.clone(), "isCollateral", &[Value::Bool(false)]).unwrap_or(false);
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut settle: Value = Value::Null;
         let mut settleId: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
@@ -1375,18 +1375,18 @@ impl Whitebit {
         let mut margin: Value = Value::Bool(isCollateral && !(matches!(&swap, Value::Bool(true))));
         let mut contract: Value = Value::Bool(false);
         let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "stockPrec", &[])]), &[]);
-        let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
+        let mut linear: Option<bool> = None;
+        let mut inverse: Option<bool> = None;
         if matches!(&swap, Value::Bool(true)) {
             settleId = quoteId.clone();
             settle = self.safe_currency_code(settleId.clone(), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into());
-            type_var = Value::Str("swap".into());
+            type_var = Some("swap".to_string());
             contract = Value::Bool(true);
-            linear = Value::Bool(true);
-            inverse = Value::Bool(false);
+            linear = Some(true);
+            inverse = Some(false);
         }  else {
-            type_var = Value::Str("spot".into());
+            type_var = Some("spot".to_string());
         }
         let mut takerFeeRate: Option<String> = self.safe_string_k_opt(market.clone(), "takerFee", &[]);
         let mut taker: Value = crate::precise::Precise::stringDiv(&takerFeeRate.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
@@ -1403,7 +1403,7 @@ impl Whitebit {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), margin);
         m.insert("swap".to_string(), swap);
@@ -1411,8 +1411,8 @@ impl Whitebit {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("contract".to_string(), contract);
-        m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.parse_number(taker, &[]));
         m.insert("maker".to_string(), self.parse_number(maker, &[]));
         m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
@@ -3993,11 +3993,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "ftime", &[]);
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
         let mut ioc: bool = self.safe_bool_k_opt(order.clone(), "ioc", &[Value::Bool(false)]).unwrap_or(false);
-        let mut timeInForce: Value = Value::Null;
+        let mut timeInForce: Option<String> = None;
         if ioc {
-            timeInForce = Value::Str("IOC".into());
+            timeInForce = Some("IOC".to_string());
         }  else if (postOnly == Some(true)) {
-            timeInForce = Value::Str("PO".into());
+            timeInForce = Some("PO".to_string());
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4008,7 +4008,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "status", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));

@@ -837,14 +837,14 @@ impl Cex {
         }
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (base != Value::Null) && (quote != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
         }
         let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
@@ -1121,11 +1121,11 @@ impl Cex {
         let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol2", &[]);
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (base != Value::Null) && (quote != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
             if (side.as_deref() == Some("sell")) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", quote, Value::Str("/".into())).into()), base).into());
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", quote, Value::Str("/".into())).into()), base));
             }
         }
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -1139,7 +1139,7 @@ impl Cex {
                 m.insert("info".to_string(), trade.clone());
                 m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
                 m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-                m.insert("symbol".to_string(), symbol);
+                m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Null);
                 m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
                 m.insert("takerOrMaker".to_string(), Value::Null);
@@ -1360,11 +1360,11 @@ impl Cex {
         }
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (base != Value::Null) && (quote != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
         }
-        let mut marketResolved: Value = self.safe_market(&[symbol.clone(), market]);
+        let mut marketResolved: Value = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut time: Value = self.safe_integer_k(order.clone(), "time", &[]);
         let mut timestamp: Value = time.clone();
         if isTransaction {
@@ -1386,7 +1386,7 @@ impl Cex {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("lastTradeTimestamp".to_string(), Value::Null);
                 m.insert("status".to_string(), Value::from(status));
-                m.insert("symbol".to_string(), symbol);
+                m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Null);
                 m.insert("timeInForce".to_string(), Value::Null);
                 m.insert("postOnly".to_string(), Value::Null);

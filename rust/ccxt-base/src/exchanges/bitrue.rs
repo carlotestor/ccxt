@@ -1536,14 +1536,14 @@ impl Bitrue {
         let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(market.clone(), "symbol", &[]);
         let mut side: Option<i64> = self.safe_integer_k(market.clone(), "side", &[]).as_i64(); // 1 linear, 0 inverse, undefined spot
         let mut type_var: String = "spot".to_string();
-        let mut isLinear: Value = Value::Null;
-        let mut isInverse: Value = Value::Null;
+        let mut isLinear: Option<bool> = None;
+        let mut isInverse: Option<bool> = None;
         if (side.is_none()) {
             type_var = "spot".to_string();
         }  else {
             type_var = "swap".to_string();
-            isLinear = (Value::Bool(side == Some(1)));
-            isInverse = (Value::Bool(side == Some(0)));
+            isLinear = Some(side == Some(1));
+            isInverse = Some(side == Some(0));
         }
         let mut isContract: Value = (Value::Bool((type_var != "spot")));
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
@@ -1554,7 +1554,7 @@ impl Bitrue {
             let mut symbolSplit: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string_opt(symbolSplit.clone(), Value::Int(1), &[]);
             quoteId = self.safe_string_opt(symbolSplit, Value::Int(2), &[]);
-            if (isLinear.as_bool() == Some(true)) {
+            if (isLinear == Some(true)) {
                 settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
                 settleId = baseId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1616,8 +1616,8 @@ impl Bitrue {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), isContract);
-        m.insert("linear".to_string(), isLinear);
-        m.insert("inverse".to_string(), isInverse);
+        m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&multiplier.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1932,11 +1932,11 @@ impl Bitrue {
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
         let mut last: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("lastPrice".into()), Value::Str("last".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "time", &[]).as_i64();
-        let mut percentage: Value = Value::Null;
+        let mut percentage: Option<String> = None;
         if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "rose", &[]), &Value::Str("100".into()));
+            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "rose", &[]), &Value::Str("100".into())).as_str().map(str::to_owned);
         }  else {
-            percentage = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
+            percentage = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1955,7 +1955,7 @@ impl Bitrue {
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), percentage.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("volume".into()), Value::Str("vol".into()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "quoteVolume", &[]));
@@ -2593,18 +2593,18 @@ impl Bitrue {
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executedQty", &[]);
-        let mut timestamp: Value = Value::Null;
-        let mut lastTradeTimestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
+        let mut lastTradeTimestamp: Option<i64> = None;
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("time"))) {
-            timestamp = self.safe_integer_k(order.clone(), "time", &[]);
+            timestamp = self.safe_integer_k(order.clone(), "time", &[]).as_i64();
         }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) {
-            timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]);
+            timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]).as_i64();
         }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) {
             if (status.as_str() == Some("open")) {
                 if crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                    lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]);
+                    lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]).as_i64();
                 }  else {
-                    timestamp = self.safe_integer_k(order.clone(), "updateTime", &[]);
+                    timestamp = self.safe_integer_k(order.clone(), "updateTime", &[]).as_i64();
                 }
             }
         }
@@ -2631,9 +2631,9 @@ impl Bitrue {
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -3477,18 +3477,18 @@ impl Bitrue {
         let mut tagType: Option<String> = self.safe_string_k(transaction.clone(), "tagType", &[]).as_str().map(str::to_owned);
         let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressTo", &[]);
         let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressFrom", &[]);
-        let mut tagTo: Value = Value::Null;
-        let mut tagFrom: Value = Value::Null;
+        let mut tagTo: Option<String> = None;
+        let mut tagFrom: Option<String> = None;
         if (tagType.is_some()) {
             if (addressTo.is_some()) {
                 let mut parts: Value = Value::Array(if let Some(__s) = addressTo.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressTo = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
-                tagTo = self.safe_string(parts.clone(), Value::Int(1), &[]);
+                tagTo = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             }
             if (addressFrom.is_some()) {
                 let mut parts: Value = Value::Array(if let Some(__s) = addressFrom.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressFrom = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
-                tagFrom = self.safe_string(parts.clone(), Value::Int(1), &[]);
+                tagFrom = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             }
         }
         let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "txid", &[]);
@@ -3534,9 +3534,9 @@ impl Bitrue {
         m.insert("address".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tagTo.clone());
-        m.insert("tagTo".to_string(), tagTo);
-        m.insert("tagFrom".to_string(), tagFrom);
+        m.insert("tag".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagFrom".to_string(), tagFrom.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
@@ -3755,12 +3755,12 @@ impl Bitrue {
         //     {}
         //
         let mut transferType: Option<String> = self.safe_string_k_opt(transfer.clone(), "transferType", &[]);
-        let mut fromAccount: Value = Value::Null;
-        let mut toAccount: Value = Value::Null;
+        let mut fromAccount: Option<String> = None;
+        let mut toAccount: Option<String> = None;
         if (transferType.is_some()) {
             let mut accountSplit: Value = Value::Array(if let Some(__s) = transferType.as_deref() { __s.split("_to_").map(Value::from).collect() } else { Vec::new() });
-            fromAccount = self.safe_string(accountSplit.clone(), Value::Int(0), &[]);
-            toAccount = self.safe_string(accountSplit, Value::Int(1), &[]);
+            fromAccount = self.safe_string(accountSplit.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            toAccount = self.safe_string(accountSplit, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "ctime", &[]).as_i64();
         return Value::Map({
@@ -3771,8 +3771,8 @@ impl Bitrue {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
-        m.insert("fromAccount".to_string(), fromAccount);
-        m.insert("toAccount".to_string(), toAccount);
+        m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
     m
 });

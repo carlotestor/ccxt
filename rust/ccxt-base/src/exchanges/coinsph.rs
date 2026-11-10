@@ -2017,9 +2017,9 @@ impl Coinsph {
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker.as_deref() == Some("true")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        let mut costString: Value = Value::Null;
+        let mut costString: Option<String> = None;
         if (orderId.is_some()) {
-            costString = self.safe_string_k(trade.clone(), "quoteQty", &[]);
+            costString = self.safe_string_k(trade.clone(), "quoteQty", &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2033,7 +2033,7 @@ impl Coinsph {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), costString);
+        m.insert("cost".to_string(), costString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("info".to_string(), trade);
     m
@@ -2979,16 +2979,16 @@ impl Coinsph {
         let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "txId", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut timestamp: Value = Value::Null;
-        timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]);
+        let mut timestamp: Option<i64> = None;
+        timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]).as_i64();
         let mut updated: Value = Value::Null;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut withdrawOrderId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawOrderId", &[]).as_str().map(str::to_owned);
         let mut depositOrderId: Option<String> = self.safe_string_k(transaction.clone(), "depositOrderId", &[]).as_str().map(str::to_owned);
         if (withdrawOrderId.is_some()) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
         }  else if (depositOrderId.is_some()) {
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
         }
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
@@ -3009,8 +3009,8 @@ impl Coinsph {
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -3018,7 +3018,7 @@ impl Coinsph {
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagTo".to_string(), tag);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);

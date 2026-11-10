@@ -4301,7 +4301,7 @@ impl Coinbaseinternational {
                 m.insert("currency".to_string(), feeCurrency);
             m
         });
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut liquidities: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4309,7 +4309,7 @@ impl Coinbaseinternational {
                     m.insert("T".to_string(), Value::Str("taker".into()));
                 m
             });
-            takerOrMaker = self.safe_string(Value::Map(liquidities), self.safe_string_k(trade.clone(), "liquidity", &[]), &[]);
+            takerOrMaker = self.safe_string(Value::Map(liquidities), self.safe_string_k(trade.clone(), "liquidity", &[]), &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4321,7 +4321,7 @@ impl Coinbaseinternational {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);

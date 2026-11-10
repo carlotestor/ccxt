@@ -3804,17 +3804,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }) });
         let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
         let mut relationEvent: Option<String> = self.safe_string_k_opt(data.clone(), "relationEvent", &[]);
-        let mut requestAccountType: Value = Value::Null;
+        let mut requestAccountType: Option<String> = None;
         if (relationEvent.is_some()) {
             let mut relationEventParts: Value = Value::Array(if let Some(__s) = relationEvent.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-            requestAccountType = self.safe_string(relationEventParts, Value::Int(0), &[]);
+            requestAccountType = self.safe_string(relationEventParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (topic.as_deref() == Some("/contractAccount/wallet")) {
-            requestAccountType = Value::Str("contract".into());
+            requestAccountType = Some("contract".to_string());
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
-        let mut uniformType: Value = self.safe_string(accountsByType, requestAccountType, &[Value::Str("trade".into())]);
+        let mut uniformType: Value = self.safe_string(accountsByType, requestAccountType.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("trade".into())]);
         if (uniformType != Value::Null) {
             if !(matches!((&self.balance, &uniformType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniformType), Value::Map({

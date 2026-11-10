@@ -3536,8 +3536,8 @@ impl Htx {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchStatus".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut status: Value = Value::Null;
-        let mut eta: Value = Value::Null;
+        let mut status: Option<String> = None;
+        let mut eta: Option<i64> = None;
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
             response = self.spot_public_get_v2_market_status(&[paramsMarketType.clone()]).await;
@@ -3558,11 +3558,11 @@ impl Htx {
 })]);
             let mut marketStatus: Option<i64> = self.safe_integer_k(data.clone(), "marketStatus", &[]).as_i64();
             if (marketStatus == Some(1)) {
-                status = Value::Str("ok".into());
+                status = Some("ok".to_string());
             }  else {
-                status = Value::Str("maintenance".into());
+                status = Some("maintenance".to_string());
             }
-            eta = self.safe_integer_k(data.clone(), "haltEndTime", &[]);
+            eta = self.safe_integer_k(data.clone(), "haltEndTime", &[]).as_i64();
         }  else {
             let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchStatus".into()), &[Value::Null, paramsMarketType]).as_array().cloned().unwrap_or_default();
             let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3599,17 +3599,17 @@ impl Htx {
             }
             let mut heartbeat: Option<i64> = self.safe_integer(data.clone(), Value::from(heartbeatKey), &[]).as_i64();
             if (heartbeat == Some(1)) {
-                status = Value::Str("ok".into());
+                status = Some("ok".to_string());
             }  else {
-                status = Value::Str("maintenance".into());
+                status = Some("maintenance".to_string());
             }
-            eta = self.safe_integer(data, Value::from(etaKey), &[]);
+            eta = self.safe_integer(data, Value::from(etaKey), &[]).as_i64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
-        m.insert("eta".to_string(), eta);
+        m.insert("eta".to_string(), Value::from(eta));
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response);
     m
@@ -4034,7 +4034,7 @@ impl Htx {
             let mut __for_first_769: bool = true;
             while { if !__for_first_769 { i += 1; } __for_first_769 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketType: Value = Value::Null;
+            let mut marketType: Option<String> = None;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             let mut settleId: Value = Value::Null;
@@ -4061,7 +4061,7 @@ impl Htx {
                 linear = Value::Bool(business_type.is_some());
                 inverse = Value::Bool(!(linear.as_bool() == Some(true)));
                 if swap.as_bool() == Some(true) {
-                    marketType = Value::Str("swap".into());
+                    marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     quoteId = self.safe_string_lower(parts.clone(), Value::Int(1), &[]);
@@ -4071,7 +4071,7 @@ impl Htx {
                         settleId = quoteId.clone();
                     }
                 }  else if future.as_bool() == Some(true) {
-                    marketType = Value::Str("future".into());
+                    marketType = Some("future".to_string());
                     baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     if inverse.as_bool() == Some(true) {
                         quoteId = Value::Str("USD".into());
@@ -4087,7 +4087,7 @@ impl Htx {
                     }
                 }
             }  else {
-                marketType = Value::Str("spot".into());
+                marketType = Some("spot".to_string());
                 let mut spotBaseId: Option<String> = self.safe_string_k_opt(market.clone(), "base-currency", &[]);
                 let mut spotQuoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote-currency", &[]);
                 if (spotQuoteId.is_none()) {
@@ -4109,7 +4109,7 @@ impl Htx {
             }
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            let mut expiry: Value = Value::Null;
+            let mut expiry: Option<i64> = None;
             if matches!(&contract, Value::Bool(true)) {
                 if (inverse.as_bool() == Some(true)) {
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), base).into())).into());
@@ -4117,8 +4117,8 @@ impl Htx {
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), quote).into())).into());
                 }
                 if future.as_bool() == Some(true) {
-                    expiry = self.safe_integer_k(market.clone(), "delivery_time", &[]);
-                    symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(expiry.clone(), &[])).into())).into());
+                    expiry = self.safe_integer_k(market.clone(), "delivery_time", &[]).as_i64();
+                    symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[])).into())).into());
                 }
             }
             let mut contractSize: Value = self.safe_number_k(market.clone(), "contract_size", &[]);
@@ -4137,7 +4137,7 @@ impl Htx {
             let mut costPrecision: Value = Value::Null;
             let mut maker: Value = Value::Null;
             let mut taker: Value = Value::Null;
-            let mut active: Value = Value::Null;
+            let mut active: Option<bool> = None;
             if spot {
                 pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "price-precision", &[])]), &[]);
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount-precision", &[])]), &[]);
@@ -4145,14 +4145,14 @@ impl Htx {
                 maker = self.parse_number(Value::Str("0.002".into()), &[]);
                 taker = self.parse_number(Value::Str("0.002".into()), &[]);
                 let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
-                active = (Value::Bool(state.as_deref() == Some("online")));
+                active = Some(state.as_deref() == Some("online"));
             }  else {
                 pricePrecision = self.safe_number_k(market.clone(), "price_tick", &[]);
                 amountPrecision = self.parse_number(Value::Str("1".into()), &[]); // other markets have step size of 1 contract
                 maker = self.parse_number(Value::Str("0.0002".into()), &[]);
                 taker = self.parse_number(Value::Str("0.0005".into()), &[]);
                 let mut contractStatus: Option<i64> = self.safe_integer_k(market.clone(), "contract_status", &[]).as_i64();
-                active = (Value::Bool(contractStatus == Some(1)));
+                active = Some(contractStatus == Some(1));
             }
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".into())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".into())]);
@@ -4192,21 +4192,21 @@ impl Htx {
                     m.insert("baseId".to_string(), baseId);
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), settleId);
-                    m.insert("type".to_string(), marketType);
+                    m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot && hasLeverage)));
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), active);
+                    m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear);
                     m.insert("inverse".to_string(), inverse);
                     m.insert("taker".to_string(), taker);
                     m.insert("maker".to_string(), maker);
                     m.insert("contractSize".to_string(), contractSize);
-                    m.insert("expiry".to_string(), expiry.clone());
-                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+                    m.insert("expiry".to_string(), Value::from(expiry));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
@@ -4378,26 +4378,26 @@ impl Htx {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         symbol = self.try_get_symbol_from_future_markets(symbol.clone());
         let mut timestamp: Option<i64> = self.safe_integer2(ticker.clone(), Value::Str("ts".into()), Value::Str("quoteTime".into()), &[]).as_i64();
-        let mut bid: Value = Value::Null;
-        let mut bidVolume: Value = Value::Null;
-        let mut ask: Value = Value::Null;
-        let mut askVolume: Value = Value::Null;
+        let mut bid: Option<String> = None;
+        let mut bidVolume: Option<String> = None;
+        let mut ask: Option<String> = None;
+        let mut askVolume: Option<String> = None;
         if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("bid"))) {
             if (matches!(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-                bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
+                bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_str().map(str::to_owned);
+                bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_str().map(str::to_owned);
             }  else {
-                bid = self.safe_string_k(ticker.clone(), "bid", &[]);
-                bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]);
+                bid = self.safe_string_k(ticker.clone(), "bid", &[]).as_str().map(str::to_owned);
+                bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]).as_str().map(str::to_owned);
             }
         }
         if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("ask"))) {
             if (matches!(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-                ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
+                ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_str().map(str::to_owned);
+                askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_str().map(str::to_owned);
             }  else {
-                ask = self.safe_string_k(ticker.clone(), "ask", &[]);
-                askVolume = self.safe_string_k(ticker.clone(), "askSize", &[]);
+                ask = self.safe_string_k(ticker.clone(), "ask", &[]).as_str().map(str::to_owned);
+                askVolume = self.safe_string_k(ticker.clone(), "askSize", &[]).as_str().map(str::to_owned);
             }
         }
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "open", &[]);
@@ -4420,10 +4420,10 @@ impl Htx {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
-        m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), bidVolume);
-        m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), askVolume);
+        m.insert("bid".to_string(), bid.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("bidVolume".to_string(), bidVolume.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("ask".to_string(), ask.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("askVolume".to_string(), askVolume.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
         m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7698,14 +7698,14 @@ impl Htx {
         }
         let mut timestamp: Option<i64> = self.safe_integer_n_opt(order.clone(), Value::from(vec![Value::Str("created_at".into()), Value::Str("created-at".into()), Value::Str("create_date".into()), Value::Str("created_time".into())]), &[]);
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(order.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str(format!("{}{}", Value::Str("client-or".into()), Value::Str("der-id".into())).into()), Value::Str("algo_client_order_id".into())]), &[]); // transpiler regex trick for php issue
-        let mut cost: Value = Value::Null;
-        let mut amount: Value = Value::Null;
+        let mut cost: Option<String> = None;
+        let mut amount: Option<String> = None;
         let mut typeResolved: Value = type_var.clone();
         if (typeResolved != Value::Null) && (typeResolved.as_str().unwrap_or("").contains("market")) && (!isLinearOrder) {
-            cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]);
+            cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]).as_str().map(str::to_owned);
         }  else {
-            amount = self.safe_string2(order.clone(), Value::Str("volume".into()), Value::Str("amount".into()), &[]);
-            cost = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("filled-cash-amount".into()), Value::Str("field-cash-amount".into()), Value::Str("trade_turnover".into())]), &[]); // same typo here
+            amount = self.safe_string2(order.clone(), Value::Str("volume".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
+            cost = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("filled-cash-amount".into()), Value::Str("field-cash-amount".into()), Value::Str("trade_turnover".into())]), &[]).as_str().map(str::to_owned); // same typo here
         }
         let mut filled: Option<String> = self.safe_string_n_opt(order.clone(), Value::from(vec![Value::Str("filled-amount".into()), Value::Str("field-amount".into()), Value::Str("trade_volume".into())]), &[]); // typo in their API, filled amount
         let mut price: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("price".into()), Value::Str("order_price".into()), &[]);
@@ -7729,16 +7729,16 @@ impl Htx {
         }
         let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "trade_avg_price", &[]);
         let mut trades: Value = self.safe_value_k(order.clone(), "trades", &[]);
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         if isLinearOrder {
-            reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[]);
+            reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
         }  else {
             let mut reduceOnlyInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
             if (reduceOnlyInteger.is_some()) {
                 if (reduceOnlyInteger == Some(0)) {
-                    reduceOnly = Value::Bool(false);
+                    reduceOnly = Some(false);
                 }  else {
-                    reduceOnly = Value::Bool(true);
+                    reduceOnly = Some(true);
                 }
             }
         }
@@ -7760,12 +7760,12 @@ impl Htx {
         m.insert("stopLossPrice".to_string(), self.safe_string2(order.clone(), Value::Str("sl_trigger_price".into()), Value::Str("sl_order_price".into()), &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_string2(order, Value::Str("tp_trigger_price".into()), Value::Str("tp_order_price".into()), &[]));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), cost);
-        m.insert("amount".to_string(), amount);
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), trades);
     m
@@ -9922,13 +9922,13 @@ impl Htx {
         let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.map(Value::from).unwrap_or(Value::Null)]);
         let mut toAccount: Value = self.safe_string(accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.map(Value::from).unwrap_or(Value::Null)]);
         let mut statusRaw: Option<String> = self.safe_string_k(transfer.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (statusRaw.as_deref() == Some("success")) {
-            status = Value::Str("ok".into());
+            status = Some("ok".to_string());
         }  else if (statusRaw.as_deref() == Some("pending")) {
-            status = Value::Str("pending".into());
+            status = Some("pending".to_string());
         }  else if (statusRaw.as_deref() == Some("failed")) {
-            status = Value::Str("failed".into());
+            status = Some("failed".to_string());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9940,7 +9940,7 @@ impl Htx {
         m.insert("amount".to_string(), amount);
         m.insert("fromAccount".to_string(), fromAccount);
         m.insert("toAccount".to_string(), toAccount);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -11296,26 +11296,26 @@ impl Htx {
         let mut percentage: Value = crate::precise::Precise::stringMul(&self.safe_string_k(position.clone(), "profit_rate", &[]), &Value::Str("100".into()));
         let mut lastPrice: Option<String> = self.safe_string_k_opt(position.clone(), "last_price", &[]);
         let mut faceValue: Value = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString);
-        let mut notional: Value = Value::Null;
+        let mut notional: Option<String> = None;
         if matches!(self.safe_bool_k(marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-            notional = crate::precise::Precise::stringMul(&faceValue, &lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
+            notional = crate::precise::Precise::stringMul(&faceValue, &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
-            notional = crate::precise::Precise::stringDiv(&faceValue, &lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
+            notional = crate::precise::Precise::stringDiv(&faceValue, &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             marginMode = Value::Str("cross".into());
         }
-        let mut intialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional);
+        let mut intialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
         let mut collateral: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("margin_balance".into()), Value::Str("margin".into()), &[]);
         let mut adjustmentFactor: Option<String> = self.safe_string_k_opt(position.clone(), "adjust_factor", &[]);
         let mut maintenanceMarginLinear: Option<String> = self.safe_string_k_opt(position.clone(), "maintenance_margin", &[]);
         let mut marginRatioLinear: Option<String> = self.safe_string_k_opt(position.clone(), "margin_rate", &[]);
-        let mut maintenanceMarginPercentage: Value = Value::Null;
+        let mut maintenanceMarginPercentage: Option<String> = None;
         let mut maintenanceMargin: Value = Value::Null;
         let mut marginRatio: Value = Value::Null;
         let mut maintenanceMarginPercentageResult: Value = Value::Null;
         if (maintenanceMarginLinear.is_none()) {
-            maintenanceMarginPercentage = crate::precise::Precise::stringDiv(&adjustmentFactor.clone().map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null));
-            maintenanceMargin = crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional);
-            maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage, &[]);
+            maintenanceMarginPercentage = crate::precise::Precise::stringDiv(&adjustmentFactor.clone().map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            maintenanceMargin = crate::precise::Precise::stringMul(&maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
+            maintenanceMarginPercentageResult = self.parse_number(maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
             maintenanceMargin = maintenanceMarginLinear.map(Value::from).unwrap_or(Value::Null);
         }
@@ -11339,7 +11339,7 @@ impl Htx {
         m.insert("leverage".to_string(), self.parse_number(leverage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
         m.insert("marginMode".to_string(), marginMode);
-        m.insert("notional".to_string(), self.parse_number(notional, &[]));
+        m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), self.parse_number(lastPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));

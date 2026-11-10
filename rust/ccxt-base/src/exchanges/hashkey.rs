@@ -1640,16 +1640,16 @@ impl Hashkey {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), suffix).into());
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
-        let mut isLinear: Value = Value::Null;
-        let mut subType: Value = Value::Null;
+        let mut isLinear: Option<bool> = None;
+        let mut subType: Option<String> = None;
         let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
         if (isInverse.is_some()) {
             if isInverse == Some(true) {
-                isLinear = Value::Bool(false);
-                subType = Value::Str("inverse".into());
+                isLinear = Some(false);
+                subType = Some("inverse".to_string());
             }  else {
-                isLinear = Value::Bool(true);
-                subType = Value::Str("linear".into());
+                isLinear = Some(true);
+                subType = Some("linear".to_string());
             }
         }
         let mut filtersList: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
@@ -1710,7 +1710,7 @@ impl Hashkey {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), active);
         m.insert("type".to_string(), Value::from(marketType));
-        m.insert("subType".to_string(), subType);
+        m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), self.safe_bool_k(market.clone(), "allowMargin", &[]));
         m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
@@ -1720,7 +1720,7 @@ impl Hashkey {
         m.insert("settle".to_string(), settle);
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("linear".to_string(), isLinear);
+        m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
@@ -3059,10 +3059,10 @@ impl Hashkey {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(currency.clone(), "id", &[]);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         let mut success: bool = self.safe_bool_k_opt(transfer.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
         if success {
-            status = Value::Str("ok".into());
+            status = Some("ok".to_string());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3073,7 +3073,7 @@ impl Hashkey {
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), transfer);
     m
 });

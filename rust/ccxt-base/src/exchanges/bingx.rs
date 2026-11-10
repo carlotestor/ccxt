@@ -3377,9 +3377,9 @@ impl Bingx {
         let mut nextFundingTimestamp: Option<i64> = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "updateTime", &[]).as_i64();
         let mut interval: Option<String> = self.safe_string_k_opt(contract.clone(), "fundingIntervalHours", &[]);
-        let mut intervalString: Value = Value::Null;
+        let mut intervalString: Option<String> = None;
         if (interval.is_some()) {
-            intervalString = Value::Str(format!("{}{}", interval.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())).into());
+            intervalString = Some(format!("{}{}", interval.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3400,7 +3400,7 @@ impl Bingx {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), intervalString);
+        m.insert("interval".to_string(), intervalString.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -4739,9 +4739,9 @@ impl Bingx {
         }
         let mut timestamp: Option<i64> = self.safe_integer2(position.clone(), Value::Str("openTime".into()), Value::Str("createTime".into()), &[]).as_i64();
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Null;
+        let mut hedged: Option<bool> = None;
         if (positionSide.is_some()) {
-            hedged = (Value::Bool(positionSide.as_deref() != Some("BOTH")));
+            hedged = Some(positionSide.as_deref() != Some("BOTH"));
         }
         let mut percentageString: Option<String> = self.safe_string_k_opt(position.clone(), "pnlRatio", &[]);
         return self.safe_position(Value::Map({
@@ -4761,7 +4761,7 @@ impl Bingx {
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "positionSide", &[]));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), hedged.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "updateTime", &[]));
@@ -7450,9 +7450,9 @@ impl Bingx {
         if (rawType.as_deref() == Some("0")) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("insertTime"))) {
             type_var = "deposit".to_string();
         }
-        let mut internal: Value = Value::Null;
+        let mut internal: Option<bool> = None;
         if (rawType.is_some()) {
-            internal = (Value::Bool(rawType.as_deref() == Some("2")));
+            internal = Some(rawType.as_deref() == Some("2"));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7481,7 +7481,7 @@ impl Bingx {
         m.insert("rate".to_string(), Value::Null);
     m
 }));
-        m.insert("internal".to_string(), internal);
+        m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -8625,15 +8625,15 @@ impl Bingx {
         if (subType.as_str() == Some("inverse")) || ((market != Value::Null) && matches!((self.safe_bool_k(market, "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setPositionMode() is not supported for inverse swap markets".into()))));
         }
-        let mut dualSidePosition: Value = Value::Null;
+        let mut dualSidePosition: Option<String> = None;
         if hedged.as_bool() == Some(true) {
-            dualSidePosition = Value::Str("true".into());
+            dualSidePosition = Some("true".to_string());
         }  else {
-            dualSidePosition = Value::Str("false".into());
+            dualSidePosition = Some("false".to_string());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("dualSidePosition".to_string(), dualSidePosition);
+                m.insert("dualSidePosition".to_string(), dualSidePosition.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_77 = self.extend(Value::Map(request), &[paramsSubType]);

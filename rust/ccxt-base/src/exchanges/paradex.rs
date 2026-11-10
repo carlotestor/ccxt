@@ -2138,9 +2138,9 @@ impl Paradex {
     m
 })]), Value::Str("funding_period_hours".into()), &[]);
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        let mut interval: Value = Value::Null;
+        let mut interval: Option<String> = None;
         if (hours.is_some()) && crate::precise::Precise::stringGt(&hours.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            interval = Value::Str(format!("{}{}", hours.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())).into());
+            interval = Some(format!("{}{}", hours.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2161,7 +2161,7 @@ impl Paradex {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), interval);
+        m.insert("interval".to_string(), interval.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -3375,20 +3375,20 @@ impl Paradex {
             let mut marketId: Option<String> = self.safe_string_k_opt(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut status: Option<String> = self.safe_string_k(result.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut orderStatus: Value = Value::Null;
+            let mut orderStatus: Option<String> = None;
             if (status.as_deref() == Some("QUEUED_FOR_CANCELLATION")) {
-                orderStatus = Value::Str("canceled".into());
+                orderStatus = Some("canceled".to_string());
             }  else if (status.as_deref() == Some("ALREADY_CLOSED")) {
-                orderStatus = Value::Str("closed".into());
+                orderStatus = Some("closed".to_string());
             }  else if (status.as_deref() == Some("NOT_FOUND")) {
-                orderStatus = Value::Str("rejected".into());
+                orderStatus = Some("rejected".to_string());
             }
             if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result.clone());
         m.insert("id".to_string(), self.safe_string_k(result.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(result, "client_id", &[]));
-        m.insert("status".to_string(), orderStatus);
+        m.insert("status".to_string(), orderStatus.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
     m
 }), &[market])); }
@@ -4364,14 +4364,14 @@ impl Paradex {
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "created_at", &[]).as_i64();
         let mut kind: Option<String> = self.safe_string_k(transfer.clone(), "kind", &[]).as_str().map(str::to_owned);
-        let mut fromAccount: Value = Value::Null;
-        let mut toAccount: Value = Value::Null;
+        let mut fromAccount: Option<String> = None;
+        let mut toAccount: Option<String> = None;
         if (kind.as_deref() == Some("DEPOSIT")) {
-            fromAccount = Value::Str("external".into());
-            toAccount = Value::Str("account".into());
+            fromAccount = Some("external".to_string());
+            toAccount = Some("account".to_string());
         }  else if (kind.as_deref() == Some("WITHDRAWAL")) {
-            fromAccount = Value::Str("account".into());
-            toAccount = Value::Str("external".into());
+            fromAccount = Some("account".to_string());
+            toAccount = Some("external".to_string());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4381,8 +4381,8 @@ impl Paradex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
-        m.insert("fromAccount".to_string(), fromAccount);
-        m.insert("toAccount".to_string(), toAccount);
+        m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer, "status", &[])).map(Value::from).unwrap_or(Value::Null));
     m
 });

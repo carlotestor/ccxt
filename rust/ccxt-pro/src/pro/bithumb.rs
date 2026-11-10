@@ -1516,24 +1516,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             side = (if (sideId.as_deref() == Some("BID")) { (Value::Str("buy".into())) } else { (Value::Str("sell".into())) });
         }
         let mut typeId: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         if (typeId.as_deref() == Some("limit")) {
-            type_var = Value::Str("limit".into());
+            type_var = Some("limit".to_string());
         }  else if (typeId.as_deref() == Some("price")) {
-            type_var = Value::Str("market".into());
+            type_var = Some("market".to_string());
         }  else if (typeId.as_deref() == Some("market")) {
-            type_var = Value::Str("market".into());
+            type_var = Some("market".to_string());
         }
         let mut stateId: Option<String> = self.safe_string_k(order.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (stateId.as_deref() == Some("wait")) {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }  else if (stateId.as_deref() == Some("trade")) {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }  else if (stateId.as_deref() == Some("done")) {
-            status = Value::Str("closed".into());
+            status = Some("closed".to_string());
         }  else if (stateId.as_deref() == Some("cancel")) {
-            status = Value::Str("canceled".into());
+            status = Some("canceled".to_string());
         }
         let mut price: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("price".into()), Value::Str("order_price".into()), &[]);
         let mut amount: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("volume".into()), Value::Str("order_quantity".into()), &[]);
@@ -1561,7 +1561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order, "trade_timestamp", &[]));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
@@ -1573,7 +1573,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m

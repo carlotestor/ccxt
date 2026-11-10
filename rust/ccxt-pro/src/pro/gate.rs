@@ -915,15 +915,15 @@ impl Gate {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut market: Value = Value::Null;
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets".into()))));
             }
         }
-        let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status, &[symbolResolved.clone(), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut newRequest: Value = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]);
@@ -934,7 +934,7 @@ impl Gate {
         let __ws_arg_3 = self.extend(newRequest, &[requestParams]);
         let mut rawOrders: Value = self.request_private(url, __ws_arg_3, channel, &[]).await;
         let mut orders: Value = self.parse_orders(rawOrders, &[market]);
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }

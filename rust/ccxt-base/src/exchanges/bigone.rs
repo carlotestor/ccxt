@@ -984,17 +984,17 @@ impl Bigone {
         }
         }
         let mut chainLength: f64 = ((chains.len() as i64) as f64);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         if matches!(self.safe_bool_k(rawCurrency.clone(), "is_fiat", &[Value::Bool(false)]), Value::Bool(true)) {
-            type_var = Value::Str("fiat".into());
+            type_var = Some("fiat".to_string());
         }  else if (chainLength == 0.0) {
             if self.is_leveraged_currency(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_bool() == Some(true) {
-                type_var = Value::Str("leveraged".into());
+                type_var = Some("leveraged".to_string());
             }  else {
-                type_var = Value::Str("other".into());
+                type_var = Some("other".to_string());
             }
         }  else {
-            type_var = Value::Str("crypto".into());
+            type_var = Some("crypto".to_string());
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1002,7 +1002,7 @@ impl Bigone {
         m.insert("code".to_string(), code);
         m.insert("info".to_string(), rawCurrency);
         m.insert("name".to_string(), name.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -2115,20 +2115,20 @@ impl Bigone {
             triggerPrice = None;
         }
         let mut immediateOrCancel: bool = self.safe_bool_k_opt(order.clone(), "immediate_or_cancel", &[Value::Bool(false)]).unwrap_or(false);
-        let mut timeInForce: Value = Value::Null;
+        let mut timeInForce: Option<String> = None;
         if immediateOrCancel {
-            timeInForce = Value::Str("IOC".into());
+            timeInForce = Some("IOC".to_string());
         }
         let mut type_var: Value = self.parse_type(self.safe_string_k(order.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
-        let mut amount: Value = Value::Null;
-        let mut filled: Value = Value::Null;
-        let mut cost: Value = Value::Null;
+        let mut amount: Option<String> = None;
+        let mut filled: Option<String> = None;
+        let mut cost: Option<String> = None;
         if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
-            cost = self.safe_string_k(order.clone(), "filled_amount", &[]);
+            cost = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         }  else {
-            amount = self.safe_string_k(order.clone(), "amount", &[]);
-            filled = self.safe_string_k(order.clone(), "filled_amount", &[]);
+            amount = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
+            filled = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2140,15 +2140,15 @@ impl Bigone {
         m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[])));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_deal_price", &[]));
-        m.insert("filled".to_string(), filled);
+        m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "state", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);

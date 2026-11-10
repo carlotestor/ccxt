@@ -1674,23 +1674,23 @@ impl Backpack {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
-        let mut side: Value = Value::Null;
-        let mut takerOrMaker: Value = Value::Null;
+        let mut side: Option<String> = None;
+        let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
-            takerOrMaker = Value::Str("taker".into());
+            takerOrMaker = Some("taker".to_string());
             if isBuyerMaker == Some(true) {
-                side = Value::Str("sell".into());
+                side = Some("sell".to_string());
             }  else {
-                side = Value::Str("buy".into());
+                side = Some("buy".to_string());
             }
         }
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "p", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "q", &[]);
-        let mut orderId: Value = Value::Null;
-        if (side.as_str() == Some("buy")) {
-            orderId = self.safe_string_k(trade.clone(), "b", &[]);
+        let mut orderId: Option<String> = None;
+        if (side.as_deref() == Some("buy")) {
+            orderId = self.safe_string_k(trade.clone(), "b", &[]).as_str().map(str::to_owned);
         }  else {
-            orderId = self.safe_string_k(trade.clone(), "a", &[]);
+            orderId = self.safe_string_k(trade.clone(), "a", &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1699,10 +1699,10 @@ impl Backpack {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);

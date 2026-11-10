@@ -2135,11 +2135,11 @@ impl Hollaex {
         //     }
         //
         let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
-        let mut tag: Value = Value::Null;
+        let mut tag: Option<String> = None;
         if (address.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
-            tag = self.safe_string(parts, Value::Int(1), &[]);
+            tag = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
@@ -2151,7 +2151,7 @@ impl Hollaex {
         m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyResolved.get("code").cloned().unwrap_or(Value::Null)]));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -2508,15 +2508,15 @@ impl Hollaex {
         let mut completed: bool = self.safe_bool_k_opt(transaction.clone(), "status", &[Value::Bool(false)]).unwrap_or(false);
         let mut dismissed: bool = self.safe_bool_k_opt(transaction.clone(), "dismissed", &[Value::Bool(false)]).unwrap_or(false);
         let mut rejected: bool = self.safe_bool_k_opt(transaction.clone(), "rejected", &[Value::Bool(false)]).unwrap_or(false);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if completed {
-            status = Value::Str("ok".into());
+            status = Some("ok".to_string());
         }  else if dismissed {
-            status = Value::Str("canceled".into());
+            status = Some("canceled".to_string());
         }  else if rejected {
-            status = Value::Str("failed".into());
+            status = Some("failed".to_string());
         }  else {
-            status = Value::Str("pending".into());
+            status = Some("pending".to_string());
         }
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee_coin", &[]);
         let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()]);
@@ -2547,7 +2547,7 @@ impl Hollaex {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), updated);
         m.insert("comment".to_string(), self.safe_string_k(transaction, "message", &[]));
         m.insert("internal".to_string(), Value::Null);

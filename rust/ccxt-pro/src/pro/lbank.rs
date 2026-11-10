@@ -1130,14 +1130,14 @@ if _try_result.is_err() {
         }
         let mut key: Value = self.authenticate(&[params.clone()]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Null;
+        let mut messageHash: Option<String> = None;
         let mut pair: Value = Value::Str("all".into());
         let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Null } else { self.symbol(symbol.clone()) });
         if (symbol == Value::Null) {
-            messageHash = Value::Str("orders:all".into());
+            messageHash = Some("orders:all".to_string());
         }  else {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            messageHash = Value::Str(format!("{}{}", Value::Str("orders:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into());
+            messageHash = Some(format!("{}{}", Value::Str("orders:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
             pair = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -1149,7 +1149,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
+        let mut orders: Value = self.watch(url, messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))

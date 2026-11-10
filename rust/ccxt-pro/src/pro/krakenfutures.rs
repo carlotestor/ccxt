@@ -829,11 +829,11 @@ impl Krakenfutures {
         let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "instrument", &[]);
         let mut hedged: String = "both".to_string();
         let mut balanceString: Option<String> = self.safe_string_k_opt(position.clone(), "balance", &[]);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if crate::precise::Precise::stringGt(&balanceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            side = Value::Str("long".into());
+            side = Some("long".to_string());
         }  else if crate::precise::Precise::stringLt(&balanceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            side = Value::Str("short".into());
+            side = Some("short".to_string());
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -849,7 +849,7 @@ impl Krakenfutures {
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&balanceString.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::from(hedged));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1594,11 +1594,11 @@ impl Krakenfutures {
         //
         let mut isCancelled: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_cancel", &[]);
         let mut unparsedOrder: Value = order.clone();
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (isCancelled.is_some()) {
             unparsedOrder = self.safe_dict_k(order.clone(), "order", &[]);
             if isCancelled == Some(true) {
-                status = Value::Str("cancelled".into());
+                status = Some("cancelled".to_string());
             }
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(unparsedOrder.clone(), "instrument", &[]);
@@ -1625,7 +1625,7 @@ impl Krakenfutures {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), self.safe_string_k(unparsedOrder.clone(), "filled", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(unparsedOrder, "qty", &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);

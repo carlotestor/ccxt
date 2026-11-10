@@ -1206,11 +1206,11 @@ impl Indodax {
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).map(Value::from).unwrap_or(Value::Null);
         let mut symbol: Value = Value::Null;
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<String> = None;
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
-        let mut amount: Value = Value::Null;
-        let mut remaining: Value = Value::Null;
-        let mut filled: Value = Value::Null;
+        let mut amount: Option<String> = None;
+        let mut remaining: Option<String> = None;
+        let mut filled: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         if (marketResolved != Value::Null) {
@@ -1223,12 +1223,12 @@ impl Indodax {
             if (marketResolved.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "remain_rp", &[]) != Value::Null) {
                 baseId = Value::Str("rp".into());
             }
-            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId).into()), &[]);
-            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), baseId).into()), &[]);
-            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".into()), baseId).into()), &[]);
+            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId).into()), &[]).as_str().map(str::to_owned);
+            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
+            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]);
+            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
         let mut fee: Value = Value::Null;
@@ -1248,11 +1248,11 @@ impl Indodax {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
-        m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), remaining);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);

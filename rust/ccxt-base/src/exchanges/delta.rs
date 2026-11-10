@@ -1505,7 +1505,7 @@ impl Delta {
                 amountPrecision = self.parse_number(Value::Str("1".into()), &[]);
             }
             let mut linear: Value = (Value::Bool(settle.as_str() == quote.as_str()));
-            let mut optionType: Value = Value::Null;
+            let mut optionType: Option<String> = None;
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             if matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&option, Value::Bool(true)) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
@@ -1514,13 +1514,13 @@ impl Delta {
                     if matches!(&option, Value::Bool(true)) {
                         type_var = Value::Str("option".into());
                         let mut letter: String = "C".to_string();
-                        optionType = Value::Str("call".into());
+                        optionType = Some("call".to_string());
                         if putOptions {
                             letter = "P".to_string();
-                            optionType = Value::Str("put".into());
+                            optionType = Some("put".to_string());
                         }  else if moveOptions {
                             letter = "M".to_string();
-                            optionType = Value::Str("move".into());
+                            optionType = Some("move".to_string());
                         }
                         symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), letter).into());
                     }  else {
@@ -1558,7 +1558,7 @@ impl Delta {
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("optionType".to_string(), optionType);
+        m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amountPrecision);
@@ -2615,12 +2615,12 @@ impl Delta {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_product_k(position.clone(), "timestamp", Value::Float(0.001), &[]);
         let mut sizeString: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (sizeString.is_some()) {
             if crate::precise::Precise::stringGt(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                side = Value::Str("long".into());
+                side = Some("long".to_string());
             }  else if crate::precise::Precise::stringLt(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                side = Value::Str("short".into());
+                side = Some("short".to_string());
             }
         }
         return self.safe_position(Value::Map({
@@ -2637,7 +2637,7 @@ impl Delta {
         m.insert("contracts".to_string(), self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3493,7 +3493,7 @@ impl Delta {
         //     }
         //
         let mut id: Option<String> = self.safe_string_k_opt(item.clone(), "uuid", &[]);
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         let mut account: Value = Value::Null;
         let mut metaData: Value = self.safe_dict_k(item.clone(), "meta_data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3503,9 +3503,9 @@ impl Delta {
         let mut referenceAccount: Value = Value::Null;
         let mut type_var: Value = self.safe_string_k(item.clone(), "transaction_type", &[]);
         if (type_var.as_str() == Some("deposit")) || (type_var.as_str() == Some("commission_rebate")) || (type_var.as_str() == Some("referral_bonus")) || (type_var.as_str() == Some("pnl")) || (type_var.as_str() == Some("withdrawal_cancellation")) || (type_var.as_str() == Some("promo_credit")) {
-            direction = Value::Str("in".into());
+            direction = Some("in".to_string());
         }  else if (type_var.as_str() == Some("withdrawal")) || (type_var.as_str() == Some("commission")) || (type_var.as_str() == Some("conversion")) || (type_var.as_str() == Some("perpetual_futures_funding")) {
-            direction = Value::Str("out".into());
+            direction = Some("out".to_string());
         }
         type_var = self.parse_ledger_entry_type(type_var.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "asset_id", &[]);
@@ -3521,7 +3521,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), account);
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), referenceAccount);
@@ -4794,14 +4794,14 @@ impl Delta {
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (market != Value::Null) {
-            symbol = self.safe_string_k(market, "symbol", &[]);
+            symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("marginMode".to_string(), self.safe_string_k(marginMode, "margin_mode", &[]));
     m
 });

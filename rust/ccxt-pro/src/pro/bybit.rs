@@ -561,8 +561,8 @@ impl Bybit {
 }));
         let mut accessibility: Value = (if (isPrivate).as_bool() == Some(true) { Value::Str("private".into()) } else { Value::Str("public".into()) });
         let mut methodValue: Value = (if (method == Value::Null) { Value::Str("".into()) } else { method });
-        let mut isUsdcSettled: Value = Value::Null;
-        let mut isSpot: Value = Value::Null;
+        let mut isUsdcSettled: Option<bool> = None;
+        let mut isSpot: Option<bool> = None;
         let mut type_var: Value = Value::Null;
         let mut market: Value = Value::Null;
         let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
@@ -576,7 +576,7 @@ impl Bybit {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            isUsdcSettled = Value::Bool(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC"));
+            isUsdcSettled = Some(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC"));
             type_var = self.safe_string_k(market.clone(), "type", &[]);
         }  else {
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodValue.clone(), &[Value::Null, params.clone()]).as_array().cloned().unwrap_or_default();
@@ -585,20 +585,20 @@ impl Bybit {
             type_var = marketType;
             let mut defaultSettle: Value = self.safe_string_k(self.options.clone(), "defaultSettle", &[]);
             defaultSettle = self.safe_string2(paramsMarketType, Value::Str("settle".into()), Value::Str("defaultSettle".into()), &[defaultSettle.clone()]);
-            isUsdcSettled = (Value::Bool(defaultSettle.as_str() == Some("USDC")));
+            isUsdcSettled = Some(defaultSettle.as_str() == Some("USDC"));
         }
-        isSpot = (Value::Bool(type_var.as_str() == Some("spot")));
+        isSpot = Some(type_var.as_str() == Some("spot"));
         if isPrivate.as_bool() == Some(true) {
             let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
             let mut isUnifiedMargin: bool = self.safe_bool_opt(unified.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
             let mut isUnifiedAccount: bool = self.safe_bool_opt(unified, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-            if isUsdcSettled.as_bool() == Some(true) && (!(isUnifiedMargin)) && (!(isUnifiedAccount)) {
+            if (isUsdcSettled == Some(true)) && (!(isUnifiedMargin)) && (!(isUnifiedAccount)) {
                 url = accessibilityUrls.get("usdc").cloned().unwrap_or(Value::Null);
             }  else {
                 url = accessibilityUrls.get("contract").cloned().unwrap_or(Value::Null);
             }
         }  else {
-            if isSpot.as_bool() == Some(true) {
+            if (isSpot == Some(true)) {
                 url = accessibilityUrls.get("spot").cloned().unwrap_or(Value::Null);
             }  else if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
                 let mut subType: Value = self.handle_sub_type_and_params(methodValue, &[market, params, Value::Str("linear".into())]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -2762,11 +2762,11 @@ impl Bybit {
         // bybit sends the side of the liquidated position (Buy - a long was liquidated),
         // the unified side is the side of the liquidation order, as on binance and okx
         let mut positionSide: Option<String> = self.safe_string_lower2(liquidation.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (positionSide.as_deref() == Some("buy")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }  else if (positionSide.as_deref() == Some("sell")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2775,7 +2775,7 @@ impl Bybit {
         m.insert("contracts".to_string(), self.safe_number2(liquidation.clone(), Value::Str("size".into()), Value::Str("v".into()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number2(liquidation, Value::Str("price".into()), Value::Str("p".into()), &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));

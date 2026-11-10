@@ -1621,8 +1621,8 @@ impl Gemini {
         let mut status: Value = Value::Null;
         let mut swap: bool = false;
         let mut contractSize: Value = Value::Null;
-        let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
+        let mut linear: Option<bool> = None;
+        let mut inverse: Option<bool> = None;
         let mut isString: bool = matches!(&response, Value::Str(_));
         let mut isArray: bool = matches!(&response, Value::Arr(_));
         if !isString && !(isArray) {
@@ -1694,8 +1694,8 @@ impl Gemini {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
             swap = true;
             contractSize = tickSize.clone(); // always same
-            linear = Value::Bool(true); // always linear
-            inverse = Value::Bool(false);
+            linear = Some(true); // always linear
+            inverse = Some(false);
         }
         let mut type_var: String = "spot".to_string();
         if swap {
@@ -1720,8 +1720,8 @@ impl Gemini {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), status);
         m.insert("contract".to_string(), Value::Bool(swap));
-        m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);

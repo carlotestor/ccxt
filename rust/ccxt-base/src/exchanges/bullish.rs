@@ -1357,9 +1357,9 @@ impl Bullish {
         let mut contract: Value = Value::Bool(true);
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
-        let mut expiryDatetime: Value = Value::Null;
+        let mut expiryDatetime: Option<String> = None;
         let mut contractSize: Value = Value::Null;
-        let mut optionType: Value = Value::Null;
+        let mut optionType: Option<String> = None;
         let mut strike: Value = Value::Null;
         let mut margin: Value = Value::Bool(false);
         if (type_var.as_str() == Some("spot")) {
@@ -1374,7 +1374,7 @@ impl Bullish {
             if (type_var.as_str() == Some("swap")) {
                 swap = Value::Bool(true);
             }  else {
-                expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]);
+                expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]).as_str().map(str::to_owned);
                 let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut datePart: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(2), &[]);
                 let mut dateYmd: Value = datePart.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
@@ -1383,7 +1383,7 @@ impl Bullish {
                     future = Value::Bool(true);
                 }  else if (type_var.as_str() == Some("option")) {
                     option = Value::Bool(true);
-                    optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]);
+                    optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]).as_str().map(str::to_owned);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), self.safe_string(idParts, Value::Int(4), &[])).into())).into());
                 }
@@ -1415,10 +1415,10 @@ impl Bullish {
         m.insert("taker".to_string(), tradingFees.get("taker").cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), tradingFees.get("maker").cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize);
-        m.insert("expiry".to_string(), self.parse8601(expiryDatetime.clone()));
-        m.insert("expiryDatetime".to_string(), expiryDatetime);
+        m.insert("expiry".to_string(), self.parse8601(expiryDatetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("expiryDatetime".to_string(), expiryDatetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), strike);
-        m.insert("optionType".to_string(), optionType);
+        m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1792,11 +1792,11 @@ impl Bullish {
                 m
             });
         }
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if isTaker {
-            takerOrMaker = Value::Str("taker".into());
+            takerOrMaker = Some("taker".to_string());
         }  else {
-            takerOrMaker = Value::Str("maker".into());
+            takerOrMaker = Some("maker".to_string());
         }
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
         return self.safe_trade(Value::Map({
@@ -1808,7 +1808,7 @@ impl Bullish {
         m.insert("id".to_string(), self.safe_string_k(trade, "tradeId", &[]));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));

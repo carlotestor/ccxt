@@ -1101,10 +1101,10 @@ impl Deepcoin {
             return Value::Null;
         }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut isLinear: Value = Value::Null;
+        let mut isLinear: Option<bool> = None;
         if matches!(&swap, Value::Bool(true)) {
-            isLinear = (Value::Bool(quoteId.as_str() != Some("USD")));
-            settleId = (if isLinear.as_bool() == Some(true) { quoteId.clone() } else { baseId.clone() });
+            isLinear = Some(quoteId.as_str() != Some("USD"));
+            settleId = (if (isLinear == Some(true)) { quoteId.clone() } else { baseId.clone() });
             settle = self.safe_currency_code(settleId.clone(), &[]);
             if (settle == Value::Null) {
                 return Value::Null;
@@ -1122,7 +1122,7 @@ impl Deepcoin {
         let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.clone().map(Value::from).unwrap_or(Value::Null), &maxLimitSize.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true));
-        let mut isInverse: Value = (if matches!(&swap, Value::Bool(true)) { (Value::Bool(isLinear.as_bool() != Some(true))) } else { Value::Null });
+        let mut isInverse: Value = (if matches!(&swap, Value::Bool(true)) { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
         let __ws_arg_1 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_2 = self.safe_number_k(market.clone(), "lotSz", &[]);
         let __ws_arg_3 = self.safe_number_k(market.clone(), "tickSz", &[]);
@@ -1147,7 +1147,7 @@ impl Deepcoin {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(state.as_deref() == Some("live")));
         m.insert("contract".to_string(), swap.clone());
-        m.insert("linear".to_string(), isLinear);
+        m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse);
         m.insert("contractSize".to_string(), (if matches!(&swap, Value::Bool(true)) { __ws_arg_1 } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);

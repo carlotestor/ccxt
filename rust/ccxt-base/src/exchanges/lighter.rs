@@ -4369,14 +4369,14 @@ if _try_result.is_err() {
         let mut bidAccountId: Value = self.safe_string_k(trade.clone(), "bid_account_id", &[]);
         let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
         let mut side: Value = Value::Null;
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         if (accountIndex != Value::Null) {
             if (accountIndex == askAccountId) {
                 side = Value::Str("sell".into());
-                orderId = self.safe_string_k(trade.clone(), "ask_id", &[]);
+                orderId = self.safe_string_k(trade.clone(), "ask_id", &[]).as_str().map(str::to_owned);
             }  else if (accountIndex == bidAccountId) {
                 side = Value::Str("buy".into());
-                orderId = self.safe_string_k(trade.clone(), "bid_id", &[]);
+                orderId = self.safe_string_k(trade.clone(), "bid_id", &[]).as_str().map(str::to_owned);
             }
         }
         // public trades use Lighter's taker-side convention
@@ -4395,7 +4395,7 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);

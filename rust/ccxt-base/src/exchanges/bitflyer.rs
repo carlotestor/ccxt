@@ -964,12 +964,12 @@ impl Bitflyer {
                 side = Value::Null;
             }
         }
-        let mut order: Value = Value::Null;
+        let mut order: Option<String> = None;
         if (side != Value::Null) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]);
+            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
         }
-        if (order == Value::Null) {
-            order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]);
+        if (order.is_none()) {
+            order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "exec_date", &[]));
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
@@ -983,7 +983,7 @@ impl Bitflyer {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), order);
+        m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -1694,11 +1694,11 @@ impl Bitflyer {
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut txId: Option<String> = self.safe_string_k_opt(transaction.clone(), "tx_hash", &[]);
         let mut rawStatus: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut status: Value = Value::Null;
         let mut fee: Value = Value::Null;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee"))) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             let mut feeCost: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);
             let mut additionalFee: Option<String> = self.safe_string_k_opt(transaction.clone(), "additional_fee", &[]);
@@ -1709,7 +1709,7 @@ impl Bitflyer {
                 m
             });
         }  else {
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
             status = self.parse_deposit_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         }
         return Value::Map({
@@ -1726,7 +1726,7 @@ impl Bitflyer {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);

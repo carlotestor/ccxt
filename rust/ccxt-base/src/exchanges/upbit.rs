@@ -1558,12 +1558,12 @@ impl Upbit {
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         }
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         let mut askOrBid: Value = self.safe_string_lower2(trade.clone(), Value::Str("ask_bid".into()), Value::Str("side".into()), &[Value::Str("".into())]);
         if (askOrBid.as_str() == Some("ask")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }  else if (askOrBid.as_str() == Some("bid")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }
         let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "funds", &[]);
         let mut price: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("trade_price".into()), Value::Str("price".into()), &[]);
@@ -1589,7 +1589,7 @@ impl Upbit {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -1964,18 +1964,18 @@ impl Upbit {
         if postOnly.as_bool() == Some(true) && (selfTradePrevention.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".into()))));
         }
-        let mut orderSide: Value = Value::Null;
+        let mut orderSide: Option<String> = None;
         if (side.as_str() == Some("buy")) {
-            orderSide = Value::Str("bid".into());
+            orderSide = Some("bid".to_string());
         }  else if (side.as_str() == Some("sell")) {
-            orderSide = Value::Str("ask".into());
+            orderSide = Some("ask".to_string());
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only buy or sell in the side argument.".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), orderSide);
+                m.insert("side".to_string(), orderSide.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (type_var.as_str() == Some("limit")) {
@@ -2604,7 +2604,7 @@ impl Upbit {
             cost = price.clone().map(Value::from).unwrap_or(Value::Null);
             price = None;
         }
-        let mut average: Value = Value::Null;
+        let mut average: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
@@ -2647,7 +2647,7 @@ impl Upbit {
                 }
             }
             }
-            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null));
+            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -2673,7 +2673,7 @@ impl Upbit {
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.parse_number(cost, &[]));
-        m.insert("average".to_string(), self.parse_number(average, &[]));
+        m.insert("average".to_string(), self.parse_number(average.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));

@@ -927,18 +927,18 @@ impl Whitebit {
             });
         }
         let mut rawSide: Option<i64> = self.safe_integer(trade.clone(), Value::Int(8), &[]).as_i64();
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (rawSide == Some(1)) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }  else if (rawSide == Some(2)) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }
         let mut role: Option<i64> = self.safe_integer(trade.clone(), Value::Int(9), &[]).as_i64();
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if (role == Some(1)) {
-            takerOrMaker = Value::Str("maker".into());
+            takerOrMaker = Some("maker".to_string());
         }  else if (role == Some(2)) {
-            takerOrMaker = Value::Str("taker".into());
+            takerOrMaker = Some("taker".to_string());
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -949,8 +949,8 @@ impl Whitebit {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
@@ -1091,14 +1091,14 @@ impl Whitebit {
         let mut stopPrice: Option<String> = self.safe_string_k_opt(order.clone(), "activation_price", &[]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut type_var: Value = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut amount: Value = Value::Null;
-        let mut remaining: Value = Value::Null;
+        let mut amount: Option<String> = None;
+        let mut remaining: Option<String> = None;
         if (type_var.as_str() == Some("market")) {
-            amount = self.safe_string_k(order.clone(), "deal_stock", &[]);
-            remaining = Value::Str("0".into());
+            amount = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
+            remaining = Some("0".to_string());
         }  else {
-            remaining = self.safe_string_k(order.clone(), "left", &[]);
-            amount = self.safe_string_k(order.clone(), "amount", &[]);
+            remaining = self.safe_string_k(order.clone(), "left", &[]).as_str().map(str::to_owned);
+            amount = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "ctime", &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "mtime", &[]);
@@ -1118,14 +1118,14 @@ impl Whitebit {
                 m
             });
         }
-        let mut unifiedStatus: Value = Value::Null;
+        let mut unifiedStatus: Option<String> = None;
         if (status == Some(1)) || (status == Some(2)) {
-            unifiedStatus = Value::Str("open".into());
+            unifiedStatus = Some("open".to_string());
         }  else {
-            if crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into())).as_bool() == Some(true) {
-                unifiedStatus = Value::Str("closed".into());
+            if crate::precise::Precise::stringEquals(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                unifiedStatus = Some("closed".to_string());
             }  else {
-                unifiedStatus = Value::Str("canceled".into());
+                unifiedStatus = Some("canceled".to_string());
             }
         }
         return self.safe_order(Value::Map({
@@ -1144,12 +1144,12 @@ impl Whitebit {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
-        m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), unifiedStatus);
+        m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), unifiedStatus.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1204,12 +1204,12 @@ impl Whitebit {
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str("wallet:".into());
-        let mut method: Value = Value::Null;
+        let mut method: Option<String> = None;
         if (type_var.as_str() == Some("spot")) {
-            method = Value::Str("balanceSpot_subscribe".into());
+            method = Some("balanceSpot_subscribe".to_string());
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("spot".into())).into());
         }  else {
-            method = Value::Str("balanceMargin_subscribe".into());
+            method = Some("balanceMargin_subscribe".to_string());
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("margin".into())).into());
         }
         let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
@@ -1224,7 +1224,7 @@ impl Whitebit {
         if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
-        return self.watch_private(messageHash, method, &[Value::from(vec![]), paramsAwaitBalanceSnapshot]).await;
+        return self.watch_private(messageHash, method.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![]), paramsAwaitBalanceSnapshot]).await;
         Value::Null
         }).await?))
     }

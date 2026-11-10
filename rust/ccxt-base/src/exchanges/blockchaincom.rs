@@ -606,12 +606,12 @@ impl Blockchaincom {
                 continue;
             }
             let mut numericId: Value = self.safe_number_k(market.clone(), "id", &[]);
-            let mut active: Value = Value::Null;
+            let mut active: Option<bool> = None;
             let mut marketState: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             if (marketState.as_deref() == Some("open")) {
-                active = Value::Bool(true);
+                active = Some(true);
             }  else {
-                active = Value::Bool(false);
+                active = Some(false);
             }
             // price precision
             let mut minPriceIncrementString: Option<String> = self.safe_string_k_opt(market.clone(), "min_price_increment", &[]);
@@ -656,7 +656,7 @@ impl Blockchaincom {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), active);
+                    m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1461,21 +1461,21 @@ impl Blockchaincom {
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
         let mut rawAddress: Option<String> = self.safe_string_k_opt(response.clone(), "address", &[]);
-        let mut tag: Value = Value::Null;
-        let mut address: Value = Value::Null;
+        let mut tag: Option<String> = None;
+        let mut address: Option<String> = None;
         if (rawAddress.is_some()) {
             let mut addressParts: Value = Value::Array(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() });
             // if a tag or memo is used it is separated by a colon in the 'address' value
-            tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
-            address = self.safe_string(addressParts, Value::Int(1), &[]);
+            tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            address = self.safe_string(addressParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), currency.get("code").cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address);
-        m.insert("tag".to_string(), tag);
+        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
         Value::Null
@@ -1522,7 +1522,7 @@ impl Blockchaincom {
         //         "timestamp":1634218452549
         //     }
         //
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut id: Value = Value::Null;
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
@@ -1532,13 +1532,13 @@ impl Blockchaincom {
         let mut depositId: Option<String> = self.safe_string_k_opt(transaction.clone(), "depositId", &[]);
         let mut withdrawalId: Option<String> = self.safe_string_k_opt(transaction.clone(), "withdrawalId", &[]);
         if (depositId.is_some()) {
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
             id = depositId.map(Value::from).unwrap_or(Value::Null);
         }  else if (withdrawalId.is_some()) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
             id = withdrawalId.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut feeCost: Value = (if (type_var.as_str() == Some("withdrawal")) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
+        let mut feeCost: Value = (if (type_var.as_deref() == Some("withdrawal")) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -1564,7 +1564,7 @@ impl Blockchaincom {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), self.parse_transaction_state(state.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));

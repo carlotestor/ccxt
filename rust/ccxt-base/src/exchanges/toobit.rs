@@ -2837,7 +2837,7 @@ impl Toobit {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut rawSideLower: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         if (rawSideLower.is_some()) {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
@@ -2845,7 +2845,7 @@ impl Toobit {
             let mut sideParts: Value = Value::Array(if let Some(__s) = rawSideLower.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
-                reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
+                reduceOnly = Some(sideSuffix.as_deref() == Some("close"));
             }
             rawSideLower = self.safe_string_opt(sideParts, Value::Int(0), &[]);
         }
@@ -2876,7 +2876,7 @@ impl Toobit {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
     m

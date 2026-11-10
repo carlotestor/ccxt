@@ -2172,11 +2172,11 @@ impl Xt {
             }
             }
             let mut typeRaw: Option<String> = self.safe_string_k(entry.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut type_var: Value = Value::Null;
+            let mut type_var: Option<String> = None;
             if (typeRaw.as_deref() == Some("FT")) {
-                type_var = Value::Str("crypto".into());
+                type_var = Some("crypto".to_string());
             }  else {
-                type_var = Value::Str("other".into());
+                type_var = Some("other".to_string());
             }
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
@@ -2191,7 +2191,7 @@ impl Xt {
         m.insert("deposit".to_string(), Value::Bool(self.safe_string_k(entry.clone(), "depositStatus", &[]).as_str() == Some("1")));
         m.insert("withdraw".to_string(), Value::Bool(self.safe_string_k(entry, "withdrawStatus", &[]).as_str() == Some("1")));
         m.insert("networks".to_string(), Value::Map(networks));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -2573,11 +2573,11 @@ impl Xt {
             amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
         }
         let mut underlyingType: Option<String> = self.safe_string_k(market.clone(), "underlyingType", &[]).as_str().map(str::to_owned);
-        let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
+        let mut linear: Option<bool> = None;
+        let mut inverse: Option<bool> = None;
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
-        let mut expiry: Value = Value::Null;
+        let mut expiry: Option<i64> = None;
         let mut future: Value = Value::Bool(false);
         let mut swap: Value = Value::Bool(false);
         let mut contract: bool = false;
@@ -2587,20 +2587,20 @@ impl Xt {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote).into());
             settleId = baseId.clone().map(Value::from).unwrap_or(Value::Null);
             settle = quote.clone();
-            linear = Value::Bool(true);
-            inverse = Value::Bool(false);
+            linear = Some(true);
+            inverse = Some(false);
         }  else if (underlyingType.as_deref() == Some("COIN_BASED")) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), base).into());
             settleId = baseId.clone().map(Value::from).unwrap_or(Value::Null);
             settle = base.clone();
-            linear = Value::Bool(false);
-            inverse = Value::Bool(true);
+            linear = Some(false);
+            inverse = Some(true);
         }
         if (underlyingType.is_some()) {
-            expiry = self.safe_integer_k(market.clone(), "deliveryDate", &[]);
+            expiry = self.safe_integer_k(market.clone(), "deliveryDate", &[]).as_i64();
             let mut productType: Option<String> = self.safe_string_k(market.clone(), "productType", &[]).as_str().map(str::to_owned);
             if (productType.as_deref() != Some("perpetual")) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into());
                 type_var = "future".to_string();
                 future = Value::Bool(true);
             }  else {
@@ -2641,13 +2641,13 @@ impl Xt {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), isActive);
         m.insert("contract".to_string(), Value::Bool(contract));
-        m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number2(market.clone(), Value::Str("takerFee".into()), Value::Str("takerFeeRate".into()), &[]));
         m.insert("maker".to_string(), self.safe_number2(market.clone(), Value::Str("makerFee".into()), Value::Str("makerFeeRate".into()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
-        m.insert("expiry".to_string(), expiry.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+        m.insert("expiry".to_string(), Value::from(expiry));
+        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -5640,13 +5640,13 @@ impl Xt {
         let mut filled: Value = (if (marketType.as_str() == Some("spot")) { filledQuantity.clone() } else { crate::precise::Precise::stringMul(&self.number_to_string(filledQuantity), &self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null))) });
         let mut lastUpdatedTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedTime", &[]).as_i64();
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = Value::Null;
+        let mut postOnly: Option<bool> = None;
         if (timeInForce != Value::Null) {
             if (timeInForce.as_str() == Some("GTX")) {
                 // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
                 timeInForce = Value::Str("PO".into());
             }
-            postOnly = (Value::Bool(timeInForce.as_str() == Some("PO")));
+            postOnly = Some(timeInForce.as_str() == Some("PO"));
         }
         let mut side: Value = self.safe_string_lower2(order.clone(), Value::Str("side".into()), Value::Str("orderSide".into()), &[]);
         if (side == Value::Null) {
@@ -5675,7 +5675,7 @@ impl Xt {
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));

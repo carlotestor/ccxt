@@ -1790,15 +1790,15 @@ impl Bitvavo {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         let mut subaccountId: Value = Value::Null;
         if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".into()))));
         }  else if (fromAccount.as_str() == Some("master")) {
-            direction = Value::Str("masterToSub".into());
+            direction = Some("masterToSub".to_string());
             subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[toAccount.clone()]);
         }  else if (toAccount.as_str() == Some("master")) {
-            direction = Value::Str("subToMaster".into());
+            direction = Some("subToMaster".to_string());
             subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[fromAccount]);
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".into()))));
@@ -1809,7 +1809,7 @@ impl Bitvavo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccountId".to_string(), subaccountId);
-                m.insert("direction".to_string(), direction);
+                m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
@@ -3209,11 +3209,11 @@ impl Bitvavo {
                 m
             });
         }
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("success"))) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
         }  else {
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
         }
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "paymentId", &[]);
         return Value::Map({
@@ -3229,7 +3229,7 @@ impl Bitvavo {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);

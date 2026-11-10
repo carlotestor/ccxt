@@ -793,7 +793,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut amount: Option<String> = self.safe_string_k_opt(firstBalance.clone(), "amount", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(firstBalance, "currency", &[]);
@@ -808,13 +808,13 @@ impl Bitso {
             referenceId = self.safe_string_k(details, "tid", &[]);
         }
         if (operation.as_deref() == Some("funding")) {
-            direction = Value::Str("in".into());
+            direction = Some("in".to_string());
         }  else if (operation.as_deref() == Some("withdrawal")) {
-            direction = Value::Str("out".into());
+            direction = Some("out".to_string());
         }  else if (operation.as_deref() == Some("trade")) {
-            direction = Value::Null;
+            direction = None.clone();
         }  else if (operation.as_deref() == Some("fee")) {
-            direction = Value::Str("out".into());
+            direction = Some("out".to_string());
             let mut cost: Value = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null));
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -828,7 +828,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item, "eid", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), referenceId);
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -1457,12 +1457,12 @@ impl Bitso {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut makerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_side", &[]);
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if (side != Value::Null) {
             if (side.as_str() == makerSide.as_deref()) {
-                takerOrMaker = Value::Str("maker".into());
+                takerOrMaker = Some("maker".to_string());
             }  else {
-                takerOrMaker = Value::Str("taker".into());
+                takerOrMaker = Some("taker".to_string());
             }
         }  else {
             if (makerSide.as_deref() == Some("buy")) {
@@ -1504,7 +1504,7 @@ impl Bitso {
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
@@ -2291,11 +2291,11 @@ impl Bitso {
     m
 })]);
         let mut address: Option<String> = self.safe_string_k_opt(payload, "account_identifier", &[]);
-        let mut tag: Value = Value::Null;
+        let mut tag: Option<String> = None;
         if address.as_deref().unwrap_or("").contains("?dt=") {
             let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
-            tag = self.safe_string(parts, Value::Int(1), &[]);
+            tag = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -2304,7 +2304,7 @@ impl Bitso {
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
         Value::Null

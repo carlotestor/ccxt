@@ -1678,7 +1678,7 @@ impl Onetrading {
         let mut marketId: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "instrument_code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         let mut feeCostString: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "fee_amount", &[]);
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         let mut fee: Value = Value::Null;
         if (feeCostString.is_some()) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "fee_currency", &[]);
@@ -1691,7 +1691,7 @@ impl Onetrading {
                     m.insert("rate".to_string(), feeRateString.map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            takerOrMaker = self.safe_string_lower_k(feeInfo, "fee_type", &[]);
+            takerOrMaker = self.safe_string_lower_k(feeInfo, "fee_type", &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1705,7 +1705,7 @@ impl Onetrading {
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), tradeValue);
     m

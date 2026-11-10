@@ -2231,7 +2231,7 @@ impl Mexc {
             m
         });
         let mut status: Value = Value::Null;
-        let mut updated: Value = Value::Null;
+        let mut updated: Option<i64> = None;
         if (marketType.as_str() == Some("spot")) {
             response = self.spot_public_get_ping(&[query.clone()]).await;
             //
@@ -2247,12 +2247,12 @@ impl Mexc {
             //
             let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
             status = (if success { Value::Str("ok".into()) } else { json_stringify(&response) });
-            updated = self.safe_integer_k(response.clone(), "data", &[]);
+            updated = self.safe_integer_k(response.clone(), "data", &[]).as_i64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status);
-        m.insert("updated".to_string(), updated);
+        m.insert("updated".to_string(), Value::from(updated));
         m.insert("url".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("info".to_string(), response);
@@ -2942,16 +2942,16 @@ impl Mexc {
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id: Value = Value::Null;
-        let mut timestamp: Value = Value::Null;
-        let mut orderId: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
+        let mut orderId: Option<String> = None;
         let mut symbol: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
-        let mut priceString: Value = Value::Null;
-        let mut amountString: Value = Value::Null;
-        let mut costString: Value = Value::Null;
+        let mut priceString: Option<String> = None;
+        let mut amountString: Option<String> = None;
+        let mut costString: Option<String> = None;
         let mut marketResolved: Value = Value::Null;
         // if swap
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("v"))) {
@@ -2967,11 +2967,11 @@ impl Mexc {
             //         "t": 1609831235985
             //     }
             //
-            timestamp = self.safe_integer_k(trade.clone(), "t", &[]);
+            timestamp = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
             marketResolved = self.safe_market(&[Value::Null, market.clone()]);
             symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            priceString = self.safe_string_k(trade.clone(), "p", &[]);
-            amountString = self.safe_string_k(trade.clone(), "v", &[]);
+            priceString = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
+            amountString = self.safe_string_k(trade.clone(), "v", &[]).as_str().map(str::to_owned);
             side = self.parse_order_side(self.safe_string_k(trade.clone(), "T", &[])).map(Value::from).unwrap_or(Value::Null);
             takerOrMaker = Value::Str("taker".into());
         }  else {
@@ -3029,12 +3029,12 @@ impl Mexc {
             marketResolved = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
             symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("a".into()), &[]);
-            priceString = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]);
-            orderId = self.safe_string_k(trade.clone(), "orderId", &[]);
+            priceString = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
+            orderId = self.safe_string_k(trade.clone(), "orderId", &[]).as_str().map(str::to_owned);
             // if swap
             if (matches!(&trade, Value::Dict(__d) if __d.contains_key("positionMode"))) {
-                timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-                amountString = self.safe_string_k(trade.clone(), "vol", &[]);
+                timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+                amountString = self.safe_string_k(trade.clone(), "vol", &[]).as_str().map(str::to_owned);
                 side = self.parse_contract_order_side(self.safe_string_k(trade.clone(), "side", &[])).map(Value::from).unwrap_or(Value::Null);
                 fee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3045,9 +3045,9 @@ impl Mexc {
                 let mut isTaker: bool = self.safe_bool2_opt(trade.clone(), Value::Str("isTaker".into()), Value::Str("taker".into()), &[Value::Bool(false)]).unwrap_or(false);
                 takerOrMaker = (if isTaker { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
             }  else {
-                timestamp = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]);
-                amountString = self.safe_string2(trade.clone(), Value::Str("qty".into()), Value::Str("q".into()), &[]);
-                costString = self.safe_string_k(trade.clone(), "quoteQty", &[]);
+                timestamp = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
+                amountString = self.safe_string2(trade.clone(), Value::Str("qty".into()), Value::Str("q".into()), &[]).as_str().map(str::to_owned);
+                costString = self.safe_string_k(trade.clone(), "quoteQty", &[]).as_str().map(str::to_owned);
                 let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
                 let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
                 let mut buyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
@@ -3073,21 +3073,21 @@ impl Mexc {
             }
         }
         if (id == Value::Null) && matches!(self.safe_bool_k(self.options.clone(), "useCcxtTradeId", &[Value::Bool(true)]), Value::Bool(true)) {
-            id = self.create_ccxt_trade_id(&[timestamp.clone(), side.clone(), amountString.clone(), priceString.clone(), takerOrMaker.clone()]);
+            id = self.create_ccxt_trade_id(&[Value::from(timestamp), side.clone(), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), takerOrMaker.clone()]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
-        m.insert("order".to_string(), orderId);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), costString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), trade);
     m
@@ -3440,19 +3440,19 @@ impl Mexc {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timestamp: Value = Value::Null;
-        let mut bid: Value = Value::Null;
-        let mut ask: Value = Value::Null;
-        let mut bidVolume: Value = Value::Null;
-        let mut askVolume: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
+        let mut bid: Option<String> = None;
+        let mut ask: Option<String> = None;
+        let mut bidVolume: Option<String> = None;
+        let mut askVolume: Option<String> = None;
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
-        let mut open: Value = Value::Null;
-        let mut high: Value = Value::Null;
-        let mut low: Value = Value::Null;
-        let mut changePcnt: Value = Value::Null;
-        let mut changeValue: Value = Value::Null;
-        let mut prevClose: Value = Value::Null;
+        let mut open: Option<String> = None;
+        let mut high: Option<String> = None;
+        let mut low: Option<String> = None;
+        let mut changePcnt: Option<String> = None;
+        let mut changeValue: Option<String> = None;
+        let mut prevClose: Option<String> = None;
         let mut isSwap: bool = self.safe_bool_k_opt(marketResolved.clone(), "swap", &[Value::Bool(false)]).unwrap_or(false);
         // if swap
         if isSwap || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))) {
@@ -3477,9 +3477,9 @@ impl Mexc {
             //         "timestamp": 1634162885016
             //     }
             //
-            timestamp = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
-            bid = self.safe_string_k(ticker.clone(), "bid1", &[]);
-            ask = self.safe_string_k(ticker.clone(), "ask1", &[]);
+            timestamp = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
+            bid = self.safe_string_k(ticker.clone(), "bid1", &[]).as_str().map(str::to_owned);
+            ask = self.safe_string_k(ticker.clone(), "ask1", &[]).as_str().map(str::to_owned);
             baseVolume = self.safe_string_k(ticker.clone(), "volume24", &[]);
             quoteVolume = self.safe_string_k(ticker.clone(), "amount24", &[]);
             let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
@@ -3493,11 +3493,11 @@ impl Mexc {
                     baseVolume = contractVolume;
                 }
             }
-            high = self.safe_string_k(ticker.clone(), "high24Price", &[]);
-            low = self.safe_string_k(ticker.clone(), "lower24Price", &[]);
-            changeValue = self.safe_string_k(ticker.clone(), "riseFallValue", &[]);
-            changePcnt = self.safe_string_k(ticker.clone(), "riseFallRate", &[]);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into()));
+            high = self.safe_string_k(ticker.clone(), "high24Price", &[]).as_str().map(str::to_owned);
+            low = self.safe_string_k(ticker.clone(), "lower24Price", &[]).as_str().map(str::to_owned);
+            changeValue = self.safe_string_k(ticker.clone(), "riseFallValue", &[]).as_str().map(str::to_owned);
+            changePcnt = self.safe_string_k(ticker.clone(), "riseFallRate", &[]).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }  else {
             //
             //     {
@@ -3521,44 +3521,44 @@ impl Mexc {
             //         "count": null
             //     }
             //
-            timestamp = self.safe_integer_k(ticker.clone(), "closeTime", &[]);
-            bid = self.safe_string_k(ticker.clone(), "bidPrice", &[]);
-            ask = self.safe_string_k(ticker.clone(), "askPrice", &[]);
-            bidVolume = self.safe_string_k(ticker.clone(), "bidQty", &[]);
-            askVolume = self.safe_string_k(ticker.clone(), "askQty", &[]);
-            if crate::precise::Precise::stringEq(&bidVolume, &Value::Str("0".into())).as_bool() == Some(true) {
-                bidVolume = Value::Null;
+            timestamp = self.safe_integer_k(ticker.clone(), "closeTime", &[]).as_i64();
+            bid = self.safe_string_k(ticker.clone(), "bidPrice", &[]).as_str().map(str::to_owned);
+            ask = self.safe_string_k(ticker.clone(), "askPrice", &[]).as_str().map(str::to_owned);
+            bidVolume = self.safe_string_k(ticker.clone(), "bidQty", &[]).as_str().map(str::to_owned);
+            askVolume = self.safe_string_k(ticker.clone(), "askQty", &[]).as_str().map(str::to_owned);
+            if crate::precise::Precise::stringEq(&bidVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                bidVolume = None.clone();
             }
-            if crate::precise::Precise::stringEq(&askVolume, &Value::Str("0".into())).as_bool() == Some(true) {
-                askVolume = Value::Null;
+            if crate::precise::Precise::stringEq(&askVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                askVolume = None.clone();
             }
             baseVolume = self.safe_string_k(ticker.clone(), "volume", &[]);
             quoteVolume = self.safe_string_k(ticker.clone(), "quoteVolume", &[]);
-            open = self.safe_string_k(ticker.clone(), "openPrice", &[]);
-            high = self.safe_string_k(ticker.clone(), "highPrice", &[]);
-            low = self.safe_string_k(ticker.clone(), "lowPrice", &[]);
-            prevClose = self.safe_string_k(ticker.clone(), "prevClosePrice", &[]);
-            changeValue = self.safe_string_k(ticker.clone(), "priceChange", &[]);
-            changePcnt = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into()));
+            open = self.safe_string_k(ticker.clone(), "openPrice", &[]).as_str().map(str::to_owned);
+            high = self.safe_string_k(ticker.clone(), "highPrice", &[]).as_str().map(str::to_owned);
+            low = self.safe_string_k(ticker.clone(), "lowPrice", &[]).as_str().map(str::to_owned);
+            prevClose = self.safe_string_k(ticker.clone(), "prevClosePrice", &[]).as_str().map(str::to_owned);
+            changeValue = self.safe_string_k(ticker.clone(), "priceChange", &[]).as_str().map(str::to_owned);
+            changePcnt = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("open".to_string(), open);
-        m.insert("high".to_string(), high);
-        m.insert("low".to_string(), low);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("open".to_string(), open.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("high".to_string(), high.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("low".to_string(), low.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "lastPrice", &[]));
-        m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), bidVolume);
-        m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), askVolume);
+        m.insert("bid".to_string(), bid.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("bidVolume".to_string(), bidVolume.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("ask".to_string(), ask.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("askVolume".to_string(), askVolume.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("previousClose".to_string(), prevClose);
-        m.insert("change".to_string(), changeValue);
-        m.insert("percentage".to_string(), changePcnt);
+        m.insert("previousClose".to_string(), prevClose.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("change".to_string(), changeValue.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("percentage".to_string(), changePcnt.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
@@ -4046,15 +4046,15 @@ impl Mexc {
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        let mut id: Value = Value::Null;
+        let mut id: Option<String> = None;
         if (data == Value::Null) {
-            id = self.safe_string_k(response, "data", &[]); // planorder/place answers with the bare trigger order id
+            id = self.safe_string_k(response, "data", &[]).as_str().map(str::to_owned); // planorder/place answers with the bare trigger order id
         }  else {
-            id = self.safe_string_k(data.clone(), "orderId", &[]);
+            id = self.safe_string_k(data.clone(), "orderId", &[]).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), self.safe_integer_k(data, "ts", &[]));
     m
 }), &[market]);
@@ -6041,9 +6041,9 @@ impl Mexc {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "timestamp", &[]).as_i64();
         let mut interval: Option<String> = self.safe_string_k_opt(contract.clone(), "collectCycle", &[]);
-        let mut intervalString: Value = Value::Null;
+        let mut intervalString: Option<String> = None;
         if (interval.is_some()) {
-            intervalString = Value::Str(format!("{}{}", interval.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())).into());
+            intervalString = Some(format!("{}{}", interval.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6064,7 +6064,7 @@ impl Mexc {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), intervalString);
+        m.insert("interval".to_string(), intervalString.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -7932,8 +7932,8 @@ impl Mexc {
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marginMode: Value = Value::Null;
-        let mut longLeverage: Value = Value::Null;
-        let mut shortLeverage: Value = Value::Null;
+        let mut longLeverage: Option<i64> = None;
+        let mut shortLeverage: Option<i64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_960: bool = true;
@@ -7942,9 +7942,9 @@ impl Mexc {
             let mut openType: Option<i64> = self.safe_integer_k(entry.clone(), "openType", &[]).as_i64();
             let mut positionType: Option<i64> = self.safe_integer_k(entry.clone(), "positionType", &[]).as_i64();
             if (positionType == Some(1)) {
-                longLeverage = self.safe_integer_k(entry.clone(), "leverage", &[]);
+                longLeverage = self.safe_integer_k(entry.clone(), "leverage", &[]).as_i64();
             }  else if (positionType == Some(2)) {
-                shortLeverage = self.safe_integer_k(entry, "leverage", &[]);
+                shortLeverage = self.safe_integer_k(entry, "leverage", &[]).as_i64();
             }
             marginMode = (if (openType == Some(1)) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
         }
@@ -7954,8 +7954,8 @@ impl Mexc {
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("marginMode".to_string(), marginMode);
-        m.insert("longLeverage".to_string(), longLeverage);
-        m.insert("shortLeverage".to_string(), shortLeverage);
+        m.insert("longLeverage".to_string(), Value::from(longLeverage));
+        m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
     m
 });
 

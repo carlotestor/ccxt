@@ -487,21 +487,21 @@ impl Kraken {
         let mut isTrailingLimitAmountOrder: bool = trailingLimitAmount.is_some();
         let mut isTrailingLimitPercentOrder: bool = trailingLimitPercent.is_some();
         let offset: String = self.safe_string_k_opt(paramsPostOnly.clone(), "offset", &[Value::Str("".into())]).unwrap_or_default(); // can set this to - for minus
-        let mut trailingAmountString: Value = Value::Null;
+        let mut trailingAmountString: Option<String> = None;
         if (trailingAmount.is_some()) {
-            trailingAmountString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingAmount.map(Value::from).unwrap_or(Value::Null))).into());
+            trailingAmountString = Some(format!("{}{}", offset, self.number_to_string(trailingAmount.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut trailingPercentString: Value = Value::Null;
+        let mut trailingPercentString: Option<String> = None;
         if (trailingPercent.is_some()) {
-            trailingPercentString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingPercent.map(Value::from).unwrap_or(Value::Null))).into());
+            trailingPercentString = Some(format!("{}{}", offset, self.number_to_string(trailingPercent.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut trailingLimitAmountString: Value = Value::Null;
+        let mut trailingLimitAmountString: Option<String> = None;
         if (trailingLimitAmount.is_some()) {
-            trailingLimitAmountString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitAmount.map(Value::from).unwrap_or(Value::Null))).into());
+            trailingLimitAmountString = Some(format!("{}{}", offset, self.number_to_string(trailingLimitAmount.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut trailingLimitPercentString: Value = Value::Null;
+        let mut trailingLimitPercentString: Option<String> = None;
         if (trailingLimitPercent.is_some()) {
-            trailingLimitPercentString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitPercent.map(Value::from).unwrap_or(Value::Null))).into());
+            trailingLimitPercentString = Some(format!("{}{}", offset, self.number_to_string(trailingLimitPercent.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut priceType: String = "quote".to_string();
         if isTrailingPercentOrder || isTrailingLimitPercentOrder {
@@ -560,18 +560,18 @@ impl Kraken {
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     orderParams.insert("order_type".into(), Value::Str("trailing-stop".into()));
                     if isTrailingAmountOrder {
-                        triggers.insert("price".into(), self.parse_to_numeric(trailingAmountString.clone()));
+                        triggers.insert("price".into(), self.parse_to_numeric(trailingAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        triggers.insert("price".into(), self.parse_to_numeric(trailingPercentString.clone()));
+                        triggers.insert("price".into(), self.parse_to_numeric(trailingPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                 }  else {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
                     orderParams.insert("limit_price_type".into(), Value::from(priceType.clone()));
                     orderParams.insert("order_type".into(), Value::Str("trailing-stop-limit".into()));
                     if isTrailingLimitAmountOrder {
-                        triggers.insert("price".into(), self.parse_to_numeric(trailingLimitAmountString.clone()));
+                        triggers.insert("price".into(), self.parse_to_numeric(trailingLimitAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        triggers.insert("price".into(), self.parse_to_numeric(trailingLimitPercentString.clone()));
+                        triggers.insert("price".into(), self.parse_to_numeric(trailingLimitPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                 }
             }
@@ -596,16 +596,16 @@ impl Kraken {
                 orderParams.insert("trigger_price_type".into(), Value::from(priceType.clone()));
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     if isTrailingAmountOrder {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingAmountString));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingPercentString));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                 }  else {
                     orderParams.insert("limit_price_type".into(), Value::from(priceType));
                     if isTrailingLimitAmountOrder {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitAmountString));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitAmountString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }  else {
-                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitPercentString));
+                        orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingLimitPercentString.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                 }
             }
@@ -991,10 +991,10 @@ impl Kraken {
         let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
         let mut vwap: Option<String> = self.safe_string_k_opt(ticker.clone(), "vwap", &[]);
-        let mut quoteVolume: Value = Value::Null;
+        let mut quoteVolume: Option<String> = None;
         let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
         if (baseVolume.is_some()) && (vwap.is_some()) {
-            quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null));
+            quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut result: Value = self.safe_ticker(Value::Map({
@@ -1017,7 +1017,7 @@ impl Kraken {
                 m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "change_pct", &[]));
                 m.insert("average".to_string(), Value::Null);
                 m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
-                m.insert("quoteVolume".to_string(), quoteVolume);
+                m.insert("quoteVolume".to_string(), quoteVolume.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("info".to_string(), ticker);
             m
         }), &[]);

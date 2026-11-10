@@ -964,9 +964,9 @@ impl Bitfinex {
                 type_var = Value::Str("market".into());
             }
         }
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         if !isPublic {
-            orderId = self.safe_string(trade.clone(), Value::Int(3), &[]);
+            orderId = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(0), &[]);
         let mut timestamp: Option<i64> = self.safe_integer(trade.clone(), createdKey, &[]).as_i64();
@@ -1002,7 +1002,7 @@ impl Bitfinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);

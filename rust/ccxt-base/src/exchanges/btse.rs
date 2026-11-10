@@ -1215,14 +1215,14 @@ impl Btse {
         let mut amountPrecision: Option<String> = self.safe_string_k_opt(market.clone(), "minSizeIncrement", &[]);
         let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "active", &[]);
         let mut type_var: String = "spot".to_string();
-        let mut expiry: Value = Value::Null;
-        let mut contractSize: Value = Value::Null;
+        let mut expiry: Option<i64> = None;
+        let mut contractSize: Option<String> = None;
         if !(isSpot) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), quote).into())).into());
-            contractSize = self.safe_string_k(market.clone(), "contractSize", &[]);
+            contractSize = self.safe_string_k(market.clone(), "contractSize", &[]).as_str().map(str::to_owned);
             if isFuture {
-                expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]);
-                symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(expiry.clone(), &[])).into())).into());
+                expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]).as_i64();
+                symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[])).into())).into());
                 type_var = "future".to_string();
             }  else {
                 type_var = "swap".to_string();
@@ -1260,9 +1260,9 @@ impl Btse {
         m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(fees, "maker", &[]));
-        m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
-        m.insert("expiry".to_string(), expiry.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+        m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("expiry".to_string(), Value::from(expiry));
+        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -2253,13 +2253,13 @@ impl Btse {
         // perpetuals, observed live, the zero means no next funding and is omitted
         let mut nextFundingTimestamp: Value = self.safe_integer_omit_zero(contract.clone(), Value::Str("nextFundingTime".into()), &[]);
         let mut fundingIntervalMinutes: Value = self.safe_integer_k(contract.clone(), "fundingIntervalMinutes", &[]);
-        let mut interval: Value = Value::Null;
+        let mut interval: Option<String> = None;
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes != Value::Null) && (fundingIntervalMinutes.as_f64().unwrap_or(f64::NAN) >= ((60i64) as f64)) {
             let mut hours: Value = self.parse_to_int((match ((fundingIntervalMinutes).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            interval = Value::Str(format!("{}{}", Value::Str(format!("{}", hours).into()), Value::Str("h".into())).into());
+            interval = Some(format!("{}{}", Value::Str(format!("{}", hours).into()), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2280,7 +2280,7 @@ impl Btse {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), interval);
+        m.insert("interval".to_string(), interval.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 

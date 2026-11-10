@@ -9090,12 +9090,12 @@ if _try_result.is_err() {
         }
         let mut notional: Option<String> = self.safe_string_k_opt(position.clone(), "value", &[]);
         let mut leverage: Option<String> = self.safe_string_k_opt(position.clone(), "leverage", &[]);
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         if (leverage.is_some()) {
             if (leverage.as_deref() == Some("0")) {
-                marginMode = Value::Str("cross".into());
+                marginMode = Some("cross".to_string());
             }  else {
-                marginMode = Value::Str("isolated".into());
+                marginMode = Some("isolated".to_string());
             }
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
@@ -9156,7 +9156,7 @@ if _try_result.is_err() {
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), self.parse_number(marginBalance.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -10787,13 +10787,13 @@ if _try_result.is_err() {
         //         "type": "prem"
         //     }
         //
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         let mut amount: Value = self.safe_string_k(item.clone(), "change", &[]);
         if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
-            direction = Value::Str("out".into());
+            direction = Some("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount);
         }  else {
-            direction = Value::Str("in".into());
+            direction = Some("in".to_string());
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -10813,7 +10813,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
@@ -11143,17 +11143,17 @@ if _try_result.is_err() {
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
         let mut optPos: Option<String> = self.safe_string_lower_k(liquidation.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (optPos.as_deref() == Some("long")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }  else if (optPos.as_deref() == Some("short")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }  else {
             if (size.is_some()) {
                 if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                    side = Value::Str("buy".into());
+                    side = Some("buy".to_string());
                 }  else if crate::precise::Precise::stringLt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                    side = Value::Str("sell".into());
+                    side = Some("sell".to_string());
                 }
             }
         }
@@ -11164,7 +11164,7 @@ if _try_result.is_err() {
         m.insert("contracts".to_string(), self.parse_number(contractsString, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseValue".to_string(), self.parse_number(baseValueString, &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&quoteValueString), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());

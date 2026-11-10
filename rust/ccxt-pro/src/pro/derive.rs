@@ -1792,24 +1792,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("balances".to_string(), Value::Str("handle_balance".into()).clone());
             m
         });
-        let mut event: Value = Value::Null;
+        let mut event: Option<String> = None;
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (params != Value::Null) {
             let mut channel: Value = self.safe_string_k(params, "channel", &[]);
             if (channel != Value::Null) {
                 let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 if (channel.as_str().unwrap_or("").contains("orders")) || (Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("balances")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-                    event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
+                    event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
                     // {subaccount_id}.trades
-                    if (event.as_str() == Some("trades")) {
-                        event = Value::Str("mytrades".into());
+                    if (event.as_deref() == Some("trades")) {
+                        event = Some("mytrades".to_string());
                     }
                 }  else {
-                    event = self.safe_string(parsedChannel, Value::Int(0), &[]);
+                    event = self.safe_string(parsedChannel, Value::Int(0), &[]).as_str().map(str::to_owned);
                 }
             }
         }
-        let mut method: Value = self.safe_value(Value::Map(methods), event, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;

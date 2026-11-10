@@ -757,7 +757,7 @@ impl Cryptomus {
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         // currency here is array of networks
-        let mut id: Value = Value::Null; // all entries have same id, as they were grouped by
+        let mut id: Option<String> = None; // all entries have same id, as they were grouped by
         let mut code: Value = Value::Null;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -769,9 +769,9 @@ impl Cryptomus {
             while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
-            if (id == Value::Null) {
-                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
-                code = self.safe_currency_code(id.clone(), &[]);
+            if (id.is_none()) {
+                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]).as_str().map(str::to_owned);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "network_code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -809,7 +809,7 @@ impl Cryptomus {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("info".to_string(), rawCurrency);

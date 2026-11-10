@@ -2048,9 +2048,9 @@ impl Blofin {
             m
         });
         let mut intervalUnit: Option<String> = self.safe_string_opt(Value::Map(intervalUnits), self.safe_string_k(contract.clone(), "fundingIntervalUnit", &[]), &[]);
-        let mut intervalString: Value = Value::Null;
+        let mut intervalString: Option<String> = None;
         if (fundingInterval.is_some()) && (intervalUnit.is_some()) {
-            intervalString = Value::Str(format!("{}{}", fundingInterval.map(Value::from).unwrap_or(Value::Null), intervalUnit.map(Value::from).unwrap_or(Value::Null)).into());
+            intervalString = Some(format!("{}{}", fundingInterval.map(Value::from).unwrap_or(Value::Null), intervalUnit.map(Value::from).unwrap_or(Value::Null)));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2071,7 +2071,7 @@ impl Blofin {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), intervalString);
+        m.insert("interval".to_string(), intervalString.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -2461,16 +2461,16 @@ impl Blofin {
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "fillTime", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "orderType", &[]);
-        let mut postOnly: Value = Value::Null;
-        let mut timeInForce: Value = Value::Null;
+        let mut postOnly: Option<bool> = None;
+        let mut timeInForce: Option<String> = None;
         if (type_var.as_str() == Some("post_only")) {
-            postOnly = Value::Bool(true);
+            postOnly = Some(true);
             type_var = Value::Str("limit".into());
         }  else if (type_var.as_str() == Some("fok")) {
-            timeInForce = Value::Str("FOK".into());
+            timeInForce = Some("FOK".to_string());
             type_var = Value::Str("limit".into());
         }  else if (type_var.as_str() == Some("ioc")) {
-            timeInForce = Value::Str("IOC".into());
+            timeInForce = Some("IOC".to_string());
             type_var = Value::Str("limit".into());
         }  else if (type_var.as_str() == Some("conditional")) {
             type_var = Value::Str("trigger".into());
@@ -2486,9 +2486,9 @@ impl Blofin {
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "size", &[]);
         let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
         let mut baseAmount: Value = crate::precise::Precise::stringMul(&contractSize.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<String> = None;
         if (average.is_some()) {
-            cost = crate::precise::Precise::stringMul(&average.clone().map(Value::from).unwrap_or(Value::Null), &baseAmount);
+            cost = crate::precise::Precise::stringMul(&average.clone().map(Value::from).unwrap_or(Value::Null), &baseAmount).as_str().map(str::to_owned);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let mut fee: Value = Value::Null;
@@ -2526,14 +2526,14 @@ impl Blofin {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
@@ -3884,7 +3884,7 @@ impl Blofin {
         //        "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
         //    }
         //
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut id: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut withdrawalId: Option<String> = self.safe_string_k_opt(transaction.clone(), "withdrawId", &[]);
@@ -3893,12 +3893,12 @@ impl Blofin {
         let mut address: Value = addressTo.clone().map(Value::from).unwrap_or(Value::Null);
         let mut tagTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "tag", &[]);
         if (withdrawalId.is_some()) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
             id = withdrawalId.map(Value::from).unwrap_or(Value::Null);
             status = self.parse_transaction_withdrawal_status(self.safe_string_k(transaction.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         }  else {
             id = depositId.map(Value::from).unwrap_or(Value::Null);
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
             status = self.parse_transaction_deposit_status(self.safe_string_k(transaction.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
@@ -3933,7 +3933,7 @@ impl Blofin {
         m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));

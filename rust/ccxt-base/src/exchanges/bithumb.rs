@@ -1304,7 +1304,7 @@ impl Bithumb {
         });
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         if (generation.as_f64() == Some(2.0)) {
             request.insert("markets".into(), self.get_gen2_market_id(market.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
@@ -1331,7 +1331,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]);
+            timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
             let mut orderBookUnits: Value = self.safe_list_k(result, "orderbook_units", &[Value::from(vec![])]);
             let mut bids: Vec<Value> = Vec::new();
             let mut asks: Vec<Value> = Vec::new();
@@ -1392,9 +1392,9 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            timestamp = self.safe_integer_k(data.clone(), "timestamp", &[]);
+            timestamp = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         }
-        return self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
         }).await?))
     }
@@ -3003,11 +3003,11 @@ impl Bithumb {
             datetime = self.iso8601(timestamp.clone());
         }
         let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (sideProperty.as_deref() == Some("bid")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }  else if (sideProperty.as_deref() == Some("ask")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }
         let mut status: Value = self.parse_order_status(self.safe_string2(order.clone(), Value::Str("order_status".into()), Value::Str("state".into()), &[])).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_price".into()), Value::Str("price".into()), &[]);
@@ -3029,41 +3029,41 @@ impl Bithumb {
                 remaining = amount.clone();
             }
         }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut baseId: Option<String> = self.safe_string_k_opt(order.clone(), "order_currency", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(order.clone(), "payment_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (base != Value::Null) && (quote != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
-        let mut marketResolved: Value = (if (symbol == Value::Null) { self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
-        if (symbol == Value::Null) {
-            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
+        let mut marketResolved: Value = (if (symbol.is_none()) { self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
+        if (symbol.is_none()) {
+            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string_n_opt(order.clone(), Value::from(vec![Value::Str("order_id".into()), Value::Str("uuid".into()), Value::Str("algo_order_id".into())]), &[]);
         let mut rawTrades: Value = self.safe_list2(order.clone(), Value::Str("contract".into()), Value::Str("trades".into()), &[Value::from(vec![])]);
         let mut feeCost: Value = self.safe_number_k(order.clone(), "reserved_fee", &[]);
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
-            let mut currency: Value = Value::Null;
+            let mut currency: Option<String> = None;
             if (marketResolved != Value::Null) {
-                currency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                currency = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), currency);
+                    m.insert("currency".to_string(), currency.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("cost".to_string(), feeCost);
                     m.insert("rate".to_string(), Value::Null);
                 m
             });
         }
-        let mut postOnly: Value = Value::Null;
+        let mut postOnly: Option<bool> = None;
         let mut timeInForce: Value = self.safe_string_upper_k(order.clone(), "time_in_force", &[]);
         if (timeInForce.as_str() == Some("POST_ONLY")) {
             timeInForce = Value::Str("PO".into());
-            postOnly = Value::Bool(true);
+            postOnly = Some(true);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3073,11 +3073,11 @@ impl Bithumb {
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly);
-        m.insert("side".to_string(), side);
+        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);

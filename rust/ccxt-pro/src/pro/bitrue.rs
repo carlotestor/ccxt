@@ -677,18 +677,18 @@ impl Bitrue {
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut url: Value = Value::Null;
-        let mut channel: Value = Value::Null;
+        let mut channel: Option<String> = None;
         let mut cbId: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
             let quoteIdLower: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
             let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
-            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())).into());
+            channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
             cbId = wsId;
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
             let mut marketIdLowercase: Value = self.safe_string_lower_k(market, "id", &[Value::Str("".into())]);
-            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())).into());
+            channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
             cbId = marketIdLowercase;
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
         }
@@ -698,7 +698,7 @@ impl Bitrue {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cb_id".to_string(), cbId);
-        m.insert("channel".to_string(), channel);
+        m.insert("channel".to_string(), channel.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m

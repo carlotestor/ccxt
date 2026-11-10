@@ -1253,17 +1253,17 @@ impl Lighter {
         let mut bidAccountId: Value = self.safe_integer_k(trade.clone(), "bid_account_id", &[]);
         let mut askAccountId: Value = self.safe_integer_k(trade.clone(), "ask_account_id", &[]);
         let mut side: Value = Value::Null;
-        let mut order: Value = Value::Null;
+        let mut order: Option<String> = None;
         let mut takerOrMaker: Value = Value::Null;
         if (accountIndex != Value::Null) {
             if (bidAccountId.as_f64() == accountIndex.as_f64()) {
                 // Own trades should use the account's order side
                 side = Value::Str("buy".into());
-                order = self.safe_string_k(trade.clone(), "bid_id", &[]);
+                order = self.safe_string_k(trade.clone(), "bid_id", &[]).as_str().map(str::to_owned);
                 takerOrMaker = (if isMakerAsk { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
             }  else if (askAccountId.as_f64() == accountIndex.as_f64()) {
                 side = Value::Str("sell".into());
-                order = self.safe_string_k(trade.clone(), "ask_id", &[]);
+                order = self.safe_string_k(trade.clone(), "ask_id", &[]).as_str().map(str::to_owned);
                 takerOrMaker = (if isMakerAsk { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             }
         }
@@ -1273,13 +1273,13 @@ impl Lighter {
         }
         let mut fee: Value = Value::Null;
         if (takerOrMaker != Value::Null) {
-            let mut feeRateRaw: Value = Value::Null;
+            let mut feeRateRaw: Option<String> = None;
             if (takerOrMaker.as_str() == Some("maker")) {
-                feeRateRaw = self.safe_string_k(trade.clone(), "maker_fee", &[]);
+                feeRateRaw = self.safe_string_k(trade.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
             }  else {
-                feeRateRaw = self.safe_string_k(trade.clone(), "taker_fee", &[]);
+                feeRateRaw = self.safe_string_k(trade.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
             }
-            let mut feeRate: Value = (if (feeRateRaw != Value::Null) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".into())) } else { Value::Str("0".into()) });
+            let mut feeRate: Value = (if (feeRateRaw.is_some()) { crate::precise::Precise::stringDiv(&feeRateRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())) } else { Value::Str("0".into()) });
             let mut feeAmount: Value = crate::precise::Precise::stringMul(&costString.clone().map(Value::from).unwrap_or(Value::Null), &feeRate);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1293,7 +1293,7 @@ impl Lighter {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), order);
+        m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));

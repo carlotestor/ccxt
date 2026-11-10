@@ -495,11 +495,11 @@ impl Pacifica {
         if (code == Some(200)) {
             success = true;
         }
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if !(success) {
-            status = Value::Str("rejected".into());
+            status = Some("rejected".to_string());
         }  else {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }
         let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -511,7 +511,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
     m
@@ -596,11 +596,11 @@ impl Pacifica {
         if (code == Some(200)) {
             success = true;
         }
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if !(success) {
-            status = Value::Str("rejected".into());
+            status = Some("rejected".to_string());
         }  else {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }
         let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -612,7 +612,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
     m
@@ -716,17 +716,17 @@ impl Pacifica {
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut orderId: Option<String> = self.safe_string_k_opt(order.clone(), "i", &[]);
             let mut clientOrderId: Option<String> = self.safe_string_k_opt(order, "I", &[]);
-            let mut status: Value = Value::Null;
+            let mut status: Option<String> = None;
             if (error.is_some()) || (!(success)) {
-                status = Value::Str("closed".into());
+                status = Some("closed".to_string());
             }  else {
-                status = Value::Str("canceled".into());
+                status = Some("canceled".to_string());
             }
             if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("status".to_string(), status);
+                    m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m
@@ -811,11 +811,11 @@ impl Pacifica {
         if (code == Some(200)) {
             success = true;
         }
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if !(success) {
-            status = Value::Str("rejected".into());
+            status = Some("rejected".to_string());
         }  else {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }
         let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -827,7 +827,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
     m

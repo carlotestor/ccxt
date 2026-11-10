@@ -2383,10 +2383,10 @@ impl Bitteam {
         //     }
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(ticker.clone(), "trading_pairs", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut bestBidPrice: Value = Value::Null;
-        let mut bestAskPrice: Value = Value::Null;
-        let mut bestBidVolume: Value = Value::Null;
-        let mut bestAskVolume: Value = Value::Null;
+        let mut bestBidPrice: Option<String> = None;
+        let mut bestAskPrice: Option<String> = None;
+        let mut bestBidVolume: Option<String> = None;
+        let mut bestAskVolume: Option<String> = None;
         let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[]);
         let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[]);
         if (bids != Value::Null) && (asks != Value::Null) {
@@ -2394,17 +2394,17 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            bestBidPrice = self.safe_string_k(bestBid.clone(), "price", &[]);
-            bestBidVolume = self.safe_string_k(bestBid, "quantity", &[]);
+            bestBidPrice = self.safe_string_k(bestBid.clone(), "price", &[]).as_str().map(str::to_owned);
+            bestBidVolume = self.safe_string_k(bestBid, "quantity", &[]).as_str().map(str::to_owned);
             let mut bestAsk: Value = self.safe_dict(asks, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            bestAskPrice = self.safe_string_k(bestAsk.clone(), "price", &[]);
-            bestAskVolume = self.safe_string_k(bestAsk, "quantity", &[]);
+            bestAskPrice = self.safe_string_k(bestAsk.clone(), "price", &[]).as_str().map(str::to_owned);
+            bestAskVolume = self.safe_string_k(bestAsk, "quantity", &[]).as_str().map(str::to_owned);
         }  else {
-            bestBidPrice = self.safe_string_k(ticker.clone(), "highest_bid", &[]);
-            bestAskPrice = self.safe_string_k(ticker.clone(), "lowest_ask", &[]);
+            bestBidPrice = self.safe_string_k(ticker.clone(), "highest_bid", &[]).as_str().map(str::to_owned);
+            bestAskPrice = self.safe_string_k(ticker.clone(), "lowest_ask", &[]).as_str().map(str::to_owned);
         }
         let mut baseVolume: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("volume24".into()), Value::Str("base_volume".into()), &[]);
         let mut quoteVolume: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("quoteVolume24".into()), Value::Str("quote_volume".into()), &[]);
@@ -2421,10 +2421,10 @@ impl Bitteam {
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("close".to_string(), close.map(Value::from).unwrap_or(Value::Null));
-        m.insert("bid".to_string(), bestBidPrice);
-        m.insert("bidVolume".to_string(), bestBidVolume);
-        m.insert("ask".to_string(), bestAskPrice);
-        m.insert("askVolume".to_string(), bestAskVolume);
+        m.insert("bid".to_string(), bestBidPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("bidVolume".to_string(), bestBidVolume.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("ask".to_string(), bestAskPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("askVolume".to_string(), bestAskVolume.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -2734,20 +2734,20 @@ impl Bitteam {
         // the exchange returns the side of the taker
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("type".into()), &[]);
         let mut feeInfo: Value = Value::Null;
-        let mut order: Value = Value::Null;
+        let mut order: Option<String> = None;
         if (takerOrMaker.as_deref() == Some("maker")) {
             if (side.as_str() == Some("sell")) {
                 side = Value::Str("buy".into());
             }  else if (side.as_str() == Some("buy")) {
                 side = Value::Str("sell".into());
             }
-            order = self.safe_string_k(trade.clone(), "makerOrderId", &[]);
+            order = self.safe_string_k(trade.clone(), "makerOrderId", &[]).as_str().map(str::to_owned);
             feeInfo = self.safe_dict_k(trade.clone(), "feeMaker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         }  else if (takerOrMaker.as_deref() == Some("taker")) {
-            order = self.safe_string_k(trade.clone(), "takerOrderId", &[]);
+            order = self.safe_string_k(trade.clone(), "takerOrderId", &[]).as_str().map(str::to_owned);
             feeInfo = self.safe_dict_k(trade.clone(), "feeTaker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2765,7 +2765,7 @@ impl Bitteam {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), order);
+        m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), intTs.clone());
         m.insert("datetime".to_string(), self.iso8601(intTs));
         m.insert("symbol".to_string(), symbol);

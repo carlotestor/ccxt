@@ -1373,7 +1373,7 @@ impl Coinspot {
         //       "price": 0.5168600000125209
         //     }
         let mut timestamp: Value = Value::Null;
-        let mut priceString: Value = Value::Null;
+        let mut priceString: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut audTotal: Option<String> = self.safe_string_k_opt(trade.clone(), "audtotal", &[]);
         let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
@@ -1383,10 +1383,10 @@ impl Coinspot {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]);
         let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
         if (solddate != Value::Null) {
-            priceString = self.safe_string_k(trade.clone(), "rate", &[]);
+            priceString = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
             timestamp = solddate;
         }  else {
-            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k_opt(trade.clone(), "created", &[]);
             timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
             let mut audfeeExGst: Option<String> = self.safe_string_k_opt(trade.clone(), "audfeeExGst", &[]);
@@ -1412,7 +1412,7 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), self.parse_number(priceString, &[]));
+        m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(costString, &[]));
         m.insert("fee".to_string(), fee);

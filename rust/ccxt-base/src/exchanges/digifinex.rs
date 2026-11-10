@@ -1393,13 +1393,13 @@ impl Digifinex {
             let mut swap: Value = Value::Bool(!(matches!(&spot, Value::Bool(true))));
             let mut margin: Value = (if (marginMode != Value::Null) { Value::Bool(true) } else { Value::Null });
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            let mut isInverse: Value = Value::Null;
+            let mut isInverse: Option<bool> = None;
             let mut isLinear: Value = Value::Null;
             if matches!(&swap, Value::Bool(true)) {
                 type_var = Value::Str("swap".into());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
-                isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]);
-                isLinear = (if (isInverse.as_bool() != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
+                isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]).as_bool();
+                isLinear = (if (isInverse != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
                 let mut isTrading: bool = self.safe_bool_k_opt(market.clone(), "isTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if isTrading {
                     isTradingSwap = true;
@@ -1425,7 +1425,7 @@ impl Digifinex {
                     m.insert("active".to_string(), isActive);
                     m.insert("contract".to_string(), swap);
                     m.insert("linear".to_string(), isLinear);
-                    m.insert("inverse".to_string(), isInverse);
+                    m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contract_value", &[]));
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1809,19 +1809,19 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         let mut orderBook: Value = Value::Null;
         if (marketType.as_str() == Some("swap")) {
             orderBook = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
+            timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]).as_i64();
         }  else {
             orderBook = response.clone();
-            timestamp = self.safe_timestamp_k(response, "date", &[]);
+            timestamp = self.safe_timestamp_k(response, "date", &[]).as_i64();
         }
-        return self.parse_order_book(orderBook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        return self.parse_order_book(orderBook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -2209,7 +2209,7 @@ impl Digifinex {
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId } else { Value::Null }), market]);
         let mut timestamp: Value = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut takerOrMaker: Value = Value::Null;
         if (marketResolved.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("swap")) {
             timestamp = self.safe_integer_k(trade.clone(), "trade_time", &[]);
@@ -2218,7 +2218,7 @@ impl Digifinex {
             let mut direction: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
             if (orderType.is_some()) {
                 if (orderType.as_deref() == Some("0")) {
-                    type_var = Value::Str("limit".into());
+                    type_var = Some("limit".to_string());
                 }
             }
             if (tradeRole.as_deref() == Some("1")) {
@@ -2247,9 +2247,9 @@ impl Digifinex {
             }
             let mut parts: Value = Value::Array(if let Some(__s) = side.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            type_var = self.safe_string(parts, Value::Int(1), &[]);
-            if (type_var == Value::Null) {
-                type_var = Value::Str("limit".into());
+            type_var = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            if (type_var.is_none()) {
+                type_var = Some("limit".to_string());
             }
             let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "is_maker", &[Value::Bool(false)]).unwrap_or(false);
             takerOrMaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
@@ -2276,7 +2276,7 @@ impl Digifinex {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -3398,11 +3398,11 @@ impl Digifinex {
         //         "time_stamp": 1668134664828
         //     }
         //
-        let mut timestamp: Value = Value::Null;
-        let mut lastTradeTimestamp: Value = Value::Null;
-        let mut timeInForce: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
+        let mut lastTradeTimestamp: Option<i64> = None;
+        let mut timeInForce: Option<String> = None;
         let mut type_var: Value = Value::Null;
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut sideRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
@@ -3412,11 +3412,11 @@ impl Digifinex {
             let mut orderType: Value = self.safe_integer_k(order.clone(), "order_type", &[]);
             if (orderType != Value::Null) {
                 if (orderType.as_f64() == Some(9.0)) || (orderType.as_f64() == Some(10.0)) || (orderType.as_f64() == Some(11.0)) || (orderType.as_f64() == Some(12.0)) || (orderType.as_f64() == Some(15.0)) {
-                    timeInForce = Value::Str("FOK".into());
+                    timeInForce = Some("FOK".to_string());
                 }  else if (orderType.as_f64() == Some(1.0)) || (orderType.as_f64() == Some(2.0)) || (orderType.as_f64() == Some(3.0)) || (orderType.as_f64() == Some(4.0)) || (orderType.as_f64() == Some(13.0)) {
-                    timeInForce = Value::Str("IOC".into());
+                    timeInForce = Some("IOC".to_string());
                 }  else if (orderType.as_f64() == Some(6.0)) || (orderType.as_f64() == Some(7.0)) || (orderType.as_f64() == Some(8.0)) || (orderType.as_f64() == Some(14.0)) {
-                    timeInForce = Value::Str("GTC".into());
+                    timeInForce = Some("GTC".to_string());
                 }
                 if (orderType.as_f64() == Some(0.0)) || (orderType.as_f64() == Some(1.0)) || (orderType.as_f64() == Some(4.0)) || (orderType.as_f64() == Some(5.0)) || (orderType.as_f64() == Some(9.0)) || (orderType.as_f64() == Some(10.0)) {
                     type_var = Value::Str("limit".into());
@@ -3427,22 +3427,22 @@ impl Digifinex {
             // 1 open long, 2 open short, 3 close long, 4 close short
             if (sideRaw.as_deref() == Some("1")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("2")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("3")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }  else if (sideRaw.as_deref() == Some("4")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }
-            timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]);
-            lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]);
+            timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]).as_i64();
+            lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]).as_i64();
         }  else {
-            timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]);
-            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]).as_i64();
+            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]).as_i64();
             if (sideRaw.is_some()) {
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = sideRaw.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut numParts: f64 = ((parts.len() as i64) as f64);
@@ -3459,17 +3459,17 @@ impl Digifinex {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("data".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number2(order.clone(), Value::Str("amount".into()), Value::Str("size".into()), &[]));
         m.insert("filled".to_string(), self.safe_number2(order.clone(), Value::Str("executed_amount".into()), Value::Str("filled_qty".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -4518,16 +4518,16 @@ impl Digifinex {
         //         "timestamp": 1666505659000
         //     }
         //
-        let mut fromAccount: Value = Value::Null;
-        let mut toAccount: Value = Value::Null;
+        let mut fromAccount: Option<String> = None;
+        let mut toAccount: Option<String> = None;
         let mut data: Value = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]);
         let mut type_var: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
         if (type_var == Some(1)) {
-            fromAccount = Value::Str("spot".into());
-            toAccount = Value::Str("swap".into());
+            fromAccount = Some("spot".to_string());
+            toAccount = Some("swap".to_string());
         }  else if (type_var == Some(2)) {
-            fromAccount = Value::Str("swap".into());
-            toAccount = Value::Str("spot".into());
+            fromAccount = Some("swap".to_string());
+            toAccount = Some("spot".to_string());
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         return Value::Map({
@@ -4538,8 +4538,8 @@ impl Digifinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(data.clone(), "currency", &[]), &[currency]));
         m.insert("amount".to_string(), self.safe_number2(data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
-        m.insert("fromAccount".to_string(), fromAccount);
-        m.insert("toAccount".to_string(), toAccount);
+        m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "code", &[])).map(Value::from).unwrap_or(Value::Null));
     m
 });

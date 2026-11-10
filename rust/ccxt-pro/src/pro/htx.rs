@@ -2532,7 +2532,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut linear: bool = subType.as_str() == Some("linear");
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
@@ -2543,7 +2543,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("accounts.update".into()), Value::Str("#".into())).into()), mode).into());
             channel = messageHash.clone();
         }  else if isV5Linear {
-            marginMode = self.safe_string_k(paramsOmitted.clone(), "margin", &[Value::Str("cross".into())]);
+            marginMode = self.safe_string_k(paramsOmitted.clone(), "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
             channel = Value::Str("account".into());
             messageHash = Value::Str("account".into());
         }  else {
@@ -2557,7 +2557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (currency.is_some()) {
                 currencyCode = self.currency(currency.map(Value::from).unwrap_or(Value::Null));
             }
-            marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]);
+            marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
             let mut prefix: Value = Value::Str("accounts".into());
             messageHash = prefix.clone();
             if (subType.as_str() == Some("linear")) {
@@ -2568,11 +2568,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), Value::Str("usdt".into())).into());
                 }  else {
                     // usdt contracts account
-                    if (marginMode.as_str() == Some("cross")) {
+                    if (marginMode.as_deref() == Some("cross")) {
                         prefix = Value::Str(format!("{}{}", prefix, Value::Str("_cross".into())).into());
                     }
                     messageHash = prefix.clone();
-                    if (marginMode.as_str() == Some("isolated")) {
+                    if (marginMode.as_deref() == Some("isolated")) {
                         // isolated margin only allows filtering by symbol3
                         if (symbol.is_some()) && (market != Value::Null) {
                             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into())).into());
@@ -2616,7 +2616,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("subType".to_string(), subType.clone());
-                m.insert("margin".to_string(), marginMode);
+                m.insert("margin".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });

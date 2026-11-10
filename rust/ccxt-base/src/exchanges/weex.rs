@@ -1700,17 +1700,17 @@ impl Weex {
         let mut active: Value = Value::Bool(true);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut isSpot: bool = true;
-        let mut isLinear: Value = Value::Null;
-        let mut isInverse: Value = Value::Null;
+        let mut isLinear: Option<bool> = None;
+        let mut isInverse: Option<bool> = None;
         if (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".into()), settle).into())).into());
             isSpot = false;
             if (settle.as_str() == quote.as_str()) {
-                isLinear = Value::Bool(true);
-                isInverse = Value::Bool(false);
+                isLinear = Some(true);
+                isInverse = Some(false);
             }  else if (settle.as_str() == base.as_str()) {
-                isLinear = Value::Bool(false);
-                isInverse = Value::Bool(true);
+                isLinear = Some(false);
+                isInverse = Some(true);
             }
         }  else {
             active = self.safe_bool_k(market.clone(), "enableTrade", &[Value::Bool(false)]);
@@ -1750,8 +1750,8 @@ impl Weex {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(!(isSpot)));
-        m.insert("linear".to_string(), isLinear);
-        m.insert("inverse".to_string(), isInverse);
+        m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
         m.insert("feeSide".to_string(), fees.get("feeSide").cloned().unwrap_or(Value::Null));
@@ -2804,10 +2804,10 @@ impl Weex {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("swap".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "time", &[]).as_i64();
         let mut nextFundingTimestamp: Option<i64> = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]).as_i64();
-        let mut interval: Value = Value::Null;
+        let mut interval: Option<String> = None;
         let mut collectCycle: Option<String> = self.safe_string_k_opt(contract.clone(), "collectCycle", &[]);
         if (collectCycle.is_some()) {
-            interval = Value::Str(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("60".into())), Value::Str("h".into())).into());
+            interval = Some(format!("{}{}", crate::precise::Precise::stringDiv(&collectCycle.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("60".into())), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2828,7 +2828,7 @@ impl Weex {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), interval);
+        m.insert("interval".to_string(), interval.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -5119,11 +5119,11 @@ impl Weex {
             marginMode = "isolated".to_string();
         }
         let mut separatedMode: Option<String> = self.safe_string_k(position.clone(), "separatedMode", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Null;
+        let mut hedged: Option<bool> = None;
         if (separatedMode.as_deref() == Some("COMBINED")) {
-            hedged = Value::Bool(false);
+            hedged = Some(false);
         }  else if (separatedMode.as_deref() == Some("SEPARATED")) {
-            hedged = Value::Bool(true);
+            hedged = Some(true);
         }
         let mut notional: Option<String> = self.safe_string_k_opt(position.clone(), "openValue", &[]);
         let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
@@ -5158,7 +5158,7 @@ impl Weex {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]));
         m.insert("marginMode".to_string(), Value::str(marginMode));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), hedged.map(Value::from).unwrap_or(Value::Null));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
