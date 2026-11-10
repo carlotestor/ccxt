@@ -5552,6 +5552,11 @@ function strLocalReassign(content: string): string {
                     // A defaultless `safe_integer` yields `Int` or `Null`: `as_i64()` is exact.
                     if (!join('int')) { ok = false; break; }
                     edits.push({ start: rhsStart + rhsRaw.length, end: rhsStart + rhsRaw.length, text: '.as_i64()' });
+                } else if ((call = /^crate::precise::Precise::string(?:Add|Sub|Mul|Div|DivPrec|Mod|Abs|Neg)\(/.exec(rhsMasked)) !== null
+                    && closeParen(rhsMasked, call[0].length - 1) === rhsMasked.length) {
+                    // These `Precise` readers return `Str` or `Null` only, so the unwrap is exact.
+                    if (!join('str')) { ok = false; break; }
+                    edits.push({ start: rhsStart + rhsRaw.length, end: rhsStart + rhsRaw.length, text: '.as_str().map(str::to_owned)' });
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null && join('str')) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
                 } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
