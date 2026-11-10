@@ -3003,10 +3003,10 @@ if _try_result.is_err() {
         let mut isMarket: bool = type_var.as_str() == Some("market");
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket.clone()), Value::Bool(false), &[paramsValue.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut timeInForce: Value = self.safe_string_k(paramsValue.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(paramsValue.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         paramsValue = self.omit(paramsValue.clone(), Value::Str("timeInForce".into()), &[]);
-        if (timeInForce == Value::Null) {
-            timeInForce = (if isMarket { Value::Str("FOK".into()) } else { Value::Str("GTC".into()) });
+        if (timeInForce.is_none()) {
+            timeInForce = (if isMarket { Some("FOK".to_string()) } else { Some("GTC".to_string()) });
         }
         let mut marketSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "market", &[]).as_str().map(str::to_owned);
         if isMarket && (side.as_str() == Some("buy")) {
@@ -3053,7 +3053,7 @@ if _try_result.is_err() {
                 m.insert("ownerId".to_string(), self.safe_integer_k(account, "id", &[]));
                 m.insert("order".to_string(), Value::Map(signRequest));
                 m.insert("marketSlug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("orderType".to_string(), timeInForce);
+                m.insert("orderType".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if postOnly.as_bool() == Some(true) {

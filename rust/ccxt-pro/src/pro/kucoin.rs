@@ -2903,15 +2903,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             let mut isFuturesMethod: Value = (Value::Bool((marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("margin"))));
             let mut url: Value = self.negotiate(Value::Bool(true), &[isFuturesMethod.clone()]).await;
-            let mut topic: Value = Value::Str("/spotMarket/tradeOrders".into());
+            let mut topic: String = "/spotMarket/tradeOrders".to_string();
             if (trigger == Some(true)) {
-                topic = Value::Str("/spotMarket/advancedOrders".into());
+                topic = "/spotMarket/advancedOrders".to_string();
             }
             if matches!(&isFuturesMethod, Value::Bool(true)) {
-                topic = (if (trigger == Some(true)) { Value::Str("/contractMarket/advancedOrders".into()) } else { Value::Str("/contractMarket/tradeOrders".into()) });
+                topic = (if (trigger == Some(true)) { "/contractMarket/advancedOrders".to_string() } else { "/contractMarket/tradeOrders".to_string() });
             }
             if (symbolResolved == Value::Null) {
-                let mut suffix: Value = self.get_orders_message_hash_suffix(topic.clone()).map(Value::from).unwrap_or(Value::Null);
+                let mut suffix: Value = self.get_orders_message_hash_suffix(Value::from(topic.clone())).map(Value::from).unwrap_or(Value::Null);
                 messageHash = Value::Str(format!("{}{}", messageHash, suffix).into());
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2920,7 +2920,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let __ws_arg_2 = self.extend(Value::Map(request), &[paramsMarketType]);
-            orders = self.subscribe(url, messageHash, topic, &[__ws_arg_2]).await;
+            orders = self.subscribe(url, messageHash, Value::from(topic), &[__ws_arg_2]).await;
         }
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

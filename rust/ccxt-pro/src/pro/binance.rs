@@ -2425,12 +2425,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, marketType]);
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("m"))) {
-            if (side == Value::Null) {
-                side = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
+            if (side.is_none()) {
+                side = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
             }
             takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
@@ -2457,7 +2457,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
@@ -3588,9 +3588,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut unsubscribeMessageHashes: Value = Value::from(vec![]);
-        let mut suffix: Value = Value::Str("".into());
+        let mut suffix: String = "".to_string();
         if isMarkPrice && !isOptionMarkPrice {
-            suffix = (if matches!((self.safe_bool_k(params, "use1sFreq", &[Value::Bool(true)])), Value::Bool(true)) { Value::Str("@1s".into()) } else { Value::Str("".into()) });
+            suffix = (if matches!((self.safe_bool_k(params, "use1sFreq", &[Value::Bool(true)])), Value::Bool(true)) { "@1s".to_string() } else { "".to_string() });
         }
         let mut unifiedPrefix: String = "ticker".to_string();
         if isBidAsk {

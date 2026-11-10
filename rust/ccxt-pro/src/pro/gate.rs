@@ -2583,9 +2583,9 @@ impl Gate {
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
-        let mut suffix: Value = Value::Str(".orders".into());
+        let mut suffix: String = ".orders".to_string();
         if (isTrigger.as_bool() == Some(true)) {
-            suffix = (if (typeId.as_str() == Some("spot")) { Value::Str(".priceorders".into()) } else { Value::Str(".autoorders".into()) });
+            suffix = (if (typeId.as_str() == Some("spot")) { ".priceorders".to_string() } else { ".autoorders".to_string() });
         }
         let mut channel: String = format!("{}{}", typeId, suffix);
         let mut messageHash: Value = Value::Str("orders".into());

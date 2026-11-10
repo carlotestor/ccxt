@@ -4466,11 +4466,11 @@ if _try_result.is_err() {
             postOnly = self.safe_bool2(params.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         }
         let mut endTime: Option<String> = self.safe_string_k(params.clone(), "end_time", &[]).as_str().map(str::to_owned);
-        let mut stopDirection: Value = self.safe_string_k(params.clone(), "stop_direction", &[]);
+        let mut stopDirection: Option<String> = self.safe_string_k(params.clone(), "stop_direction", &[]).as_str().map(str::to_owned);
         if (type_var.as_str() == Some("limit")) {
             if isStop {
-                if (stopDirection == Value::Null) {
-                    stopDirection = (if (side.as_str() == Some("buy")) { Value::Str("STOP_DIRECTION_STOP_DOWN".into()) } else { Value::Str("STOP_DIRECTION_STOP_UP".into()) });
+                if (stopDirection.is_none()) {
+                    stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_DOWN".to_string()) } else { Some("STOP_DIRECTION_STOP_UP".to_string()) });
                 }
                 if (timeInForce.as_deref() == Some("GTD")) || (endTime.is_some()) {
                     if (endTime.is_none()) {
@@ -4483,7 +4483,7 @@ if _try_result.is_err() {
         m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
         m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
         m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
-        m.insert("stop_direction".to_string(), stopDirection.clone());
+        m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("end_time".to_string(), endTime.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -4497,7 +4497,7 @@ if _try_result.is_err() {
         m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
         m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
         m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
-        m.insert("stop_direction".to_string(), stopDirection.clone());
+        m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
     m
@@ -4506,13 +4506,13 @@ if _try_result.is_err() {
             }  else if isStopLoss || isTakeProfit {
                 let mut tpslPrice: Value = Value::Null;
                 if isStopLoss {
-                    if (stopDirection == Value::Null) {
-                        stopDirection = (if (side.as_str() == Some("buy")) { Value::Str("STOP_DIRECTION_STOP_UP".into()) } else { Value::Str("STOP_DIRECTION_STOP_DOWN".into()) });
+                    if (stopDirection.is_none()) {
+                        stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_UP".to_string()) } else { Some("STOP_DIRECTION_STOP_DOWN".to_string()) });
                     }
                     tpslPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
                 }  else {
-                    if (stopDirection == Value::Null) {
-                        stopDirection = (if (side.as_str() == Some("buy")) { Value::Str("STOP_DIRECTION_STOP_DOWN".into()) } else { Value::Str("STOP_DIRECTION_STOP_UP".into()) });
+                    if (stopDirection.is_none()) {
+                        stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_DOWN".to_string()) } else { Some("STOP_DIRECTION_STOP_UP".to_string()) });
                     }
                     tpslPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
                 }
@@ -4523,7 +4523,7 @@ if _try_result.is_err() {
         m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
         m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
         m.insert("stop_price".to_string(), tpslPrice);
-        m.insert("stop_direction".to_string(), stopDirection);
+        m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
     m

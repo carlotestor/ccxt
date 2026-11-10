@@ -2645,15 +2645,15 @@ impl Blofin {
 }));
         let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         let mut hedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut positionSide: Value = Value::Str("net".into());
+        let mut positionSide: String = "net".to_string();
         if hedged {
-            positionSide = (if (side.as_str() == Some("buy")) { Value::Str("short".into()) } else { Value::Str("long".into()) });
+            positionSide = (if (side.as_str() == Some("buy")) { "short".to_string() } else { "long".to_string() });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), side);
-                m.insert("positionSide".to_string(), positionSide);
+                m.insert("positionSide".to_string(), Value::from(positionSide));
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("ec6dd3a7dd982d0b".into())]));
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(true)]));
             m

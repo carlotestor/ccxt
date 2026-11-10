@@ -3889,25 +3889,25 @@ impl Phemex {
         }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut hedged: Value = self.safe_bool_k(orderParams.clone(), "hedged", &[Value::Bool(false)]);
             orderParams = self.omit(orderParams.clone(), Value::Str("hedged".into()), &[]);
-            let mut posSide: Value = self.safe_string_lower_k(orderParams.clone(), "posSide", &[]);
+            let mut posSide: Option<String> = self.safe_string_lower_k(orderParams.clone(), "posSide", &[]).as_str().map(str::to_owned);
             // a hedged reduceOnly order without posSide closes the opposite side
-            let mut flipSide: bool = (posSide == Value::Null) && hedged.as_bool() == Some(true) && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
+            let mut flipSide: bool = (posSide.is_none()) && hedged.as_bool() == Some(true) && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
             let mut oppositeSide: Value = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             let mut sideResolved: Value = side;
             if flipSide {
                 sideResolved = oppositeSide;
             }
-            if (posSide == Value::Null) {
+            if (posSide.is_none()) {
                 if hedged.as_bool() == Some(true) {
                     if flipSide {
                         orderParams = self.omit(orderParams.clone(), Value::Str("reduceOnly".into()), &[]);
                     }
-                    posSide = (if (sideResolved.as_str() == Some("buy")) { Value::Str("Long".into()) } else { Value::Str("Short".into()) });
+                    posSide = (if (sideResolved.as_str() == Some("buy")) { Some("Long".to_string()) } else { Some("Short".to_string()) });
                 }  else {
-                    posSide = Value::Str("Merged".into());
+                    posSide = Some("Merged".to_string());
                 }
             }
-            let mut posSideCapitalized: String = self.capitalize(posSide).to_string();
+            let mut posSideCapitalized: String = self.capitalize(posSide.clone().map(Value::from).unwrap_or(Value::Null)).to_string();
             request.insert("posSide".into(), Value::from(posSideCapitalized));
             if isStableSettled {
                 request.insert("orderQtyRq".into(), self.amount_to_precision(symbol.clone(), amount.clone()));

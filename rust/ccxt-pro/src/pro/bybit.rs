@@ -1632,12 +1632,12 @@ impl Bybit {
         let mut channel: Value = Value::Str("orderbook.".into());
         let mut limitParam: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[]).as_i64();
         let mut paramsOmitted: Value = (if (limitParam.is_some()) { self.omit(params.clone(), Value::Str("limit".into()), &[]) } else { params });
-        let mut defaultLimit: Value = Value::Int(500);
+        let mut defaultLimit: i64 = 500;
         if (limitParam.is_none()) {
             let mut firstMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-            defaultLimit = (if matches!((self.safe_bool_k(firstMarket, "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(500) });
+            defaultLimit = (if matches!((self.safe_bool_k(firstMarket, "spot", &[Value::Bool(false)])), Value::Bool(true)) { 50 } else { 500 });
         }
-        let mut limit: Value = (if (limitParam.is_none()) { defaultLimit } else { Value::from(limitParam) });
+        let mut limit: Value = (if (limitParam.is_none()) { Value::from(defaultLimit) } else { Value::from(limitParam) });
         channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -2050,11 +2050,11 @@ impl Bybit {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("T".into()), &[]).as_i64();
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         let mut m: Value = self.safe_value_k(trade.clone(), "m", &[]);
-        if (side == Value::Null) {
-            side = (if ((match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        if (side.is_none()) {
+            side = (if ((match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else {
             // spot private
             takerOrMaker = m.clone();
@@ -2071,7 +2071,7 @@ impl Bybit {
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));

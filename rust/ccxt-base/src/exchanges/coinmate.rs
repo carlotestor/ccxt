@@ -1529,8 +1529,8 @@ impl Coinmate {
                 m
             });
         }
-        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "feeType", &[]);
-        takerOrMaker = (if (takerOrMaker.as_str() == Some("MAKER")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "feeType", &[]).as_str().map(str::to_owned);
+        takerOrMaker = (if (takerOrMaker.as_deref() == Some("MAKER")) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1541,7 +1541,7 @@ impl Coinmate {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);

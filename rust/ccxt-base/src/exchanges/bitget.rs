@@ -9915,13 +9915,13 @@ if _try_result.is_err() {
             size = self.safe_string2(order.clone(), Value::Str("size".into()), Value::Str("qty".into()), &[]);
             filled = self.safe_string2(order.clone(), Value::Str("baseVolume".into()), Value::Str("cumExecQty".into()), &[]);
         }
-        let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut posMode: Option<String> = self.safe_string_k(order.clone(), "posMode", &[]).as_str().map(str::to_owned);
         if (posMode.as_deref() == Some("hedge_mode")) && (reduceOnly.as_bool() == Some(true)) {
-            side = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (side.as_deref() == Some("buy")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
-        let mut isBuyMarket: bool = (side.as_str() == Some("buy")) && (orderType.as_deref() == Some("market"));
+        let mut isBuyMarket: bool = (side.as_deref() == Some("buy")) && (orderType.as_deref() == Some("market"));
         if matches!((self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && isBuyMarket {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = self.safe_string_k(order.clone(), "baseVolume", &[]);
@@ -9937,7 +9937,7 @@ if _try_result.is_err() {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(updateTimestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), size);
         m.insert("cost".to_string(), self.safe_string2(order.clone(), Value::Str("quoteVolume".into()), Value::Str("quoteSize".into()), &[]));

@@ -1682,9 +1682,9 @@ impl Hyperliquid {
         let mut marketResolved: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        if (side != Value::Null) {
-            side = (if (side.as_str() == Some("A")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            side = (if (side.as_deref() == Some("A")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         let mut fee: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
@@ -1696,7 +1696,7 @@ impl Hyperliquid {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "oid", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));

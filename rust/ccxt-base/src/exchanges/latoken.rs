@@ -1535,17 +1535,17 @@ impl Latoken {
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut makerBuyer: bool = self.safe_bool_k_opt(trade.clone(), "makerBuyer", &[Value::Bool(false)]).unwrap_or(false);
-        let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
-        if (side == Value::Null) {
-            side = (if makerBuyer { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        let mut side: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
+        if (side.is_none()) {
+            side = (if makerBuyer { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }  else {
-            if (side.as_str() == Some("TRADE_DIRECTION_BUY")) {
-                side = Value::Str("buy".into());
-            }  else if (side.as_str() == Some("TRADE_DIRECTION_SELL")) {
-                side = Value::Str("sell".into());
+            if (side.as_deref() == Some("TRADE_DIRECTION_BUY")) {
+                side = Some("buy".to_string());
+            }  else if (side.as_deref() == Some("TRADE_DIRECTION_SELL")) {
+                side = Some("sell".to_string());
             }
         }
-        let mut isBuy: bool = side.as_str() == Some("buy");
+        let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut isMaker: bool = makerBuyer && isBuy;
         let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
@@ -1582,7 +1582,7 @@ impl Latoken {
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.clone().map(Value::from).unwrap_or(Value::Null));

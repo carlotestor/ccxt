@@ -3998,9 +3998,9 @@ impl Bitstamp {
         //
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("order_id".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("orig_client_order_id".into()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("order_type".into()), &[]);
-        if (side != Value::Null) {
-            side = (if (side.as_str() == Some("1")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        let mut side: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            side = (if (side.as_deref() == Some("1")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         // there is no timestamp from fetchOrder
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "datetime", &[]));
@@ -4022,7 +4022,7 @@ impl Bitstamp {
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);

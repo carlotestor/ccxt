@@ -854,8 +854,8 @@ impl Zaif {
         //          "trade_type": "ask"
         //      }
         //
-        let mut side: Value = self.safe_string_k(trade.clone(), "trade_type", &[]);
-        side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut side: Option<String> = self.safe_string_k(trade.clone(), "trade_type", &[]).as_str().map(str::to_owned);
+        side = (if (side.as_deref() == Some("bid")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -870,7 +870,7 @@ impl Zaif {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1081,8 +1081,8 @@ impl Zaif {
         //        }
         //    }
         //
-        let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
-        side = (if (side.as_str() == Some("bid")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "action", &[]).as_str().map(str::to_owned);
+        side = (if (side.as_deref() == Some("bid")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
@@ -1101,7 +1101,7 @@ impl Zaif {
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);

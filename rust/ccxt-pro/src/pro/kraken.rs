@@ -2655,16 +2655,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (channel != Value::Null) {
-            if (channel.as_str() == Some("executions")) {
+        let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (channel.is_some()) {
+            if (channel.as_deref() == Some("executions")) {
                 let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
                 let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 let mut execType: Option<String> = self.safe_string_k(first, "exec_type", &[]).as_str().map(str::to_owned);
-                channel = (if (execType.as_deref() == Some("trade")) { Value::Str("myTrades".into()) } else { Value::Str("orders".into()) });
+                channel = (if (execType.as_deref() == Some("trade")) { Some("myTrades".to_string()) } else { Some("orders".to_string()) });
             }
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2677,7 +2677,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(methods.clone(), channel, &[]);
+            let mut method: Value = self.safe_value(methods.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }

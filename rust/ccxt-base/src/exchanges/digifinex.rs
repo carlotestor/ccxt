@@ -2850,7 +2850,7 @@ impl Digifinex {
         }
         request.insert(marketIdRequest.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[paramsMarginMode.clone()]);
-        let mut postOnlyParsed: Value = Value::Int(0);
+        let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Value = Value::Null;
         if swap {
             let mut reduceOnly: bool = self.safe_bool_k(paramsMarginMode.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2882,7 +2882,7 @@ impl Digifinex {
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
-            postOnlyParsed = (if (postOnly).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) });
+            postOnlyParsed = (if (postOnly).as_bool() == Some(true) { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode != Value::Null) { Value::Str("margin".into()) } else { marketTypeRaw }));
             let mut suffix: String = "".to_string();
             if (type_var.as_str() == Some("market")) {
@@ -2926,8 +2926,8 @@ impl Digifinex {
             request.insert("amount".into(), quantity);
         }
         if postOnly.as_bool() == Some(true) {
-            if (postOnlyParsed.as_f64() != Some(0.0)) {
-                request.insert("post_only".into(), postOnlyParsed);
+            if (postOnlyParsed != 0) {
+                request.insert("post_only".into(), Value::from(postOnlyParsed));
             }  else {
                 request.insert("post_only".into(), postOnly);
             }
@@ -5555,11 +5555,11 @@ impl Digifinex {
         let mut marketId: Option<String> = self.safe_string2(position.clone(), Value::Str("instrument_id".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut marginMode: Value = self.safe_string_k(position.clone(), "margin_mode", &[]);
-        if (marginMode != Value::Null) {
-            marginMode = (if (marginMode.as_str() == Some("crossed")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "margin_mode", &[]).as_str().map(str::to_owned);
+        if (marginMode.is_some()) {
+            marginMode = (if (marginMode.as_deref() == Some("crossed")) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }  else {
-            marginMode = Value::Str("cross".into());
+            marginMode = Some("cross".to_string());
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -5572,7 +5572,7 @@ impl Digifinex {
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unrealized_pnl", &[]).as_str().map(str::to_owned);
         let mut collateralString: Value = Value::Null;
         let mut marginString: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             let mut isolatedMargin: Value = self.safe_string_k(position.clone(), "posi_balance", &[]);
             if (isolatedMargin != Value::Null) {
                 marginString = isolatedMargin.clone();
@@ -5590,7 +5590,7 @@ impl Digifinex {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), self.safe_number_k(position.clone(), "amount", &[]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("avg_cost".into()), Value::Str("entry_price".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));

@@ -4416,8 +4416,8 @@ impl Paradex {
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_at", &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "last_updated_at", &[]).as_i64();
-        let mut type_var: Value = self.safe_string_k(transaction.clone(), "kind", &[]);
-        type_var = (if (type_var.as_str() == Some("DEPOSIT")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
+        let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "kind", &[]).as_str().map(str::to_owned);
+        type_var = (if (type_var.as_deref() == Some("DEPOSIT")) { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         return Value::Map({
@@ -4434,7 +4434,7 @@ impl Paradex {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);

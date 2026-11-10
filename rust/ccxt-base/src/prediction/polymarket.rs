@@ -3354,22 +3354,22 @@ impl Polymarket {
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
-        let mut orderTypeStr: Value = self.safe_string_upper_k(params.clone(), "orderType", &[]);
-        if (orderTypeStr == Value::Null) {
+        let mut orderTypeStr: Option<String> = self.safe_string_upper_k(params.clone(), "orderType", &[]).as_str().map(str::to_owned);
+        if (orderTypeStr.is_none()) {
             // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
             let mut unifiedTif: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             if (unifiedTif.as_deref() == Some("GTC")) {
-                orderTypeStr = Value::Str("GTC".into());
+                orderTypeStr = Some("GTC".to_string());
             }  else if (unifiedTif.as_deref() == Some("FOK")) {
-                orderTypeStr = Value::Str("FOK".into());
+                orderTypeStr = Some("FOK".to_string());
             }  else if (unifiedTif.as_deref() == Some("IOC")) {
-                orderTypeStr = Value::Str("FAK".into()); // fill-and-kill == immediate-or-cancel
+                orderTypeStr = Some("FAK".to_string()); // fill-and-kill == immediate-or-cancel
             }  else if (unifiedTif.as_deref() == Some("GTD")) {
-                orderTypeStr = Value::Str("GTD".into());
+                orderTypeStr = Some("GTD".to_string());
             }
         }
-        if (orderTypeStr == Value::Null) {
-            orderTypeStr = (if isMarket { Value::Str("FOK".into()) } else { Value::Str("GTC".into()) });
+        if (orderTypeStr.is_none()) {
+            orderTypeStr = (if isMarket { Some("FOK".to_string()) } else { Some("GTC".to_string()) });
         }
         let mut priceResolved: Value = price;
         if (priceResolved == Value::Null) {
@@ -3491,7 +3491,7 @@ impl Polymarket {
     m
 }));
                 m.insert("owner".to_string(), owner);
-                m.insert("orderType".to_string(), orderTypeStr.clone());
+                m.insert("orderType".to_string(), orderTypeStr.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
@@ -3502,7 +3502,7 @@ impl Polymarket {
                 m.insert("side".to_string(), sideStr);
                 m.insert("price".to_string(), priceResolved);
                 m.insert("asset_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("time_in_force".to_string(), orderTypeStr);
+                m.insert("time_in_force".to_string(), orderTypeStr.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
             m
         });

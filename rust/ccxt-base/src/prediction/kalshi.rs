@@ -3022,12 +3022,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        let mut bookSide: Value = Value::Str("ask".into());
+        let mut bookSide: String = "ask".to_string();
         if isBuy {
-            bookSide = Value::Str("bid".into());
+            bookSide = "bid".to_string();
         }
         if isNo {
-            bookSide = (if (isBuy) { Value::Str("ask".into()) } else { Value::Str("bid".into()) });
+            bookSide = (if (isBuy) { "ask".to_string() } else { "bid".to_string() });
         }
         let mut yesPrice: Value = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &self.number_to_string(price.clone())), &[]) } else { price.clone() });
         let mut isMarket: bool = type_var.as_str() == Some("market");
@@ -3057,7 +3057,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("side".to_string(), bookSide);
+                m.insert("side".to_string(), Value::from(bookSide));
                 m.insert("count".to_string(), self.number_to_string(amount.clone()));
                 m.insert("time_in_force".to_string(), timeInForce);
                 m.insert("self_trade_prevention_type".to_string(), stp);

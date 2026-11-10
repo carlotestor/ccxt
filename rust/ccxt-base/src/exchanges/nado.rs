@@ -893,11 +893,11 @@ impl Nado {
             });
             placeOrder.insert("trigger".into(), trigger.clone());
         }  else if isStopLossOrder || isTakeProfitOrder {
-            let mut oracleSide: Value = Value::Str("".into());
+            let mut oracleSide: String = "".to_string();
             if isBuy {
-                oracleSide = (if isStopLossOrder { Value::Str("above".into()) } else { Value::Str("below".into()) });
+                oracleSide = (if isStopLossOrder { "above".to_string() } else { "below".to_string() });
             }  else {
-                oracleSide = (if isStopLossOrder { Value::Str("below".into()) } else { Value::Str("above".into()) });
+                oracleSide = (if isStopLossOrder { "below".to_string() } else { "above".to_string() });
             }
             if isStopLossOrder {
                 triggerPrice = stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null);

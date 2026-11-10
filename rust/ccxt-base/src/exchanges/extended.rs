@@ -3048,9 +3048,9 @@ impl Extended {
 })]);
         let mut validSignature: Option<bool> = self.safe_bool_k_opt(data.clone(), "validSignature", &[]);
         let mut now: Value = self.milliseconds();
-        let mut status: Value = Value::Str("pending".into());
+        let mut status: String = "pending".to_string();
         if (validSignature.is_some()) {
-            status = (if validSignature == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+            status = (if validSignature == Some(true) { "ok".to_string() } else { "failed".to_string() });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3062,7 +3062,7 @@ impl Extended {
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("fromAccount".to_string(), currentAccountId);
         m.insert("toAccount".to_string(), toAccount);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), Value::from(status));
     m
 });
         Value::Null
@@ -3967,9 +3967,9 @@ impl Extended {
         let mut priceString: Value = self.price_to_precision(symbol.clone(), price);
         let mut postOnly: Value = self.is_post_only(Value::Bool(uppercaseType.as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
-        if (timeInForce == Value::Null) {
-            timeInForce = (if (uppercaseType.as_str() == Some("MARKET")) { Value::Str("IOC".into()) } else { Value::Str("GTT".into()) });
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+        if (timeInForce.is_none()) {
+            timeInForce = (if (uppercaseType.as_str() == Some("MARKET")) { Some("IOC".to_string()) } else { Some("GTT".to_string()) });
         }
         let mut fee: Value = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]);
         let mut builderFeeRate: Value = Value::Null;
@@ -4040,7 +4040,7 @@ impl Extended {
                 m.insert("side".to_string(), uppercaseSide);
                 m.insert("qty".to_string(), amountString.clone());
                 m.insert("price".to_string(), priceString.clone());
-                m.insert("timeInForce".to_string(), timeInForce);
+                m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiryEpochMillis".to_string(), expiryEpochMillis);
                 m.insert("fee".to_string(), fee);
                 m.insert("nonce".to_string(), nonce);

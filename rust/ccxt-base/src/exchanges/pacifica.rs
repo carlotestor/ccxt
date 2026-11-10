@@ -4054,9 +4054,9 @@ if _try_result.is_err() {
             isIsolated = (Value::Bool(rawIsolated == Some(true)));
         }
         let mut marginMode: Value = (if isIsolated.as_bool() == Some(true) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
-        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
-        if (side != Value::Null) {
-            side = (if (side.as_str() == Some("bid")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            side = (if (side.as_deref() == Some("bid")) { Some("long".to_string()) } else { Some("short".to_string()) });
         }
         let mut createdAt: Option<i64> = self.safe_integer_k(position.clone(), "created_at", &[]).as_i64();
         return self.safe_position(Value::Map({
@@ -4068,7 +4068,7 @@ if _try_result.is_err() {
         m.insert("datetime".to_string(), self.iso8601(Value::from(createdAt)));
         m.insert("isolated".to_string(), isIsolated);
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "amount", &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));

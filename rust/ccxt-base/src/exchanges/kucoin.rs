@@ -6888,14 +6888,14 @@ impl Kucoin {
                 let mut hedged: Value = Value::Bool(false);
                 { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[hedged.clone()]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 if (hedged.as_bool() == Some(true)) {
-                    let mut positionSide: Value = Value::Str("SHORT".into());
+                    let mut positionSide: String = "SHORT".to_string();
                     if (side.as_str() == Some("buy")) {
-                        positionSide = Value::Str("LONG".into());
+                        positionSide = "LONG".to_string();
                     }
                     if reduceOnly {
-                        positionSide = (if (positionSide.as_str() == Some("LONG")) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) });
+                        positionSide = (if (positionSide == "LONG") { "SHORT".to_string() } else { "LONG".to_string() });
                     }
-                    request.insert("positionSide".into(), positionSide);
+                    request.insert("positionSide".into(), Value::from(positionSide));
                 }
             }
         }
@@ -10769,9 +10769,9 @@ impl Kucoin {
             }
             txid = txidParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         }
-        let mut type_var: Value = Value::Str("deposit".into());
+        let mut type_var: String = "deposit".to_string();
         if (txid == Value::Null) {
-            type_var = Value::Str("withdrawal".into());
+            type_var = "withdrawal".to_string();
         }
         let mut rawStatus: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -10794,7 +10794,7 @@ impl Kucoin {
         let mut isV1: bool = !(matches!(&transaction, Value::Dict(__d) if __d.contains_key("createdAt")));
         // if it's a v1 structure
         if isV1 {
-            type_var = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+            type_var = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))) { "withdrawal".to_string() } else { "deposit".to_string() });
         }
         let mut createdAtMs: Value = (if (createdAt == Value::Null) { Value::Null } else { (match (&(createdAt), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
@@ -10821,7 +10821,7 @@ impl Kucoin {
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("txid".to_string(), txid);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("status".to_string(), self.parse_transaction_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("comment".to_string(), self.safe_string_k(transaction, "remark", &[]));
         m.insert("internal".to_string(), internal.map(Value::Bool).unwrap_or(Value::Null));
@@ -14665,13 +14665,13 @@ if _try_result.is_err() {
         let mut unrealisedPnl: Option<String> = self.safe_string2(position.clone(), Value::Str("unrealisedPnl".into()), Value::Str("unrealizedPnL".into()), &[]).as_str().map(str::to_owned);
         let mut crossMode: Option<bool> = self.safe_bool_k_opt(position.clone(), "crossMode", &[]);
         // currently crossMode is always set to false and only isolated positions are supported
-        let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[]);
+        let mut marginMode: Option<String> = self.safe_string_lower_k(position.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         if (crossMode.is_some()) {
-            marginMode = (if crossMode == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if crossMode == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }
         let mut collateralString: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
         let mut marginString: Value = Value::Null;
-        if (collateralString == Value::Null) && (marginMode.as_str() == Some("isolated")) {
+        if (collateralString == Value::Null) && (marginMode.as_deref() == Some("isolated")) {
             let mut posMargin: Value = self.safe_string_k(position.clone(), "posMargin", &[]);
             if (posMargin == Value::Null) {
                 let mut posComm: Option<String> = self.safe_string_k(position.clone(), "posComm", &[]).as_str().map(str::to_owned);
@@ -14721,7 +14721,7 @@ if _try_result.is_err() {
         m.insert("lastPrice".to_string(), self.safe_number_k(position, "closePrice", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -15159,13 +15159,13 @@ if _try_result.is_err() {
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marginType: Value = self.safe_string_k(marginMode.clone(), "marginMode", &[]);
-        marginType = (if (marginType.as_str() == Some("ISOLATED")) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut marginType: Option<String> = self.safe_string_k(marginMode.clone(), "marginMode", &[]).as_str().map(str::to_owned);
+        marginType = (if (marginType.as_deref() == Some("ISOLATED")) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode);
         m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
-        m.insert("marginMode".to_string(), marginType);
+        m.insert("marginMode".to_string(), marginType.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 

@@ -2343,21 +2343,21 @@ impl Aster {
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string2(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
             takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
-            if (side == Value::Null) {
+            if (side.is_none()) {
                 let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "buyer", &[]);
                 if (isBuyer.is_some()) {
-                    side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                    side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
                 }
             }
         }
         let mut isBuyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
         if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if isBuyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2368,7 +2368,7 @@ impl Aster {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4822,9 +4822,9 @@ impl Aster {
         let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
         let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone(), &[]);
         let mut collateralString: Value = Value::Null;
-        let mut marginMode: Value = self.safe_string_k(position.clone(), "marginType", &[]);
-        if (marginMode == Value::Null) && (isolatedMarginString.is_some()) {
-            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
+        if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
+            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }
         let mut side: Value = Value::Null;
         if crate::precise::Precise::stringGt(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -4838,7 +4838,7 @@ impl Aster {
         let mut contractSizeString: Value = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
         let mut linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
-        if (marginMode.as_str() == Some("cross")) {
+        if (marginMode.as_deref() == Some("cross")) {
             // calculate collateral
             let mut precision: Value = self.safe_dict_k(marketResolved, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4924,7 +4924,7 @@ impl Aster {
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool(positionSide.as_deref() != Some("BOTH"));
         let mut isolatedWalletString: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             isolatedWalletString = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
         }
         return self.safe_position(Value::Map({
@@ -4949,7 +4949,7 @@ impl Aster {
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage);
         m.insert("marginRatio".to_string(), marginRatio);
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("hedged".to_string(), hedged);
         m.insert("percentage".to_string(), percentage);

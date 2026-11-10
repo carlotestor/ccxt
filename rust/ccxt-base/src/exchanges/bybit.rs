@@ -5957,11 +5957,11 @@ impl Bybit {
         let mut priceString: Option<String> = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("execPrice".into()), Value::Str("orderPrice".into()), Value::Str("price".into())]), &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "execValue", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("execTime".into()), Value::Str("tradeTime".into())]), &[]).as_i64();
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
-        if (side == Value::Null) {
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_none()) {
             let mut isBuyer: Option<i64> = self.safe_integer_k(trade.clone(), "isBuyer", &[]).as_i64();
             if (isBuyer.is_some()) {
-                side = (if (isBuyer != Some(0)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                side = (if (isBuyer != Some(0)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             }
         }
         let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
@@ -5992,13 +5992,13 @@ impl Bybit {
             let mut feeCurrencyCode: Value = Value::Null;
             if matches!(self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 if crate::precise::Precise::stringGt(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                    if (side.as_str() == Some("buy")) {
+                    if (side.as_deref() == Some("buy")) {
                         feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
                     }  else {
                         feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
                     }
                 }  else {
-                    if (side.as_str() == Some("buy")) {
+                    if (side.as_deref() == Some("buy")) {
                         feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
                     }  else {
                         feeCurrencyCode = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
@@ -6024,7 +6024,7 @@ impl Bybit {
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), self.safe_string_k(trade, "orderId", &[]));
         m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -10194,21 +10194,21 @@ impl Bybit {
         let mut contract: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[contract.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
         let mut size: Value = crate::precise::Precise::stringAbs(&self.safe_string2(position.clone(), Value::Str("size".into()), Value::Str("qty".into()), &[]));
-        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut positionIdx: Option<String> = self.safe_string_k(position.clone(), "positionIdx", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Null;
         if (positionIdx.is_some()) {
             hedged = (Value::Bool(positionIdx.as_deref() != Some("0")));
         }
         if (hedged != Value::Null) && hedged.as_bool() == Some(true) {
-            side = (if (positionIdx.as_deref() == Some("1")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
-        }  else if (side != Value::Null) {
-            if (side.as_str() == Some("Buy")) {
-                side = (if isHistory { Value::Str("short".into()) } else { Value::Str("long".into()) });
-            }  else if (side.as_str() == Some("Sell")) {
-                side = (if isHistory { Value::Str("long".into()) } else { Value::Str("short".into()) });
+            side = (if (positionIdx.as_deref() == Some("1")) { Some("long".to_string()) } else { Some("short".to_string()) });
+        }  else if (side.is_some()) {
+            if (side.as_deref() == Some("Buy")) {
+                side = (if isHistory { Some("short".to_string()) } else { Some("long".to_string()) });
+            }  else if (side.as_deref() == Some("Sell")) {
+                side = (if isHistory { Some("long".to_string()) } else { Some("short".to_string()) });
             }  else {
-                side = Value::Null;
+                side = None.clone();
             }
         }
         let mut notional: Value = Value::Null;
@@ -10318,7 +10318,7 @@ impl Bybit {
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("positionMargin".to_string(), self.parse_number(positionMarginString, &[]));
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), self.safe_number2(position.clone(), Value::Str("stop_loss".into()), Value::Str("stopLoss".into()), &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_number2(position, Value::Str("take_profit".into()), Value::Str("takeProfit".into()), &[]));

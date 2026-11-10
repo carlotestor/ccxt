@@ -883,9 +883,9 @@ impl Phemex {
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
-        let mut name: Value = Value::Str("spot_market24h".into());
+        let mut name: String = "spot_market24h".to_string();
         if (isSwap.as_bool() == Some(true)) {
-            name = (if settleIsUSDT { Value::Str("perp_market24h_pack_p".into()) } else { Value::Str("market24h".into()) });
+            name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
@@ -935,9 +935,9 @@ impl Phemex {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(first.as_str().unwrap_or_default()));
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
-        let mut name: Value = Value::Str("spot_market24h".into());
+        let mut name: String = "spot_market24h".to_string();
         if (isSwap.as_bool() == Some(true)) {
-            name = (if settleIsUSDT { Value::Str("perp_market24h_pack_p".into()) } else { Value::Str("market24h".into()) });
+            name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();

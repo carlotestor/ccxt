@@ -3045,16 +3045,16 @@ impl Bingx {
         if (isBuyerMaker.is_some()) || (m != Value::Null) {
             takeOrMaker = (if isMakerSide { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
-        if (side == Value::Null) {
+        let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
+        if (side.is_none()) {
             if (isBuyerMaker.is_some()) || (m != Value::Null) {
-                side = (if isMakerSide { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                side = (if isMakerSide { Some("sell".to_string()) } else { Some("buy".to_string()) });
                 takeOrMaker = Value::Str("taker".into());
             }
         }
         let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         if (isMaker.is_some()) {
@@ -3085,7 +3085,7 @@ impl Bingx {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("i".into()), &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "o", &[]));
-        m.insert("side".to_string(), self.parse_order_side(side).map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), self.parse_order_side(side.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takeOrMaker);
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);

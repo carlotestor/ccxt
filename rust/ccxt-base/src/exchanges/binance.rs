@@ -14278,16 +14278,16 @@ impl Binance {
             timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
         }
         let mut updated: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]).as_i64();
-        let mut type_var: Value = self.safe_string_k(transaction.clone(), "type", &[]);
-        if (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_none()) {
             let mut txType: Option<String> = self.safe_string_k(transaction.clone(), "transactionType", &[]).as_str().map(str::to_owned);
             if (txType.is_some()) {
-                type_var = (if (txType.as_deref() == Some("0")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
+                type_var = (if (txType.as_deref() == Some("0")) { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
             }
             let mut legalMoneyCurrenciesById: Value = self.safe_dict_k(self.options.clone(), "legalMoneyCurrenciesById", &[]);
             code = self.safe_string(legalMoneyCurrenciesById, code.clone(), &[code.clone()]);
         }
-        let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut feeCost: Option<f64> = self.safe_number2(transaction.clone(), Value::Str("transactionFee".into()), Value::Str("totalFee".into()), &[]).as_f64();
         let mut fee: Value = Value::Null;
@@ -14320,7 +14320,7 @@ impl Binance {
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagTo".to_string(), tag);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
@@ -16232,9 +16232,9 @@ impl Binance {
         let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
         let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone(), &[]);
         let mut collateralString: Value = Value::Null;
-        let mut marginMode: Value = self.safe_string_k(position.clone(), "marginType", &[]);
-        if (marginMode == Value::Null) && (isolatedMarginString.is_some()) {
-            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
+        if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
+            marginMode = (if crate::precise::Precise::stringEq(&isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
         }
         let mut side: Value = Value::Null;
         if crate::precise::Precise::stringGt(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -16248,7 +16248,7 @@ impl Binance {
         let mut contractSizeString: Value = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
         let mut linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
-        if (marginMode.as_str() == Some("cross")) {
+        if (marginMode.as_deref() == Some("cross")) {
             // calculate collateral
             let mut precision: Value = self.safe_dict_k(marketResolved, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -16332,7 +16332,7 @@ impl Binance {
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool(positionSide.as_deref() != Some("BOTH"));
         let mut isolatedWalletString: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             isolatedWalletString = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
         }
         return self.safe_position(Value::Map({
@@ -16357,7 +16357,7 @@ impl Binance {
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage);
         m.insert("marginRatio".to_string(), marginRatio);
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("hedged".to_string(), hedged);
         m.insert("percentage".to_string(), percentage);

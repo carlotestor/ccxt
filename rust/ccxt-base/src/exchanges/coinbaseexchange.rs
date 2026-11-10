@@ -1788,16 +1788,16 @@ impl Coinbaseexchange {
         });
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "trade_id", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Str("buy".into());
+        let mut side: String = "buy".to_string();
         if (rawSide.as_deref() == Some("buy")) {
-            side = Value::Str("sell".into());
+            side = "sell".to_string();
         }
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "order_id", &[]).as_str().map(str::to_owned);
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         let mut makerOrderId: Option<String> = self.safe_string_k(trade.clone(), "maker_order_id", &[]).as_str().map(str::to_owned);
         let mut takerOrderId: Option<String> = self.safe_string_k(trade.clone(), "taker_order_id", &[]).as_str().map(str::to_owned);
         if (orderId.is_some()) || ((makerOrderId.is_some()) && (takerOrderId.is_some())) {
-            side = (if (rawSide.as_deref() == Some("buy")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (rawSide.as_deref() == Some("buy")) { "buy".to_string() } else { "sell".to_string() });
         }
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
@@ -1812,7 +1812,7 @@ impl Coinbaseexchange {
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));

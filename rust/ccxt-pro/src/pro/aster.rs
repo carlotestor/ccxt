@@ -1453,12 +1453,12 @@ impl Aster {
             defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, defaultType]);
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("m"))) {
-            if (side == Value::Null) {
-                side = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
+            if (side.is_none()) {
+                side = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
             }
             takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
@@ -1485,7 +1485,7 @@ impl Aster {
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);

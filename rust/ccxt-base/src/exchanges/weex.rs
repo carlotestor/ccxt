@@ -2625,12 +2625,12 @@ impl Weex {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
         let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyerMaker", &[]);
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if isBuyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         let mut tradeMarketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut realizedPnl: Option<String> = self.safe_string_k(trade.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
@@ -2651,7 +2651,7 @@ impl Weex {
             let mut commissionAsset: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (isSpot.as_bool() == Some(true)) {
-                if (side.as_str() == Some("buy")) {
+                if (side.as_deref() == Some("buy")) {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
@@ -2681,7 +2681,7 @@ impl Weex {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "qty", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "quoteQty", &[]));

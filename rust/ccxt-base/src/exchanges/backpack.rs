@@ -2186,26 +2186,26 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[query.clone()]);
-        let mut source: Value = self.safe_string_k(query.clone(), "source", &[]);
+        let mut source: Option<String> = self.safe_string_k(query.clone(), "source", &[]).as_str().map(str::to_owned);
         let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut isRfq: bool = (market != Value::Null) && (self.safe_string_k(marketInfo, "marketType", &[]).as_str() == Some("RFQ"));
-        if (source == Value::Null) {
-            source = (if (isRfq) { Value::Str("External".into()) } else { Value::Str("Venue".into()) });
+        if (source.is_none()) {
+            source = (if (isRfq) { Some("External".to_string()) } else { Some("Venue".to_string()) });
         }
-        if (source.as_str() != Some("Venue")) && (source.as_str() != Some("External")) {
+        if (source.as_deref() != Some("Venue")) && (source.as_deref() != Some("External")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() source must be Venue or External".into()))));
         }
-        if (source.as_str() == Some("External")) {
+        if (source.as_deref() == Some("External")) {
             if !stock {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() External provider data requires a stock market symbol or params.stock=true when no symbol is provided".into()))));
             }
             if (market != Value::Null) && !matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() External data requires a stock market".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("source".into(), source); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("source".into(), source.clone().map(Value::from).unwrap_or(Value::Null)); }
             if (methodName.as_str() == Some("fetchOHLCV")) {
                 let mut priceType: Option<String> = self.safe_string_k(query.clone(), "priceType", &[Value::Str("Last".into())]).as_str().map(str::to_owned);
                 let mut price: Option<String> = self.safe_string_k(query.clone(), "price", &[]).as_str().map(str::to_owned);

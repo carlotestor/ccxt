@@ -9611,30 +9611,30 @@ impl Okx {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut pos: Option<String> = self.safe_string_k(position.clone(), "pos", &[]).as_str().map(str::to_owned); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&pos.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut side: Value = self.safe_string2(position.clone(), Value::Str("posSide".into()), Value::Str("direction".into()), &[]);
-        let mut hedged: Value = Value::Bool(side.as_str() != Some("net"));
+        let mut side: Option<String> = self.safe_string2(position.clone(), Value::Str("posSide".into()), Value::Str("direction".into()), &[]).as_str().map(str::to_owned);
+        let mut hedged: Value = Value::Bool(side.as_deref() != Some("net"));
         let mut contracts: Value = self.parse_number(contractsAbs.clone(), &[]);
         if matches!(self.safe_bool_k(marketResolved.clone(), "margin", &[Value::Bool(false)]), Value::Bool(true)) {
             // margin position
-            if (side.as_str() == Some("net")) {
+            if (side.as_deref() == Some("net")) {
                 let mut posCcy: Option<String> = self.safe_string_k(position.clone(), "posCcy", &[]).as_str().map(str::to_owned);
                 let mut parsedCurrency: Value = self.safe_currency_code(posCcy.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 if (parsedCurrency != Value::Null) {
-                    side = (if (marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str() == parsedCurrency.as_str()) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+                    side = (if (marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str() == parsedCurrency.as_str()) { Some("long".to_string()) } else { Some("short".to_string()) });
                 }
             }
-            if (side == Value::Null) {
-                side = self.safe_string_k(position.clone(), "direction", &[]);
+            if (side.is_none()) {
+                side = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
             }
         }  else {
             if (pos.is_some()) {
-                if (side.as_str() == Some("net")) {
+                if (side.as_deref() == Some("net")) {
                     if crate::precise::Precise::stringGt(&pos.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                        side = Value::Str("long".into());
+                        side = Some("long".to_string());
                     }  else if crate::precise::Precise::stringLt(&pos.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                        side = Value::Str("short".into());
+                        side = Some("short".to_string());
                     }  else {
-                        side = Value::Null;
+                        side = None.clone();
                     }
                 }
             }
@@ -9705,7 +9705,7 @@ impl Okx {
         m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("markPrice".to_string(), self.parse_number(markPriceString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closeAvgPx", &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), hedged);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

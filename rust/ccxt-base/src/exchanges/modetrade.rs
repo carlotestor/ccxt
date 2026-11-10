@@ -2874,10 +2874,10 @@ impl Modetrade {
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("order_quantity".into()), Value::Str("quantity".into()), &[]).as_str().map(str::to_owned); // This is base amount
         let mut cost: Option<String> = self.safe_string2(order.clone(), Value::Str("order_amount".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned); // This is quote amount
         let mut orderType: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("order_type".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
+        let mut status: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned);
         let mut success: Option<bool> = self.safe_bool_k_opt(order.clone(), "success", &[]);
         if (success.is_some()) {
-            status = (if success == Some(true) { Value::Str("NEW".into()) } else { Value::Str("REJECTED".into()) });
+            status = (if success == Some(true) { Some("NEW".to_string()) } else { Some("REJECTED".to_string()) });
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut filled: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]));
@@ -2910,7 +2910,7 @@ impl Modetrade {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
-        m.insert("status".to_string(), self.parse_order_status(status).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(status.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.parse_order_type(orderType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));

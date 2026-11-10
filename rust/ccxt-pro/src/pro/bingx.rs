@@ -1231,14 +1231,14 @@ impl Bingx {
         // for linear swap, (T) is the opening time
         let mut isSpot: bool = (match market.get("spot") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
-        let mut timestamp: Value = Value::Str("T".into());
+        let mut timestamp: String = "T".to_string();
         if isSpot {
-            timestamp = Value::Str("t".into());
+            timestamp = "t".to_string();
         }
         if matches!((match market.get("swap") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }), Value::Bool(true)) {
-            timestamp = (if isInverse { Value::Str("t".into()) } else { Value::Str("T".into()) });
+            timestamp = (if isInverse { "t".to_string() } else { "T".to_string() });
         }
-        return Value::from(vec![self.safe_integer(ohlcv.clone(), timestamp, &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::from(timestamp), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }

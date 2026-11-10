@@ -3361,12 +3361,12 @@ impl Xt {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
+        let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut hasSpotKeys: bool = (self.safe_string_k(ticker.clone(), "cv", &[]) != Value::Null) || (self.safe_string_k(ticker.clone(), "aq", &[]) != Value::Null);
-        if (marketType == Value::Null) {
-            marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        if (marketType.is_none()) {
+            marketType = (if hasSpotKeys { Some("spot".to_string()) } else { Some("contract".to_string()) });
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into()), marketType]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into()), marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "t", &[]).as_i64();
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "o", &[]).as_str().map(str::to_owned);
@@ -3765,12 +3765,12 @@ impl Xt {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
+        let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut hasSpotKeys: bool = (self.safe_bool_k(trade.clone(), "b", &[]) != Value::Null) || (self.safe_string_k(trade.clone(), "bizType", &[]) != Value::Null) || (self.safe_string_k(trade.clone(), "oi", &[]) != Value::Null);
-        if (marketType == Value::Null) {
-            marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        if (marketType.is_none()) {
+            marketType = (if hasSpotKeys { Some("spot".to_string()) } else { Some("contract".to_string()) });
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into()), marketType.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into()), marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "b", &[]);
@@ -3800,7 +3800,7 @@ impl Xt {
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("time".into()), Value::Str("timestamp".into())]), &[]).as_i64();
         let mut quantity: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("q".into()), Value::Str("quantity".into()), &[]);
         let mut amount: Value = Value::Null;
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             amount = quantity.clone().map(Value::from).unwrap_or(Value::Null);
         }  else {
             if (quantity.is_none()) {

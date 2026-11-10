@@ -1511,9 +1511,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "order_timestamp", &[]).as_i64();
         let mut sideId: Option<String> = self.safe_string_k(order.clone(), "ask_bid", &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         if (sideId.is_some()) {
-            side = (if (sideId.as_deref() == Some("BID")) { (Value::Str("buy".into())) } else { (Value::Str("sell".into())) });
+            side = (if (sideId.as_deref() == Some("BID")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut typeId: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
@@ -1564,7 +1564,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
