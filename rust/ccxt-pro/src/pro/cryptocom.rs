@@ -895,12 +895,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if (dataLength == 0.0) {
             return;
         }
-        let mut parsedTrades: Value = self.parse_trades(data, &[market]);
+        let mut parsedTrades: Value = self.parse_trades(data.clone().into(), &[market]);
         {
                         let mut j: i64 = 0;
             let mut __for_first_272: bool = true;
@@ -1439,12 +1439,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_277: bool = true;
             while { if !__for_first_277 { i += 1; } __for_first_277 = false; i < (data.len() as i64) } {
-            let mut tick: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut tick: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut parsed: Value = self.parse_ohlcv(tick, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1535,7 +1535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbolSpecificMessageHash: Value = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut orders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut orders: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         if ordersLength > ((0i64) as f64) {
             if (self.orders.clone() == Value::Null) {
@@ -1543,7 +1543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut stored: Value = self.orders.clone();
-            let mut parsed: Value = self.parse_orders(orders, &[]);
+            let mut parsed: Value = self.parse_orders(orders.clone().into(), &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_278: bool = true;
@@ -1810,13 +1810,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut messageHash: Value = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut positionBalances: Value = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".into()), &[Value::from(vec![])]);
+        let mut positionBalances: Vec<Value> = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_282: bool = true;
             while { if !__for_first_282 { i += 1; } __for_first_282 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(positionBalances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(positionBalances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

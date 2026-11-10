@@ -2096,12 +2096,12 @@ impl Bingx {
             cache.append(position);
         }
         }
-        let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("swap:positions::".into()));
+        let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("swap:positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_95: bool = true;
             while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut messageHash: Value = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[Value::Str("".into())]);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut filteredSymbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
@@ -2690,13 +2690,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: Value = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Value = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
             while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (messageHashes.len() as i64) } {
-            let mut unsubHash: String = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut unsubHash: String = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut subHash: String = self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             self.clean_unsubscription(client.clone(), Value::from(subHash), Value::from(unsubHash), &[]);
         }

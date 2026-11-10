@@ -717,7 +717,7 @@ impl Foxbit {
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut depositInfo: Value = self.safe_dict_k(rawCurrency.clone(), "deposit_info", &[]);
         let mut withdrawInfo: Value = self.safe_dict_k(rawCurrency.clone(), "withdraw_info", &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = self.safe_string_lower_k(rawCurrency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut parsedNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -727,7 +727,7 @@ impl Foxbit {
                         let mut j: i64 = 0;
             let mut __for_first_675: bool = true;
             while { if !__for_first_675 { j += 1; } __for_first_675 = false; j < (networks.len() as i64) } {
-            let mut network: Value = self.safe_dict(networks.clone(), Value::Int(j), &[]);
+            let mut network: Value = self.safe_dict(networks.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(network.clone(), "code", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             let mut networkWithdrawInfo: Value = self.safe_dict_k(network.clone(), "withdraw_info", &[]);
@@ -1313,7 +1313,7 @@ impl Foxbit {
         //         }
         //     ]
         // }
-        let mut accounts: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut accounts: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1323,7 +1323,7 @@ impl Foxbit {
                         let mut i: i64 = 0;
             let mut __for_first_677: bool = true;
             while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (accounts.len() as i64) } {
-            let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
+            let mut account: Value = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(account.clone(), "currency_symbol", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut total: Option<String> = self.safe_string_k(account.clone(), "balance", &[]).as_str().map(str::to_owned);

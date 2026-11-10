@@ -1682,12 +1682,12 @@ impl Btse {
             if (assets != Value::Null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                let mut inUse: Value = self.safe_list_k(row.clone(), "assetsInUse", &[Value::from(vec![])]);
+                let mut inUse: Vec<Value> = self.safe_list_k(row.clone(), "assetsInUse", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_479: bool = true;
                     while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (inUse.len() as i64) } {
-                    let mut usedRow: Value = self.safe_dict(inUse.clone(), Value::Int(j), &[]);
+                    let mut usedRow: Value = self.safe_dict(inUse.clone().into(), Value::Int(j), &[]);
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(usedRow.clone(), "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
                         continue;
@@ -1797,7 +1797,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![single])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![single])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1806,7 +1806,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_484: bool = true;
             while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3848,11 +3848,11 @@ impl Btse {
         // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
         // every runtime
-        let mut typesList: Value = self.safe_list(Value::Map({
+        let mut typesList: Vec<Value> = self.safe_list(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), historyTypes);
     m
-}), Value::Str("types".into()), &[Value::from(vec![])]);
+}), Value::Str("types".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         let mut walletType: String = self.safe_string_k(params.clone(), "walletType", &[Value::Str("SPOT".into())]).as_str().unwrap_or("SPOT").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3862,7 +3862,7 @@ impl Btse {
         });
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
-        request.insert("historyTypes".into(), json_stringify(&typesList));
+        request.insert("historyTypes".into(), json_stringify(&typesList.clone().into()));
         let mut paramsOmitted: Value = self.omit(params, Value::Str("walletType".into()), &[]);
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -3923,7 +3923,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (typesList.len() as i64) } {
-            let mut historyType: Value = self.safe_string(typesList.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut historyType: Value = self.safe_string(typesList.clone().into(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut allowed { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&historyType), Value::Bool(true)); }
             add_element_to_object(&mut allowed, &self.capitalize((if let Some(__s) = historyType.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })), Value::Bool(true));
         }

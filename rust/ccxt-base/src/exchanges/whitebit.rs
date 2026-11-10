@@ -1842,8 +1842,8 @@ impl Whitebit {
             let mut __for_first_1150: bool = true;
             while { if !__for_first_1150 { i += 1; } __for_first_1150 = false; i < (currencyIds.len() as i64) } {
             let mut entry: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut splitEntry: Value = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
-            let mut currencyId: Value = splitEntry.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut splitEntry: Vec<Value> = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut currencyId: Value = splitEntry.get(0).cloned().unwrap_or(Value::Null);
             let mut feeInfo: Value = self.safe_value(response.clone(), entry.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
@@ -1855,7 +1855,7 @@ impl Whitebit {
 }))); }
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &entry, feeInfo.clone());
-                let mut networkId: Value = self.safe_string(splitEntry, Value::Int(1), &[]);
+                let mut networkId: Value = self.safe_string(splitEntry.clone().into(), Value::Int(1), &[]);
                 let mut withdraw: Value = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]);
                 let mut deposit: Value = self.safe_dict_k(feeInfo, "deposit", &[]);
                 let mut withdrawFee: Option<f64> = self.safe_number_k(withdraw, "fixed", &[]).as_f64();
@@ -4459,12 +4459,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut subAccounts: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut subAccounts: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (subAccounts.len() as i64) } {
-            let mut subAccount: Value = self.safe_dict(subAccounts.clone(), Value::Int(i), &[Value::Map({
+            let mut subAccount: Value = self.safe_dict(subAccounts.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6118,10 +6118,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut errorKeys: Value = Value::Array(errorObject.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                    let mut errorKeys: Vec<Value> = Value::Array(errorObject.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut errorsLength: f64 = ((errorKeys.len() as i64) as f64);
                     if errorsLength > ((0i64) as f64) {
-                        let mut errorKey: Value = self.safe_string(errorKeys, Value::Int(0), &[Value::Str("".into())]);
+                        let mut errorKey: Value = self.safe_string(errorKeys.clone().into(), Value::Int(0), &[Value::Str("".into())]);
                         let mut errorMessageArray: Value = self.safe_list(errorObject, errorKey.clone(), &[Value::from(vec![])]);
                         errorInfo = self.safe_string(errorMessageArray.clone(), Value::Int(0), &[body.clone()]);
                     }
@@ -6137,11 +6137,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut errKeys: Value = Value::Array(errMsg.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                let mut errKeys: Vec<Value> = Value::Array(errMsg.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut errKeysLength: f64 = ((errKeys.len() as i64) as f64);
                 let mut errorInfo: Value = body.clone();
                 if errKeysLength > ((0i64) as f64) {
-                    let mut errorKey: Value = self.safe_string(errKeys, Value::Int(0), &[Value::Str("".into())]);
+                    let mut errorKey: Value = self.safe_string(errKeys.clone().into(), Value::Int(0), &[Value::Str("".into())]);
                     let mut errorMessageArray: Value = self.safe_list(errMsg, errorKey, &[Value::from(vec![])]);
                     errorInfo = self.safe_string(errorMessageArray, Value::Int(0), &[body.clone()]);
                 }

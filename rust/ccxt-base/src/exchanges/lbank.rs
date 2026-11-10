@@ -2854,10 +2854,10 @@ impl Lbank {
         //          "ts":1647455270776
         //      }
         //
-        let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut numOrders: f64 = ((result.len() as i64) as f64);
         if (numOrders == 1.0) {
-            return self.parse_order(self.safe_dict(result, Value::Int(0), &[Value::Map({
+            return self.parse_order(self.safe_dict(result.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -3813,7 +3813,7 @@ impl Lbank {
         //        "code": 0
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3822,9 +3822,9 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_924: bool = true;
             while { if !__for_first_924 { i += 1; } __for_first_924 = false; i < (result.len() as i64) } {
-            let mut entry: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(result.clone().into(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(entry.clone(), "coin", &[]), &[]);
-            let mut networkList: Value = self.safe_list_k(entry, "networkList", &[Value::from(vec![])]);
+            let mut networkList: Vec<Value> = self.safe_list_k(entry, "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             if (code != Value::Null) {
                 withdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3835,7 +3835,7 @@ impl Lbank {
                                 let mut j: i64 = 0;
                 let mut __for_first_923: bool = true;
                 while { if !__for_first_923 { j += 1; } __for_first_923 = false; j < (networkList.len() as i64) } {
-                let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
+                let mut networkEntry: Value = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]);
                 let mut fee: Option<f64> = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]).as_f64();
                 if (fee.is_some()) {
                     let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry, "name", &[]), code.clone()]);
@@ -3915,7 +3915,7 @@ impl Lbank {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3924,7 +3924,7 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_925: bool = true;
             while { if !__for_first_925 { i += 1; } __for_first_925 = false; i < (result.len() as i64) } {
-            let mut item: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(result.clone().into(), Value::Int(i), &[]);
             let mut canWithdraw: Option<String> = self.safe_string_k(item.clone(), "canWithDraw", &[]).as_str().map(str::to_owned);
             if (canWithdraw.as_deref() == Some("true")) {
                 let mut codeInner: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "assetCode", &[]), &[]);
@@ -4240,12 +4240,12 @@ impl Lbank {
         //
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee.clone()).as_map().cloned().unwrap_or_default();
         let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut networkList: Value = self.safe_list_k(fee, "networkList", &[Value::from(vec![])]);
+        let mut networkList: Vec<Value> = self.safe_list_k(fee, "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_927: bool = true;
             while { if !__for_first_927 { j += 1; } __for_first_927 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
+            let mut networkEntry: Value = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut withdrawFee: Option<f64> = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]).as_f64();
             let mut isDefault: bool = self.safe_bool_k(networkEntry, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);

@@ -1374,14 +1374,14 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut history: Value = self.safe_list_k(result, "history", &[Value::from(vec![])]);
+        let mut history: Vec<Value> = self.safe_list_k(result, "history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut candles: Vec<Value> = Vec::new();
         let mut historyLength: f64 = ((history.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1395: bool = true;
             while { if !__for_first_1395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1395 = false; i.as_f64().unwrap_or(f64::NAN) < historyLength } {
-            let mut point: Value = self.safe_dict(history.clone(), i.clone(), &[]);
+            let mut point: Value = self.safe_dict(history.clone().into(), i.clone(), &[]);
             let mut price: Option<f64> = self.safe_number_k(point.clone(), "p", &[]).as_f64();
             let mut timestamp: Option<i64> = self.safe_timestamp_k(point, "t", &[]).as_i64();
             if (price.is_some()) && (timestamp.is_some()) {
@@ -2119,13 +2119,13 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
+        let mut trades: Vec<Value> = self.safe_list_k(result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1398: bool = true;
             while { if !__for_first_1398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1398 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
-            let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<i64> = self.safe_integer_k(trade.clone(), "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
@@ -2139,7 +2139,7 @@ impl Opinion {
             }
         }
         }
-        return self.parse_prediction_trades(trades, &[outcomeObj, since, limit]);
+        return self.parse_prediction_trades(trades.clone().into(), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2297,13 +2297,13 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data, "balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut balancesLength: f64 = ((balances.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1400: bool = true;
             while { if !__for_first_1400 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1400 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), i.clone(), &[]);
             let mut code: Value = self.safe_string_k(balance.clone(), "symbol", &[Value::Str("USDT".into())]);
             result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -927,7 +927,7 @@ impl Bitso {
             let mut makerString: Option<String> = self.safe_string_k(flatRate, "maker", &[]).as_str().map(str::to_owned);
             let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-            let mut feeTiers: Value = self.safe_list_k(fees, "structure", &[Value::from(vec![])]);
+            let mut feeTiers: Vec<Value> = self.safe_list_k(fees, "structure", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("taker".to_string(), taker.clone());
@@ -942,7 +942,7 @@ impl Bitso {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_419: bool = true;
                 while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-                let mut tier: Value = self.safe_dict(feeTiers.clone(), j.clone(), &[]);
+                let mut tier: Value = self.safe_dict(feeTiers.clone().into(), j.clone(), &[]);
                 let mut volume: Option<f64> = self.safe_number_k(tier.clone(), "volume", &[]).as_f64();
                 let mut takerFee: Value = self.safe_number_k(tier.clone(), "taker", &[]);
                 let mut makerFee: Value = self.safe_number_k(tier, "maker", &[]);
@@ -1134,7 +1134,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(payload, "balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(payload, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1146,7 +1146,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_421: bool = true;
             while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

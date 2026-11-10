@@ -2627,8 +2627,8 @@ impl Bitget {
         }  else {
             marketType = Some("contract".to_string());
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut first: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2666,7 +2666,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_121: bool = true;
             while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (data.len() as i64) } {
-            let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[argInstId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut parsed: Value = self.parse_ws_order(order, &[market]);
@@ -3418,12 +3418,12 @@ impl Bitget {
             while { if !__for_first_125 { i += 1; } __for_first_125 = false; i < (data.len() as i64) } {
             let mut rawBalance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             if (instType.as_deref() == Some("uta")) {
-                let mut coins: Value = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]);
+                let mut coins: Vec<Value> = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_124: bool = true;
                     while { if !__for_first_124 { j += 1; } __for_first_124 = false; j < (coins.len() as i64) } {
-                    let mut entry: Value = self.safe_dict(coins.clone(), Value::Int(j), &[]);
+                    let mut entry: Value = self.safe_dict(coins.clone().into(), Value::Int(j), &[]);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: Value = self.account();

@@ -1402,12 +1402,12 @@ impl Hyperliquid {
             trades.append(parsed);
         }
         }
-        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_402: bool = true;
             while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (keys.len() as i64) } {
-            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone(), Value::Int(i), &[Value::Str("".into())])).into())]);
+            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into())]);
         }
         }
         // non-symbol specific
@@ -1604,12 +1604,12 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let mut entry: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut entry: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut entryLength: f64 = ((entry.len() as i64) as f64);
         if (entryLength == 0.0) {
             return;
         }
-        let mut first: Value = self.safe_dict(entry.clone(), Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1627,7 +1627,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(entry.clone(), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(entry.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

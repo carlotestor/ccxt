@@ -4170,13 +4170,13 @@ impl Htx {
             let mut created: Value = Value::Null;
             let mut createdDate: Option<String> = self.safe_string_k(market.clone(), "create_date", &[]).as_str().map(str::to_owned); // i.e 20230101
             if (createdDate.is_some()) {
-                let mut createdArray: Value = self.string_to_chars_array(createdDate.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut createdArray: Vec<Value> = self.string_to_chars_array(createdDate.clone().map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
                 let mut createdLength: f64 = ((createdArray.len() as i64) as f64);
                 if createdLength >= ((8i64) as f64) {
-                    let mut yearPart: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(createdArray.clone(), Value::Int(0), &[Value::Str("".into())]), self.safe_string(createdArray.clone(), Value::Int(1), &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone(), Value::Int(2),
-                        &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone(), Value::Int(3), &[Value::Str("".into())]));
-                    let mut monthPart: String = format!("{}{}", self.safe_string(createdArray.clone(), Value::Int(4), &[Value::Str("".into())]), self.safe_string(createdArray.clone(), Value::Int(5), &[Value::Str("".into())]));
-                    let mut dayPart: String = format!("{}{}", self.safe_string(createdArray.clone(), Value::Int(6), &[Value::Str("".into())]), self.safe_string(createdArray, Value::Int(7), &[Value::Str("".into())]));
+                    let mut yearPart: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(0), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(1), &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone().into(),
+                        Value::Int(2), &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone().into(), Value::Int(3), &[Value::Str("".into())]));
+                    let mut monthPart: String = format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(4), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(5), &[Value::Str("".into())]));
+                    let mut dayPart: String = format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(6), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(7), &[Value::Str("".into())]));
                     createdDate = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", yearPart, Value::Str("-".into())).into()), monthPart).into()), Value::Str("-".into())).into()), dayPart).into()), Value::Str(" 00:00:00".into())));
                     created = self.parse8601(createdDate.clone().map(Value::from).unwrap_or(Value::Null));
                 }
@@ -6236,12 +6236,12 @@ impl Htx {
         });
         let mut data: Value = self.safe_value_k(response, "data", &[]);
         if isMultiAssetMode || (linear && (swap || future)) {
-            let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::from(vec![])]);
+            let mut details: Vec<Value> = self.safe_list_k(data.clone(), "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_775: bool = true;
                 while { if !__for_first_775 { i += 1; } __for_first_775 = false; i < (details.len() as i64) } {
-                let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(details.clone().into(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
@@ -11520,7 +11520,7 @@ impl Htx {
             account = self.safe_dict(data, Value::Int(0), &[]);
         }
         let mut omitted: Value = self.omit(account.clone(), Value::from(vec![Value::Str("positions".into())]), &[]);
-        let mut positions: Value = self.safe_list_k(account, "positions", &[Value::from(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(account, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut position: Value = Value::Null;
         if matches!((self.safe_bool_k((market).raw.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
             let mut marketId: Option<String> = self.safe_string_k_opt((market).raw.clone(), "id", &[]);
@@ -11528,7 +11528,7 @@ impl Htx {
                                 let mut i: i64 = 0;
                 let mut __for_first_790: bool = true;
                 while { if !__for_first_790 { i += 1; } __for_first_790 = false; i < (positions.len() as i64) } {
-                let mut entry: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(entry.clone(), "contract_code", &[]).as_str() == marketId.as_deref()) {
                     position = entry;
                     break;
@@ -11536,7 +11536,7 @@ impl Htx {
             }
             }
         }  else {
-            position = self.safe_dict(positions, Value::Int(0), &[]);
+            position = self.safe_dict(positions.clone().into(), Value::Int(0), &[]);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(response, "ts", &[]).as_i64();
         let __ws_arg_140 = self.extend(position, &[omitted]);
@@ -11773,12 +11773,12 @@ impl Htx {
         let mut currencyId: Option<String> = self.safe_string_k(info.clone(), "trade_partition", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "contract_code", &[]).as_str().map(str::to_owned);
         let mut tiers: Value = Value::from(vec![]);
-        let mut brackets: Value = self.safe_list_k(info, "list", &[Value::from(vec![])]);
+        let mut brackets: Vec<Value> = self.safe_list_k(info, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_792: bool = true;
             while { if !__for_first_792 { i += 1; } __for_first_792 = false; i < (brackets.len() as i64) } {
-            let mut item: Value = self.safe_dict(brackets.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(brackets.clone().into(), Value::Int(i), &[]);
             let mut leverage: Option<String> = self.safe_string_k(item.clone(), "lever_rate", &[]).as_str().map(str::to_owned);
             let mut ladders: Vec<Value> = self.safe_list_k(item, "ladders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
@@ -12724,14 +12724,14 @@ impl Htx {
         //              "instStatus": "normal"
         //          }
         //
-        let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut code: Option<String> = self.safe_string_k(currency.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_793: bool = true;
             while { if !__for_first_793 { j += 1; } __for_first_793 = false; j < (chains.len() as i64) } {
-            let mut chainEntry: Value = self.safe_dict(chains.clone(), Value::Int(j), &[]);
+            let mut chainEntry: Value = self.safe_dict(chains.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chainEntry.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut withdrawFeeType: Option<String> = self.safe_string_k(chainEntry.clone(), "withdrawFeeType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);

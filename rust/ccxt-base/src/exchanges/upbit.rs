@@ -1266,18 +1266,18 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_1138: bool = true;
             while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (orderbooks.len() as i64) } {
-            let mut orderbook: Value = self.safe_dict(orderbooks.clone(), Value::Int(i), &[Value::Map({
+            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(orderbooks.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut marketId: Option<String> = self.safe_string_k(orderbook.clone(), "market", &[]).as_str().map(str::to_owned);
+})]).as_map().cloned().unwrap_or_default();
+            let mut marketId: Option<String> = self.safe_string_k(orderbook.clone().into(), "market", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
-            let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
+            let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone().into(), "timestamp", &[]).as_i64();
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("bids".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.as_map().and_then(|__m| __m.get("orderbook_units")).cloned().unwrap_or(Value::Null), &[Value::Str("bid_price".into()), Value::Str("bid_size".into())]), Value::Int(0), &[Value::Bool(true)]));
-        m.insert("asks".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.as_map().and_then(|__m| __m.get("orderbook_units")).cloned().unwrap_or(Value::Null), &[Value::Str("ask_price".into()), Value::Str("ask_size".into())]), Value::Int(0), &[]));
+        m.insert("bids".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.get("orderbook_units").cloned().unwrap_or(Value::Null), &[Value::Str("bid_price".into()), Value::Str("bid_size".into())]), Value::Int(0), &[Value::Bool(true)]));
+        m.insert("asks".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.get("orderbook_units").cloned().unwrap_or(Value::Null), &[Value::Str("ask_price".into()), Value::Str("ask_size".into())]), Value::Int(0), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("nonce".to_string(), Value::Null);
@@ -1448,14 +1448,14 @@ impl Upbit {
         }  else {
             let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
             let mut promises: Vec<Value> = Vec::new();
-            let mut queries: Value = self.ids_query_strings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
+            let mut queries: Vec<Value> = self.ids_query_strings(ids).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1141: bool = true;
                 while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("markets".to_string(), self.safe_string(queries.clone(), Value::Int(i), &[Value::Str("".into())]));
+                        m.insert("markets".to_string(), self.safe_string(queries.clone().into(), Value::Int(i), &[Value::Str("".into())]));
                     m
                 }), &[params.clone()]);
                 promises.push(self.public_get_ticker(&[__ws_arg_4]).await);

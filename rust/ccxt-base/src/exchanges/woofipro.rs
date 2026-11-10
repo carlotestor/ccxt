@@ -3043,11 +3043,11 @@ impl Woofipro {
         let mut childOrders: Value = self.safe_list_k(order.clone(), "childOrders", &[]);
         if (childOrders != Value::Null) {
             let mut first: Value = self.safe_dict(childOrders, Value::Int(0), &[]);
-            let mut innerChildOrders: Value = self.safe_list_k(first, "childOrders", &[Value::from(vec![])]);
+            let mut innerChildOrders: Vec<Value> = self.safe_list_k(first, "childOrders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: Value = self.safe_dict(innerChildOrders.clone(), Value::Int(0), &[]);
-                let mut stopLossOrder: Value = self.safe_dict(innerChildOrders, Value::Int(1), &[]);
+                let mut takeProfitOrder: Value = self.safe_dict(innerChildOrders.clone().into(), Value::Int(0), &[]);
+                let mut stopLossOrder: Value = self.safe_dict(innerChildOrders.clone().into(), Value::Int(1), &[]);
                 takeProfitPrice = self.safe_number_k(takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(stopLossOrder, "triggerPrice", &[]);
             }
@@ -4207,12 +4207,12 @@ impl Woofipro {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response, "holding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1183: bool = true;
             while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(balance.clone(), "holding", &[]));

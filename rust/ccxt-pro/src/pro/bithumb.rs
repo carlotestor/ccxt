@@ -865,7 +865,7 @@ impl Bithumb {
 }), obLimit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut units: Value = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut units: Vec<Value> = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Value = self.milliseconds();
         if (gen2TimestampStr.is_some()) {
@@ -877,7 +877,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_128: bool = true;
             while { if !__for_first_128 { i += 1; } __for_first_128 = false; i < (units.len() as i64) } {
-            let mut entry: Value = self.safe_dict(units.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(units.clone().into(), Value::Int(i), &[]);
             let mut bidPrice: Option<f64> = self.safe_number_k(entry.clone(), "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(entry.clone(), "bid_size", &[]).as_f64();
             let mut askPrice: Option<f64> = self.safe_number_k(entry.clone(), "ask_price", &[]).as_f64();
@@ -1258,7 +1258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut messageHash: String = "myAsset".to_string();
-        let mut assets: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut assets: Vec<Value> = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1269,7 +1269,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_130: bool = true;
             while { if !__for_first_130 { i += 1; } __for_first_130 = false; i < (assets.len() as i64) } {
-            let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(i), &[]);
+            let mut asset: Value = self.safe_dict(assets.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(asset.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

@@ -1107,7 +1107,7 @@ impl Luno {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]);
+        let mut wallets: Vec<Value> = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1119,7 +1119,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_941: bool = true;
             while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (wallets.len() as i64) } {
-            let mut wallet: Value = self.safe_dict(wallets.clone(), Value::Int(i), &[]);
+            let mut wallet: Value = self.safe_dict(wallets.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(wallet.clone(), "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut reserved: Option<String> = self.safe_string_k(wallet.clone(), "reserved", &[]).as_str().map(str::to_owned);

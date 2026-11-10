@@ -1332,14 +1332,14 @@ impl Bithumb {
     m
 })]);
             timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-            let mut orderBookUnits: Value = self.safe_list_k(result, "orderbook_units", &[Value::from(vec![])]);
+            let mut orderBookUnits: Vec<Value> = self.safe_list_k(result, "orderbook_units", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut bids: Vec<Value> = Vec::new();
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
-                let mut entry: Value = self.safe_dict(orderBookUnits.clone(), Value::Int(i), &[]);
+                let mut entry: Value = self.safe_dict(orderBookUnits.clone().into(), Value::Int(i), &[]);
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_string_k(entry.clone(), "bid_price", &[]));
@@ -2129,11 +2129,11 @@ impl Bithumb {
         let mut isGenerationTwo: bool = generationTwoTimestamp.is_some();
         let mut transactionDatetime: Option<String> = self.safe_string_k_opt(trade.clone(), "transaction_date", &[]);
         if (transactionDatetime.is_some()) {
-            let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
-                let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                let mut rawTransactionTime: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
+                let mut transactionDate: Value = parts.get(0).cloned().unwrap_or(Value::Null);
+                let mut rawTransactionTime: Value = self.safe_string(parts.clone().into(), Value::Int(1), &[Value::Str("".into())]);
                 let mut transactionTime: Value = rawTransactionTime.clone();
                 if ((rawTransactionTime.len() as i64) as f64) < ((8i64) as f64) {
                     transactionTime = Value::Str(format!("{}{}", Value::Str("0".into()), rawTransactionTime).into());

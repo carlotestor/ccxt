@@ -1559,12 +1559,12 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut page: Value = self.safe_list(bars.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+                    let mut page: Vec<Value> = self.safe_list(bars.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut pageLength: f64 = ((page.len() as i64) as f64);
                     if (pageLength == 0.0) {
                         break;
                     }
-                    ohlcvs = self.array_concat(ohlcvs.clone(), page);
+                    ohlcvs = self.array_concat(ohlcvs.clone(), page.clone().into());
                     pageToken = self.safe_string_k(response.clone(), "next_page_token", &[]).as_str().map(str::to_owned);
                 }
                 }
@@ -3158,7 +3158,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -3178,7 +3178,7 @@ impl Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_224: bool = true;
             while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (positions.len() as i64) } {
-            let mut position: Value = self.safe_dict(positions.clone(), Value::Int(i), &[]);
+            let mut position: Value = self.safe_dict(positions.clone().into(), Value::Int(i), &[]);
             let mut positionSymbol: Value = self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]);
             if (positionSymbol.as_str() == Some("")) {
                 continue;

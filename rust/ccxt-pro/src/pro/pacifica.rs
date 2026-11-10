@@ -703,13 +703,13 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut results: Value = self.safe_list_k(data, "results", &[Value::from(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_574: bool = true;
             while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (results.len() as i64) } {
-            let mut order: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
+            let mut order: Value = self.safe_dict(results.clone().into(), Value::Int(i), &[]);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -1488,12 +1488,12 @@ impl Pacifica {
             trades.append(parsed);
         }
         }
-        let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_577: bool = true;
             while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone(), Value::Int(i), &[Value::Str("".into())])).into());
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
         }
@@ -1652,8 +1652,8 @@ impl Pacifica {
         //   ]
         // }
         //
-        let mut entry: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(entry.clone(), Value::Int(0), &[Value::Map({
+        let mut entry: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut first: Value = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1671,7 +1671,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_578: bool = true;
             while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(entry.clone(), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(entry.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

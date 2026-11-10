@@ -1528,12 +1528,12 @@ impl Hollaex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
         }
         let mut currenciesById: Value = self.currencies_by_id.clone();
-        let mut currencyIds: Value = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_764: bool = true;
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: String = self.safe_string(currencyIds.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut currencyId: String = self.safe_string(currencyIds.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Value = self.safe_currency_code(Value::from(currencyId.clone()), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[]));

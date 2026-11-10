@@ -2707,12 +2707,12 @@ impl Zebpay {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut currencyList: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut currencyList: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1206: bool = true;
             while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (currencyList.len() as i64) } {
-            let mut entry: Value = self.safe_dict(currencyList.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(currencyList.clone().into(), Value::Int(i), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(entry.clone(), "total", &[]));
             account.insert("free".into(), self.safe_string_k(entry.clone(), "free", &[]));

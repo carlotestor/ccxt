@@ -3628,12 +3628,12 @@ impl Nado {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response, "spot_balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response, "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_995: bool = true;
             while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (balances.len() as i64) } {
-            let mut rawBalance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut rawBalance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "product_id", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code.as_str() == Some("0")) {

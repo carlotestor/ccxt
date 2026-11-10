@@ -1281,10 +1281,10 @@ impl Mexc {
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         let mut msg: Value = (match message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = Value::Array(if let Some(__s) = msg.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
+        let mut parts: Vec<Value> = Value::Array(if let Some(__s) = msg.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut partsLength: Value = Value::Int(parts.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        let mut marketId: Option<String> = self.safe_string(parts, (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string(parts.clone().into(), (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
@@ -2711,11 +2711,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
             }  else if messageHash.as_str().unwrap_or("").contains("candles") {
-                let mut splitHashes: Value = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-                let mut candlesSymbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[Value::Str("".into())]);
+                let mut splitHashes: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                let mut candlesSymbol: Value = self.safe_string(splitHashes.clone().into(), Value::Int(2), &[Value::Str("".into())]);
                 let mut splitHashesLength: f64 = ((splitHashes.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > ((4i64) as f64) {
-                    candlesSymbol = Value::Str(format!("{}{}", candlesSymbol, Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string(splitHashes, Value::Int(3), &[Value::Str("".into())])).into())).into());
+                    candlesSymbol = Value::Str(format!("{}{}", candlesSymbol, Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string(splitHashes.clone().into(), Value::Int(3), &[Value::Str("".into())])).into())).into());
                 }
                 if (matches!((&self.ohlcvs, &candlesSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.ohlcvs, &candlesSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

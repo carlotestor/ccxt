@@ -1262,17 +1262,17 @@ impl Bittrade {
         //         ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut markets: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut numMarkets: f64 = ((markets.len() as i64) as f64);
         if numMarkets < ((1i64) as f64) {
-            panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&markets))));
+            panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&markets.clone().into()))));
         }
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base-currency", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote-currency", &[]).as_str().map(str::to_owned);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);

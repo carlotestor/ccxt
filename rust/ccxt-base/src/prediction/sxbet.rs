@@ -2377,7 +2377,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data, "balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2389,7 +2389,7 @@ impl Sxbet {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
-            let mut row: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            let mut row: Value = self.safe_dict(balances.clone().into(), i.clone(), &[]);
             let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code

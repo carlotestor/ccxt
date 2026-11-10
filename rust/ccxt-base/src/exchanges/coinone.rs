@@ -877,13 +877,13 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response, "tickers", &[Value::from(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(response, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_570: bool = true;
             while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (tickers.len() as i64) } {
-            let mut entry: Value = self.safe_dict(tickers.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(tickers.clone().into(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(entry.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_upper_k(entry.clone(), "target_currency", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_upper_k(entry.clone(), "quote_currency", &[]).as_str().map(str::to_owned);

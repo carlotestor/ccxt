@@ -1876,7 +1876,7 @@ impl Polymarket {
         //         ]
         //     }
         //
-        let mut schedule: Value = self.safe_list_k(response, "fee_schedule", &[Value::from(vec![])]);
+        let mut schedule: Vec<Value> = self.safe_list_k(response, "fee_schedule", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut byCategory: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1885,12 +1885,12 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1104: bool = true;
             while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (schedule.len() as i64) } {
-            let mut entry: Value = schedule.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = schedule.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
-        let mut fallback: Value = self.safe_dict(schedule, Value::Int(0), &[Value::Map({
+        let mut fallback: Value = self.safe_dict(schedule.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

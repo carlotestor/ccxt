@@ -818,7 +818,7 @@ impl Coinbase {
         //
         //
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut events: Vec<Value> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut datetime: Option<String> = self.safe_string_k(message, "timestamp", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut newTickers: Vec<Value> = Vec::new();
@@ -826,7 +826,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
-            let mut tickersObj: Value = self.safe_dict(events.clone(), Value::Int(i), &[]);
+            let mut tickersObj: Value = self.safe_dict(events.clone().into(), Value::Int(i), &[]);
             let mut tickers: Vec<Value> = self.safe_list_k(tickersObj, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;

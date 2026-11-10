@@ -1145,12 +1145,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let mut seriesTicker: Value = eventTicker.clone().map(Value::from).unwrap_or(Value::Null);
         if (eventTicker.is_some()) && (eventTicker.as_deref() != Some("")) {
-            let mut eventParts: Value = Value::Array(if let Some(__s) = eventTicker.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+            let mut eventParts: Vec<Value> = Value::Array(if let Some(__s) = eventTicker.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut eventPartsLength: Value = Value::Int(eventParts.len() as i64);
             if eventPartsLength.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) {
-                let mut seriesParts: Value = self.array_slice(eventParts, Value::Int(0), &[(match (&(eventPartsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                let mut seriesParts: Value = self.array_slice(eventParts.clone().into(), Value::Int(0), &[(match (&(eventPartsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]);
-                seriesTicker = Value::str(seriesParts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"));
+                seriesTicker = join(&seriesParts, &Value::Str("-".into()));
             }
         }
         // market symbol (no outcome suffix)
@@ -3771,7 +3771,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        let mut rawMarkets: Value = self.safe_list_k(rawEvent.clone(), "markets", &[Value::from(vec![])]);
+        let mut rawMarkets: Vec<Value> = self.safe_list_k(rawEvent.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketsList: Vec<Value> = Vec::new();
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
@@ -3779,7 +3779,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut totalVolume: Value = Value::Int(0);
         let mut totalLiquidity: Value = Value::Int(0);
         // seeded from the first market, which the loop re-reads, so the min/max stays the same
-        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone(), Value::Int(0), &[Value::Map({
+        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3791,7 +3791,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;
             while { if !__for_first_1298 { i += 1; } __for_first_1298 = false; i < (rawMarkets.len() as i64) } {
-            let mut rawMarket: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_market(rawMarket.clone());
             marketsList.push(parsed);
             totalVolume = self.sum(&[totalVolume.clone(), self.safe_number2(rawMarket.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);

@@ -2001,12 +2001,12 @@ impl Blofin {
         let __ws_arg_5 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.public_get_market_funding_rate_history(&[__ws_arg_5]).await;
         let mut rates: Vec<Value> = Vec::new();
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_460: bool = true;
             while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (data.len() as i64) } {
-            let mut rate: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rate: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2187,12 +2187,12 @@ impl Blofin {
     m
 })]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "ts", &[]).as_i64();
-        let mut details: Value = self.safe_list_k(data, "details", &[Value::from(vec![])]);
+        let mut details: Vec<Value> = self.safe_list_k(data, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_461: bool = true;
             while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (details.len() as i64) } {
-            let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(details.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2237,12 +2237,12 @@ impl Blofin {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_462: bool = true;
             while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (data.len() as i64) } {
-            let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3430,10 +3430,10 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-                let mut networkKeys: Value = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+                let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 let mut networkKeysLength: f64 = ((networkKeys.len() as i64) as f64);
                 if (networkKeysLength == 1.0) {
-                    networkCode = self.safe_string(networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
+                    networkCode = self.safe_string(networkKeys.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
                 }  else {
                     networkCode = self.safe_string(self.options.as_map().and_then(|__m| __m.get("defaultNetworks")).cloned().unwrap_or(Value::Null), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 }

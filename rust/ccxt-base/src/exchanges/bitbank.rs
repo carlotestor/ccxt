@@ -1094,12 +1094,12 @@ impl Bitbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut assets: Value = self.safe_list_k(data, "assets", &[Value::from(vec![])]);
+        let mut assets: Vec<Value> = self.safe_list_k(data, "assets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (assets.len() as i64) } {
-            let mut balance: Value = self.safe_dict(assets.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(assets.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

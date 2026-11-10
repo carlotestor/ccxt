@@ -4391,8 +4391,8 @@ impl Bingx {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut contractBalances: Value = self.safe_list_k(response.clone(), "data", &[]);
-        let mut firstContractBalances: Value = self.safe_dict(contractBalances.clone(), Value::Int(0), &[]);
+        let mut contractBalances: Vec<Value> = self.safe_list_k(response.clone(), "data", &[]).as_array().cloned().unwrap_or_default();
+        let mut firstContractBalances: Value = self.safe_dict(contractBalances.clone().into(), Value::Int(0), &[]);
         let mut isContract: bool = firstContractBalances != Value::Null;
         let mut spotData: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4404,7 +4404,7 @@ impl Bingx {
                                 let mut i: i64 = 0;
                 let mut __for_first_319: bool = true;
                 while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (contractBalances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(contractBalances.clone(), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(contractBalances.clone().into(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
                 if (currencyId.is_none()) {
                     break;
@@ -8024,7 +8024,7 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut networkCodes: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut networkCodes: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut networksLength: f64 = ((networkCodes.len() as i64) as f64);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -8052,7 +8052,7 @@ impl Bingx {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_323: bool = true;
                 while { if !__for_first_323 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
-                let mut networkCode: Value = self.safe_string(networkCodes.clone(), i.clone(), &[Value::Str("".into())]);
+                let mut networkCode: Value = self.safe_string(networkCodes.clone().into(), i.clone(), &[Value::Str("".into())]);
                 let mut network: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[]);
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();

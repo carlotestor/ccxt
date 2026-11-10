@@ -1371,7 +1371,7 @@ impl Lighter {
             while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut trades: Value = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]);
+            let mut trades: Vec<Value> = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut tradesLength: Value = Value::Int(trades.len() as i64);
             {
                                 let mut j: Value = Value::Int(0);
@@ -1379,7 +1379,7 @@ impl Lighter {
                 while { if !__for_first_472 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_472 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut jReversed: Value = (match (&((match (&(tradesLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
                     _ => Value::Null })), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                let mut tradeRaw: Value = self.safe_dict(trades.clone(), jReversed, &[Value::Map({
+                let mut tradeRaw: Value = self.safe_dict(trades.clone().into(), jReversed, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

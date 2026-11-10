@@ -480,15 +480,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         orderbook.set_book_meta("nonce", self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
-        let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]);
-        let mut obBids: Value = self.safe_list_k(delta, "b", &[Value::from(vec![])]);
+        let mut obAsks: Vec<Value> = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut obBids: Vec<Value> = self.safe_list_k(delta, "b", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut bids: Value = orderbook.book_field("bids");
         let mut asks: Value = orderbook.book_field("asks");
         {
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
             while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (obBids.len() as i64) } {
-            let mut bid: Value = self.safe_list(obBids.clone(), Value::Int(i), &[]);
+            let mut bid: Value = self.safe_list(obBids.clone().into(), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
@@ -498,7 +498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_717: bool = true;
             while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (obAsks.len() as i64) } {
-            let mut ask: Value = self.safe_list(obAsks.clone(), Value::Int(i), &[]);
+            let mut ask: Value = self.safe_list(obAsks.clone().into(), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
             asks.store(price, quantity);
@@ -1607,8 +1607,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        ]
         //    }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstTicker: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
+        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut firstTicker: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[]);
         let mut spotTest: Option<String> = self.safe_string2(firstTicker, Value::Str("cv".into()), Value::Str("aq".into()), &[]).as_str().map(str::to_owned);
         let mut tradeType: String = "contract".to_string();
         if (spotTest.is_some()) {
@@ -1619,7 +1619,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_720: bool = true;
             while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut tickerData: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(tickerData, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {

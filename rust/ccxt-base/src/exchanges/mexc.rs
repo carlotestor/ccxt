@@ -7748,7 +7748,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: Value = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut networkList: Vec<Value> = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7757,7 +7757,7 @@ impl Mexc {
                         let mut j: i64 = 0;
             let mut __for_first_958: bool = true;
             while { if !__for_first_958 { j += 1; } __for_first_958 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
+            let mut networkEntry: Value = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut fee: Option<f64> = self.safe_number_k(networkEntry, "withdrawFee", &[]).as_f64();
@@ -7828,13 +7828,13 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]);
+        let mut networkList: Vec<Value> = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_959: bool = true;
             while { if !__for_first_959 { j += 1; } __for_first_959 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
+            let mut networkEntry: Value = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
             if (networkCode != Value::Null) {

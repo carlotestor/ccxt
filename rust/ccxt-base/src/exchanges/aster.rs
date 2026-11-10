@@ -5081,7 +5081,7 @@ impl Aster {
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
         let mut positions: Vec<Value> = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut assets: Value = (match account.get("assets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut assets: Vec<Value> = (match account.get("assets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5090,7 +5090,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_236: bool = true;
             while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (assets.len() as i64) } {
-            let mut entry: Value = self.safe_dict(assets.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(assets.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut crossWalletBalance: Option<String> = self.safe_string_k(entry.clone(), "crossWalletBalance", &[]).as_str().map(str::to_owned);
@@ -5400,13 +5400,13 @@ impl Aster {
                 let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Null, Value::Str("contract".into())]);
-                let mut brackets: Value = self.safe_list_k(entry, "brackets", &[Value::from(vec![])]);
+                let mut brackets: Vec<Value> = self.safe_list_k(entry, "brackets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut result: Value = Value::from(vec![]);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_239: bool = true;
                     while { if !__for_first_239 { j += 1; } __for_first_239 = false; j < (brackets.len() as i64) } {
-                    let mut bracket: Value = self.safe_dict(brackets.clone(), Value::Int(j), &[]);
+                    let mut bracket: Value = self.safe_dict(brackets.clone().into(), Value::Int(j), &[]);
                     let mut floorValue: Option<String> = self.safe_string_k(bracket.clone(), "notionalFloor", &[]).as_str().map(str::to_owned);
                     let mut maintenanceMarginPercentage: Option<String> = self.safe_string_k(bracket, "maintMarginRatio", &[]).as_str().map(str::to_owned);
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue.clone().map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null)])); }

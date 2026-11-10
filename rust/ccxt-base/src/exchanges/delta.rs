@@ -2429,7 +2429,7 @@ impl Delta {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2443,7 +2443,7 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_617: bool = true;
             while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset_id", &[]).as_str().map(str::to_owned);
             let mut currency: Value = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut code: Value = (if (currency == Value::Null) { currencyId.clone().map(Value::from).unwrap_or(Value::Null) } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });

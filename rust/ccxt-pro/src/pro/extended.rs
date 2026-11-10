@@ -618,12 +618,12 @@ impl Extended {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
             }
         }
-        let mut spotBalances: Value = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]);
+        let mut spotBalances: Vec<Value> = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (spotBalances.len() as i64) } {
-            let mut spotBalance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[Value::Map({
+            let mut spotBalance: Value = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -732,12 +732,12 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
+        let mut rawTrades: Vec<Value> = self.safe_list_k(data, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Value = self.safe_dict(rawTrades.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(rawTrades.clone().into(), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
         }
@@ -745,7 +745,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_309: bool = true;
             while { if !__for_first_309 { i += 1; } __for_first_309 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: Value = self.parse_trade(self.safe_dict(rawTrades.clone(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.parse_trade(self.safe_dict(rawTrades.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -858,9 +858,9 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut rawPositions: Value = self.safe_list_k(data, "positions", &[Value::from(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(data, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut first: Value = self.safe_dict(rawPositions.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(rawPositions.clone().into(), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
         }
@@ -868,7 +868,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_312: bool = true;
             while { if !__for_first_312 { i += 1; } __for_first_312 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawPosition.clone(), "market", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
                 continue;
@@ -1239,8 +1239,8 @@ impl Extended {
         //         "seq": 2
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut first: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
         }
@@ -1269,7 +1269,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_317: bool = true;
             while { if !__for_first_317 { i += 1; } __for_first_317 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.parse_trade(data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut trade: Value = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade);
         }
         }

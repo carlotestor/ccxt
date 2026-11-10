@@ -451,13 +451,13 @@ impl Hashkey {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); } }
         }
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
             let mut __for_first_358: bool = true;
             while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (data.len() as i64) } {
-            let mut candle: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut candle: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

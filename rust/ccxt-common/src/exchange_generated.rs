@@ -2604,9 +2604,9 @@ pub trait ExchangeBase:
         if (paramName == Value::Null) {
             return (if (defaultValue != Value::Null) { defaultValue.clone() } else { methodDict.clone() });
         }
-        let mut splited: Value = Value::Array(if let Some(__s) = paramName.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-        let mut parentKey: Value = splited.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut subKey: Option<String> = self.safe_string_opt(splited, Value::Int(1), &[]);
+        let mut splited: Vec<Value> = Value::Array(if let Some(__s) = paramName.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        let mut parentKey: Value = splited.get(0).cloned().unwrap_or(Value::Null);
+        let mut subKey: Option<String> = self.safe_string_opt(splited.clone().into(), Value::Int(1), &[]);
         if !(matches!((&methodDict, &parentKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
@@ -3074,13 +3074,13 @@ pub trait ExchangeBase:
                 let mut __for_first_90: bool = true;
                 while { if !__for_first_90 { i += 1; } __for_first_90 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]);
-                let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
+                let mut groupedCurrenciesCode: Vec<Value> = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone().into(), Value::Int(0), &[]);
                 {
-                                        let mut j: Value = Value::Int(1);
+                                        let mut j: i64 = 1;
                     let mut __for_first_89: bool = true;
-                    while { if !__for_first_89 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_89 = false; j.as_f64().unwrap_or(f64::NAN) < ((groupedCurrenciesCode.len() as i64) as f64) } {
-                    let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
+                    while { if !__for_first_89 { j += 1; } __for_first_89 = false; j < (groupedCurrenciesCode.len() as i64) } {
+                    let mut currentCurrency: Value = groupedCurrenciesCode.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut currentPrecision: Value = self.safe_number_k(currentCurrency.clone(), "precision", &[]);
                     let mut highestPrecision: Value = self.safe_number_k(highestPrecisionCurrency.clone(), "precision", &[]);
                     if (currentPrecision == Value::Null) || (highestPrecision == Value::Null) {
@@ -4345,7 +4345,7 @@ pub trait ExchangeBase:
         let mut volume = get_arg(optional_args, 5, Value::Str("v".into()));
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let mut result: Vec<Value> = Vec::new();
-        let mut timestamps: Value = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]);
+        let mut timestamps: Vec<Value> = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut opens: Value = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]);
         let mut highs: Value = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]);
         let mut lows: Value = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]);
@@ -4355,8 +4355,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
             while { if !__for_first_106 { i += 1; } __for_first_106 = false; i < (timestamps.len() as i64) } {
-            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(timestamps.clone(), Value::Int(i), &[]) } else { self.safe_timestamp(timestamps.clone(), Value::Int(i), &[]) }), self.safe_value(opens.clone(), Value::Int(i), &[]), self.safe_value(highs.clone(), Value::Int(i), &[]), self.safe_value(lows.clone(), Value::Int(i), &[]),
-                self.safe_value(closes.clone(), Value::Int(i), &[]), self.safe_value(volumes.clone(), Value::Int(i), &[])]));
+            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(timestamps.clone().into(), Value::Int(i), &[]) } else { self.safe_timestamp(timestamps.clone().into(), Value::Int(i), &[]) }), self.safe_value(opens.clone(), Value::Int(i), &[]), self.safe_value(highs.clone(), Value::Int(i), &[]), self.safe_value(lows.clone(),
+                Value::Int(i), &[]), self.safe_value(closes.clone(), Value::Int(i), &[]), self.safe_value(volumes.clone(), Value::Int(i), &[])]));
         }
         }
         return Value::from(result);
@@ -6018,12 +6018,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_135: bool = true;
             while { if !__for_first_135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < oldest.as_f64().unwrap_or(f64::NAN) } {
-            let mut trade: Value = self.safe_dict(trades.clone(), i.clone(), &[Value::Map({
+            let mut trade: indexmap::IndexMap<String, Value> = self.safe_dict(trades.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut ts: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-            let mut price: Value = trade.as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
+})]).as_map().cloned().unwrap_or_default();
+            let mut ts: Value = self.safe_integer_k(trade.clone().into(), "timestamp", &[]);
+            let mut price: Value = trade.get("price").cloned().unwrap_or(Value::Null);
             if (ts == Value::Null) || (price == Value::Null) {
                 continue;
             }
@@ -6060,7 +6060,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             if isNewCandle {
                 // moved to a new timeframe -> create a new candle from opening trade
-                if let Value::Arr(__a) = &mut ohlcvs { std::sync::Arc::make_mut(__a).push(Value::from(vec![openingTime, price.clone(), price.clone(), price.clone(), price.clone(), trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), Value::Int(1)])); }
+                if let Value::Arr(__a) = &mut ohlcvs { std::sync::Arc::make_mut(__a).push(Value::from(vec![openingTime, price.clone(), price.clone(), price.clone(), price.clone(), trade.get("amount").cloned().unwrap_or(Value::Null), Value::Int(1)])); }
             }  else {
                 // still processing the same timeframe -> update opening trade
                 let mut prevCandle: Value = self.safe_value(ohlcvs.clone(), candle.clone(), &[]);
@@ -6069,7 +6069,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, crate::runtime::Math::max(&(if (prevHigh == Value::Null) { price.clone() } else { prevHigh }), &price));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, crate::runtime::Math::min(&(if (prevLow == Value::Null) { price.clone() } else { prevLow }), &price));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_close, price);
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, self.sum(&[self.safe_value(prevCandle.clone(), i_volume.clone(), &[]), trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)]));
+                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, self.sum(&[self.safe_value(prevCandle.clone(), i_volume.clone(), &[]), trade.get("amount").cloned().unwrap_or(Value::Null)]));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, self.sum(&[self.safe_value(prevCandle, i_count.clone(), &[]), Value::Int(1)]));
             }
         }
@@ -6231,7 +6231,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }
             }  else if (delimiter != Value::Null) && (delimiter.as_str() != Some("")) {
-                let mut parts: Value = Value::Array(marketId.as_str().zip(delimiter.as_str()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default());
+                let mut parts: Vec<Value> = Value::Array(marketId.as_str().zip(delimiter.as_str()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut partsLength: f64 = ((parts.len() as i64) as f64);
                 let mut result: Value = self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6243,8 +6243,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" safeMarket() failed to build market structure".into()))));
                 }
                 if (partsLength == 2.0) {
-                    let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                    let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+                    let mut baseId: Option<String> = self.safe_string(parts.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                    let mut quoteId: Option<String> = self.safe_string(parts.clone().into(), Value::Int(1), &[]).as_str().map(str::to_owned);
                     let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("baseId".into(), baseId.clone().map(Value::from).unwrap_or(Value::Null)); }
@@ -10388,7 +10388,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbols: Value = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut symbols: Vec<Value> = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (topic.as_deref() == Some("ohlcv")) {
             let mut symbolsAndTimeframes: Vec<Value> = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
@@ -10417,7 +10417,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_182: bool = true;
                 while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = self.safe_string(symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
+                let mut symbol: Value = self.safe_string(symbols.clone().into(), Value::Int(i), &[Value::Str("".into())]);
                 if (topic.as_deref() == Some("trades")) {
                     if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

@@ -936,12 +936,12 @@ impl Okx {
         //     }
         // ]
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_531: bool = true;
             while { if !__for_first_531 { i += 1; } __for_first_531 = false; i < (data.len() as i64) } {
-            let mut rawfr: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut rawfr: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut fundingRate: Value = self.parse_funding_rate(rawfr, &[]);
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -3201,7 +3201,7 @@ impl Okx {
     m
 }) });
         let mut channel: Option<String> = self.safe_string_k_opt(arg, "channel", &[]);
-        let mut orders: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut orders: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         if ordersLength > ((0i64) as f64) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -3211,7 +3211,7 @@ impl Okx {
             }
             let mut stored: Value = (if (channel.as_deref() == Some("orders-algo")) { self.triggerOrders.clone() } else { self.orders.clone() });
             let mut marketIds: Vec<Value> = Vec::new();
-            let mut parsed: Value = self.parse_orders(orders, &[]);
+            let mut parsed: Value = self.parse_orders(orders.clone().into(), &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_551: bool = true;
@@ -3812,12 +3812,12 @@ impl Okx {
                 if (messageString.is_some()) {
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), messageString.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 }  else {
-                    let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+                    let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_557: bool = true;
                         while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (data.len() as i64) } {
-                        let mut d: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+                        let mut d: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
                         errorCode = self.safe_string_k(d.clone(), "sCode", &[]).as_str().map(str::to_owned);
                         if (errorCode.is_some()) {
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());

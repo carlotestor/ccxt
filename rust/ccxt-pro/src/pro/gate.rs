@@ -2106,7 +2106,7 @@ impl Gate {
         //     ]
         // }
         //
-        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut result: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut tradesLength: f64 = ((result.len() as i64) as f64);
         if (tradesLength == 0.0) {
             return;
@@ -2117,7 +2117,7 @@ impl Gate {
             cachedTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = cachedTrades.clone();
         }
-        let mut parsed: Value = self.parse_trades(result, &[]);
+        let mut parsed: Value = self.parse_trades(result.clone().into(), &[]);
         let mut marketIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

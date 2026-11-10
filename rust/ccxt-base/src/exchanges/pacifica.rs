@@ -1540,12 +1540,12 @@ if _try_result.is_err() {
         usdcAccount.insert("total".into(), self.safe_string_k(data.clone(), "balance", &[]));
         usdcAccount.insert("used".into(), self.safe_string_k(data.clone(), "total_margin_used", &[]));
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".into(), Value::Map(usdcAccount)); }
-        let mut spotBalances: Value = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]);
+        let mut spotBalances: Vec<Value> = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1043: bool = true;
             while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (spotBalances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

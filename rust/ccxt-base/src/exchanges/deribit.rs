@@ -4937,12 +4937,12 @@ impl Deribit {
         //    }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (result.len() as i64) } {
-            let mut fr: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
+            let mut fr: Value = self.safe_dict(result.clone().into(), Value::Int(i), &[]);
             let mut rate: Value = self.parse_funding_rate(fr, &[(market).raw.clone()]);
             rates.push(rate);
         }

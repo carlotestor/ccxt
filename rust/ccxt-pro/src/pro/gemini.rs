@@ -675,7 +675,7 @@ impl Gemini {
         let mut marketId: Value = (self.safe_string_k(message.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
-        let mut changes: Value = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut changes: Vec<Value> = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut ohlcvsBySymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsBySymbol == Value::Null) {
@@ -699,7 +699,7 @@ impl Gemini {
             while { if !__for_first_345 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_345 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut parsed: Value = self.parse_ohlcv(self.safe_value(changes.clone(), index, &[]), &[market.clone()]);
+            let mut parsed: Value = self.parse_ohlcv(self.safe_value(changes.clone().into(), index, &[]), &[market.clone()]);
             stored.append(parsed);
         }
         }

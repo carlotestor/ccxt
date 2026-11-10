@@ -1314,12 +1314,12 @@ impl Polymarket {
         }
         }
         client.resolve(&[stored.clone(), Value::Str("orders".into())]);
-        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let symbol: String = self.safe_string_opt(symbolKeys.clone().into(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
         }
@@ -1441,12 +1441,12 @@ impl Polymarket {
         }
         }
         client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
-        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let symbol: String = self.safe_string_opt(symbolKeys.clone().into(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
         }
@@ -1667,13 +1667,13 @@ impl Polymarket {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rows: Value = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]);
+        let mut rows: Vec<Value> = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
             let mut __for_first_645: bool = true;
             while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: Value = self.safe_dict(rows.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

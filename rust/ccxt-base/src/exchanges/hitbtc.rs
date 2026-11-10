@@ -4074,7 +4074,7 @@ impl Hitbtc {
         //         }
         //     }
         //
-        let mut marketIds: Value = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut fundingRates: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
@@ -4083,7 +4083,7 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_751: bool = true;
             while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[]);
+            let mut marketId: Option<String> = self.safe_string_opt(marketIds.clone().into(), Value::Int(i), &[]);
             if (marketId.is_none()) {
                 continue;
             }
@@ -4406,7 +4406,7 @@ impl Hitbtc {
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();
         let mut datetime: Option<String> = self.safe_string_k(position.clone(), "updated_at", &[]).as_str().map(str::to_owned);
-        let mut positions: Value = self.safe_list_k(position.clone(), "positions", &[Value::from(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(position.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut liquidationPrice: Value = Value::Null;
         let mut entryPrice: Value = Value::Null;
         let mut contracts: Value = Value::Null;
@@ -4414,19 +4414,19 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_755: bool = true;
             while { if !__for_first_755 { i += 1; } __for_first_755 = false; i < (positions.len() as i64) } {
-            let mut entry: Value = self.safe_dict(positions.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(positions.clone().into(), Value::Int(i), &[]);
             liquidationPrice = self.safe_number_k(entry.clone(), "price_liquidation", &[]);
             entryPrice = self.safe_number_k(entry.clone(), "price_entry", &[]);
             contracts = self.safe_number_k(entry.clone(), "quantity", &[]);
         }
         }
-        let mut currencies: Value = self.safe_list_k(position.clone(), "currencies", &[Value::from(vec![])]);
+        let mut currencies: Vec<Value> = self.safe_list_k(position.clone(), "currencies", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut collateral: Value = Value::Null;
         {
                         let mut i: i64 = 0;
             let mut __for_first_756: bool = true;
             while { if !__for_first_756 { i += 1; } __for_first_756 = false; i < (currencies.len() as i64) } {
-            let mut entry: Value = self.safe_dict(currencies.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(currencies.clone().into(), Value::Int(i), &[]);
             collateral = self.safe_number_k(entry, "margin_balance", &[]);
         }
         }
@@ -5063,13 +5063,13 @@ impl Hitbtc {
         //         ]
         //    }
         //
-        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::from(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(fee.clone(), "networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_758: bool = true;
             while { if !__for_first_758 { j += 1; } __for_first_758 = false; j < (networks.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(networks.clone(), Value::Int(j), &[]);
+            let mut networkEntry: Value = self.safe_dict(networks.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut rawNetworkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);

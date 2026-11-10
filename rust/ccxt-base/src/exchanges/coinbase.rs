@@ -2248,8 +2248,8 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(currencies, "data", &[Value::from(vec![])]);
-        let mut dataById: Value = self.index_by(data.clone(), Value::Str("id".into()));
+        let mut data: Vec<Value> = self.safe_list_k(currencies, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut dataById: Value = self.index_by(data.clone().into(), Value::Str("id".into()));
         let mut rates: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(exchangeRates, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2278,7 +2278,7 @@ impl Coinbase {
                                         let mut j: i64 = 0;
                     let mut __for_first_534: bool = true;
                     while { if !__for_first_534 { j += 1; } __for_first_534 = false; j < (data.len() as i64) } {
-                    let mut quoteCurrency: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut quoteCurrency: Value = data.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut quoteId: Option<String> = self.safe_string_k(quoteCurrency.clone(), "id", &[]).as_str().map(str::to_owned);
                     let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     if (quote == Value::Null) || (quoteId.is_none()) {
@@ -4973,18 +4973,18 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut orders: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut orders: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_546: bool = true;
             while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (orders.len() as i64) } {
-            let mut success: bool = self.safe_bool_k(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut success: bool = self.safe_bool_k(orders.get(i as usize).cloned().unwrap_or(Value::Null), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".into()))));
             }
         }
         }
-        return self.parse_orders(orders, &[market]);
+        return self.parse_orders(orders.clone().into(), &[market]);
         Value::Null
         }).await?))
     }

@@ -3048,16 +3048,16 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut logs: Value = self.safe_list_k(result, "logs", &[Value::from(vec![])]);
+        let mut logs: Vec<Value> = self.safe_list_k(result, "logs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
-            return self.parse_transactions(logs.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+            return self.parse_transactions(logs.clone().into(), &[currency.clone(), since.clone(), limit.clone()]);
         }
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_562: bool = true;
             while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (logs.len() as i64) } {
-            let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut transaction: Value = logs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
                 transactions.push(transaction);

@@ -572,7 +572,7 @@ impl Ndax {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut payload: Vec<Value> = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         //
         //     [
         //         [
@@ -597,7 +597,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_522: bool = true;
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (payload.len() as i64) } {
-            let mut ohlcv: Value = self.safe_list(payload.clone(), Value::Int(i), &[]);
+            let mut ohlcv: Value = self.safe_list(payload.clone().into(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_opt(ohlcv.clone(), Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -781,7 +781,7 @@ impl Ndax {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut payload: Vec<Value> = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -796,7 +796,7 @@ impl Ndax {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: Value = self.safe_list(payload.clone(), Value::Int(0), &[Value::from(vec![])]);
+        let mut firstBidAsk: Value = self.safe_list(payload.clone().into(), Value::Int(0), &[Value::from(vec![])]);
         let mut marketId: Option<String> = self.safe_string(firstBidAsk.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             return;
@@ -814,7 +814,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
             while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (payload.len() as i64) } {
-            let mut bidask: Value = self.safe_list(payload.clone(), Value::Int(i), &[]);
+            let mut bidask: Value = self.safe_list(payload.clone().into(), Value::Int(i), &[]);
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
             }  else {

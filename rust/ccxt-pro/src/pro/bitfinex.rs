@@ -861,7 +861,7 @@ impl Bitfinex {
         let mut messageLength: f64 = ((message.len() as i64) as f64);
         if (messageLength == 2.0) {
             // initial snapshot
-            let mut trades: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
+            let mut trades: Vec<Value> = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             // needs to be reversed to make chronological order
             let mut length: Value = Value::Int(trades.len() as i64);
             {
@@ -872,7 +872,7 @@ impl Bitfinex {
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut parsed: Value = self.parse_ws_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("result".to_string(), self.safe_list(trades.clone(), index, &[]));
+        m.insert("result".to_string(), self.safe_list(trades.clone().into(), index, &[]));
     m
 }), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -944,19 +944,19 @@ impl Bitfinex {
         //       1655110144596
         //    ]
         //
-        let mut trade: Value = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut trade: Vec<Value> = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut numFields: f64 = ((trade.len() as i64) as f64);
         let mut isPublic: bool = numFields <= ((8i64) as f64);
         let mut marketId: Value = Value::Null;
         if !isPublic {
-            marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);
+            marketId = self.safe_string(trade.clone().into(), Value::Int(1), &[]);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
         let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
         let mut priceKey: Value = (if isPublic { Value::Int(3) } else { Value::Int(5) });
         let mut amountKey: Value = (if isPublic { Value::Int(2) } else { Value::Int(4) });
         marketId = marketResolved.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string(trade.clone(), Value::Int(6), &[]);
+        let mut type_var: Value = self.safe_string(trade.clone().into(), Value::Int(6), &[]);
         if (type_var != Value::Null) {
             if type_var.as_str().unwrap_or("").contains("LIMIT") {
                 type_var = Value::Str("limit".into());
@@ -966,22 +966,22 @@ impl Bitfinex {
         }
         let mut orderId: Option<String> = None;
         if !isPublic {
-            orderId = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
+            orderId = self.safe_string(trade.clone().into(), Value::Int(3), &[]).as_str().map(str::to_owned);
         }
-        let mut id: Option<String> = self.safe_string(trade.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.safe_integer(trade.clone(), createdKey, &[]).as_i64();
-        let mut price: Option<String> = self.safe_string(trade.clone(), priceKey, &[]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.safe_string(trade.clone(), amountKey, &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string(trade.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_integer(trade.clone().into(), createdKey, &[]).as_i64();
+        let mut price: Option<String> = self.safe_string(trade.clone().into(), priceKey, &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.safe_string(trade.clone().into(), amountKey, &[]).as_str().map(str::to_owned);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut side: Value = Value::Null;
         if (amount != Value::Null) {
             side = (if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[marketResolved.clone()]);
-        let mut feeValue: Option<String> = self.safe_string(trade.clone(), Value::Int(9), &[]).as_str().map(str::to_owned);
+        let mut feeValue: Option<String> = self.safe_string(trade.clone().into(), Value::Int(9), &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         if (feeValue.is_some()) {
-            let mut currencyId: Option<String> = self.safe_string(trade.clone(), Value::Int(10), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string(trade.clone().into(), Value::Int(10), &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -990,14 +990,14 @@ impl Bitfinex {
                 m
             });
         }
-        let mut maker: Option<i64> = self.safe_integer(trade.clone(), Value::Int(8), &[]).as_i64();
+        let mut maker: Option<i64> = self.safe_integer(trade.clone().into(), Value::Int(8), &[]).as_i64();
         let mut takerOrMaker: Value = Value::Null;
         if (maker.is_some()) {
             takerOrMaker = (if (maker == Some(-1)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade);
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
@@ -1698,7 +1698,7 @@ impl Bitfinex {
         //        ]
         //    ]
         //
-        let mut data: Value = self.safe_list(message.clone(), Value::Int(2), &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list(message.clone(), Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut messageType: Option<String> = self.safe_string(message, Value::Int(1), &[]).as_str().map(str::to_owned);
         if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1718,7 +1718,7 @@ impl Bitfinex {
                                 let mut i: i64 = 0;
                 let mut __for_first_109: bool = true;
                 while { if !__for_first_109 { i += 1; } __for_first_109 = false; i < (data.len() as i64) } {
-                let mut value: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut value: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsed: Value = self.parse_ws_order(value, &[]);
                 let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]);
                 if let Value::Dict(__d) = &mut symbolIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
@@ -1726,7 +1726,7 @@ impl Bitfinex {
             }
             }
         }  else {
-            let mut parsed: Value = self.parse_ws_order(data, &[]);
+            let mut parsed: Value = self.parse_ws_order(data.clone().into(), &[]);
             orders.append(parsed.clone());
             let mut symbol: Value = self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut symbolIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }

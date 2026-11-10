@@ -1040,13 +1040,13 @@ impl Weex {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
         }
         let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut data: Value = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut newTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
             while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (data.len() as i64) } {
-            let mut rawTrade: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rawTrade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1369,8 +1369,8 @@ impl Weex {
     m
 })); }
         }
-        let mut data: Value = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstEntry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut data: Vec<Value> = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut firstEntry: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1388,7 +1388,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_676: bool = true;
             while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1997,7 +1997,7 @@ impl Weex {
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trades: Value = self.myTrades.clone();
-        let mut data: Value = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2006,7 +2006,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2019,8 +2019,8 @@ impl Weex {
         }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone()]);
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
         if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "myContractTrades".to_string();
         }
@@ -2028,7 +2028,7 @@ impl Weex {
                         let mut j: i64 = 0;
             let mut __for_first_682: bool = true;
             while { if !__for_first_682 { j += 1; } __for_first_682 = false; j < (symbolKeys.len() as i64) } {
-            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[trades.clone(), symbolMessageHash]);
         }
@@ -2259,7 +2259,7 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut data: Value = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2273,7 +2273,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_683: bool = true;
             while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (data.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rawOrder: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2286,8 +2286,8 @@ impl Weex {
         }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone()]);
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
         if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "contractOrders".to_string();
         }
@@ -2295,7 +2295,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_684: bool = true;
             while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (symbolKeys.len() as i64) } {
-            let mut symbol: Value = symbolKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[orders.clone(), symbolMessageHash]);
         }
@@ -2628,12 +2628,12 @@ impl Weex {
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-        let mut balanceUpdates: Value = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut balanceUpdates: Vec<Value> = (match __pro_message.get("d").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_685: bool = true;
             while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (balanceUpdates.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balanceUpdates.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(balanceUpdates.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "coin", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2838,12 +2838,12 @@ impl Weex {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut data: Value = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("d") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_687: bool = true;
             while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (data.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rawPosition: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2929,13 +2929,13 @@ impl Weex {
         let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if unsubscribe {
             let mut subHashIsPrefix: bool = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
+            let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_689: bool = true;
                 while { if !__for_first_689 { i += 1; } __for_first_689 = false; i < (messageHashes.len() as i64) } {
-                let mut unSubHash: Option<String> = self.safe_string(messageHashes.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+                let mut unSubHash: Option<String> = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
                 let mut subHash: Option<String> = self.safe_string(subHashes.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
                 self.clean_unsubscription(client.clone(), subHash.clone().map(Value::from).unwrap_or(Value::Null), unSubHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
             }

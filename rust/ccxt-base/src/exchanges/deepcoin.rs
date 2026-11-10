@@ -1719,12 +1719,12 @@ impl Deepcoin {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_610: bool = true;
             while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k(balance.clone(), "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2977,12 +2977,12 @@ impl Deepcoin {
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_20]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut length: f64 = ((data.len() as i64) as f64);
         if (length == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() could not find order id ".into())).into()), id)));
         }
-        let mut entry: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

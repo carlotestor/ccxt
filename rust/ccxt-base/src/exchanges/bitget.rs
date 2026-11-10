@@ -5936,8 +5936,8 @@ if _try_result.is_err() {
                 continue;
             }
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
-            let mut data: Value = self.safe_list_k(res, "data", &[Value::from(vec![])]);
-            let mut firstData: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+            let mut data: Vec<Value> = self.safe_list_k(res, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut firstData: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5953,7 +5953,7 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_367: bool = true;
                     while { if !__for_first_367 { j += 1; } __for_first_367 = false; j < (data.len() as i64) } {
-                    let mut entry: Value = self.safe_dict(data.clone(), Value::Int(j), &[Value::Map({
+                    let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5973,7 +5973,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), crossKeys); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), isolatedKeys); }
             }  else {
-                markets = self.array_concat(markets.clone(), data);
+                markets = self.array_concat(markets.clone(), data.clone().into());
             }
         }
         }
@@ -6146,11 +6146,11 @@ if _try_result.is_err() {
                 expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]).as_i64();
                 let mut expiryIso: Value = self.iso8601(Value::from(expiry));
                 expiryDatetime = expiryIso.clone();
-                let mut expiryParts: Value = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[Value::Str("".into())]);
-                let mut dayPart: Value = self.safe_string(expiryParts.clone(), Value::Int(2), &[Value::Str("".into())]);
+                let mut expiryParts: Vec<Value> = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                let mut yearPart: Value = self.safe_string(expiryParts.clone().into(), Value::Int(0), &[Value::Str("".into())]);
+                let mut dayPart: Value = self.safe_string(expiryParts.clone().into(), Value::Int(2), &[Value::Str("".into())]);
                 let mut year: Value = yearPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                let mut month: Value = expiryParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                let mut month: Value = expiryParts.get(1).cloned().unwrap_or(Value::Null);
                 let mut day: Value = dayPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 let mut monthDay: String = format!("{}{}", month, day);
                 let mut expiryString: String = format!("{}{}", year, monthDay);
@@ -6471,11 +6471,11 @@ if _try_result.is_err() {
                 expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]).as_i64();
                 let mut expiryIso: Value = self.iso8601(Value::from(expiry));
                 expiryDatetime = expiryIso.clone();
-                let mut expiryParts: Value = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[Value::Str("".into())]);
-                let mut dayPart: Value = self.safe_string(expiryParts.clone(), Value::Int(2), &[Value::Str("".into())]);
+                let mut expiryParts: Vec<Value> = Value::Array(if let Some(__s) = expiryIso.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                let mut yearPart: Value = self.safe_string(expiryParts.clone().into(), Value::Int(0), &[Value::Str("".into())]);
+                let mut dayPart: Value = self.safe_string(expiryParts.clone().into(), Value::Int(2), &[Value::Str("".into())]);
                 let mut year: Value = yearPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                let mut month: Value = expiryParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                let mut month: Value = expiryParts.get(1).cloned().unwrap_or(Value::Null);
                 let mut day: Value = dayPart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 let mut monthDay: String = format!("{}{}", month, day);
                 let mut expiryString: String = format!("{}{}", year, monthDay);
@@ -6639,7 +6639,7 @@ if _try_result.is_err() {
         let mut entry: Value = rawCurrency;
         let mut id: Option<String> = self.safe_string_k(entry.clone(), "coin", &[]).as_str().map(str::to_owned); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut chains: Value = self.safe_list_k(entry.clone(), "chains", &[Value::from(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(entry.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6655,7 +6655,7 @@ if _try_result.is_err() {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_373: bool = true;
             while { if !__for_first_373 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_373 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            let mut chain: Value = self.safe_dict(chains.clone().into(), j.clone(), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (network == Value::Null) {
@@ -11710,12 +11710,12 @@ if _try_result.is_err() {
                 return self.parse_order(data.clone(), &[(market).raw.clone()]);
             }
         }
-        let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut dataList: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
         if (dataListLength == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id).into()), Value::Str(" in ".into())).into()), json_stringify(&response))));
         }
-        let mut first: Value = self.safe_dict(dataList, Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(dataList.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -15491,7 +15491,7 @@ if _try_result.is_err() {
         //         "transfer": "true""
         //     }
         //
-        let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -15520,7 +15520,7 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_388: bool = true;
             while { if !__for_first_388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
+            let mut chain: Value = self.safe_dict(chains.clone().into(), i.clone(), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);

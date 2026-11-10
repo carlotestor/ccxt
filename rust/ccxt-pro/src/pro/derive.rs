@@ -1678,7 +1678,7 @@ impl Derive {
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
         let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut subaccountIdKey: Value = self.safe_string(topicParts, Value::Int(0), &[]);
-        let mut data: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1695,7 +1695,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

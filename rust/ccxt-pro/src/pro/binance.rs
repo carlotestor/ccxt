@@ -6801,7 +6801,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         "e": "price"
         //     }
         //
-        let mut rates: Value = (match message.get("rates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut rates: Vec<Value> = (match message.get("rates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut tickers: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
@@ -6810,7 +6810,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_80: bool = true;
             while { if !__for_first_80 { i += 1; } __for_first_80 = false; i < (rates.len() as i64) } {
-            let mut rate: Value = self.safe_dict(rates.clone(), Value::Int(i), &[Value::Map({
+            let mut rate: Value = self.safe_dict(rates.clone().into(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -6902,13 +6902,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         ]
         //     }
         //
-        let mut orders: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut orders: Vec<Value> = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_82: bool = true;
             while { if !__for_first_82 { i += 1; } __for_first_82 = false; i < (orders.len() as i64) } {
-            let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut fills: Value = self.safe_list_k(order.clone(), "fi", &[Value::from(vec![])]);
+            let mut order: Value = self.safe_dict(orders.clone().into(), Value::Int(i), &[]);
+            let mut fills: Vec<Value> = self.safe_list_k(order.clone(), "fi", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawQty: String = self.safe_string_k(order.clone(), "q", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut side: String = "BUY".to_string();
             if crate::precise::Precise::stringLt(&Value::from(rawQty.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -6944,7 +6944,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut j: i64 = 0;
                 let mut __for_first_81: bool = true;
                 while { if !__for_first_81 { j += 1; } __for_first_81 = false; j < (fills.len() as i64) } {
-                let mut fill: Value = self.safe_dict(fills.clone(), Value::Int(j), &[]);
+                let mut fill: Value = self.safe_dict(fills.clone().into(), Value::Int(j), &[]);
                 let mut isMaker: Value = (Value::Bool(self.safe_string_k(fill.clone(), "m", &[]).as_str() == Some("MAKER")));
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 let mut normalizedTrade: indexmap::IndexMap<String, Value> = ({
@@ -7194,13 +7194,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut rawPositions: Value = self.safe_list_k(data, "P", &[Value::from(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(data, "P", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_84: bool = true;
             while { if !__for_first_84 { i += 1; } __for_first_84 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(rawPositions.clone(), Value::Int(i), &[]);
+            let mut rawPosition: Value = self.safe_dict(rawPositions.clone().into(), Value::Int(i), &[]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[]);
             let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
@@ -7847,12 +7847,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
-        let mut B: Value = (match __pro_message.get("B").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut B: Vec<Value> = (match __pro_message.get("B").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_87: bool = true;
             while { if !__for_first_87 { i += 1; } __for_first_87 = false; i < (B.len() as i64) } {
-            let mut entry: Value = self.safe_dict(B.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(B.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "a", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {
@@ -7883,13 +7883,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&accountType), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut P: Value = (match __pro_message.get("P").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut P: Vec<Value> = (match __pro_message.get("P").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_88: bool = true;
             while { if !__for_first_88 { i += 1; } __for_first_88 = false; i < (P.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(P.clone(), Value::Int(i), &[]);
+            let mut rawPosition: Value = self.safe_dict(P.clone().into(), Value::Int(i), &[]);
             let mut position: Value = self.parse_ws_options_position(rawPosition, &[]);
             add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));

@@ -2038,13 +2038,13 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1084: bool = true;
             while { if !__for_first_1084 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1084 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            let mut chain: Value = self.safe_dict(chains.clone().into(), j.clone(), &[]);
             let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
@@ -2672,16 +2672,16 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1085: bool = true;
             while { if !__for_first_1085 { i += 1; } __for_first_1085 = false; i < (orders.len() as i64) } {
-            let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[Value::Map({
+            let mut order: indexmap::IndexMap<String, Value> = self.safe_dict(orders.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut extended: Value = self.extend(order.clone(), &[Value::Map({
+})]).as_map().cloned().unwrap_or_default();
+            let mut extended: Value = self.extend(order.clone().into(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                     m.insert("type".to_string(), Value::Str("limit".into()));
-                    m.insert("side".to_string(), order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null));
-                    m.insert("price".to_string(), order.as_map().and_then(|__m| __m.get("rate")).cloned().unwrap_or(Value::Null));
+                    m.insert("side".to_string(), order.get("type").cloned().unwrap_or(Value::Null));
+                    m.insert("price".to_string(), order.get("rate").cloned().unwrap_or(Value::Null));
                 m
             })]);
             append_to_array(&mut result, self.parse_order(extended, &[market.clone()]));
@@ -3679,12 +3679,12 @@ impl Poloniex {
             let mut ts: Option<i64> = self.safe_integer_k(response.clone(), "uTime", &[]).as_i64();
             result.insert("timestamp".into(), Value::from(ts));
             result.insert("datetime".into(), self.iso8601(Value::from(ts)));
-            let mut details: Value = self.safe_list_k(response.clone(), "details", &[Value::from(vec![])]);
+            let mut details: Vec<Value> = self.safe_list_k(response.clone(), "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1088: bool = true;
                 while { if !__for_first_1088 { i += 1; } __for_first_1088 = false; i < (details.len() as i64) } {
-                let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(details.clone().into(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
@@ -3705,12 +3705,12 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut balances: Value = self.safe_list_k(account.clone(), "balances", &[Value::from(vec![])]);
+            let mut balances: Vec<Value> = self.safe_list_k(account.clone(), "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1089: bool = true;
                 while { if !__for_first_1089 { j += 1; } __for_first_1089 = false; j < (balances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(j), &[]);
+                let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(j), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut newAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3933,8 +3933,8 @@ impl Poloniex {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "time", &[]).as_i64();
-        let mut asks: Value = self.safe_list_k(response.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(response, "bids", &[Value::from(vec![])]);
+        let mut asks: Vec<Value> = self.safe_list_k(response.clone(), "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut bids: Vec<Value> = self.safe_list_k(response, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut asksResult: Vec<Value> = Vec::new();
         let mut bidsResult: Vec<Value> = Vec::new();
         {
@@ -3942,8 +3942,8 @@ impl Poloniex {
             let mut __for_first_1092: bool = true;
             while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Value = self.safe_number(asks.clone(), i.clone(), &[]);
-                let mut amount: Value = self.safe_number(asks.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                let mut price: Value = self.safe_number(asks.clone().into(), i.clone(), &[]);
+                let mut amount: Value = self.safe_number(asks.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 asksResult.push(Value::from(vec![price.clone(), amount.clone()]));
             }
         }
@@ -3953,8 +3953,8 @@ impl Poloniex {
             let mut __for_first_1093: bool = true;
             while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Value = self.safe_number(bids.clone(), i.clone(), &[]);
-                let mut amount: Value = self.safe_number(bids.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                let mut price: Value = self.safe_number(bids.clone().into(), i.clone(), &[]);
+                let mut amount: Value = self.safe_number(bids.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 bidsResult.push(Value::from(vec![price, amount]));
             }
         }
@@ -4602,14 +4602,14 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-                let mut childChains: Value = self.safe_list_k(feeInfo, "childChains", &[Value::from(vec![])]);
+                let mut childChains: Vec<Value> = self.safe_list_k(feeInfo, "childChains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut chainsLength: f64 = ((childChains.len() as i64) as f64);
                 if chainsLength > ((0i64) as f64) {
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1095: bool = true;
                         while { if !__for_first_1095 { j += 1; } __for_first_1095 = false; j < (childChains.len() as i64) } {
-                        let mut rawNetworkId: Value = self.safe_string(childChains.clone(), Value::Int(j), &[Value::Str("".into())]);
+                        let mut rawNetworkId: Value = self.safe_string(childChains.clone().into(), Value::Int(j), &[Value::Str("".into())]);
                         let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
                         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
                         let mut networkInfo: Value = self.safe_dict(response.clone(), networkId, &[]);
@@ -4951,12 +4951,12 @@ impl Poloniex {
         let mut longLeverage: Value = Value::Null;
         let mut marketId: Option<String> = None;
         let mut marginMode: Option<String> = None;
-        let mut data: Value = self.safe_list_k(leverage.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(leverage.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1097: bool = true;
             while { if !__for_first_1097 { i += 1; } __for_first_1097 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             marketId = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower

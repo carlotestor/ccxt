@@ -854,7 +854,7 @@ impl Bitopro {
 }) });
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         let mut datetime: Option<String> = self.safe_string_k_opt(message, "datetime", &[]);
-        let mut currencies: Value = object_keys(&data);
+        let mut currencies: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
         // merge updates into the existing balance object instead of building a
         // fresh one: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -874,7 +874,7 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (currencies.len() as i64) } {
-            let mut currency: Option<String> = self.safe_string(currencies.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut currency: Option<String> = self.safe_string(currencies.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut balance: Value = self.safe_dict(data.clone(), currency.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

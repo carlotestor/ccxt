@@ -3525,12 +3525,12 @@ if _try_result.is_err() {
         }
         let mut rawPromises: Vec<Value> = Vec::new();
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])]);
+        let mut types: Vec<Value> = self.safe_list_k(fetchMarketsOptions, "types", &[Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (types.len() as i64) } {
-            let mut marketType: Option<String> = self.safe_string(types.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut marketType: Option<String> = self.safe_string(types.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets

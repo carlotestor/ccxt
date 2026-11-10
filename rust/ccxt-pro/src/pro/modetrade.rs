@@ -1774,7 +1774,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut rawPositions: Value = self.safe_list_k(data, "positions", &[Value::from(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(data, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1784,7 +1784,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_499: bool = true;
             while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(rawPositions.clone(), Value::Int(i), &[]);
+            let mut rawPosition: Value = self.safe_dict(rawPositions.clone().into(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(rawPosition.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[market.clone()]);
@@ -2051,10 +2051,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
-            let mut splitTopic: Value = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
+            let mut splitTopic: Vec<Value> = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
             if (splitLength == 2.0) {
-                let mut name: Option<String> = self.safe_string_opt(splitTopic.clone(), Value::Int(1), &[]);
+                let mut name: Option<String> = self.safe_string_opt(splitTopic.clone().into(), Value::Int(1), &[]);
                 if (name.is_none()) {
                     return;
                 }

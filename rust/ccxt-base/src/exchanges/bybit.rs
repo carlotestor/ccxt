@@ -4025,7 +4025,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut list: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
+        let mut list: Vec<Value> = self.safe_list_k(result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut status: String = "ok".to_string();
         let mut eta: Option<i64> = None;
         let mut url: Option<String> = None;
@@ -4033,7 +4033,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_497: bool = true;
             while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (list.len() as i64) } {
-            let mut event: Value = self.safe_dict(list.clone(), Value::Int(i), &[]);
+            let mut event: Value = self.safe_dict(list.clone().into(), Value::Int(i), &[]);
             let mut state: Option<String> = self.safe_string_k(event.clone(), "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("ongoing")) {
                 status = "maintenance".to_string();
@@ -4525,12 +4525,12 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut rawMarkets: Value = self.safe_list_k(dataNew.clone(), "list", &[Value::from(vec![])]);
+                let mut rawMarkets: Vec<Value> = self.safe_list_k(dataNew.clone(), "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
                 if (rawMarketsLength == 0.0) {
                     break;
                 }
-                markets = self.array_concat(rawMarkets, markets.clone());
+                markets = self.array_concat(rawMarkets.clone().into(), markets.clone());
                 paginationCursor = self.safe_string_k(dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
             }
         }
@@ -4768,12 +4768,12 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut rawMarkets: Value = self.safe_list_k(dataNew.clone(), "list", &[Value::from(vec![])]);
+                    let mut rawMarkets: Vec<Value> = self.safe_list_k(dataNew.clone(), "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
                     if (rawMarketsLength == 0.0) {
                         break;
                     }
-                    markets = self.array_concat(rawMarkets, markets.clone());
+                    markets = self.array_concat(rawMarkets.clone().into(), markets.clone());
                     paginationCursor = self.safe_string_k(dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
                 }
             }
@@ -6337,13 +6337,13 @@ impl Bybit {
                 let mut entry: Value = self.safe_dict(currencyList.clone(), Value::Int(i), &[]);
                 let mut accountType: Option<String> = self.safe_string_k(entry.clone(), "accountType", &[]).as_str().map(str::to_owned);
                 if (accountType.as_deref() == Some("UNIFIED")) || (accountType.as_deref() == Some("CONTRACT")) || (accountType.as_deref() == Some("SPOT")) {
-                    let mut coins: Value = self.safe_list_k(entry.clone(), "coin", &[Value::from(vec![])]);
+                    let mut coins: Vec<Value> = self.safe_list_k(entry.clone(), "coin", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_509: bool = true;
                         while { if !__for_first_509 { j += 1; } __for_first_509 = false; j < (coins.len() as i64) } {
                         let mut account: Value = self.account();
-                        let mut coinEntry: Value = self.safe_dict(coins.clone(), Value::Int(j), &[]);
+                        let mut coinEntry: Value = self.safe_dict(coins.clone().into(), Value::Int(j), &[]);
                         let mut loan: Option<String> = self.safe_string_k_opt(coinEntry.clone(), "borrowAmount", &[]);
                         let mut interest: Option<String> = self.safe_string_k_opt(coinEntry.clone(), "accruedInterest", &[]);
                         if (loan.is_some()) && (interest.is_some()) {
@@ -8210,7 +8210,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut innerList: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
+        let mut innerList: Vec<Value> = self.safe_list_k(result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
         // see https://github.com/ccxt/ccxt/pull/29602
         let mut innerListLength: f64 = ((innerList.len() as i64) as f64);
@@ -8221,7 +8221,7 @@ impl Bybit {
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
-        let mut order: Value = self.safe_dict(innerList, Value::Int(0), &[Value::Map({
+        let mut order: Value = self.safe_dict(innerList.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -11796,7 +11796,7 @@ impl Bybit {
         //        ]
         //    }
         //
-        let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -11824,7 +11824,7 @@ impl Bybit {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_520: bool = true;
                 while { if !__for_first_520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_520 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-                let mut chain: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
+                let mut chain: Value = self.safe_dict(chains.clone().into(), i.clone(), &[]);
                 let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);

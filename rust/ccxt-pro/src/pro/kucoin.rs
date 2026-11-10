@@ -2767,13 +2767,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isUnSub: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isUnSub {
-            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
+            let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_461: bool = true;
                 while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (messageHashes.len() as i64) } {
-                let mut messageHash: Option<String> = self.safe_string(messageHashes.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+                let mut messageHash: Option<String> = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
                 let mut subHash: Option<String> = self.safe_string(subMessageHashes.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
                 self.clean_unsubscription(client.clone(), subHash.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }

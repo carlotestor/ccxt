@@ -1695,13 +1695,13 @@ impl Limitless {
                 }
             }
         }
-        let mut prices: Value = self.safe_list_k(raw.clone(), "prices", &[Value::from(vec![])]);
+        let mut prices: Vec<Value> = self.safe_list_k(raw.clone(), "prices", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut pricesLength: f64 = ((prices.len() as i64) as f64);
         if (lastStr == Value::Null) && (pricesLength > ((0i64) as f64)) {
             if isYes {
-                lastStr = self.safe_string(prices.clone(), Value::Int(0), &[]);
+                lastStr = self.safe_string(prices.clone().into(), Value::Int(0), &[]);
             }  else {
-                lastStr = self.safe_string(prices, Value::Int(1), &[]);
+                lastStr = self.safe_string(prices.clone().into(), Value::Int(1), &[]);
             }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
@@ -2509,13 +2509,13 @@ impl Limitless {
         //         ]
         //     }
         //
-        let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut found: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1322: bool = true;
             while { if !__for_first_1322 { i += 1; } __for_first_1322 = false; i < (results.len() as i64) } {
-            let mut item: Value = self.safe_dict(results.clone(), Value::Int(i), &[Value::Map({
+            let mut item: Value = self.safe_dict(results.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3562,7 +3562,7 @@ if _try_result.is_err() {
         //         "nextCursor": null
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // response contains both trade, settlement, split and merge history
         // we filter out the settlements here and only return the trades
         let mut trades: Vec<Value> = Vec::new();
@@ -3570,7 +3570,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
-            let mut item: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut strategy: Option<String> = self.safe_string_lower_k_opt(item.clone(), "strategy", &[]);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
@@ -3736,12 +3736,12 @@ if _try_result.is_err() {
     pub fn get_outcome_by_slug_and_label(&self, mut slug: Value, mut label: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut mkt: Value = self.safe_market(&[slug, market]);
-        let mut outcomes: Value = self.safe_list_k(mkt, "outcomes", &[Value::from(vec![])]);
+        let mut outcomes: Vec<Value> = self.safe_list_k(mkt, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1325: bool = true;
             while { if !__for_first_1325 { i += 1; } __for_first_1325 = false; i < (outcomes.len() as i64) } {
-            let mut outcome: Value = self.safe_dict(outcomes.clone(), Value::Int(i), &[]);
+            let mut outcome: Value = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]);
             let mut outcomeLabel: Option<String> = self.safe_string_k_opt(outcome.clone(), "label", &[]);
             if (outcomeLabel.as_deref() == label.as_str()) {
                 return outcome;
@@ -3863,14 +3863,14 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut clob: Value = self.safe_list_k(response, "clob", &[Value::from(vec![])]);
+        let mut clob: Vec<Value> = self.safe_list_k(response, "clob", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         let mut labels: Value = Value::from(vec![Value::Str("yes".into()), Value::Str("no".into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1327: bool = true;
             while { if !__for_first_1327 { i += 1; } __for_first_1327 = false; i < (clob.len() as i64) } {
-            let mut entry: Value = self.safe_dict(clob.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(clob.clone().into(), Value::Int(i), &[]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1326: bool = true;

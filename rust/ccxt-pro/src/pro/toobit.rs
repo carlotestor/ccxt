@@ -1118,12 +1118,12 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into())).into());
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]);
@@ -1179,7 +1179,7 @@ impl Toobit {
     pub fn set_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut channel: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut length: f64 = ((data.len() as i64) as f64);
         if (length == 0.0) {
             return;
@@ -1188,7 +1188,7 @@ impl Toobit {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_658: bool = true;
             while { if !__for_first_658 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel).into());

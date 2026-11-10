@@ -600,7 +600,7 @@ impl Btcturk {
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut filters: Value = self.safe_list_k(entry.clone(), "filters", &[Value::from(vec![])]);
+        let mut filters: Vec<Value> = self.safe_list_k(entry.clone(), "filters", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut minPrice: Value = Value::Null;
         let mut maxPrice: Value = Value::Null;
         let mut minAmount: Value = Value::Null;
@@ -610,7 +610,7 @@ impl Btcturk {
                         let mut j: i64 = 0;
             let mut __for_first_475: bool = true;
             while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (filters.len() as i64) } {
-            let mut filter: Value = self.safe_dict(filters.clone(), Value::Int(j), &[]);
+            let mut filter: Value = self.safe_dict(filters.clone().into(), Value::Int(j), &[]);
             let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(filter.clone(), "minPrice", &[]);
@@ -690,7 +690,7 @@ impl Btcturk {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -702,7 +702,7 @@ impl Btcturk {
                         let mut i: i64 = 0;
             let mut __for_first_476: bool = true;
             while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1153,7 +1153,7 @@ impl Btcturk {
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut tail = get_arg(optional_args, 4, Value::Bool(false));
         let mut results: Vec<Value> = Vec::new();
-        let mut timestamp: Value = self.safe_list_k(ohlcvs.clone(), "t", &[Value::from(vec![])]);
+        let mut timestamp: Vec<Value> = self.safe_list_k(ohlcvs.clone(), "t", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut high: Value = self.safe_list_k(ohlcvs.clone(), "h", &[Value::from(vec![])]);
         let mut open: Value = self.safe_list_k(ohlcvs.clone(), "o", &[Value::from(vec![])]);
         let mut low: Value = self.safe_list_k(ohlcvs.clone(), "l", &[Value::from(vec![])]);
@@ -1165,7 +1165,7 @@ impl Btcturk {
             while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (timestamp.len() as i64) } {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), Value::Int(i), &[]));
+                    m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone().into(), Value::Int(i), &[]));
                     m.insert("high".to_string(), self.safe_number(high.clone(), Value::Int(i), &[]));
                     m.insert("open".to_string(), self.safe_number(open.clone(), Value::Int(i), &[]));
                     m.insert("low".to_string(), self.safe_number(low.clone(), Value::Int(i), &[]));

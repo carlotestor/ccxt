@@ -2016,10 +2016,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
-            let mut splitTopic: Value = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
+            let mut splitTopic: Vec<Value> = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
             if (splitLength == 2.0) {
-                let mut name: Option<String> = self.safe_string_opt(splitTopic.clone(), Value::Int(1), &[]);
+                let mut name: Option<String> = self.safe_string_opt(splitTopic.clone().into(), Value::Int(1), &[]);
                 if (name.is_none()) {
                     return;
                 }

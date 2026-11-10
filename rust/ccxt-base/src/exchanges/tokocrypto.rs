@@ -1170,12 +1170,12 @@ impl Tokocrypto {
             let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
             let mut status: Option<String> = self.safe_string_k(market.clone(), "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: Value = (Value::Bool(status.as_deref() == Some("1")));
-            let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
+            let mut permissions: Vec<Value> = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1125: bool = true;
                 while { if !__for_first_1125 { j += 1; } __for_first_1125 = false; j < (permissions.len() as i64) } {
-                if (self.safe_string(permissions.clone(), Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
+                if (self.safe_string(permissions.clone().into(), Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = Value::Bool(false);
                     break;
                 }
@@ -2093,12 +2093,12 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data, "accountAssets", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data, "accountAssets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1127: bool = true;
             while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

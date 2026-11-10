@@ -5916,14 +5916,14 @@ impl Digifinex {
         //     }
         //
         let mut tiers: Value = Value::from(vec![]);
-        let mut brackets: Value = self.safe_list_k(info.clone(), "open_max_limits", &[Value::from(vec![])]);
+        let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "open_max_limits", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketId: Option<String> = self.safe_string_k(info, "instrument_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (brackets.len() as i64) } {
-            let mut tier: Value = self.safe_dict(brackets.clone(), Value::Int(i), &[]);
+            let mut tier: Value = self.safe_dict(brackets.clone().into(), Value::Int(i), &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));

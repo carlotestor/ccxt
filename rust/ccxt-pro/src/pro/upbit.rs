@@ -627,7 +627,7 @@ impl Upbit {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        let mut data: Value = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         let mut bidsSnapshot: Vec<Value> = Vec::new();
         let mut asksSnapshot: Vec<Value> = Vec::new();
@@ -635,7 +635,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
             while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut bidPrice: Option<f64> = self.safe_number_k(entry.clone(), "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(entry.clone(), "bid_size", &[]).as_f64();
             let mut askPrice: Option<f64> = self.safe_number_k(entry.clone(), "ask_price", &[]).as_f64();
@@ -1183,7 +1183,7 @@ impl Upbit {
         //     "stream_type": "REALTIME"
         // }
         //
-        let mut data: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut data: Vec<Value> = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
@@ -1191,7 +1191,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (data.len() as i64) } {
-            let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut available: Option<String> = self.safe_string_k(balance.clone(), "balance", &[]).as_str().map(str::to_owned);

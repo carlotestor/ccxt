@@ -1187,7 +1187,7 @@ impl Kraken {
             if (firstTakerFeeRate.is_some()) {
                 taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             }
-            let mut leverageBuy: Value = self.safe_list_k(market.clone(), "leverage_buy", &[Value::from(vec![])]);
+            let mut leverageBuy: Vec<Value> = self.safe_list_k(market.clone(), "leverage_buy", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut leverageBuyLength: Value = Value::Int(leverageBuy.len() as i64);
             let mut precisionPrice: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pair_decimals", &[])]), &[]);
             let mut precisionAmount: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "lot_decimals", &[])]), &[]);
@@ -1250,7 +1250,8 @@ impl Kraken {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("max".to_string(), self.safe_number(leverageBuy, (match (&(leverageBuyLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Int(1)]));
+        m.insert("max".to_string(), self.safe_number(leverageBuy.clone().into(), (match (&(leverageBuyLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Int(1)]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -5193,12 +5194,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                     if (matches!(&result, Value::Dict(__d) if __d.contains_key("orders"))) {
-                        let mut orders: Value = self.safe_list_k(result, "orders", &[Value::from(vec![])]);
+                        let mut orders: Vec<Value> = self.safe_list_k(result, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_865: bool = true;
                             while { if !__for_first_865 { i += 1; } __for_first_865 = false; i < (orders.len() as i64) } {
-                            let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
+                            let mut order: Value = self.safe_dict(orders.clone().into(), Value::Int(i), &[]);
                             let mut error: Option<String> = self.safe_string_k_opt(order, "error", &[]);
                             if (error.is_some()) {
                                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), message.clone());

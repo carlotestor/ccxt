@@ -4123,12 +4123,12 @@ impl Woo {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response, "holding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1171: bool = true;
             while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(balance.clone(), "holding", &[]));
@@ -4434,12 +4434,12 @@ impl Woo {
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Value = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut partsLength: f64 = ((parts.len() as i64) as f64);
-            let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut firstPart: Option<String> = self.safe_string(parts.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Value = self.safe_string(parts.clone().into(), Value::Int(1), &[firstPart.clone().map(Value::from).unwrap_or(Value::Null)]);
             if partsLength > ((2i64) as f64) {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts.clone().into(), Value::Int(2), &[Value::Str("".into())])).into())).into());
             }
             return self.safe_currency(currencyId, &[]);
         }
@@ -5686,12 +5686,12 @@ impl Woo {
         }
         let mut longLeverage: Value = spotLeverage.clone();
         let mut shortLeverage: Value = spotLeverage;
-        let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::from(vec![])]);
+        let mut details: Vec<Value> = self.safe_list_k(leverage.clone(), "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1173: bool = true;
             while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (details.len() as i64) } {
-            let mut position: Value = self.safe_dict(details.clone(), Value::Int(i), &[Value::Map({
+            let mut position: Value = self.safe_dict(details.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6664,18 +6664,18 @@ impl Woo {
     pub fn default_network_code_for_currency(&self, mut code: Value) -> Option<String> {
         let mut currencyItem: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
         let mut networks: Value = currencyItem.get("networks").cloned().unwrap_or(Value::Null);
-        let mut networkKeys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut networkKeys: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1175: bool = true;
             while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (networkKeys.len() as i64) } {
-            let mut network: Value = networkKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut network: Value = networkKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             if (network.as_str() == Some("ERC20")) {
                 return network.as_str().map(str::to_owned);
             }
         }
         }
-        return self.safe_string(networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
+        return self.safe_string(networkKeys.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {
