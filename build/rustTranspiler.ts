@@ -10164,7 +10164,22 @@ export class RustTranspilerBuilder {
                 const at = u.index;
                 if (!covered.some(([s, e]) => at >= s && at < e)) { ok = false; break; }
             }
-            if (!ok) continue;
+            if (!ok) {
+                // A literal default of the reader's own variant: the result is never `Null`, so the
+                // local is the bare scalar (`i64` / `f64`). Value slots re-box through `Value::from`,
+                // which builds the same `Value::Int` / `Value::Float` the reader returned.
+                const lit = isInt ? /^&\[\s*Value::Int\((-?\d+)\)\s*\]$/.exec(def) : /^&\[\s*Value::Float\((-?\d+\.\d+)\)\s*\]$/.exec(def);
+                const native = lit === null ? undefined : this.nativeScalarUses(masked, name, acc);
+                if (native === undefined) continue;
+                rewrites.push({
+                    start: m.index,
+                    end: stmtEnd,
+                    text: `${content.slice(m.index, callOpen).replace(': Value =', `: ${acc} =`)}`
+                        + `${content.slice(callOpen, callClose)}.as_${acc}().unwrap_or(${lit![1]})${content.slice(callClose, stmtEnd)}`,
+                });
+                for (const sp of native) rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
+                continue;
+            }
             rewrites.push({
                 start: m.index,
                 end: stmtEnd,
@@ -10187,6 +10202,38 @@ export class RustTranspilerBuilder {
         return out;
     }
 
+
+    /**
+     * The edits that make every use of a bare `i64` / `f64` local `name` in `masked` (its fn body
+     * after the declaration) native, or undefined when one use is not covered: `X.as_f64()` is
+     * `Some(X as f64)`, a literal write stays a literal, and a by-value or `&` Value operand
+     * (call arg, slice element, match operand, `return`, assignment source) re-boxes through
+     * `Value::from`. `i64`/`f64` are `Copy`, so no use moves the local.
+     */
+    nativeScalarUses(masked: string, name: string, acc: string): Array<{ start: number, end: number, text: string }> | undefined {
+        const out: Array<{ start: number, end: number, text: string }> = [];
+        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
+        const litRe = acc === 'i64' ? /^\s*=\s*Value::Int\((-?\d+)\);/ : /^\s*=\s*Value::Float\((-?\d+\.\d+)\);/;
+        let u: RegExpExecArray | null;
+        while ((u = useRe.exec(masked)) !== null) {
+            const at = u.index; const end = at + name.length;
+            const before = masked.slice(Math.max(0, at - 40), at); const after = masked.slice(end, end + 60);
+            let g: RegExpExecArray | null;
+            if (/^\.as_f64\(\)/.test(after)) {
+                out.push({ start: at, end: end + '.as_f64()'.length, text: acc === 'i64' ? `Some(${name} as f64)` : `Some(${name})` });
+            } else if ((g = /^\s*=(?!=)/.exec(after)) !== null && !/[!<>=&|+\-*/]\s*$/.test(before)) {
+                const w = litRe.exec(after);
+                if (w === null) return undefined;
+                out.push({ start: end, end: end + w[0].length, text: ` = ${w[1]};` });
+            } else if (/(?:[(,\[]\s*&?\(?|\breturn\s+|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
+                && (g = /^(\.clone\(\))?(?=\)?\s*[,)\];])/.exec(after)) !== null) {
+                out.push({ start: at, end: end + g[0].length, text: `Value::from(${name})` });
+            } else {
+                return undefined;
+            }
+        }
+        return out.length > 0 ? out : undefined;
+    }
 
     /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
