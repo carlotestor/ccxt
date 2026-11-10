@@ -5541,7 +5541,8 @@ function strLocalReassign(content: string): string {
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
                 } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
-                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length) {
+                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length
+                    && !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(rhsMasked)) {
                     // `format!` already yields the `String` payload.
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${rhsRaw.slice('Value::Str('.length, -'.into())'.length)})` });
                 } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
