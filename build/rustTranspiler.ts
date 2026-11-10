@@ -5523,6 +5523,9 @@ function strLocalReassign(content: string): string {
         if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
         const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
         const edits: Edit[] = [declEdit];
+        // A nil-declared local joins to `Option<String>` or `Option<bool>` by its writes and reads.
+        let kind: string | undefined = nilDecl ? undefined : 'str';
+        const join = (k: string): boolean => { if (kind !== undefined && kind !== k) return false; kind = k; return true; };
         let assigned = 0; let ok = true; let u: RegExpExecArray | null;
         while ((u = useRe.exec(body)) !== null) {
             const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
@@ -5538,15 +5541,18 @@ function strLocalReassign(content: string): string {
                 let lit: RegExpExecArray | null; let call: RegExpExecArray | null;
                 if (rhsMasked === 'Value::Null') {
                     edits.push({ start: rhsStart, end: rhsStart + 'Value::Null'.length, text: 'None' });
-                } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
+                } else if (rhsMasked.startsWith('Value::Bool(') && closeParen(rhsMasked, 'Value::Bool'.length) === rhsMasked.length) {
+                    if (!join('bool')) { ok = false; break; }
+                    edits.push({ start: rhsStart, end: rhsStart + 'Value::Bool('.length, text: 'Some(' });
+                } else if ((lit = strLitRe.exec(rhsRaw)) !== null && join('str')) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
                 } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
-                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length) {
+                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length && join('str')) {
                     // `format!` already yields the `String` payload; only the box ends change.
                     const rawEnd = rhsStart + rhsRaw.length;
                     edits.push({ start: rhsStart, end: rhsStart + 'Value::Str('.length, text: 'Some(' });
                     edits.push({ start: rawEnd - '.into())'.length, end: rawEnd, text: ')' });
-                } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
+                } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null && join('str')) {
                     const open = rhsStart + call[0].length - 1;
                     const close = closeParen(masked, open);
                     if (close < 0 || masked.slice(close, rhsEnd).trim() !== '') { ok = false; break; }
@@ -5560,8 +5566,11 @@ function strLocalReassign(content: string): string {
             }
             if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
+            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null && join('str')) {
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
+            } else if ((g = /^\.as_bool\(\)/.exec(after)) !== null && join('bool')) {
+                // `Option<bool>` is the same value `Value::as_bool()` gave.
+                edits.push({ start: abs, end: abs + name.length + g[0].length, text: name });
             // eslint-disable-next-line no-useless-escape
             } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
                 && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
@@ -5573,6 +5582,7 @@ function strLocalReassign(content: string): string {
             } else { ok = false; break; }
         }
         if (!ok || assigned === 0) continue;
+        if (kind === 'bool') declEdit.text = `${m[1]}let mut ${name}: Option<bool> = None`;
         const declText = `${m[1]}let mut ${name}: Option<String> = `;
         const all: Edit[] = nilDecl ? edits : [{ start: m.index, end: m.index + m[0].length - `self.${fam}(`.length, text: declText }, ...edits];
         const lineGrow = new Map<number, number>();
