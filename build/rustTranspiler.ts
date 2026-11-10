@@ -6700,8 +6700,8 @@ function rustStr2LocalOptionString(content: string): string {
  * another expression) keeps `Value`.
  */
 function rustStrLiteralLocalNativeString(content: string): string {
-    const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);[ \t]*$/gm;
-    const litWriteRe = /^\s*=\s*Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);/;
+    type Edit = { start: number, end: number, text: string };
+    const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (?=Value::Str\()/gm;
     // Blank string bodies and line comments; same length, quotes kept.
     const maskText = (src: string): string => {
         let out = ''; let i = 0;
@@ -6756,6 +6756,25 @@ function rustStrLiteralLocalNativeString(content: string): string {
         return out;
     };
 
+    // `Value::Str("lit".into())` / `Value::Str(format!(..).into())` at `at` (masked text): the
+    // spans to strip so the bare `String` remains (`"lit".to_string()` / `format!(..)`), or null.
+    const strBox = (src: string, at: number): { end: number, cuts: Edit[] } | null => {
+        if (!src.startsWith('Value::Str(', at)) return null;
+        const open = at + 'Value::Str'.length;
+        const close = closeParen(src, open);
+        if (close < 0 || !/^\s*;/.test(src.slice(close))) return null;
+        const inner = src.slice(open + 1, close - 1);
+        const lit = /^"[^"\n]*"\.(?:into|to_string)\(\)$/.exec(inner);
+        if (lit !== null) {
+            const q = inner.lastIndexOf('.');
+            return { end: close, cuts: [{ start: at, end: open + 1, text: '' }, { start: open + 1 + q, end: close, text: '.to_string()' }] };
+        }
+        if (inner.startsWith('format!(') && inner.endsWith('.into()') && closeParen(inner, 'format!'.length) === inner.length - '.into()'.length) {
+            return { end: close, cuts: [{ start: at, end: open + 1, text: '' }, { start: close - 1 - '.into()'.length, end: close, text: '' }] };
+        }
+        return null;
+    };
+
     // The re-box consumes the `String`: only a last use outside any loop may move it.
     const boxUse = (name: string, kept: string, after: string, used: number, body: string): string => {
         const later = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(used));
@@ -6765,15 +6784,14 @@ function rustStrLiteralLocalNativeString(content: string): string {
     };
 
     const masked = maskText(content);
-    type Edit = { start: number, end: number, text: string };
     const groups: Edit[][] = [];
     const grown = new Map<number, number>();
     let m: RegExpExecArray | null;
     while ((m = declRe.exec(masked)) !== null) {
         const name = m[2];
-        const stmtEnd = m.index + m[0].length;
-        const lit = /Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);/.exec(content.slice(m.index, stmtEnd));
-        if (lit === null) continue;
+        const init = strBox(masked, m.index + m[0].length);
+        if (init === null) continue;
+        const stmtEnd = init.end + /^\s*;/.exec(masked.slice(init.end))![0].length;
         const end = braceEnd(masked, stmtEnd);
         const body = masked.slice(stmtEnd, end);
         if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
@@ -6796,10 +6814,10 @@ function rustStrLiteralLocalNativeString(content: string): string {
             const before = body.slice(0, at);
             let g: RegExpExecArray | null;
             // 1. A write: only another literal.
-            if ((g = /^\s*=(?!=)/.exec(after)) !== null && !/[!<>=&|]\s*$/.test(before)) {
-                const w = litWriteRe.exec(content.slice(abs + name.length));
+            if ((g = /^\s*=(?!=)\s*/.exec(after)) !== null && !/[!<>=&|]\s*$/.test(before)) {
+                const w = strBox(masked, abs + name.length + g[0].length);
                 if (w === null) { ok = false; break; }
-                edits.push({ start: abs + name.length, end: abs + name.length + w[0].length, text: ` = ${w[1]}.to_string();` });
+                edits.push(...w.cuts);
                 continue;
             }
             // 2. A whole `format!` slot (not a `{:?}` sink): `String` prints the same text.
@@ -6817,6 +6835,12 @@ function rustStrLiteralLocalNativeString(content: string): string {
             if ((g = /^\.as_str\(\)/.exec(after)) !== null && !/&\s*$/.test(before)) {
                 // `Option<&str>` as the boxed accessor gave.
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: `Some(${name}.as_str())` });
+            } else if (/(?:[(,\[]\s*)&$/.test(before) && !/&\s*mut\s*&?$/.test(before) && !/crate::runtime::stringify_param\(&$/.test(before)
+                && /^\s*[,)\]]/.test(after)) {
+                // A `&Value` operand borrows a re-boxed clone: the same `Value::Str` the literal was.
+                edits.push({ start: abs, end: abs + name.length, text: `Value::from(${name}.clone())` });
+            } else if (/\breturn\s+$/.test(before) && /^\s*;/.test(after)) {
+                edits.push({ start: abs, end: abs + name.length, text: `Value::from(${name})` });
             } else if (/crate::runtime::stringify_param\(&$/.test(before) && /^\)/.test(after)) {
                 // The helper prints a `Str` as its text.
                 const from = abs - 'crate::runtime::stringify_param(&'.length;
@@ -6832,9 +6856,8 @@ function rustStrLiteralLocalNativeString(content: string): string {
         if (!ok) continue;
         // Every edit keeps its line at most 400 chars unless it was already longer.
         // keep a trailing `// comment` the declaration regex swallowed
-        const tail = content.slice(m.index + lit.index + lit[0].length, stmtEnd);
-        const declText = `${m[1]}let mut ${name}: String = ${lit[1]}.to_string();${tail}`;
-        const all: Edit[] = [{ start: m.index, end: stmtEnd, text: declText }, ...edits];
+        const declHead = m.index + m[0].length;
+        const all: Edit[] = [{ start: m.index, end: declHead, text: `${m[1]}let mut ${name}: String = ` }, ...init.cuts, ...edits];
         const lineGrow = new Map<number, number>();
         for (const e of all) {
             const ls = content.lastIndexOf('\n', e.start) + 1;
