@@ -5117,8 +5117,8 @@ function narrowStrNullLocals(content: string): string {
         const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
         if (obj.length === 0 || keyRaw.length === 0) continue;
         if (m[4].endsWith('_k') && !strKeyRe.test(keyRaw)) continue;
-        // Only a `Null` default maps to `None`.
-        if (defRaw !== '&[]') continue;
+        // A `Null` default maps to `None`; a string-literal default is the `Some` the `_opt` twin returns.
+        if (defRaw !== '&[]' && !/^&\[Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)\]$/.test(defRaw)) continue;
         cands.push({
             index: m.index, stmtEnd: callClose + tail[0].length, name: m[3],
             declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<String> = self.${opt}(${obj}, ${keyRaw}, ${defRaw});`,
