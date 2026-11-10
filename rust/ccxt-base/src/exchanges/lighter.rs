@@ -1501,13 +1501,13 @@ if _try_result.is_err() {
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOrderExpiry.clone(), "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOrderExpiry.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]);
-        let mut orderTypeNum: Value = Value::Null;
-        let mut timeInForceNum: Value = Value::Null;
+        let mut orderTypeNum: Option<i64> = None;
+        let mut timeInForceNum: Option<i64> = None;
         if matches!(&isMarketOrder, Value::Bool(true)) {
-            orderTypeNum = Value::Int(1);
-            timeInForceNum = Value::Int(0);
+            orderTypeNum = Some(1);
+            timeInForceNum = Some(0);
         }  else {
-            orderTypeNum = Value::Int(0);
+            orderTypeNum = Some(0);
         }
         if (orderSide.as_str() == Some("BUY")) {
             request.insert("is_ask".into(), Value::Int(0));
@@ -1515,15 +1515,15 @@ if _try_result.is_err() {
             request.insert("is_ask".into(), Value::Int(1));
         }
         if postOnly.as_bool() == Some(true) {
-            timeInForceNum = Value::Int(2);
+            timeInForceNum = Some(2);
             orderExpiry = Value::Int(-1);
         }  else {
             if !(matches!(&isMarketOrder, Value::Bool(true))) {
                 if (timeInForce.as_deref() == Some("ioc")) {
-                    timeInForceNum = Value::Int(0);
+                    timeInForceNum = Some(0);
                     orderExpiry = Value::Int(0);
                 }  else if (timeInForce.as_deref() == Some("gtt")) {
-                    timeInForceNum = Value::Int(1);
+                    timeInForceNum = Some(1);
                     orderExpiry = Value::Int(-1);
                 }
             }
@@ -1545,16 +1545,16 @@ if _try_result.is_err() {
             amountStr = self.number_to_string(amount.clone());
             if (stopLossPrice != Value::Null) {
                 if matches!(&isMarketOrder, Value::Bool(true)) {
-                    orderTypeNum = Value::Int(2);
+                    orderTypeNum = Some(2);
                 }  else {
-                    orderTypeNum = Value::Int(3);
+                    orderTypeNum = Some(3);
                 }
                 triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice);
             }  else if (takeProfitPrice.is_some()) {
                 if matches!(&isMarketOrder, Value::Bool(true)) {
-                    orderTypeNum = Value::Int(4);
+                    orderTypeNum = Some(4);
                 }  else {
-                    orderTypeNum = Value::Int(5);
+                    orderTypeNum = Some(5);
                 }
                 triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -1562,8 +1562,8 @@ if _try_result.is_err() {
             amountStr = self.amount_to_precision(symbol.clone(), amount);
         }
         request.insert("order_expiry".into(), orderExpiry);
-        request.insert("order_type".into(), orderTypeNum);
-        request.insert("time_in_force".into(), timeInForceNum);
+        request.insert("order_type".into(), Value::from(orderTypeNum));
+        request.insert("time_in_force".into(), Value::from(timeInForceNum));
         request.insert("reduce_only".into(), (if reduceOnly { Value::Int(1) } else { Value::Int(0) }));
         request.insert("client_order_index".into(), clientOrderId);
         request.insert("base_amount".into(), self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale)));
@@ -1712,10 +1712,10 @@ if _try_result.is_err() {
         if (self.safe_integer_k(order.clone(), "nonce", &[]) == Value::Null) {
             add_element_to_object(&mut order, &Value::Str("nonce".into()), self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[]).await);
         }
-        let mut txType: Value = Value::Null;
+        let mut txType: Option<String> = None;
         let mut txInfo: Value = Value::Null;
         if totalOrderRequests < ((2i64) as f64) {
-            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_order(signer.clone(), order.clone()).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_order(signer.clone(), order.clone()).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut signingPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1731,9 +1731,9 @@ if _try_result.is_err() {
                 signingPayload.insert("integrator_taker_fee".into(), self.safe_integer_k(order.clone(), "integrator_taker_fee", &[]));
                 signingPayload.insert("integrator_maker_fee".into(), self.safe_integer_k(order.clone(), "integrator_maker_fee", &[]));
             }
-            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_grouped_orders(signer, Value::Map(signingPayload)).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_grouped_orders(signer, Value::Map(signingPayload)).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
-        return Value::from(vec![txType, txInfo, order]);
+        return Value::from(vec![txType.clone().map(Value::from).unwrap_or(Value::Null), txInfo, order]);
 
     Value::Null
 }

@@ -1506,26 +1506,26 @@ impl Btse {
         if !(market).contract {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() supports contract markets only".into()))));
         }
-        let mut period: Value = Value::Null;
+        let mut period: Option<String> = None;
         let mut paramsPeriod: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("period".into()), &[]).as_array().cloned().unwrap_or_default(); period = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPeriod = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (period == Value::Null) {
-            period = Value::Str("7D".into());
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("period".into()), &[]).as_array().cloned().unwrap_or_default(); period = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPeriod = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (period.is_none()) {
+            period = Some("7D".to_string());
             if (since != Value::Null) {
                 let mut now: Value = self.milliseconds();
                 let mut twoWeeksAgo: Value = (match (&(now), &(Value::Int(1209600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 14 days in ms
                 let mut oneWeekAgo: Value = (match (&(now), &(Value::Int(604800000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 7 days in ms
                 if since.as_f64().unwrap_or(f64::NAN) < twoWeeksAgo.as_f64().unwrap_or(f64::NAN) {
-                    period = Value::Str("1M".into());
+                    period = Some("1M".to_string());
                 }  else if since.as_f64().unwrap_or(f64::NAN) < oneWeekAgo.as_f64().unwrap_or(f64::NAN) {
-                    period = Value::Str("2W".into());
+                    period = Some("2W".to_string());
                 }
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("period".to_string(), period);
+                m.insert("period".to_string(), period.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPeriod, Value::Str("fetchFundingRateHistory".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -2869,18 +2869,18 @@ impl Btse {
         }  else {
             if isConditionalOrder {
                 request.insert("orderType".into(), Value::Str("CONDITIONAL".into()));
-                let mut triggerOrderType: Value = Value::Null;
+                let mut triggerOrderType: Option<String> = None;
                 let mut triggerPriceToSend: Value = Value::Null;
                 if isStopLossOrder {
-                    triggerOrderType = Value::Str("STOP_LOSS".into());
+                    triggerOrderType = Some("STOP_LOSS".to_string());
                     if isLimitOrder {
-                        triggerOrderType = Value::Str("STOP_LOSS_LIMIT".into());
+                        triggerOrderType = Some("STOP_LOSS_LIMIT".to_string());
                     }
                     triggerPriceToSend = stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 }  else {
-                    triggerOrderType = Value::Str("TAKE_PROFIT".into());
+                    triggerOrderType = Some("TAKE_PROFIT".to_string());
                     if isLimitOrder {
-                        triggerOrderType = Value::Str("TAKE_PROFIT_LIMIT".into());
+                        triggerOrderType = Some("TAKE_PROFIT_LIMIT".to_string());
                     }
                     triggerPriceToSend = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
                     if (triggerPriceToSend == Value::Null) {
@@ -2890,7 +2890,7 @@ impl Btse {
                 if isLimitOrder {
                     request.insert("orderPrice".into(), self.price_to_precision(symbol.clone(), price.clone()));
                 }
-                request.insert("triggerOrderType".into(), triggerOrderType);
+                request.insert("triggerOrderType".into(), triggerOrderType.clone().map(Value::from).unwrap_or(Value::Null));
                 request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPriceToSend));
                 let mut triggerPriceType: Value = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]);
                 request.insert("triggerPriceType".into(), self.encode_trigger_price_type(triggerPriceType.clone()).map(Value::from).unwrap_or(Value::Null));
@@ -4902,7 +4902,7 @@ impl Btse {
                 m.insert("symbol".to_string(), symbol);
             m
         });
-        let mut longLeverage: Value = Value::Null;
+        let mut longLeverage: Option<i64> = None;
         let mut shortLeverage: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
         {
@@ -4914,17 +4914,17 @@ impl Btse {
             let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
             marginMode = self.safe_string_lower_k(entrty, "marginMode", &[]);
             if (positionDirection.as_deref() == Some("LONG")) {
-                longLeverage = Value::from(leverageValue);
+                longLeverage = leverageValue.clone();
             }  else if (positionDirection.as_deref() == Some("SHORT")) {
                 shortLeverage = Value::from(leverageValue);
             }  else if (positionDirection.is_none()) {
-                longLeverage = Value::from(leverageValue);
+                longLeverage = leverageValue.clone();
                 shortLeverage = Value::from(leverageValue);
             }
         }
         }
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginMode); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("longLeverage".into(), longLeverage); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("longLeverage".into(), Value::from(longLeverage)); }
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("shortLeverage".into(), shortLeverage); }
         return result;
         Value::Null

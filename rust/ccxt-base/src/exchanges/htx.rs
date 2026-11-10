@@ -12735,21 +12735,21 @@ impl Htx {
             let mut networkId: Option<String> = self.safe_string_k(chainEntry.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut withdrawFeeType: Option<String> = self.safe_string_k(chainEntry.clone(), "withdrawFeeType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut withdrawFee: Value = Value::Null;
+            let mut withdrawFee: Option<f64> = None;
             let mut withdrawResult: Value = Value::Null;
             if (withdrawFeeType.as_deref() == Some("fixed")) {
-                withdrawFee = self.safe_number_k(chainEntry.clone(), "transactFeeWithdraw", &[]);
+                withdrawFee = self.safe_number_k(chainEntry.clone(), "transactFeeWithdraw", &[]).as_f64();
                 withdrawResult = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("fee".to_string(), withdrawFee.clone());
+                        m.insert("fee".to_string(), Value::from(withdrawFee));
                         m.insert("percentage".to_string(), Value::Bool(false));
                     m
                 });
             }  else {
-                withdrawFee = self.safe_number_k(chainEntry, "transactFeeRateWithdraw", &[]);
+                withdrawFee = self.safe_number_k(chainEntry, "transactFeeRateWithdraw", &[]).as_f64();
                 withdrawResult = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("fee".to_string(), withdrawFee);
+                        m.insert("fee".to_string(), Value::from(withdrawFee));
                         m.insert("percentage".to_string(), Value::Bool(true));
                     m
                 });

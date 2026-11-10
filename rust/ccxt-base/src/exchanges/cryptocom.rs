@@ -4070,19 +4070,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("margin".into()), &[]);
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut paramsMarginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(methodName, &[paramsOmitted]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (marginMode != Value::Null) {
-            if (marginMode.as_str() != Some("cross")) {
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(methodName, &[paramsOmitted]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (marginMode.is_some()) {
+            if (marginMode.as_deref() != Some("cross")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".into()))));
             }
         }  else {
             if (defaultType.as_deref() == Some("margin")) || isMargin {
-                marginMode = Value::Str("cross".into());
+                marginMode = Some("cross".to_string());
             }
         }
-        return Value::from(vec![marginMode, paramsMarginMode]);
+        return Value::from(vec![marginMode.clone().map(Value::from).unwrap_or(Value::Null), paramsMarginMode]);
 
     Value::Null
 }

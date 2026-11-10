@@ -2945,7 +2945,7 @@ impl Phemex {
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = Value::Null;
         let mut feeRateString: Value = Value::Null;
-        let mut feeCurrencyCode: Value = Value::Null;
+        let mut feeCurrencyCode: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2992,12 +2992,12 @@ impl Phemex {
                 feeRateString = self.safe_string_k(trade.clone(), "feeRateRr", &[]);
                 if (feeCostString != Value::Null) {
                     let mut currencyId: Option<String> = self.safe_string_k(trade.clone(), "currency", &[]).as_str().map(str::to_owned);
-                    feeCurrencyCode = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                    feeCurrencyCode = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 }  else {
                     let mut ptFeeRv: Value = self.omit_zero(self.safe_string_k(trade.clone(), "ptFeeRv", &[]));
                     if (ptFeeRv != Value::Null) {
                         feeCostString = ptFeeRv;
-                        feeCurrencyCode = Value::Str("PT".into());
+                        feeCurrencyCode = Some("PT".to_string());
                     }
                 }
             }  else {
@@ -3015,18 +3015,18 @@ impl Phemex {
                 if (feeCostString != Value::Null) {
                     feeRateString = self.from_er(self.safe_string_k(trade.clone(), "feeRateEr", &[]), &[marketResolved.clone()]);
                     if matches!(self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-                        feeCurrencyCode = self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]);
+                        feeCurrencyCode = self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]).as_str().map(str::to_owned);
                     }  else {
                         let mut info: Value = self.safe_dict_k(marketResolved.clone(), "info", &[]);
                         if (info != Value::Null) {
                             let mut settlementCurrencyId: Option<String> = self.safe_string_k(info, "settlementCurrency", &[]).as_str().map(str::to_owned);
-                            feeCurrencyCode = self.safe_currency_code(settlementCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                            feeCurrencyCode = self.safe_currency_code(settlementCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                         }
                     }
                 }  else {
                     feeCostString = self.safe_string_k(trade.clone(), "ptFeeRv", &[]);
                     if (feeCostString != Value::Null) {
-                        feeCurrencyCode = Value::Str("PT".into());
+                        feeCurrencyCode = Some("PT".to_string());
                     }
                 }
             }
@@ -3034,7 +3034,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString);
                     m.insert("rate".to_string(), feeRateString);
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }
@@ -5235,23 +5235,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut code: Value = self.safe_string2(params.clone(), Value::Str("currency".into()), Value::Str("code".into()), &[Value::Str("USDT".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("currency".into()), Value::Str("code".into())]), &[]);
         let mut paramsSettle: Value = paramsOmitted.clone();
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut firstSymbol: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(0), &[]);
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
+            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]).as_str().map(str::to_owned);
             code = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
         }  else {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositions".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsSettle]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isUSDTSettled: bool = settle.as_str() == Some("USDT");
+        let mut isUSDTSettled: bool = settle.as_deref() == Some("USDT");
         if isUSDTSettled {
             code = Value::Str("USDT".into());
-        }  else if (settle.as_str() == Some("BTC")) {
+        }  else if (settle.as_deref() == Some("BTC")) {
             code = Value::Str("BTC".into());
         }  else if (code == Value::Null) {
             code = (if (subType.as_deref() == Some("linear")) { Value::Str("USD".into()) } else { Value::Str("BTC".into()) });
@@ -7311,23 +7311,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut code: Value = self.safe_string2(params.clone(), Value::Str("currency".into()), Value::Str("code".into()), &[Value::Str("USDT".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("currency".into()), Value::Str("code".into())]), &[]);
         let mut paramsSettle: Value = paramsOmitted.clone();
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut firstSymbol: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(0), &[]);
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
+            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]).as_str().map(str::to_owned);
             code = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
         }  else {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsADLRank".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsSettle]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isUSDTSettled: bool = settle.as_str() == Some("USDT");
+        let mut isUSDTSettled: bool = settle.as_deref() == Some("USDT");
         if isUSDTSettled {
             code = Value::Str("USDT".into());
-        }  else if (settle.as_str() == Some("BTC")) {
+        }  else if (settle.as_deref() == Some("BTC")) {
             code = Value::Str("BTC".into());
         }  else if (code == Value::Null) {
             code = (if (subType.as_deref() == Some("linear")) { Value::Str("USD".into()) } else { Value::Str("BTC".into()) });

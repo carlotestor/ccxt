@@ -5836,10 +5836,10 @@ impl Kucoin {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut networkCode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(paramsRequest.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (networkCode != Value::Null) {
-            let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]);
+        let mut networkCode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(paramsRequest.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (networkCode.is_some()) {
+            let mut _netIdTmp: Value = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]);
             if (_netIdTmp != Value::Null) {
                 request.insert("chain".into(), (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
             }
@@ -5988,10 +5988,10 @@ impl Kucoin {
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchDepositAddressesByNetwork".into()), Value::Str("uta".into()), &[uta.clone()]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if uta.as_bool() == Some(true) {
-            let mut networkCode: Value = Value::Null;
-            { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(paramsRequest.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if (networkCode != Value::Null) {
-                let mut _netIdTmp: Value = self.network_code_to_id(networkCode, &[code]);
+            let mut networkCode: Option<String> = None;
+            { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(paramsRequest.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (networkCode.is_some()) {
+                let mut _netIdTmp: Value = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code]);
                 if (_netIdTmp != Value::Null) {
                     request.insert("chain".into(), (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
                 }
@@ -8684,14 +8684,14 @@ impl Kucoin {
         if uta.as_bool() == Some(true) {
             return self.fetch_uta_order(id.clone(), &[symbol.clone(), paramsOmitted.clone()]).await;
         }
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         if (symbol == Value::Null) {
-            { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[Value::Null, paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[Value::Null, paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            marketType = Value::from((market).market_type.clone());
+            marketType = Value::from((market).market_type.clone()).as_str().map(str::to_owned);
         }
-        if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
+        if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             return self.fetch_spot_order(id.clone(), &[symbol.clone(), paramsOmitted.clone()]).await;
         }  else {
             return self.fetch_contract_order(id, &[symbol, paramsOmitted]).await;
@@ -9609,24 +9609,24 @@ impl Kucoin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut paramsRequest: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("fetchMyTrades".into()), Value::Str("uta".into()), &[uta.clone()]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsRequest.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marketType".to_string(), marketType.clone());
+                    m.insert("marketType".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             })]);
             return self.fetch_my_uta_trades(&[symbol.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }
-        if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
+        if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             return self.fetch_my_spot_trades(&[symbol.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }  else {
             return self.fetch_my_contract_trades(&[symbol, since, limit, paramsRequest]).await;
@@ -13557,10 +13557,10 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         let mut paramsRequest: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("setLeverage".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (symbol != Value::Null) || ((marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("margin"))) {
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("setLeverage".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (symbol != Value::Null) || ((marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"))) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol argument for contract markets".into()))));
             }
@@ -13574,8 +13574,8 @@ if _try_result.is_err() {
                 m.insert("leverage".to_string(), self.number_to_string(leverage));
             m
         });
-        let mut marginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[paramsRequest.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut marginMode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[paramsRequest.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("setLeverage".into()), Value::Str("uta".into()), &[uta.clone()]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Map({
@@ -13583,29 +13583,29 @@ if _try_result.is_err() {
             m
         });
         if uta.as_bool() == Some(true) {
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unified trading account does not support isolated margin".into()))));
             }
             request.insert("accountMode".into(), Value::Str("unified".into()));
-            let mut code: Value = Value::Null;
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsRequest.clone(), Value::Str("setLeverage".into()), Value::Str("currency".into()), Value::Str("code".into()), &[]).as_array().cloned().unwrap_or_default(); code = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if (code == Value::Null) {
+            let mut code: Option<String> = None;
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsRequest.clone(), Value::Str("setLeverage".into()), Value::Str("currency".into()), Value::Str("code".into()), &[]).as_array().cloned().unwrap_or_default(); code = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (code.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a currency code in the params[\"code\"] for unified trading account".into()))));
             }
-            request.insert("currency".into(), self.currency_id(code));
+            request.insert("currency".into(), self.currency_id(code.clone().map(Value::from).unwrap_or(Value::Null)));
             let __ws_arg_126 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
             response = self.uta_private_post_account_mode_account_modify_leverage_margin_cross(&[__ws_arg_126]).await;
         }  else {
-            if (marginMode == Value::Null) {
+            if (marginMode.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a marginMode parameter".into()))));
             }
-            if (marginMode.as_str() == Some("isolated")) && (symbol == Value::Null) {
+            if (marginMode.as_deref() == Some("isolated")) && (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol parameter for isolated margin".into()))));
             }
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             }
-            request.insert("isIsolated".into(), (Value::Bool(marginMode.as_str() == Some("isolated"))));
+            request.insert("isIsolated".into(), (Value::Bool(marginMode.as_deref() == Some("isolated"))));
             let __ws_arg_127 = self.extend(Value::Map(request), &[paramsRequest]);
             response = self.private_post_position_update_user_leverage(&[__ws_arg_127]).await;
         }

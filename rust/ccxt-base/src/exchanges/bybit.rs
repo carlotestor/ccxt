@@ -6653,13 +6653,13 @@ impl Bybit {
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut isContract: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("tpslMode"));
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         if (market != Value::Null) {
-            marketType = self.safe_string_k(market.clone(), "type", &[]);
+            marketType = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         }  else {
-            marketType = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+            marketType = (if isContract { Some("contract".to_string()) } else { Some("spot".to_string()) });
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("createdTime".into()), Value::Str("createdAt".into()), &[]).as_i64();
         let mut marketUnit: Option<String> = self.safe_string_k(order.clone(), "marketUnit", &[]).as_str().map(str::to_owned); // '' is filtered by safeString, do not force a default:
@@ -6995,10 +6995,11 @@ impl Bybit {
         }  else {
             defaultMethod = Some("privatePostV5OrderCreate".to_string());
         }
-        let mut method: Value = Value::Null;
+        let mut method: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut endpointIsTradingStop: bool = method.as_str() == Some("privatePostV5PositionTradingStop");
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+            query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut endpointIsTradingStop: bool = method.as_deref() == Some("privatePostV5PositionTradingStop");
         if (price == Value::Null) && (lowerCaseType.as_str() == Some("limit")) && !endpointIsTradingStop {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a price argument for limit orders".into()))));
         }

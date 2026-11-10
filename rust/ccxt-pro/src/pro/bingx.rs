@@ -408,16 +408,16 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         let mut subType: Value = Value::Null;
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, &[market.clone(), query.clone(), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (marketType.as_str() == Some("swap")) {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
+        if (marketType.as_deref() == Some("swap")) {
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]).as_str().map(str::to_owned);
         }  else {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         let mut id: Value = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -447,7 +447,7 @@ impl Bingx {
             query = self.omit(query.clone(), Value::Str("symbolsAndTimeframes".into()), &[]);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[query]);
-        return self.watch(url, messageHash, &[__ws_arg_0, subscribeHash, Value::Map(subscription)]).await;
+        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[__ws_arg_0, subscribeHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -478,7 +478,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchTicker".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -486,9 +486,9 @@ impl Bingx {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketType.as_str() == Some("swap")) {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]).as_str().map(str::to_owned);
         }  else {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone(), &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone(), &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[Value::from((market).symbol.clone())]).map(Value::from).unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
@@ -508,7 +508,7 @@ impl Bingx {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsSubType]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), Value::Map(subscription)]).await;
+        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[__ws_arg_1, messageHash.clone(), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }

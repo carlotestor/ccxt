@@ -2207,19 +2207,19 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut depth: Value = Value::Null;
+        let mut depth: Option<String> = None;
         let mut paramsDepth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut limit: Value = self.safe_integer_k(paramsDepth, "limit", &[]);
         if (limit != Value::Null) {
             if (limit.as_f64() == Some(1.0)) {
-                depth = Value::Str("bbo-tbt".into());
+                depth = Some("bbo-tbt".to_string());
             }  else if limit.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) && limit.as_f64().unwrap_or(f64::NAN) <= ((5i64) as f64) {
-                depth = Value::Str("books5".into());
+                depth = Some("books5".to_string());
             }  else if (limit.as_f64() == Some(50.0)) {
-                depth = Value::Str("books50-l2-tbt".into()); // Make sure you have VIP4 and above
+                depth = Some("books50-l2-tbt".to_string()); // Make sure you have VIP4 and above
             }  else if (limit.as_f64() == Some(400.0)) {
-                depth = Value::Str("books".into());
+                depth = Some("books".to_string());
             }
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -2230,12 +2230,12 @@ impl Okx {
             let mut __for_first_544: bool = true;
             while { if !__for_first_544 { i += 1; } __for_first_544 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth, Value::Str(":".into())).into()), symbol).into()));
+            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); }
             let mut marketId: Option<String> = self.market_id(symbol).as_str().map(str::to_owned);
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("channel".to_string(), depth.clone());
+                    m.insert("channel".to_string(), depth.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("instId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -2248,7 +2248,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let mut url: Value = self.get_url(depth, &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url(depth.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
         return self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         Value::Null
         }).await?))

@@ -2623,22 +2623,22 @@ impl Deepcoin {
             let mut paramsMrgPosition: Value = mrgPositionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null);
             paramsRequest = paramsMrgPosition.clone();
             request.insert("mrgPosition".into(), mrgPosition);
-            let mut posSide: Value = Value::Null;
+            let mut posSide: Option<String> = None;
             let mut reduceOnly: bool = self.safe_bool_k(paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if reduceOnly {
                 if (side.as_str() == Some("buy")) {
-                    posSide = Value::Str("short".into());
+                    posSide = Some("short".to_string());
                 }  else if (side.as_str() == Some("sell")) {
-                    posSide = Value::Str("long".into());
+                    posSide = Some("long".to_string());
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    posSide = Value::Str("long".into());
+                    posSide = Some("long".to_string());
                 }  else if (side.as_str() == Some("sell")) {
-                    posSide = Value::Str("short".into());
+                    posSide = Some("short".to_string());
                 }
             }
-            request.insert("posSide".into(), posSide);
+            request.insert("posSide".into(), posSide.clone().map(Value::from).unwrap_or(Value::Null));
         }
         return self.extend(Value::Map(request), &[paramsRequest]);
 

@@ -1051,14 +1051,14 @@ impl Bithumb {
             }
             let mut code: Option<String> = self.safe_string_k(rawTrade.clone(), "code", &[]).as_str().map(str::to_owned);
             let mut isGenerationTwo: bool = code.is_some();
-            let mut fallbackSymbol: Value = Value::Null;
+            let mut fallbackSymbol: Option<String> = None;
             if isGenerationTwo {
-                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
+                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]).as_str().map(str::to_owned);
             }  else {
-                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
+                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]).as_str().map(str::to_owned);
             }
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
-            let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[fallbackSymbol]);
+            let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[fallbackSymbol.clone().map(Value::from).unwrap_or(Value::Null)]);
             if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCache::new(limit);
@@ -1160,13 +1160,13 @@ impl Bithumb {
         if (error != Value::Null) {
             let mut errorName: String = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
             let mut errorMessage: Value = self.safe_string_k(error, "message", &[Value::Str("".into())]);
-            let mut addedMessage: Value = Value::Null;
+            let mut addedMessage: Option<String> = None;
             if (((errorMessage.len() as i64) as f64) > ((0i64) as f64)) {
-                addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".into()), errorMessage).into()));
+                addedMessage = Some(format!("{}{}", Value::Str(" ".into()), errorMessage));
             }  else {
-                addedMessage = Value::Str("".into());
+                addedMessage = Some("".to_string());
             }
-            client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage)))]);
+            client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage.clone().map(Value::from).unwrap_or(Value::Null))))]);
             return Value::Bool(false);
         }
         if !(message.contains_key("status")) {

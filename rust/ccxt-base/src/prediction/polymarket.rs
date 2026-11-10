@@ -1554,7 +1554,7 @@ impl Polymarket {
                 }
                 let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), outcomeLabel.clone());
                 let mut winnerRaw: Value = Value::Null;
-                let mut settleFractionRaw: Value = Value::Null;
+                let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice != Value::Null) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
@@ -1562,17 +1562,17 @@ impl Polymarket {
                     // outcome-level fields undefined until a decisive price exists
                     if outcomePrice.as_f64().unwrap_or(f64::NAN) >= (0.99) {
                         winnerRaw = Value::Bool(true);
-                        settleFractionRaw = Value::Int(1);
+                        settleFractionRaw = Some(1);
                         resolvedOutcome = outcomeHandle.clone();
                     }  else if (0.01) >= outcomePrice.as_f64().unwrap_or(f64::NAN) {
                         winnerRaw = Value::Bool(false);
-                        settleFractionRaw = Value::Int(0);
+                        settleFractionRaw = Some(0);
                     }
                 }
                 // effectively-final copies: Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
                 let mut winner: Value = winnerRaw;
-                let mut settleFraction: Value = settleFractionRaw;
+                let mut settleFraction: Value = Value::from(settleFractionRaw);
                 outcomes.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("outcome".to_string(), outcomeHandle);

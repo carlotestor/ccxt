@@ -5110,19 +5110,19 @@ impl Bingx {
                     request.insert("takeProfit".into(), json_stringify(&Value::Map(tpRequest)));
                 }
             }
-            let mut positionSide: Value = Value::Null;
+            let mut positionSide: Option<String> = None;
             let mut hedged: bool = self.safe_bool_k(paramsTakeProfit.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             paramsOrder = (if hedged { self.omit(paramsTakeProfit.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsTakeProfit });
             if hedged {
                 if reduceOnly {
-                    positionSide = (if (side.as_str() == Some("buy")) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) });
+                    positionSide = (if (side.as_str() == Some("buy")) { Some("SHORT".to_string()) } else { Some("LONG".to_string()) });
                 }  else {
-                    positionSide = (if (side.as_str() == Some("buy")) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) });
+                    positionSide = (if (side.as_str() == Some("buy")) { Some("LONG".to_string()) } else { Some("SHORT".to_string()) });
                 }
             }  else {
-                positionSide = Value::Str("BOTH".into());
+                positionSide = Some("BOTH".to_string());
             }
-            request.insert("positionSide".into(), positionSide);
+            request.insert("positionSide".into(), positionSide.clone().map(Value::from).unwrap_or(Value::Null));
             let mut closePosition: bool = self.safe_bool_k(paramsOrder.clone(), "closePosition", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (cost.is_some()) {
                 request.insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));

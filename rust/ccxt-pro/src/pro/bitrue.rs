@@ -678,18 +678,18 @@ impl Bitrue {
         })]).as_map().cloned().unwrap_or_default();
         let mut url: Value = Value::Null;
         let mut channel: Option<String> = None;
-        let mut cbId: Value = Value::Null;
+        let mut cbId: Option<String> = None;
         if (market).swap {
             let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
-            cbId = Value::from(wsId);
+            cbId = Some(wsId);
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
             let mut marketIdLowercase: String = self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
-            cbId = Value::from(marketIdLowercase);
+            cbId = Some(marketIdLowercase);
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -697,7 +697,7 @@ impl Bitrue {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), cbId);
+        m.insert("cb_id".to_string(), cbId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("channel".to_string(), channel.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));

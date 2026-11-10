@@ -1425,7 +1425,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut type_var: Value = Value::Null;
         let mut market: Option<crate::types::Market> = None;
-        let mut messageHash: Value = Value::Null;
+        let mut messageHash: Option<String> = None;
         let mut channel: Value = Value::Null;
         let mut trades: Value = Value::Null;
         let mut subType: Value = Value::Null;
@@ -1453,12 +1453,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut mode: Value = self.safe_string2(self.options.clone(), Value::Str("watchMyTrades".into()), Value::Str("mode".into()), &[Value::Str("0".into())]);
             mode = self.safe_string_k(paramsRequest.clone(), "mode", &[mode.clone()]);
             paramsRequest = self.omit(paramsRequest.clone(), Value::Str("mode".into()), &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "lowercaseId", &[Value::Str("*".into())])).into()), Value::Str("#".into())).into()), mode).into());
-            channel = messageHash.clone();
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "lowercaseId", &[Value::Str("*".into())])).into()), Value::Str("#".into())).into()), mode));
+            channel = messageHash.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if isV5Linear {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("trade".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsRequest.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
-            messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
+            messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             paramsRequest = self.safe_dict(channelAndMessageHashAndParams, Value::Int(2), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1470,7 +1470,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // we will take advantage of the order messageHash because already handles stuff
             // like symbol/margin/subtype/type variations
             if (orderMessageHash.is_some()) {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", orderMessageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), Value::Str("trade".into())).into());
+                messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", orderMessageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), Value::Str("trade".into())));
             }
         }
         let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
@@ -1478,7 +1478,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        trades = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
+        trades = self.subscribe_private(channel, messageHash.clone().map(Value::from).unwrap_or(Value::Null), type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
         if (trades == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() trades is required".into()))));
         }
@@ -1627,15 +1627,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut swap: bool = type_var.as_str() == Some("swap");
         let mut future: bool = type_var.as_str() == Some("future");
         let mut isV5Linear: bool = linear && (swap || future);
-        let mut messageHash: Value = Value::Null;
+        let mut messageHash: Option<String> = None;
         let mut channel: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("#".into())).into()), self.safe_string_k(market.clone(), "lowercaseId", &[Value::Str("*".into())])).into());
-            channel = messageHash.clone();
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("#".into())).into()), self.safe_string_k(market.clone(), "lowercaseId", &[Value::Str("*".into())])));
+            channel = messageHash.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if isV5Linear {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("orders".into()), &[market.clone(), paramsRequest.clone()]);
             channel = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(0), &[]);
-            messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]);
+            messageHash = self.safe_string(channelAndMessageHashAndParams.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             paramsRequest = self.safe_dict(channelAndMessageHashAndParams, Value::Int(2), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1643,14 +1643,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             let mut channelAndMessageHash: Value = self.get_order_channel_and_message_hash(type_var.clone(), subType.clone(), &[market, paramsRequest.clone()]);
             channel = self.safe_string(channelAndMessageHash.clone(), Value::Int(0), &[]);
-            messageHash = self.safe_string(channelAndMessageHash, Value::Int(1), &[]);
+            messageHash = self.safe_string(channelAndMessageHash, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        let mut orders: Value = self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
+        let mut orders: Value = self.subscribe_private(channel, messageHash.clone().map(Value::from).unwrap_or(Value::Null), type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved, limit);

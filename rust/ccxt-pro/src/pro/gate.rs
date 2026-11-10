@@ -2356,10 +2356,10 @@ impl Gate {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into())).into());
         }
         let mut channel: String = format!("{}{}", typeId, Value::Str(".positions".into()));
-        let mut subType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
+        let mut subType: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut isInverse: bool = subType.as_deref() == Some("inverse");
+        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[Value::Bool(isInverse)]);
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), type_var.clone(), &[symbolsNormalized.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
@@ -2600,10 +2600,10 @@ impl Gate {
                 payload = Value::from(vec![mid]);
             }
         }
-        let mut subType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market, query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
+        let mut subType: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market, query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut isInverse: bool = subType.as_deref() == Some("inverse");
+        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[Value::Bool(isInverse)]);
         // uid required for non spot markets
         let mut requiresUid: Value = (Value::Bool(type_var.as_str() != Some("spot")));
         let mut orders: Value = self.subscribe_private(url, messageHash, payload, Value::from(channel), query, &[requiresUid]).await;
@@ -2788,14 +2788,14 @@ impl Gate {
                 m.insert("option".to_string(), Value::Str("options".into()));
             m
         })]);
-        let mut subType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyLiquidationsForSymbols".into()), &[market.clone(), query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var, &[isInverse.clone()]);
+        let mut subType: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyLiquidationsForSymbols".into()), &[market.clone(), query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut isInverse: bool = subType.as_deref() == Some("inverse");
+        let mut url: Value = self.get_url_by_market_type(type_var, &[Value::Bool(isInverse)]);
         let mut payload: Vec<Value> = Vec::new();
         let mut messageHash: String = "".to_string();
         if self.is_empty(symbolsNormalized.clone()).as_bool() == Some(true) {
-            if (typeId.as_str() != Some("futures")) && !(matches!(&isInverse, Value::Bool(true))) {
+            if (typeId.as_str() != Some("futures")) && !isInverse {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.".into()))));
             }
             messageHash = "myLiquidations".to_string();

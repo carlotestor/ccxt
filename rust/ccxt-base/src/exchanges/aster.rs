@@ -2640,14 +2640,14 @@ impl Aster {
         let mut high: Option<String> = self.safe_string_k(ticker.clone(), "highPrice", &[]).as_str().map(str::to_owned);
         let mut low: Option<String> = self.safe_string_k(ticker.clone(), "lowPrice", &[]).as_str().map(str::to_owned);
         let mut isTickerResponse: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("priceChange"));
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         if isTickerResponse {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset"))) { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset"))) { Some("spot".to_string()) } else { Some("swap".to_string()) });
         }  else {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId"))) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId"))) { Some("swap".to_string()) } else { Some("spot".to_string()) });
         }
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));

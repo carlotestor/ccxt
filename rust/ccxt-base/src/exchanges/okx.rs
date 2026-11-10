@@ -11681,14 +11681,15 @@ impl Okx {
         if (symbolsNormalized != Value::Null) {
             market = Some(match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         let mut paramsSubType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenInterests".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+            paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut instType: String = "SWAP".to_string();
-        if (marketType.as_str() == Some("future")) {
+        if (marketType.as_deref() == Some("future")) {
             instType = "FUTURES".to_string();
         }  else if (instType == "option") {
             instType = "OPTION".to_string();

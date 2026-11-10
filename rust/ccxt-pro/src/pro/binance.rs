@@ -206,6 +206,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_positions_ws" => crate::types::IntoRaw::into_raw(self.fetch_positions_ws(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_ticker_ws" => crate::types::IntoRaw::into_raw(self.fetch_ticker_ws(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades_ws" => crate::types::IntoRaw::into_raw(self.fetch_trades_ws(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "get_market_type" => self.get_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "get_stock_ws_url" => self.get_stock_ws_url(&args[..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -290,6 +291,7 @@ impl Binance {
             "fetch_positions_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_positions_ws", args.to_vec()); crate::Value::Null },
             "fetch_ticker_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.to_vec()); crate::Value::Null },
             "fetch_trades_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_trades_ws", args.to_vec()); crate::Value::Null },
+            "get_market_type" => self.get_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "get_stock_ws_url" => self.get_stock_ws_url(&args[..]),
             "handle_account_status_ws" => { self.handle_account_status_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_acount_update" => { self.handle_acount_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1591,7 +1593,7 @@ impl Binance {
         if (limit != Value::Null) {
             payload.insert("limit".into(), limit);
         }
-        let mut marketType: Value = self.get_market_type(Value::Str("fetchOrderBookWs".into()), (market).raw.clone(), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_market_type(Value::Str("fetchOrderBookWs".into()), (market).raw.clone(), &[params.clone()]);
         if (marketType.as_str() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBookWs only supports swap markets".into()))));
         }
@@ -2952,7 +2954,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchTickerWs".into()), (market).raw.clone(), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchTickerWs".into()), (market).raw.clone(), &[params.clone()]);
         if (type_var.as_str() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickerWs only supports swap markets".into()))));
         }
@@ -3034,7 +3036,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marketType: Value = self.get_market_type(Value::Str("fetchOHLCVWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_market_type(Value::Str("fetchOHLCVWs".into()), market, &[params.clone()]);
         if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCVWs only supports spot or swap markets".into()))));
         }
@@ -3975,13 +3977,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     pub fn handle_tickers_and_bids_asks(&mut self, mut client: Value, mut message: Value, mut methodType: Value) {
         let mut isBidAsk: bool = methodType.as_str() == Some("bidasks");
         let mut isMarkPrice: bool = methodType.as_str() == Some("markPrices");
-        let mut unifiedPrefix: Value = Value::Null;
+        let mut unifiedPrefix: Option<String> = None;
         if isBidAsk {
-            unifiedPrefix = Value::Str("bidask".into());
+            unifiedPrefix = Some("bidask".to_string());
         }  else if isMarkPrice {
-            unifiedPrefix = Value::Str("markPrice".into());
+            unifiedPrefix = Some("markPrice".to_string());
         }  else {
-            unifiedPrefix = Value::Str("ticker".into());
+            unifiedPrefix = Some("ticker".to_string());
         }
         let mut channelName: Value = Value::Null;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
@@ -4035,7 +4037,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
                 }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".into())).into()), channelName).into()), Value::Str("@".into())).into()), symbol).into());
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), channelName).into()), Value::Str("@".into())).into()), symbol).into());
             resolvedMessageHashes.push(messageHash.clone());
             client.resolve(&[parsedTicker, messageHash.clone()]);
         }
@@ -4043,7 +4045,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // resolve batch endpoint
         let mut length: f64 = ((resolvedMessageHashes.len() as i64) as f64);
         if length > ((0i64) as f64) {
-            let mut batchMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".into())).into()), channelName).into());
+            let mut batchMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("s:".into())).into()), channelName).into());
             client.resolve(&[Value::Map(newTickers), batchMessageHash]);
         }
 }
@@ -4738,7 +4740,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchBalanceWs".into()), Value::Null, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchBalanceWs".into()), Value::Null, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("linear")) && (type_var.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchBalanceWs only supports spot or swap markets".into()))));
         }
@@ -4932,7 +4934,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 payload.insert("symbol".into(), self.safe_value_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             }
         }
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchPositionsWs".into()), market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchPositionsWs".into()), market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), &[params.clone()]);
         if (symbolsNormalized == Value::Null) && (type_var.as_str() == Some("spot")) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
@@ -5300,24 +5302,26 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn get_market_type(&self, mut method: Value, mut market: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn get_market_type(&self, mut method: Value, mut market: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut paramsMarketType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut subType: Value = self.handle_sub_type_and_params(method, &[market, paramsMarketType]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        if self.parent.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            type_var = Value::Str("linear".into());
-        }  else if self.parent.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
-            type_var = Value::Str("inverse".into());
+        if self.parent.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool() == Some(true) {
+            type_var = Some("linear".to_string());
+        }  else if self.parent.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType]).as_bool() == Some(true) {
+            type_var = Some("inverse".to_string());
         }
-        return type_var.as_str().map(str::to_owned);
+        return type_var.map(Value::from).unwrap_or(Value::Null);
+
+    Value::Null
 }
 
 /*
@@ -5357,7 +5361,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketType: Value = self.get_market_type(Value::Str("createOrderWs".into()), (market).raw.clone(), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_market_type(Value::Str("createOrderWs".into()), (market).raw.clone(), &[params.clone()]);
         if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("linear")) && (marketType.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs only supports spot or swap markets".into()))));
         }
@@ -5569,7 +5573,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marketType: Value = self.get_market_type(Value::Str("editOrderWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut marketType: Value = self.get_market_type(Value::Str("editOrderWs".into()), market, &[params.clone()]);
         if (marketType.as_str() != Some("spot")) && (marketType.as_str() != Some("linear")) && (marketType.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrderWs only supports spot or swap markets".into()))));
         }
@@ -5772,7 +5776,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs requires a symbol".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: Value = self.get_market_type(Value::Str("cancelOrderWs".into()), (market).raw.clone(), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("cancelOrderWs".into()), (market).raw.clone(), &[params.clone()]);
         let mut wsApiUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5864,7 +5868,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("cancelAllOrdersWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("cancelAllOrdersWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs only supports spot markets".into()))));
         }
@@ -5943,7 +5947,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs requires a symbol".into()))));
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchOrderWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchOrderWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("linear")) && (type_var.as_str() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderWs only supports spot or swap markets".into()))));
         }
@@ -6032,7 +6036,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersWs requires a symbol".into()))));
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchOrdersWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchOrdersWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersWs only supports spot markets".into()))));
         }
@@ -6150,7 +6154,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchOpenOrdersWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchOpenOrdersWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrdersWs only supports spot markets".into()))));
         }
@@ -7007,16 +7011,16 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut type_var: Value = Value::Null;
-        let mut subType: Value = Value::Null;
+        let mut subType: Option<String> = None;
         let mut paramsAuth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.resolve_auth_type(Value::Str("watchPositions".into()), &[market, params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); subType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); paramsAuth = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.resolve_auth_type(Value::Str("watchPositions".into()), &[market, params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); subType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsAuth = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
         // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
-            type_var = (if (subType.as_str() == Some("inverse")) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) });
+            type_var = (if (subType.as_deref() == Some("inverse")) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) });
         }
         // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
@@ -7025,7 +7029,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         marketTypeObject.insert("type".into(), type_var.clone());
-        marketTypeObject.insert("subType".into(), subType);
+        marketTypeObject.insert("subType".into(), subType.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_34 = self.extend(Value::Map(marketTypeObject), &[paramsAuth.clone()]);
         self.authenticate(&[__ws_arg_34]).await;
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into()), messageHash);
@@ -7373,7 +7377,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTradesWs requires a symbol".into()))));
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchMyTradesWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchMyTradesWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTradesWs does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
         }
@@ -7463,7 +7467,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut type_var: Value = self.get_market_type(Value::Str("fetchTradesWs".into()), market, &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.get_market_type(Value::Str("fetchTradesWs".into()), market, &[params.clone()]);
         if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradesWs does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
         }

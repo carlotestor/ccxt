@@ -1575,17 +1575,17 @@ impl Predictfun {
             let mut outcomeHandle: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label).into());
             let mut winner: Option<bool> = None;
             let mut outcomeStatus: Option<String> = self.safe_string_k(rawOutcome.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut settleFractionRaw: Value = Value::Null;
+            let mut settleFractionRaw: Option<i64> = None;
             if (outcomeStatus.is_some()) {
                 winner = Some(outcomeStatus.as_deref() == Some("WON"));
                 if (winner == Some(true)) {
-                    settleFractionRaw = Value::Int(1);
+                    settleFractionRaw = Some(1);
                     resolvedOutcomeRaw = outcomeHandle.clone();
                 }  else {
-                    settleFractionRaw = Value::Int(0); // todo check
+                    settleFractionRaw = Some(0); // todo check
                 }
             }
-            let mut settleFraction: Value = settleFractionRaw;
+            let mut settleFraction: Value = Value::from(settleFractionRaw);
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));

@@ -2920,13 +2920,13 @@ impl Limitless {
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         let mut tradeWalletOption: Option<String> = self.safe_string_k(accountInfo.clone(), "tradeWalletOption", &[]).as_str().map(str::to_owned);
         let mut usesSmartWallet: bool = tradeWalletOption.as_deref() == Some("smartWallet");
-        let mut walletFromAccount: Value = Value::Null;
+        let mut walletFromAccount: Option<String> = None;
         if usesSmartWallet {
-            walletFromAccount = self.safe_string_k(accountInfo.clone(), "smartWallet", &[]);
+            walletFromAccount = self.safe_string_k(accountInfo.clone(), "smartWallet", &[]).as_str().map(str::to_owned);
         }  else {
-            walletFromAccount = self.safe_string_k(accountInfo.clone(), "account", &[]);
+            walletFromAccount = self.safe_string_k(accountInfo.clone(), "account", &[]).as_str().map(str::to_owned);
         }
-        let mut maker: Value = walletFromAccount;
+        let mut maker: Value = walletFromAccount.clone().map(Value::from).unwrap_or(Value::Null);
         if (self.walletAddress.as_str() != Some("")) {
             maker = self.walletAddress.clone();
         }

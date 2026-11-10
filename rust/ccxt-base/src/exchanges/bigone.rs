@@ -1765,41 +1765,41 @@ impl Bigone {
                 m.insert("info".to_string(), trade.clone());
             m
         });
-        let mut makerCurrencyCode: Value = Value::Null;
-        let mut takerCurrencyCode: Value = Value::Null;
+        let mut makerCurrencyCode: Option<String> = None;
+        let mut takerCurrencyCode: Option<String> = None;
         if (takerOrMaker != Value::Null) {
             if (side.as_str() == Some("buy")) {
                 if (takerOrMaker.as_str() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
+                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
+                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
                 }
             }  else {
                 if (takerOrMaker.as_str() == Some("maker")) {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
+                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
                 }  else {
-                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                    makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
+                    takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
                 }
             }
         }  else if (side.as_str() == Some("SELF_TRADING")) {
             if (takerSide.as_deref() == Some("BID")) {
-                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
-                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
+                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
+                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
             }  else if (takerSide.as_deref() == Some("ASK")) {
-                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
-                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+                makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]).as_str().map(str::to_owned);
+                takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
             }
         }
         let mut makerFeeCost: Option<String> = self.safe_string_k(trade.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
         let mut takerFeeCost: Option<String> = self.safe_string_k(trade, "taker_fee", &[]).as_str().map(str::to_owned);
         if (makerFeeCost.is_some()) {
-            let mut makerCode: Value = makerCurrencyCode;
+            let mut makerCode: Value = makerCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null);
             if (takerFeeCost.is_some()) {
-                let mut takerCode: Value = takerCurrencyCode.clone();
+                let mut takerCode: Value = takerCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null);
                 result.insert("fees".into(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1820,11 +1820,11 @@ impl Bigone {
 }));
             }
         }  else if (takerFeeCost.is_some()) {
-            let mut takerCode2: Value = takerCurrencyCode;
+            let mut takerCode2: Option<String> = takerCurrencyCode;
             result.insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), takerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), takerCode2);
+        m.insert("currency".to_string(), takerCode2.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
         }  else {

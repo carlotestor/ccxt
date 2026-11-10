@@ -3734,9 +3734,9 @@ impl Blofin {
         //   with 152002 "Invalid parameter" - see options["networks"]
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
-        let mut tagValue: Value = Value::Null;
+        let mut tagValue: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default(); tagValue = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default(); tagValue = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3750,7 +3750,7 @@ impl Blofin {
         request.insert("dest".into(), Value::from(dest.clone()));
         query = self.omit(query.clone(), Value::Str("dest".into()), &[]);
         if (dest == "onchain") {
-            self.check_address(&[address, code, tagValue.clone()]);
+            self.check_address(&[address, code, tagValue.clone().map(Value::from).unwrap_or(Value::Null)]);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -3758,17 +3758,17 @@ impl Blofin {
             request.insert("addrType".into(), self.safe_string_k(query.clone(), "addrType", &[Value::Str("1".into())]));
             query = self.omit(query.clone(), Value::Str("addrType".into()), &[]);
         }
-        if (tagValue != Value::Null) {
-            request.insert("tag".into(), tagValue);
+        if (tagValue.is_some()) {
+            request.insert("tag".into(), tagValue.clone().map(Value::from).unwrap_or(Value::Null));
         }
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
-        let mut networkCode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(query.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut networkCode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(query.clone()).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut chain: Option<String> = self.safe_string_k(query.clone(), "chain", &[]).as_str().map(str::to_owned);
         if (chain.is_none()) {
-            if (networkCode != Value::Null) {
-                request.insert("chain".into(), self.network_code_to_chain_id(networkCode, &[currency.clone()]));
+            if (networkCode.is_some()) {
+                request.insert("chain".into(), self.network_code_to_chain_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]));
             }  else if (dest == "onchain") {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals".into()))));
             }
@@ -4578,20 +4578,20 @@ impl Blofin {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverages() requires a symbols argument".into()))));
         }
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverages".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (marginMode == Value::Null) {
-            marginMode = self.safe_string_k(query.clone(), "marginMode", &[Value::Str("cross".into())]); // cross as default marginMode
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverages".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (marginMode.is_none()) {
+            marginMode = self.safe_string_k(query.clone(), "marginMode", &[Value::Str("cross".into())]).as_str().map(str::to_owned); // cross as default marginMode
         }
-        if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
+        if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverages() requires a marginMode parameter that must be either cross or isolated".into()))));
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::Str((self.market_ids(&[symbolsNormalized.clone()])).as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
-                m.insert("marginMode".to_string(), marginMode);
+                m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[query]);
@@ -4639,20 +4639,20 @@ impl Blofin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (marginMode == Value::Null) {
-            marginMode = self.safe_string_k(query.clone(), "marginMode", &[Value::Str("cross".into())]); // cross as default marginMode
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (marginMode.is_none()) {
+            marginMode = self.safe_string_k(query.clone(), "marginMode", &[Value::Str("cross".into())]).as_str().map(str::to_owned); // cross as default marginMode
         }
-        if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
+        if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
-                m.insert("marginMode".to_string(), marginMode);
+                m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[query]);

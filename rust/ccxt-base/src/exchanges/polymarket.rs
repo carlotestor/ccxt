@@ -3614,19 +3614,19 @@ impl Polymarket {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         let mut paramsOmitted: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[paramsOmitted.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut isCross: Value = (Value::Bool(marginMode.as_str() != Some("isolated")));
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[paramsOmitted.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut isCross: bool = marginMode.as_deref() != Some("isolated");
         let mut instrumentId: Value = self.parse_to_int(Value::from((market).id.clone()));
         let mut leverageInt: Value = self.parse_to_int(leverage);
-        let mut signable: Value = Value::from(vec![Value::Str("updateLeverage".into()), Value::from(vec![instrumentId.clone(), leverageInt.clone(), isCross.clone()])]);
+        let mut signable: Value = Value::from(vec![Value::Str("updateLeverage".into()), Value::from(vec![instrumentId.clone(), leverageInt.clone(), Value::Bool(isCross)])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
                 m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cross".to_string(), isCross);
+        m.insert("cross".to_string(), Value::Bool(isCross));
         m.insert("iid".to_string(), instrumentId);
         m.insert("lev".to_string(), leverageInt);
     m

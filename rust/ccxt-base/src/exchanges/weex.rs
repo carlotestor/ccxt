@@ -3434,7 +3434,7 @@ impl Weex {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time".into()))));
             }
             request.insert("clientAlgoId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut orderType: Value = Value::Null;
+            let mut orderType: Option<String> = None;
             if isStopLoss {
                 let mut stopLossPriceType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
                 if (stopLossPriceType.is_some()) {
@@ -3442,9 +3442,9 @@ impl Weex {
                 }
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), stopLossPrice)); }
                 if isMarketOrder {
-                    orderType = Value::Str("STOP_MARKET".into());
+                    orderType = Some("STOP_MARKET".to_string());
                 }  else {
-                    orderType = Value::Str("STOP".into());
+                    orderType = Some("STOP".to_string());
                 }
             }  else if isTakeProfit {
                 let mut takeProfitPriceType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
@@ -3453,12 +3453,12 @@ impl Weex {
                 }
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), takeProfitPrice)); }
                 if isMarketOrder {
-                    orderType = Value::Str("TAKE_PROFIT_MARKET".into());
+                    orderType = Some("TAKE_PROFIT_MARKET".to_string());
                 }  else {
-                    orderType = Value::Str("TAKE_PROFIT".into());
+                    orderType = Some("TAKE_PROFIT".to_string());
                 }
             }
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), orderType); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), orderType.clone().map(Value::from).unwrap_or(Value::Null)); }
         }  else {
             if !isMarketOrder && (timeInForce.is_none()) {
                 request.insert("timeInForce".into(), Value::Str("GTC".into()));

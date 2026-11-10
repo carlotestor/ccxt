@@ -3985,22 +3985,22 @@ impl Mexc {
         }
         let mut reduceOnly: bool = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut hedged: bool = self.safe_bool_k(paramsPostOnly.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut sideInteger: Value = Value::Null;
+        let mut sideInteger: Option<i64> = None;
         if hedged {
             if reduceOnly {
-                sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(4) } else { Value::Int(2) }); // close short, close long
+                sideInteger = (if (side.as_str() == Some("buy")) { Some(4) } else { Some(2) }); // close short, close long
             }  else {
-                sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(1) } else { Value::Int(3) });
+                sideInteger = (if (side.as_str() == Some("buy")) { Some(1) } else { Some(3) });
             }
             request.insert("positionMode".into(), Value::Int(1));
         }  else {
             if reduceOnly {
-                sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(2) } else { Value::Int(4) });
+                sideInteger = (if (side.as_str() == Some("buy")) { Some(2) } else { Some(4) });
             }  else {
-                sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(1) } else { Value::Int(3) });
+                sideInteger = (if (side.as_str() == Some("buy")) { Some(1) } else { Some(3) });
             }
         }
-        request.insert("side".into(), sideInteger);
+        request.insert("side".into(), Value::from(sideInteger));
         let mut paramsReduceOnly: Value = (if reduceOnly { self.omit(paramsPostOnly.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsPostOnly }); // hedged mode does not accept this parameter
         let mut clientOrderId: Option<String> = self.safe_string2(paramsReduceOnly.clone(), Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
@@ -5550,18 +5550,18 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Option<String> = self.safe_string_k(paramsMarketType.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(paramsMarketType.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted2: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (marginMode.is_some()) || isMargin || (marketType.as_str() == Some("margin")) {
+        if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;
             let mut symbol: Option<String> = self.safe_string_k_opt(paramsOmitted2.clone(), "symbol", &[]);
             if (symbol.is_none()) {
@@ -5575,21 +5575,21 @@ impl Mexc {
                 parsedSymbols = Value::from((market).id.clone());
             }
             self.check_required_argument(Value::Str("fetchBalance".into()), parsedSymbols.clone(), Value::Str("symbol or symbols".into()), &[]);
-            marketType = Value::Str("margin".into());
+            marketType = Some("margin".to_string());
             request.insert("symbols".into(), parsedSymbols);
             let mut paramsOmitted: Value = self.omit(paramsOmitted2.clone(), Value::from(vec![Value::Str("symbol".into()), Value::Str("symbols".into())]), &[]);
             let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
             response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await;
-        }  else if (marketType.as_str() == Some("spot")) {
+        }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
             response = self.spot_private_get_account(&[__ws_arg_38]).await;
-        }  else if (marketType.as_str() == Some("swap")) {
+        }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_39 = self.extend(Value::Map(request), &[paramsOmitted2]);
             response = self.contract_private_get_account_assets(&[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() not support this method".into()))));
         }
-        return self.custom_parse_balance(response, marketType);
+        return self.custom_parse_balance(response, marketType.clone().map(Value::from).unwrap_or(Value::Null));
         Value::Null
         }).await?))
     }

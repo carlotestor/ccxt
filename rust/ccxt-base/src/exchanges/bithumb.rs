@@ -2412,15 +2412,15 @@ impl Bithumb {
                 m.insert("market".to_string(), self.get_gen2_market_id(market).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut sideRequest: Value = Value::Null;
+        let mut sideRequest: Option<String> = None;
         if (side.as_str() == Some("buy")) {
-            sideRequest = Value::Str("bid".into());
+            sideRequest = Some("bid".to_string());
         }  else if (side.as_str() == Some("sell")) {
-            sideRequest = Value::Str("ask".into());
+            sideRequest = Some("ask".to_string());
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid side ".into())).into()), side)));
         }
-        request.insert("side".into(), sideRequest);
+        request.insert("side".into(), sideRequest.clone().map(Value::from).unwrap_or(Value::Null));
         let mut timeInForceRaw: Option<String> = self.safe_string2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = (if (timeInForceRaw.is_none()) { Some("GTC".to_string()) } else { timeInForceRaw.clone() });
         let mut paramsTimeInForce: Value = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) });
@@ -2444,9 +2444,9 @@ impl Bithumb {
             request.insert("volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             request.insert("order_type".into(), Value::Str("limit".into()));
         }  else {
-            let mut typeRequest: Value = Value::Null;
+            let mut typeRequest: Option<String> = None;
             if (side.as_str() == Some("buy")) {
-                typeRequest = Value::Str("price".into());
+                typeRequest = Some("price".to_string());
                 // for market buy it requires the amount of quote currency to spend
                 let mut costParam: Option<String> = self.safe_string_k(paramsOrder.clone(), "cost", &[]).as_str().map(str::to_owned);
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(self.omit(paramsOrder.clone(), Value::Str("cost".into()), &[]), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
@@ -2464,9 +2464,9 @@ impl Bithumb {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
             }  else {
                 request.insert("volume".into(), self.amount_to_precision(symbol, amount));
-                typeRequest = Value::Str("market".into());
+                typeRequest = Some("market".to_string());
             }
-            request.insert("order_type".into(), typeRequest);
+            request.insert("order_type".into(), typeRequest.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOrder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
@@ -2536,13 +2536,13 @@ impl Bithumb {
             request.insert("units".into(), self.amount_to_precision(symbol.clone(), amount));
             if (type_var.as_str() == Some("limit")) {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
-                let mut typeRequest: Value = Value::Null;
+                let mut typeRequest: Option<String> = None;
                 if (side.as_str() == Some("buy")) {
-                    typeRequest = Value::Str("bid".into());
+                    typeRequest = Some("bid".to_string());
                 }  else {
-                    typeRequest = Value::Str("ask".into());
+                    typeRequest = Some("ask".to_string());
                 }
-                request.insert("type".into(), typeRequest);
+                request.insert("type".into(), typeRequest.clone().map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 response = self.private_post_trade_place(&[__ws_arg_17]).await;
             }  else if (side.as_str() == Some("buy")) {
@@ -2663,13 +2663,13 @@ impl Bithumb {
         if (amount != Value::Null) {
             request.insert("volume".into(), self.amount_to_precision(symbol, amount)); // required for sale
         }
-        let mut sideRequest: Value = Value::Null;
+        let mut sideRequest: Option<String> = None;
         if (side.as_str() == Some("buy")) {
-            sideRequest = Value::Str("bid".into());
+            sideRequest = Some("bid".to_string());
         }  else {
-            sideRequest = Value::Str("ask".into());
+            sideRequest = Some("ask".to_string());
         }
-        request.insert("side".into(), sideRequest);
+        request.insert("side".into(), sideRequest.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_22 = self.extend(Value::Map(request), &[paramsGeneration]);
         let mut response: Value = self.private_post_v1_twap(&[__ws_arg_22]).await;
         return self.parse_order(response, &[market]);
@@ -3441,15 +3441,15 @@ impl Bithumb {
             if !side_in_params {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a `side` parameter (sell or buy)".into()))));
             }
-            let mut side: Value = Value::Null;
+            let mut side: Option<String> = None;
             if (self.safe_string_k(paramsRequest.clone(), "side", &[]).as_str() == Some("buy")) {
-                side = Value::Str("bid".into());
+                side = Some("bid".to_string());
             }  else {
-                side = Value::Str("ask".into());
+                side = Some("ask".to_string());
             }
             let mut paramsSide: Value = self.omit(paramsRequest, Value::Str("side".into()), &[]);
             // https://github.com/ccxt/ccxt/issues/6771
-            request.insert("type".into(), side);
+            request.insert("type".into(), side.clone().map(Value::from).unwrap_or(Value::Null));
             request.insert("order_currency".into(), base.clone().map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_32 = self.extend(Value::Map(request), &[paramsSide]);

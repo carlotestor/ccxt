@@ -4061,19 +4061,19 @@ impl Poloniex {
                 Value::Str(" currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })".into()))));
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut networkCode: Value = Value::Null;
+        let mut networkCode: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (networkCode == Value::Null) {
+        { let __destr_tmp: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default(); networkCode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
         let mut exchangeNetworkId: Value = Value::Null;
-        networkCode = self.network_id_to_code(&[networkCode.clone(), code.clone()]);
-        let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[]) });
+        networkCode = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
+        let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = self.safe_string_k(networkEntry.clone(), "id", &[]);
         }  else {
-            exchangeNetworkId = self.network_code_to_id(networkCode, &[code]);
+            exchangeNetworkId = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
