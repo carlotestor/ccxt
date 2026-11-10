@@ -2421,7 +2421,7 @@ impl Bitget {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut marketId: Option<String> = None;
+        let mut marketId: Value = Value::Null;
         let isTriggerparamsTriggerVariable: Vec<Value> = self.is_trigger_order(params).as_array().cloned().unwrap_or_default();
         let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2434,7 +2434,7 @@ impl Bitget {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]);
-            marketId = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]).as_str().map(str::to_owned);
+            marketId = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
         }
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsTrigger, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -2448,7 +2448,7 @@ impl Bitget {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved == Value::Null) {
-            marketId = Some("default".to_string());
+            marketId = Value::Str("default".into());
         }
         if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved == Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType);
@@ -2474,7 +2474,7 @@ impl Bitget {
         // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let mut instId: Value = Value::Str("default".into());
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
-            instId = marketId.clone().map(Value::from).unwrap_or(Value::Null);
+            instId = marketId;
         }
         let mut channel: String = "orders".to_string();
         if (isTrigger.as_bool() == Some(true)) {

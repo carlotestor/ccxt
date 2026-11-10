@@ -1712,10 +1712,10 @@ if _try_result.is_err() {
         if (self.safe_integer_k(order.clone(), "nonce", &[]) == Value::Null) {
             add_element_to_object(&mut order, &Value::Str("nonce".into()), self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[]).await);
         }
-        let mut txType: Option<String> = None;
+        let mut txType: Value = Value::Null;
         let mut txInfo: Value = Value::Null;
         if totalOrderRequests < ((2i64) as f64) {
-            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_order(signer.clone(), order.clone()).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_order(signer.clone(), order.clone()).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut signingPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1731,9 +1731,9 @@ if _try_result.is_err() {
                 signingPayload.insert("integrator_taker_fee".into(), self.safe_integer_k(order.clone(), "integrator_taker_fee", &[]));
                 signingPayload.insert("integrator_maker_fee".into(), self.safe_integer_k(order.clone(), "integrator_maker_fee", &[]));
             }
-            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_grouped_orders(signer, Value::Map(signingPayload)).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.lighter_sign_create_grouped_orders(signer, Value::Map(signingPayload)).as_array().cloned().unwrap_or_default(); txType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); txInfo = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
-        return Value::from(vec![txType.clone().map(Value::from).unwrap_or(Value::Null), txInfo, order]);
+        return Value::from(vec![txType, txInfo, order]);
 
     Value::Null
 }

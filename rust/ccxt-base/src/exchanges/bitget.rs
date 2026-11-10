@@ -15263,21 +15263,21 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut type_var: Option<String> = None;
+        let mut type_var: Value = Value::Null;
         let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTransfers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut fromAccount: Value = self.safe_string_k(paramsMarketType.clone(), "fromAccount", &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]);
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTransfers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut fromAccount: Value = self.safe_string_k(paramsMarketType.clone(), "fromAccount", &[type_var.clone()]);
         paramsMarketType = self.omit(paramsMarketType.clone(), Value::Str("fromAccount".into()), &[]);
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        type_var = self.safe_string(accountsByType, fromAccount, &[]).as_str().map(str::to_owned);
+        type_var = self.safe_string(accountsByType, fromAccount, &[]);
         let mut currency: Value = self.currency(code);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("fromType".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("fromType".to_string(), type_var);
             m
         });
         if (since != Value::Null) {

@@ -1051,14 +1051,14 @@ impl Bithumb {
             }
             let mut code: Option<String> = self.safe_string_k(rawTrade.clone(), "code", &[]).as_str().map(str::to_owned);
             let mut isGenerationTwo: bool = code.is_some();
-            let mut fallbackSymbol: Option<String> = None;
+            let mut fallbackSymbol: Value = Value::Null;
             if isGenerationTwo {
-                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]).as_str().map(str::to_owned);
+                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
             }  else {
-                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]).as_str().map(str::to_owned);
+                fallbackSymbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
             }
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
-            let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[fallbackSymbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[fallbackSymbol]);
             if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCache::new(limit);

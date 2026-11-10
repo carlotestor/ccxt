@@ -6653,13 +6653,13 @@ impl Bybit {
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut isContract: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("tpslMode"));
-        let mut marketType: Option<String> = None;
+        let mut marketType: Value = Value::Null;
         if (market != Value::Null) {
-            marketType = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }  else {
-            marketType = (if isContract { Some("contract".to_string()) } else { Some("spot".to_string()) });
+            marketType = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("createdTime".into()), Value::Str("createdAt".into()), &[]).as_i64();
         let mut marketUnit: Option<String> = self.safe_string_k(order.clone(), "marketUnit", &[]).as_str().map(str::to_owned); // '' is filtered by safeString, do not force a default:

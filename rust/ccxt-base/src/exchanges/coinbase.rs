@@ -5511,16 +5511,16 @@ if _try_result.is_err() {
         let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Value = (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut sinceString: Option<String> = None;
+        let mut sinceString: Value = Value::Null;
         if (since != Value::Null) {
-            sinceString = self.number_to_string(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))).as_str().map(str::to_owned);
+            sinceString = self.number_to_string(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }  else {
             let mut now: Value = Value::Str(format!("{}", self.seconds()).into());
-            sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
+            sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into()));
         }
-        request.insert("start".into(), sinceString.clone().map(Value::from).unwrap_or(Value::Null));
+        request.insert("start".into(), sinceString.clone());
         // 300 candles max
-        let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
+        let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
         if (until != Value::Null) {
             let mut endString: Value = self.number_to_string(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd.clone().map(Value::from).unwrap_or(Value::Null), &endString).as_bool() == Some(true) {
