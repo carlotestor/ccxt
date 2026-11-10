@@ -1639,7 +1639,7 @@ impl Hashkey {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), suffix);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
+        let mut active: bool = status.as_deref() == Some("TRADING");
         let mut isLinear: Option<bool> = None;
         let mut subType: Option<String> = None;
         let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
@@ -1708,7 +1708,7 @@ impl Hashkey {
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("type".to_string(), Value::from(marketType));
         m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));
@@ -3712,7 +3712,7 @@ impl Hashkey {
         }
         }
         let mut firstOrder: Value = self.safe_dict(Value::from(ordersRequests.clone()), Value::Int(0), &[]);
-        let mut firstSymbol: Option<String> = self.safe_string_k_opt(firstOrder, "symbol", &[]);
+        let mut firstSymbol: Option<String> = self.safe_string_k(firstOrder, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5122,13 +5122,13 @@ impl Hashkey {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() supports swap markets only".into()))));
         }
-        let mut sideParam: Option<String> = self.safe_string_k_opt(params.clone(), "side", &[]);
+        let mut sideParam: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut paramsSide: Value = self.omit(params, Value::Str("side".into()), &[]);
         if (sideParam.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str("Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"".into()))));
         }
-        let mut side: Value = (if let Some(__s) = sideParam.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (side.as_str() != Some("LONG")) && (side.as_str() != Some("SHORT")) {
+        let mut side: Option<String> = sideParam.as_deref().map(str::to_uppercase);
+        if (side.as_deref() != Some("LONG")) && (side.as_deref() != Some("SHORT")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str("Margin() params[\"side\"] must be either long or short".into()))));
         }
         let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
@@ -5138,7 +5138,7 @@ impl Hashkey {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("side".to_string(), side);
+                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });

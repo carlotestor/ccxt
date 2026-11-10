@@ -962,8 +962,8 @@ impl Upbit {
         // when state is trade the price and volume fields describe the fill, not the order:
         // fall back to the average fill price and let the order volume derive from filled + remaining
         let mut isTrade: bool = rawStatus.as_deref() == Some("trade");
-        let mut price: Value = (if isTrade { self.safe_string_k(order.clone(), "avg_price", &[]) } else { self.safe_string_k(order.clone(), "price", &[]) });
-        let mut amount: Value = (if isTrade { Value::Null } else { self.safe_string_k(order.clone(), "volume", &[]) });
+        let mut price: Option<String> = (if isTrade { self.safe_string_k(order.clone(), "avg_price", &[]).as_str().map(str::to_owned) } else { self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned) });
+        let mut amount: Option<String> = (if isTrade { None } else { self.safe_string_k(order.clone(), "volume", &[]).as_str().map(str::to_owned) });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -978,12 +978,12 @@ impl Upbit {
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "executed_funds", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_price", &[]));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "executed_volume", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order, "remaining_volume", &[]));
         m.insert("status".to_string(), status);

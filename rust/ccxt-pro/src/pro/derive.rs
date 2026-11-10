@@ -621,8 +621,8 @@ impl Derive {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
-            result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
+            let mut tickerSymbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(tickerSymbol, ticker);
             return Value::Map(result);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsResolved]);
@@ -1101,11 +1101,11 @@ impl Derive {
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
-        let mut messageHash: Value = Value::from(topic.clone());
+        let mut messageHash: String = topic.clone();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1124,7 +1124,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
-        let mut orders: Value = self.watch_private(messageHash, message, Value::Map(subscription)).await;
+        let mut orders: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1308,11 +1308,11 @@ impl Derive {
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
-        let mut messageHash: Value = Value::from(topic.clone());
+        let mut messageHash: String = topic.clone();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1331,7 +1331,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
-        let mut trades: Value = self.watch_private(messageHash, message, Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -1613,7 +1613,7 @@ impl Derive {
         let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
-        let mut side: Value = (if isShort.as_bool() == Some(true) { Value::Str("short".into()) } else { Value::Str("long".into()) });
+        let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
         let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&Value::from(newSize)).as_str().map(str::to_owned);
         let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey, &[]);
         let mut symbolPositions: Value = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
@@ -1631,14 +1631,14 @@ impl Derive {
                 cache.append(opposite);
             }
         }
-        let mut position: Value = self.safe_dict(symbolPositions, side.clone(), &[]);
+        let mut position: Value = self.safe_dict(symbolPositions, Value::from(side.clone()), &[]);
         if (position == Value::Null) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             let mut timestamp: Option<i64> = self.milliseconds().as_i64();
             position = self.safe_position(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(symbol));
-                    m.insert("side".to_string(), side.clone());
+                    m.insert("side".to_string(), Value::from(side.clone()));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                     m.insert("info".to_string(), entry.clone());
@@ -1646,7 +1646,7 @@ impl Derive {
             }));
         }
         add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
-        add_element_to_object(&mut position, &Value::Str("side".into()), side);
+        add_element_to_object(&mut position, &Value::Str("side".into()), Value::from(side));
         add_element_to_object(&mut position, &Value::Str("lastUpdateTimestamp".into()), self.milliseconds());
         add_element_to_object(&mut position, &Value::Str("info".into()), entry);
         cache.append(position.clone());
@@ -1699,8 +1699,8 @@ impl Derive {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut name: Value = self.safe_string_k(entry.clone(), "name", &[Value::Str("".into())]);
-            if name.as_str().unwrap_or("").contains("-") {
+            let mut name: String = self.safe_string_k(entry.clone(), "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positions.clone() != Value::Null) && (self.positions.as_map().is_some_and(|__m| subaccountIdKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                     let mut position: Value = self.handle_position_delta(subaccountIdKey.clone(), entry.clone());
@@ -1708,7 +1708,7 @@ impl Derive {
                 }
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(name, &[]);
+            let mut code: Value = self.safe_currency_code(Value::from(name), &[]);
             if (code == Value::Null) {
                 continue;
             }
@@ -1815,7 +1815,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
-            let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+            let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
             let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             let mut matched: bool = false;
@@ -1827,8 +1827,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut subscriptionId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
-                if (subscriptionId != Value::Null) && (subscriptionId == id) {
+                let mut subscriptionId: Option<String> = self.safe_string_k(subscription.clone(), "id", &[]).as_str().map(str::to_owned);
+                if (subscriptionId.is_some()) && (subscriptionId == id) {
                     matched = true;
                     let mut subscriptionMethod: Option<String> = self.safe_string_k(subscription, "method", &[]).as_str().map(str::to_owned);
                     if (subscriptionMethod.as_deref() == Some("public/login")) {

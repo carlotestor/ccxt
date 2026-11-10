@@ -712,7 +712,7 @@ impl Apex {
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(response.clone(), "availableBalance", &[]));
         account.insert("total".into(), self.safe_string_k(response, "totalEquityValue", &[]));
-        result.insert(code.clone(), Value::Map(account));
+        result.insert(code, Value::Map(account));
         return self.safe_balance(Value::Map(result));
 
     Value::Null
@@ -920,8 +920,8 @@ impl Apex {
     }
 
     pub fn parse_currency(&self, mut currency: Value) -> Value {
-        let mut currencyId: Value = self.safe_string_k(currency.clone(), "token", &[]);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(currency.clone(), "token", &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "displayName", &[]).as_str().map(str::to_owned);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -939,7 +939,7 @@ impl Apex {
                 let mut __for_first_225: bool = true;
                 while { if !__for_first_225 { f += 1; } __for_first_225 = false; f < (tokens.len() as i64) } {
                 let mut token: Value = self.safe_dict(tokens.clone().into(), Value::Int(f), &[]);
-                let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
+                let mut tokenName: Option<String> = self.safe_string_k(token.clone(), "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
                     let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -986,7 +986,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
         m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), currencyId);
+        m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("name".to_string(), name.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
@@ -1981,15 +1981,15 @@ impl Apex {
         let mut pricePrecision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
         let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &Value::from(taker.clone())), &self.number_to_string(pricePrecision.clone())), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
         let mut timeNow: Value = self.milliseconds();
-        let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
             orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) });
-            triggerPrice = stopLossPrice;
+            triggerPrice = stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if (takeProfitPrice.is_some()) {
             orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) });
-            triggerPrice = takeProfitPrice;
+            triggerPrice = takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut isMarket: bool = orderType.as_str() == Some("MARKET");
         if isMarket && (price == Value::Null) {
@@ -2027,8 +2027,8 @@ impl Apex {
                 m.insert("takerFeeRate".to_string(), Value::from(taker));
             m
         });
-        if (triggerPrice.is_some()) {
-            orderToSign.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+        if (triggerPrice != Value::Null) {
+            orderToSign.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), &[Value::Map(orderToSign)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2049,8 +2049,8 @@ impl Apex {
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6956".into())]));
             m
         });
-        if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+        if (triggerPrice != Value::Null) {
+            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice));
         }
         request.insert("signature".into(), signature);
         let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted3]);
@@ -2130,7 +2130,7 @@ impl Apex {
         if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
             nonce = self.safe_string_k(subAccounts.get(0).cloned().unwrap_or(Value::Null), "nonce", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         }
-        let mut finalNonce: Value = Value::from(nonce); // java req
+        let mut finalNonce: String = nonce; // java req
         let mut ethAddress: String = self.safe_string_k(accountData.clone(), "ethereumAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut accountId: String = self.safe_string_k(accountData, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut currency: Value = Value::Map({
@@ -2169,13 +2169,13 @@ impl Apex {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
-            let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32));
+            let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32)).as_str().map(str::to_owned);
             let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("zkAccountId".to_string(), zkSignAccountId);
+                    m.insert("zkAccountId".to_string(), zkSignAccountId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("receiverAddress".to_string(), Value::from(ethAddress.clone()));
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.clone()));
@@ -2227,7 +2227,7 @@ impl Apex {
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
                     m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
-                    m.insert("nonce".to_string(), finalNonce.clone());
+                    m.insert("nonce".to_string(), Value::from(finalNonce.clone()));
                     m.insert("timestampSeconds".to_string(), timestampSeconds.clone());
                 m
             });
@@ -2248,7 +2248,7 @@ impl Apex {
                     m.insert("receiverZkAccountId".to_string(), Value::from(receiverZkAccountId));
                     m.insert("receiverSubAccountId".to_string(), Value::from(receiverSubAccountId));
                     m.insert("receiverAddress".to_string(), Value::from(receiverAddress));
-                    m.insert("nonce".to_string(), finalNonce);
+                    m.insert("nonce".to_string(), Value::from(finalNonce));
                 m
             });
             let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
@@ -2905,7 +2905,7 @@ impl Apex {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("User-Agent".to_string(), Value::Str("apex-CCXT".into()));
@@ -2913,12 +2913,12 @@ impl Apex {
                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
             m
         });
-        let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
+        let mut signPath: String = format!("{}{}", Value::Str("/api/".into()), path);
         let mut signBody: Value = Value::Null;
         if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
+                signPath.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
             }
         }  else {
             let mut sortedQuery: Value = self.keysort(params, &[]);
@@ -2939,7 +2939,7 @@ impl Apex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), signBody);
         m.insert("headers".to_string(), Value::Map(headersValue));

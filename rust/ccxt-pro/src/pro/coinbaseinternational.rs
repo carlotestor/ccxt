@@ -2329,15 +2329,15 @@ impl Coinbaseinternational {
 }), limit]) }); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if !isGrouped && (type_var.as_deref() != Some("snapshot")) && (nonce == Value::Null) {
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+        if !isGrouped && (type_var.as_deref() != Some("snapshot")) && (nonce.is_none()) {
             return;
         }
         if isGrouped {
             orderbook.reset(self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         }  else {
-            let mut previousChangeId: Value = self.safe_integer_k(data.clone(), "prev_change_id", &[]);
-            if (type_var.as_deref() != Some("snapshot")) && (nonce != Value::Null) && (previousChangeId.as_f64() != nonce.as_f64()) {
+            let mut previousChangeId: Option<i64> = self.safe_integer_k(data.clone(), "prev_change_id", &[]).as_i64();
+            if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 if (__ch.has_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null))) {
@@ -2432,9 +2432,9 @@ impl Coinbaseinternational {
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            let mut requestId: Value = self.safe_string_k(message, "id", &[]);
-            let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
-            let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId });
+            let mut requestId: Option<String> = self.safe_string_k(message, "id", &[]).as_str().map(str::to_owned);
+            let mut authRequestId: Option<String> = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]).as_str().map(str::to_owned);
+            let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId.clone().map(Value::from).unwrap_or(Value::Null) });
             if (messageHash.as_str() == Some("authenticated")) && (__ch.has_subscription(&messageHash)) {
                 // allow the next authenticate () call to retry
                 __ch.remove_subscription(&messageHash);

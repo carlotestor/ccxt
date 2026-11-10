@@ -896,7 +896,7 @@ impl Zebpay {
             if withdrawAllowed.as_bool() == Some(true) {
                 withdraw = true;
             }
-            let mut withdrawFeeString: Option<String> = self.safe_string_k_opt(chain.clone(), "withdrawalFee", &[]);
+            let mut withdrawFeeString: Option<String> = self.safe_string_k(chain.clone(), "withdrawalFee", &[]).as_str().map(str::to_owned);
             if (withdrawFeeString.is_some()) {
                 if (minWithdrawFeeString == Value::Null) {
                     minWithdrawFeeString = withdrawFeeString.clone().map(Value::from).unwrap_or(Value::Null);
@@ -904,7 +904,7 @@ impl Zebpay {
                     minWithdrawFeeString = crate::precise::Precise::stringMin(&withdrawFeeString.clone().map(Value::from).unwrap_or(Value::Null), &minWithdrawFeeString);
                 }
             }
-            let mut minNetworkWithdrawString: Option<String> = self.safe_string_k_opt(chain.clone(), "withdrawalMinSize", &[]);
+            let mut minNetworkWithdrawString: Option<String> = self.safe_string_k(chain.clone(), "withdrawalMinSize", &[]).as_str().map(str::to_owned);
             if (minNetworkWithdrawString.is_some()) {
                 if (minWithdrawString == Value::Null) {
                     minWithdrawString = minNetworkWithdrawString.clone().map(Value::from).unwrap_or(Value::Null);
@@ -912,7 +912,7 @@ impl Zebpay {
                     minWithdrawString = crate::precise::Precise::stringMin(&minNetworkWithdrawString.clone().map(Value::from).unwrap_or(Value::Null), &minWithdrawString);
                 }
             }
-            let mut minNetworkDepositString: Option<String> = self.safe_string_k_opt(chain.clone(), "depositMinSize", &[]);
+            let mut minNetworkDepositString: Option<String> = self.safe_string_k(chain.clone(), "depositMinSize", &[]).as_str().map(str::to_owned);
             if (minNetworkDepositString.is_some()) {
                 if (minDepositString == Value::Null) {
                     minDepositString = minNetworkDepositString.clone().map(Value::from).unwrap_or(Value::Null);
@@ -2747,11 +2747,11 @@ impl Zebpay {
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut marginMode: String = self.safe_string_lower_k(position.clone(), "marginMode", &[Value::Str("isolated".into())]).as_str().unwrap_or("isolated").to_string();
-        let mut initialMargin: Value = self.safe_number_k(position.clone(), "initialMargin", &[]);
+        let mut initialMargin: Option<f64> = self.safe_number_k(position.clone(), "initialMargin", &[]).as_f64();
         // isolated positions hold exactly the initial margin posted for them
         let mut positionMargin: Value = Value::Null;
         if (marginMode == "isolated") {
-            positionMargin = initialMargin.clone();
+            positionMargin = Value::from(initialMargin);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2760,7 +2760,7 @@ impl Zebpay {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("initialMargin".to_string(), initialMargin);
+        m.insert("initialMargin".to_string(), Value::from(initialMargin));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);

@@ -958,15 +958,15 @@ impl Bitflyer {
         //          "commission": 0,
         //      },
         //
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
-        if (side != Value::Null) {
-            if ((side.len() as i64) as f64) < ((1i64) as f64) {
-                side = Value::Null;
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            if ((side.as_deref().unwrap_or_default().chars().count() as i64)) < 1 {
+                side = None.clone();
             }
         }
         let mut order: Option<String> = None;
-        if (side != Value::Null) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
         }
         if (order.is_none()) {
             order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
@@ -985,7 +985,7 @@ impl Bitflyer {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));

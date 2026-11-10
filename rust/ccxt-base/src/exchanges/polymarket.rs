@@ -862,7 +862,7 @@ impl Polymarket {
                 // crypto ones are unified as crypto, equities, commodities and
                 // indices map onto the other currency type
                 let mut category: Option<String> = self.safe_string_k(instrument.clone(), "category", &[]).as_str().map(str::to_owned);
-                let mut currencyType: Value = (if (category.as_deref() == Some("crypto")) { Value::Str("crypto".into()) } else { Value::Str("other".into()) });
+                let mut currencyType: String = (if (category.as_deref() == Some("crypto")) { "crypto".to_string() } else { "other".to_string() });
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -874,7 +874,7 @@ impl Polymarket {
         m.insert("withdraw".to_string(), Value::Bool(false));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(instrument, "quantity_decimals", &[])]), &[]));
-        m.insert("type".to_string(), currencyType);
+        m.insert("type".to_string(), Value::from(currencyType));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1949,27 +1949,27 @@ impl Polymarket {
         }
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
         let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
-        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
-        let mut isPostOnlyTimeInForce: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+        let mut isPostOnlyTimeInForce: bool = timeInForce.as_deref() == Some("PO");
         let mut postOnly: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), isPostOnlyTimeInForce, &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(isPostOnlyTimeInForce), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if matches!(&isMarketOrder, Value::Bool(true)) {
-            if (timeInForce.as_str() == Some("GTC")) || (timeInForce.as_str() == Some("PO")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), timeInForce).into()), Value::Str(" timeInForce on market orders".into()))));
+            if (timeInForce.as_deref() == Some("GTC")) || (timeInForce.as_deref() == Some("PO")) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), timeInForce.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" timeInForce on market orders".into()))));
             }
-            if (timeInForce == Value::Null) {
-                timeInForce = Value::Str("IOC".into());
+            if (timeInForce.is_none()) {
+                timeInForce = Some("IOC".to_string());
             }
         }  else {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
             }
-            if (timeInForce == Value::Null) || (timeInForce.as_str() == Some("PO")) {
-                timeInForce = Value::Str("GTC".into());
+            if (timeInForce.is_none()) || (timeInForce.as_deref() == Some("PO")) {
+                timeInForce = Some("GTC".to_string());
             }
         }
-        let mut tif: Value = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut tif: Option<String> = timeInForce.as_deref().map(str::to_lowercase);
         let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("c".into()), &[]).as_str().map(str::to_owned);
         paramsOmitted = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into())]), &[]);
@@ -1984,7 +1984,7 @@ impl Polymarket {
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
-        let mut row: Value = Value::from(vec![instrumentId.clone(), isBuy.clone(), priceString.clone(), quantity.clone(), tif.clone(), postOnly.clone(), reduceOnlyValue.clone(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut row: Value = Value::from(vec![instrumentId.clone(), isBuy.clone(), priceString.clone(), quantity.clone(), tif.clone().map(Value::from).unwrap_or(Value::Null), postOnly.clone(), reduceOnlyValue.clone(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut signable: Value = self.compact_signable(row);
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1992,7 +1992,7 @@ impl Polymarket {
                 m.insert("buy".to_string(), isBuy);
                 m.insert("po".to_string(), postOnly);
                 m.insert("qty".to_string(), quantity);
-                m.insert("tif".to_string(), tif);
+                m.insert("tif".to_string(), tif.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (priceString != Value::Null) {
@@ -2115,7 +2115,7 @@ impl Polymarket {
             let mut __for_first_1106: bool = true;
             while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut type_var: Option<String> = self.safe_string_lower_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string_lower_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2293,13 +2293,13 @@ impl Polymarket {
     m
 })]);
             let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut unified: Value = (if (status.as_deref() == Some("err")) { Value::Str("rejected".into()) } else { Value::Str("canceled".into()) });
+            let mut unified: String = (if (status.as_deref() == Some("err")) { "rejected".to_string() } else { "canceled".to_string() });
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("oid".to_string(), self.safe_integer_k(ack.clone(), "oid", &[]));
                     m.insert("coid".to_string(), self.safe_string_k(ack.clone(), "coid", &[]));
                     m.insert("uts".to_string(), self.safe_integer_k(ack.clone(), "ts", &[]));
-                    m.insert("status".to_string(), unified);
+                    m.insert("status".to_string(), Value::from(unified));
                 m
             });
             let mut parsed: Value = self.parse_order(Value::Map(merged), &[]);
@@ -3195,13 +3195,13 @@ impl Polymarket {
         //     }
         //
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "withdraw_id", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (withdrawId.is_some()) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+        let mut type_var: String = (if (withdrawId.is_some()) { "withdrawal".to_string() } else { "deposit".to_string() });
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_timestamp", &[]).as_i64();
         let mut rawHash: Option<String> = self.safe_string_k(transaction.clone(), "hash", &[]).as_str().map(str::to_owned);
         // the venue reports the literal 0x prefix while the transaction is unmined
-        let mut txid: Value = (if (rawHash.as_deref() == Some("0x")) { Value::Null } else { rawHash.clone().map(Value::from).unwrap_or(Value::Null) });
+        let mut txid: Option<String> = (if (rawHash.as_deref() == Some("0x")) { None } else { rawHash });
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
@@ -3216,7 +3216,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), withdrawId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("txid".to_string(), txid);
+        m.insert("txid".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
@@ -3226,7 +3226,7 @@ impl Polymarket {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -3381,7 +3381,7 @@ impl Polymarket {
         let mut precision: Value = self.parse_precision(&[Value::from(decimals)]);
         // the signed amount is denominated using raw base units of the token
         let mut precised: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), self.parse_number(precision.clone(), &[]), &[Value::Int(crate::runtime::TICK_SIZE)]);
-        let mut baseUnits: Value = crate::precise::Precise::stringDiv(&precised, &precision);
+        let mut baseUnits: Option<String> = crate::precise::Precise::stringDiv(&precised, &precision).as_str().map(str::to_owned);
         let mut ts: Option<i64> = self.seconds().as_i64();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
@@ -3438,7 +3438,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), owner.clone());
                 m.insert("token".to_string(), tokenAddress.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.parse_to_int(baseUnits.clone()));
+                m.insert("amount".to_string(), self.parse_to_int(baseUnits.clone().map(Value::from).unwrap_or(Value::Null)));
                 m.insert("fee".to_string(), Value::Int(0));
                 m.insert("to".to_string(), address.clone());
                 m.insert("salt".to_string(), salt.clone());
@@ -3456,7 +3456,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("account".to_string(), owner);
         m.insert("token".to_string(), tokenAddress.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), baseUnits);
+        m.insert("amount".to_string(), baseUnits.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("to".to_string(), address);
     m
 }));
@@ -4132,12 +4132,12 @@ impl Polymarket {
             return self.sum(&[Value::Int(1), self.parse_to_int((match ((Value::Int(args.len() as i64)).as_f64(), (Value::Int(20)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
         }
         if (path.as_str() == Some("info/book")) {
-            let mut depth: Value = self.safe_integer_k(params, "depth", &[Value::Int(100)]);
-            if depth.as_f64().unwrap_or(f64::NAN) <= ((10i64) as f64) {
+            let mut depth: i64 = self.safe_integer_k(params, "depth", &[Value::Int(100)]).as_i64().unwrap_or(100);
+            if depth <= 10 {
                 return Value::Int(2);
-            }  else if depth.as_f64().unwrap_or(f64::NAN) <= ((100i64) as f64) {
+            }  else if depth <= 100 {
                 return Value::Int(5);
-            }  else if depth.as_f64().unwrap_or(f64::NAN) <= ((500i64) as f64) {
+            }  else if depth <= 500 {
                 return Value::Int(10);
             }
             return Value::Int(20);

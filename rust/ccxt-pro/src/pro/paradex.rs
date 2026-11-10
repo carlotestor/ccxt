@@ -647,17 +647,17 @@ impl Paradex {
         //     }
         //
         // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
-        let mut requestId: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut requestId: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut authSubscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str("authenticated".into()), &[]);
-        let mut authRequestId: Value = self.safe_string_k(authSubscription, "id", &[]);
+        let mut authRequestId: Option<String> = self.safe_string_k(authSubscription, "id", &[]).as_str().map(str::to_owned);
         let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut isAuth: bool = ((requestId != Value::Null) && (requestId == authRequestId)) || (self.safe_string_k(result, "node_id", &[]) != Value::Null);
+        let mut isAuth: bool = ((requestId.is_some()) && (requestId == authRequestId)) || (self.safe_string_k(result, "node_id", &[]) != Value::Null);
         if isAuth {
             self.handle_authentication_message(client.clone(), message.clone());
         }
-        if (requestId != Value::Null) {
+        if (requestId.is_some()) {
             // sendRequest waits on the request id, a request without a subscription of its own is kept under it
-            let mut requestHash: Value = Value::Str(format!("{}{}", Value::Str("request:".into()), requestId).into());
+            let mut requestHash: Value = Value::Str(format!("{}{}", Value::Str("request:".into()), requestId.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if (__ch.has_subscription(&requestHash)) {
                 __ch.remove_subscription(&requestHash);
             }
@@ -1903,16 +1903,16 @@ impl Paradex {
         let mut newPositions: Value = Value::from(vec![]);
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
-        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), &[symbol.clone(), Value::Null, Value::Null, Value::Bool(true)]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_595: bool = true;
             while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < (cached.len() as i64) } {
             let mut previous: Value = cached.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut previousSide: Value = self.safe_string_k(previous.clone(), "side", &[]);
+            let mut previousSide: Option<String> = self.safe_string_k(previous.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut previousContracts: Option<String> = self.safe_string_k(previous.clone(), "contracts", &[]).as_str().map(str::to_owned);
-            let mut isOpposite: bool = (side != Value::Null) && (previousSide != Value::Null) && (previousSide != side);
+            let mut isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
             if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                 let __ws_arg_8 = self.parse_number(Value::Str("0".into()), &[]);
                 let __ws_arg_9 = self.safe_integer_k(position.clone(), "lastUpdateTimestamp", &[]);

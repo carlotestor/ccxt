@@ -1470,24 +1470,24 @@ impl Upbit {
     }
 
     pub fn ids_query_strings(&self, mut ids: Value) -> Value {
-        let mut idsString: Value = Value::Str("".into());
+        let mut idsString: String = "".to_string();
         let mut queries: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1142: bool = true;
             while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (ids.len() as i64) } {
-            if (idsString.as_str() != Some("")) {
-                idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".into())).into());
+            if (idsString != "") {
+                idsString = format!("{}{}", idsString, Value::Str(",".into()));
             }
-            idsString = Value::Str(format!("{}{}", idsString, self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())])).into());
-            if ((idsString.len() as i64) as f64) >= ((4000i64) as f64) {
-                queries.push(idsString.clone());
-                idsString = Value::Str("".into());
+            idsString = format!("{}{}", idsString, self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
+            if ((idsString.chars().count() as i64)) >= 4000 {
+                queries.push(Value::from(idsString.clone()));
+                idsString = "".to_string();
             }
         }
         }
-        if (idsString.as_str() != Some("")) {
-            queries.push(idsString);
+        if (idsString != "") {
+            queries.push(Value::from(idsString));
         }
         return Value::from(queries);
 
@@ -1712,16 +1712,16 @@ impl Upbit {
         //
         let mut askFee: Option<String> = self.safe_string_k(response.clone(), "ask_fee", &[]).as_str().map(str::to_owned);
         let mut bidFee: Option<String> = self.safe_string_k(response.clone(), "bid_fee", &[]).as_str().map(str::to_owned);
-        let mut taker: Value = crate::precise::Precise::stringMax(&askFee.clone().map(Value::from).unwrap_or(Value::Null), &bidFee.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut taker: Option<String> = crate::precise::Precise::stringMax(&askFee.clone().map(Value::from).unwrap_or(Value::Null), &bidFee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut makerAskFee: Option<String> = self.safe_string_k(response.clone(), "maker_ask_fee", &[]).as_str().map(str::to_owned);
         let mut makerBidFee: Option<String> = self.safe_string_k(response.clone(), "maker_bid_fee", &[]).as_str().map(str::to_owned);
-        let mut maker: Value = crate::precise::Precise::stringMax(&makerAskFee.clone().map(Value::from).unwrap_or(Value::Null), &makerBidFee.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut maker: Option<String> = crate::precise::Precise::stringMax(&makerAskFee.clone().map(Value::from).unwrap_or(Value::Null), &makerBidFee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
-        m.insert("maker".to_string(), self.parse_number(maker, &[]));
-        m.insert("taker".to_string(), self.parse_number(taker, &[]));
+        m.insert("maker".to_string(), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("taker".to_string(), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -2594,7 +2594,7 @@ impl Upbit {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut lastTradeTimestamp: Value = Value::Null;
-        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "remaining_volume", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executed_volume", &[]).as_str().map(str::to_owned);
@@ -2602,7 +2602,7 @@ impl Upbit {
         if (type_var.as_deref() == Some("price")) {
             type_var = Some("market".to_string());
             cost = price.clone().map(Value::from).unwrap_or(Value::Null);
-            price = None;
+            price = None.clone();
         }
         let mut average: Option<String> = None;
         let mut fee: Value = Value::Null;

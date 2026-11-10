@@ -1461,7 +1461,7 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbol: Option<String> = self.safe_string_opt(symbols.clone(), Value::Int(0), &[]);
+        let mut symbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
@@ -1723,21 +1723,21 @@ impl Bigone {
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "asset_pair_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
-        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut takerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "taker_side", &[]);
+        let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut takerSide: Option<String> = self.safe_string_k(trade.clone(), "taker_side", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
-        if (takerSide.is_some()) && (side != Value::Null) && (side.as_str() != Some("SELF_TRADING")) {
-            takerOrMaker = (if (takerSide.as_deref() == side.as_str()) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+        if (takerSide.is_some()) && (side.is_some()) && (side.as_deref() != Some("SELF_TRADING")) {
+            takerOrMaker = (if (takerSide == side) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
-        if (side == Value::Null) {
+        if (side.is_none()) {
             // taker side is not related to buy/sell side
             // the following code is probably a mistake
-            side = (if (takerSide.as_deref() == Some("ASK")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (takerSide.as_deref() == Some("ASK")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }  else {
-            if (side.as_str() == Some("BID")) {
-                side = Value::Str("buy".into());
-            }  else if (side.as_str() == Some("ASK")) {
-                side = Value::Str("sell".into());
+            if (side.as_deref() == Some("BID")) {
+                side = Some("buy".to_string());
+            }  else if (side.as_deref() == Some("ASK")) {
+                side = Some("sell".to_string());
             }
         }
         let mut makerOrderId: Option<String> = self.safe_string_k(trade.clone(), "maker_order_id", &[]).as_str().map(str::to_owned);
@@ -1757,7 +1757,7 @@ impl Bigone {
                 m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m.insert("order".to_string(), orderId);
                 m.insert("type".to_string(), Value::Str("limit".into()));
-                m.insert("side".to_string(), side.clone());
+                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
                 m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1768,7 +1768,7 @@ impl Bigone {
         let mut makerCurrencyCode: Value = Value::Null;
         let mut takerCurrencyCode: Value = Value::Null;
         if (takerOrMaker != Value::Null) {
-            if (side.as_str() == Some("buy")) {
+            if (side.as_deref() == Some("buy")) {
                 if (takerOrMaker.as_str() == Some("maker")) {
                     makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
                     takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
@@ -1785,7 +1785,7 @@ impl Bigone {
                     takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 }
             }
-        }  else if (side.as_str() == Some("SELF_TRADING")) {
+        }  else if (side.as_deref() == Some("SELF_TRADING")) {
             if (takerSide.as_deref() == Some("BID")) {
                 makerCurrencyCode = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 takerCurrencyCode = self.safe_string_k(marketResolved.clone(), "base", &[]);
@@ -2735,9 +2735,9 @@ impl Bigone {
     }
 
     pub fn nonce(&self) -> Value {
-        let mut exchangeMillisecondsCorrection: Value = self.safe_integer_k(self.options.clone(), "exchangeMillisecondsCorrection", &[Value::Int(0)]);
-        let mut exchangeTimeCorrection: Value = (match (&(exchangeMillisecondsCorrection), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        return self.sum(&[(match (&(self.microseconds()), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), exchangeTimeCorrection]);
+        let mut exchangeMillisecondsCorrection: i64 = self.safe_integer_k(self.options.clone(), "exchangeMillisecondsCorrection", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut exchangeTimeCorrection: i64 = (exchangeMillisecondsCorrection * 1000000);
+        return self.sum(&[(match (&(self.microseconds()), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), Value::from(exchangeTimeCorrection)]);
 
     Value::Null
 }
@@ -2759,14 +2759,14 @@ impl Bigone {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path, params)).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path, params));
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("webExchange")) || (apiName.as_str() == Some("contractPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -2782,7 +2782,7 @@ impl Bigone {
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into()));
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
             }  else if (method.as_str() == Some("POST")) {
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
@@ -2793,7 +2793,7 @@ impl Bigone {
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), Value::Map(headersValue));

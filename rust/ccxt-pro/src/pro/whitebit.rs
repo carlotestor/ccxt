@@ -1203,18 +1203,18 @@ impl Whitebit {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str("wallet:".into());
+        let mut messageHash: String = "wallet:".to_string();
         let mut method: Option<String> = None;
         if (type_var.as_str() == Some("spot")) {
             method = Some("balanceSpot_subscribe".to_string());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("spot".into())).into());
+            messageHash.push_str("spot");
         }  else {
             method = Some("balanceMargin_subscribe".to_string());
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("margin".into())).into());
+            messageHash.push_str("margin");
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        self.set_balance_cache(client.clone(), type_var.clone(), messageHash.clone());
+        self.set_balance_cache(client.clone(), type_var.clone(), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsFetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1224,7 +1224,7 @@ impl Whitebit {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
-        return self.watch_private(messageHash, method.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![]), paramsAwaitBalanceSnapshot]).await;
+        return self.watch_private(Value::from(messageHash), method.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![]), paramsAwaitBalanceSnapshot]).await;
         Value::Null
         }).await?))
     }
@@ -1301,11 +1301,11 @@ impl Whitebit {
         //       "id":null
         //   }
         //
-        let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (method == Value::Null) {
+        let mut method: Option<String> = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (method.is_none()) {
             return;
         }
-        let mut isMargin: bool = method.as_str().unwrap_or("").contains("Margin");
+        let mut isMargin: bool = method.as_deref().unwrap_or_default().contains("Margin");
         let mut data: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: i64 = 0;
@@ -1354,7 +1354,7 @@ impl Whitebit {
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut messageHash: Value = Value::Str("wallet:".into());
-        if method.as_str().unwrap_or("").contains("Spot") {
+        if method.as_deref().unwrap_or_default().contains("Spot") {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("spot".into())).into());
         }  else {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("margin".into())).into());

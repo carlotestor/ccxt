@@ -863,12 +863,12 @@ impl Nado {
             placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut triggerPrice: Option<String> = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Value = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopOrder: bool = triggerPrice.is_some();
+        let mut isStopOrder: bool = triggerPrice != Value::Null;
         let mut isTriggerOrder: bool = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if isStopOrder {
             // the final omit drops triggerDirection from the request
@@ -877,7 +877,7 @@ impl Nado {
             if (triggerDirection.as_deref() == Some("ascending")) {
                 directionSuffix = "above".to_string();
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone()).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -901,11 +901,11 @@ impl Nado {
                 oracleSide = (if isStopLossOrder { "below".to_string() } else { "above".to_string() });
             }
             if isStopLossOrder {
-                triggerPrice = stopLossTriggerPrice;
+                triggerPrice = stopLossTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                triggerPrice = takeProfitTriggerPrice;
+                triggerPrice = takeProfitTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1075,7 +1075,7 @@ impl Nado {
         let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut cancelNonce: Value = self.create_order_nonce(recvWindow).map(Value::from).unwrap_or(Value::Null);
-        let mut orderNonce: Value = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into()));
+        let mut orderNonce: Option<String> = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut rawAppendix: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "appendix", &[]).as_str().map(str::to_owned);
         let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
         if (rawAppendix.is_none()) {
@@ -1101,7 +1101,7 @@ impl Nado {
                 m.insert("priceX18".to_string(), priceX18);
                 m.insert("amount".to_string(), amountX18);
                 m.insert("expiration".to_string(), expiration);
-                m.insert("nonce".to_string(), orderNonce);
+                m.insert("nonce".to_string(), orderNonce.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("appendix".to_string(), appendix);
             m
         });
@@ -2206,7 +2206,7 @@ impl Nado {
             let mut __for_first_984: bool = true;
             while { if !__for_first_984 { i += 1; } __for_first_984 = false; i < (events.len() as i64) } {
             let mut event: Value = events.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut submissionIdx: Value = self.safe_string_k(event.clone(), "submission_idx", &[]);
+            let mut submissionIdx: Option<String> = self.safe_string_k(event.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
             let mut tx: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2216,7 +2216,7 @@ impl Nado {
                 let mut __for_first_983: bool = true;
                 while { if !__for_first_983 { j += 1; } __for_first_983 = false; j < (txs.len() as i64) } {
                 let mut rawTx: Value = txs.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut txSubmissionIdx: Value = self.safe_string_k(rawTx.clone(), "submission_idx", &[]);
+                let mut txSubmissionIdx: Option<String> = self.safe_string_k(rawTx.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
                 if (txSubmissionIdx == submissionIdx) {
                     tx = rawTx;
                     break;
@@ -2321,7 +2321,7 @@ impl Nado {
             if (amount.is_none()) || crate::precise::Precise::stringEquals(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
-            let mut productId: Value = self.safe_string_k(position.clone(), "product_id", &[]);
+            let mut productId: Option<String> = self.safe_string_k(position.clone(), "product_id", &[]).as_str().map(str::to_owned);
             let mut product: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2331,7 +2331,7 @@ impl Nado {
                 let mut __for_first_985: bool = true;
                 while { if !__for_first_985 { j += 1; } __for_first_985 = false; j < (products.len() as i64) } {
                 let mut rawProduct: Value = products.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut rawProductId: Value = self.safe_string_k(rawProduct.clone(), "product_id", &[]);
+                let mut rawProductId: Option<String> = self.safe_string_k(rawProduct.clone(), "product_id", &[]).as_str().map(str::to_owned);
                 if (rawProductId == productId) {
                     product = rawProduct;
                     break;
@@ -2530,11 +2530,11 @@ impl Nado {
     m
 })]);
             let mut rawType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut type_var: Value = rawType.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut type_var: Option<String> = rawType.clone();
             if (rawType.as_deref() == Some("perp")) {
-                type_var = Value::Str("swap".into());
+                type_var = Some("swap".to_string());
             }
-            let mut contract: Value = (Value::Bool(type_var.as_str() == Some("swap")));
+            let mut contract: bool = type_var.as_deref() == Some("swap");
             let mut tickerId: Option<String> = self.safe_string2(pair.clone(), Value::Str("ticker_id".into()), Value::Str("tickerId".into()), &[]).as_str().map(str::to_owned);
             if (tickerId.is_none()) {
                 continue;
@@ -2550,14 +2550,14 @@ impl Nado {
             let mut quoteAsset: Value = self.safe_dict(Value::Map(assetsByCode.clone()), quote.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut baseId: Value = self.safe_string_k(baseAsset, "product_id", &[rawBaseId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut quoteId: Value = self.safe_string_k(quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
-            let mut settleId: Value = (if matches!(&contract, Value::Bool(true)) { quoteId.clone() } else { Value::Null });
-            let mut settle: Value = (if matches!(&contract, Value::Bool(true)) { quote.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null });
+            let mut settleId: Value = (if contract { quoteId.clone() } else { Value::Null });
+            let mut settle: Option<String> = (if contract { quote.clone() } else { None });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-            if matches!(&contract, Value::Bool(true)) {
+            if contract {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let mut tradingStatus: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
-            let mut active: Value = (Value::Bool(tradingStatus.as_deref() != Some("not_tradable")));
+            let mut active: bool = tradingStatus.as_deref() != Some("not_tradable");
             let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "price_increment_x18", &[]));
             let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "size_increment", &[]));
             let mut minCost: Value = self.parse_x18(self.safe_string_k(market.clone(), "min_size", &[]));
@@ -2568,23 +2568,23 @@ impl Nado {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
-        m.insert("type".to_string(), type_var.clone());
-        m.insert("spot".to_string(), (Value::Bool(type_var.as_str() == Some("spot"))));
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("spot".to_string(), (Value::Bool(type_var.as_deref() == Some("spot"))));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), contract.clone());
+        m.insert("swap".to_string(), Value::Bool(contract));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
-        m.insert("contract".to_string(), contract.clone());
-        m.insert("linear".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
+        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("contract".to_string(), Value::Bool(contract));
+        m.insert("linear".to_string(), (if contract { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if contract { Value::Bool(false) } else { Value::Null }));
         m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "taker_fee_rate_x18", &[])));
         m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "maker_fee_rate_x18", &[])));
-        m.insert("contractSize".to_string(), (if matches!(&contract, Value::Bool(true)) { Value::Int(1) } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if contract { Value::Int(1) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -3337,11 +3337,11 @@ impl Nado {
             }
         }
         let mut tradePrice: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut price: Value = tradePrice.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut price: Option<String> = tradePrice.clone();
         if (tradePrice.is_none()) {
             let mut orderPriceX18: Option<String> = self.safe_string_k(order, "priceX18", &[]).as_str().map(str::to_owned);
             if (orderPriceX18.is_some()) {
-                price = self.number_to_string(self.parse_x18(orderPriceX18.clone().map(Value::from).unwrap_or(Value::Null)));
+                price = self.number_to_string(self.parse_x18(orderPriceX18.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
             }
         }
         let mut takerOrMaker: Option<String> = None;
@@ -3398,7 +3398,7 @@ impl Nado {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), parsedAmount);
         m.insert("cost".to_string(), parsedCost);
         m.insert("fee".to_string(), fee);
@@ -4027,9 +4027,9 @@ impl Nado {
                     status = Value::Str("canceled".into());
                 }
             }  else {
-                let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[Value::Str("rejected".into())]);
-                status = rawStatus.clone();
-                if (rawStatus.as_str() == Some("success")) || (rawStatus.as_str().unwrap_or("").contains("waiting")) {
+                let mut rawStatus: String = self.safe_string_k(order.clone(), "status", &[Value::Str("rejected".into())]).as_str().unwrap_or("rejected").to_string();
+                status = Value::from(rawStatus.clone());
+                if (rawStatus == "success") || (rawStatus.contains("waiting")) {
                     status = Value::Str("open".into());
                 }
             }

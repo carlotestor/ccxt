@@ -627,7 +627,7 @@ impl Sxbet {
         let mut marketSlug: String = format!("{}{}", Value::Str(format!("{}{}", self.shorten_slug(outcomeOneName.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("_".into())).into()), hashSuffix);
         let mut marketSymbol: Value = self.slug_to_market_symbol(eventSlug.clone(), Value::from(marketSlug.clone()));
         let mut status: Option<String> = self.safe_string_upper_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = (Value::Bool(status.as_deref() == Some("ACTIVE")));
+        let mut active: bool = status.as_deref() == Some("ACTIVE");
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
         // turn it into the 1970 epoch
         let mut gameTime: Option<i64> = None;
@@ -650,7 +650,7 @@ impl Sxbet {
                     m.insert("outcome".to_string(), outcomeHandle);
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label);
-                    m.insert("active".to_string(), active.clone());
+                    m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), Value::Null);
                     m.insert("settleFraction".to_string(), Value::Null);
                     m.insert("info".to_string(), raw.clone());
@@ -677,7 +677,7 @@ impl Sxbet {
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(false));
         m.insert("resolvedOutcome".to_string(), Value::Null);
         m.insert("contract".to_string(), Value::Bool(false));
@@ -1418,9 +1418,9 @@ impl Sxbet {
         if (triggerPrice.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support trigger, stop-loss or take-profit orders".into()))));
         }
-        let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
-        let mut outcomeId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        let mut isOutcomeOne: Value = (Value::Bool(outcomeId == marketHash));
+        let mut marketHash: String = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut isOutcomeOne: Value = (Value::Bool(outcomeId.as_deref() == Some(marketHash.as_str())));
         let mut isBuy: bool = side.as_str() == Some("buy");
         // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
         // matches the normalize-to-one-book convention used by other prediction venues
@@ -1512,7 +1512,7 @@ impl Sxbet {
         });
         let mut messageData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketHash".to_string(), marketHash.clone());
+                m.insert("marketHash".to_string(), Value::from(marketHash.clone()));
                 m.insert("baseToken".to_string(), baseToken.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("totalBetSize".to_string(), totalBetSize.clone());
                 m.insert("percentageOdds".to_string(), percentageOdds.clone());
@@ -1527,7 +1527,7 @@ impl Sxbet {
         let mut orderSignature: Value = self.sign_digest(digest, self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut orderItem: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketHash".to_string(), marketHash);
+                m.insert("marketHash".to_string(), Value::from(marketHash));
                 m.insert("maker".to_string(), maker);
                 m.insert("totalBetSize".to_string(), totalBetSize);
                 m.insert("percentageOdds".to_string(), percentageOdds);
@@ -1624,7 +1624,7 @@ impl Sxbet {
         m.insert("remaining".to_string(), remaining);
         m.insert("cost".to_string(), filled);
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), outcomeId);
+        m.insert("outcomeId".to_string(), outcomeId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
         m.insert("type".to_string(), type_var);
@@ -2364,7 +2364,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut usdcAddress: Value = self.safe_string_lower_k(activeAsset, "baseToken", &[Value::Str("".into())]);
+        let mut usdcAddress: String = self.safe_string_lower_k(activeAsset, "baseToken", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut response: Value = self.sxbet_private_get_user_balance_v3(&[params]).await;
         //
         //     { "status": "success", "data": { "balances": [ {
@@ -2390,20 +2390,20 @@ impl Sxbet {
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
             let mut row: Value = self.safe_dict(balances.clone().into(), i.clone(), &[]);
-            let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
+            let mut tokenAddress: String = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
-            let mut code: Value = self.safe_string_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
+            let mut code: String = self.safe_string_k(row.clone(), "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (tokenAddress == usdcAddress) {
-                code = Value::Str("USDC".into());
+                code = "USDC".to_string();
             }
-            let mut free: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row.clone(), "availableAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6));
-            let mut used: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row, "escrowedAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map({
+            let mut free: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row.clone(), "availableAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6)).as_str().map(str::to_owned);
+            let mut used: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(row, "escrowedAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6)).as_str().map(str::to_owned);
+            result.insert(code, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), self.parse_number(free.clone(), &[]));
-        m.insert("used".to_string(), self.parse_number(used.clone(), &[]));
-        m.insert("total".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&free, &used), &[]));
+        m.insert("free".to_string(), self.parse_number(free.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("used".to_string(), self.parse_number(used.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("total".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&free.clone().map(Value::from).unwrap_or(Value::Null), &used.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
     m
 }));
         }
@@ -2448,8 +2448,8 @@ impl Sxbet {
                 let mut __for_first_1513: bool = true;
                 while { if !__for_first_1513 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1513 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
                 let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                let mut hash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
-                wantedMarkets.insert(crate::runtime::stringify_param(&hash), Value::Bool(true));
+                let mut hash: String = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                wantedMarkets.insert(hash, Value::Bool(true));
             }
             }
         }
@@ -2660,28 +2660,28 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut winner: Value = self.safe_integer_k(settlement.clone(), "outcome", &[]);
-        let mut isVoid: bool = winner.as_f64() == Some(0.0);
-        let mut heldNumber: Value = (if isBettingOutcomeOne { Value::Int(1) } else { Value::Int(2) });
-        let mut won: Value = (if ((winner != Value::Null) && !isVoid) { (Value::Bool(winner.as_f64() == heldNumber.as_f64())) } else { Value::Null });
+        let mut winner: Option<i64> = self.safe_integer_k(settlement.clone(), "outcome", &[]).as_i64();
+        let mut isVoid: bool = winner == Some(0);
+        let mut heldNumber: i64 = (if isBettingOutcomeOne { 1 } else { 2 });
+        let mut won: Value = (if ((winner.is_some()) && !isVoid) { (Value::Bool(winner == Some(heldNumber))) } else { Value::Null });
         let mut usdcDecimals: String = "1000000".to_string();
-        let mut stake: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6));
-        let mut payout: Value = crate::precise::Precise::stringDivPrec(&self.safe_string_k(settlement.clone(), "settleReturnAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals), &Value::Int(6));
-        let mut pnl: Value = crate::precise::Precise::stringSub(&payout, &stake);
+        let mut stake: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(trade.clone(), "totalStake", &[Value::Str("0".into())]), &Value::from(usdcDecimals.clone()), &Value::Int(6)).as_str().map(str::to_owned);
+        let mut payout: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(settlement.clone(), "settleReturnAmount", &[Value::Str("0".into())]), &Value::from(usdcDecimals), &Value::Int(6)).as_str().map(str::to_owned);
+        let mut pnl: Option<String> = crate::precise::Precise::stringSub(&payout.clone().map(Value::from).unwrap_or(Value::Null), &stake.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // resolve the winning side's human label through the cached market when available
         let mut resultLabel: Value = Value::Null;
         if isVoid {
             resultLabel = Value::Str("VOID".into());
-        }  else if (winner != Value::Null) {
+        }  else if (winner.is_some()) {
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut labelKey: String = "outcomeTwoName".to_string();
-            if (winner.as_f64() == Some(1.0)) {
+            if (winner == Some(1)) {
                 labelKey = "outcomeOneName".to_string();
             }
-            resultLabel = self.safe_string(info, Value::from(labelKey), &[self.number_to_string(winner)]);
+            resultLabel = self.safe_string(info, Value::from(labelKey), &[self.number_to_string(Value::from(winner))]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(settlement, "settleDate", &[]));
         let mut settlePrice: Value = Value::Null;
@@ -2700,11 +2700,11 @@ impl Sxbet {
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), resultLabel);
         m.insert("won".to_string(), won);
-        m.insert("amount".to_string(), self.parse_number(stake.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(stake.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), settlePrice);
-        m.insert("cost".to_string(), self.parse_number(stake, &[]));
-        m.insert("payout".to_string(), self.parse_number(payout, &[]));
-        m.insert("pnl".to_string(), self.parse_number(pnl, &[]));
+        m.insert("cost".to_string(), self.parse_number(stake.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("payout".to_string(), self.parse_number(payout.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("pnl".to_string(), self.parse_number(pnl.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 });
 
@@ -3000,8 +3000,8 @@ impl Sxbet {
         //
         let mut marketAny: Value = market.clone();
         let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
-        let mut outcomeId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
-        let mut marketHash: Value = self.safe_string_k(raw.clone(), "marketHash", &[]);
+        let mut outcomeId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut marketHash: Option<String> = self.safe_string_k(raw.clone(), "marketHash", &[]).as_str().map(str::to_owned);
         let mut isOutcomeOne: bool = outcomeId == marketHash;
         let mut outcomeOneOdds: Value = self.safe_dict_k(raw.clone(), "outcomeOne", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3028,7 +3028,7 @@ impl Sxbet {
         let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
         let mut now: Option<i64> = self.milliseconds().as_i64();
-        let mut timestamp: Value = (if (updatedAt.is_some()) { Value::from(updatedAt) } else { Value::from(now) });
+        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { now });
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&self.number_to_string(bid.clone()), &self.number_to_string(ask.clone())), &Value::Str("2".into())), &[]);
@@ -3036,11 +3036,11 @@ impl Sxbet {
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), outcomeId);
+        m.insert("outcomeId".to_string(), outcomeId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), bid.clone());
@@ -3086,12 +3086,12 @@ impl Sxbet {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]);
-        let mut outcomeId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
+        let mut marketHash: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]).as_str().map(str::to_owned);
+        let mut outcomeId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
         let mut isOutcomeOne: bool = outcomeId == marketHash;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketHash".to_string(), marketHash);
+                m.insert("marketHash".to_string(), marketHash.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -4054,7 +4054,7 @@ impl Sxbet {
         }
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("sxbet")).cloned().unwrap_or(Value::Null)]);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4079,7 +4079,7 @@ impl Sxbet {
         if sendAsQuery {
             let mut querystring: Value = self.urlencode(query.clone(), &[]);
             if (querystring.as_str() != Some("")) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
             }
         }  else {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -4088,7 +4088,7 @@ impl Sxbet {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue);
         m.insert("headers".to_string(), headersExtended);

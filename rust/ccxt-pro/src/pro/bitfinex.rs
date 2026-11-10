@@ -956,12 +956,12 @@ impl Bitfinex {
         let mut priceKey: i64 = (if isPublic { 3 } else { 5 });
         let mut amountKey: i64 = (if isPublic { 2 } else { 4 });
         marketId = marketResolved.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string(trade.clone().into(), Value::Int(6), &[]);
-        if (type_var != Value::Null) {
-            if type_var.as_str().unwrap_or("").contains("LIMIT") {
-                type_var = Value::Str("limit".into());
-            }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
-                type_var = Value::Str("market".into());
+        let mut type_var: Option<String> = self.safe_string(trade.clone().into(), Value::Int(6), &[]).as_str().map(str::to_owned);
+        if (type_var.is_some()) {
+            if type_var.as_deref().unwrap_or_default().contains("LIMIT") {
+                type_var = Some("limit".to_string());
+            }  else if type_var.as_deref().unwrap_or_default().contains("MARKET") {
+                type_var = Some("market".to_string());
             }
         }
         let mut orderId: Option<String> = None;
@@ -1003,7 +1003,7 @@ impl Bitfinex {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1808,12 +1808,12 @@ impl Bitfinex {
             amount = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             side = "sell".to_string();
         }
-        let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[]));
-        let mut type_var: Value = self.safe_string(order.clone(), Value::Int(8), &[Value::Str("".into())]);
-        if type_var.as_str().unwrap_or("").contains("LIMIT") {
-            type_var = Value::Str("limit".into());
-        }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
-            type_var = Value::Str("market".into());
+        let mut remaining: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[])).as_str().map(str::to_owned);
+        let mut type_var: String = self.safe_string(order.clone(), Value::Int(8), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if type_var.contains("LIMIT") {
+            type_var = "limit".to_string();
+        }  else if type_var.contains("MARKET") {
+            type_var = "market".to_string();
         }
         let mut rawState: Value = self.safe_string(order.clone(), Value::Int(13), &[Value::Str("".into())]);
         let mut stateParts: Value = Value::Array(if let Some(__s) = rawState.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
@@ -1832,14 +1832,14 @@ impl Bitfinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), stopPrice.clone());
         m.insert("triggerPrice".to_string(), stopPrice);
         m.insert("average".to_string(), average.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("remaining".to_string(), remaining);
+        m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), Value::Null);

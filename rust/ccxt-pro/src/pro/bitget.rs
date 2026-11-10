@@ -501,8 +501,8 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             symbolOrInstId = "symbol".to_string();
         }
-        args.insert(topicOrChannel.clone(), Value::Str("ticker".into()));
-        args.insert(symbolOrInstId.clone(), Value::from((market).id.clone()));
+        args.insert(topicOrChannel, Value::Str("ticker".into()));
+        args.insert(symbolOrInstId, Value::from((market).id.clone()));
         return self.watch_public(uta, Value::from(messageHash), Value::Map(args), &[paramsValue]).await;
         Value::Null
         }).await?))
@@ -590,8 +590,8 @@ impl Bitget {
             if uta.as_bool() == Some(true) {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel.clone(), Value::Str("ticker".into()));
-            args.insert(symbolOrInstId.clone(), Value::from((marketInner).id.clone()));
+            args.insert(topicOrChannel, Value::Str("ticker".into()));
+            args.insert(symbolOrInstId, Value::from((marketInner).id.clone()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into()));
         }
@@ -797,7 +797,7 @@ impl Bitget {
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::from(marketType)]);
         let mut close: Option<String> = self.safe_string2(ticker.clone(), Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
         let mut changeCoefficient: Option<String> = self.safe_string2(ticker.clone(), Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
-        let mut changePercentage: Value = crate::precise::Precise::stringMul(&changeCoefficient.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
+        let mut changePercentage: Option<String> = crate::precise::Precise::stringMul(&changeCoefficient.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -815,7 +815,7 @@ impl Bitget {
         m.insert("last".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), changePercentage);
+        m.insert("percentage".to_string(), changePercentage.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("baseVolume".into()), Value::Str("volume24h".into()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("quoteVolume".into()), Value::Str("turnover24h".into()), &[]));
@@ -882,8 +882,8 @@ impl Bitget {
             if uta.as_bool() == Some(true) {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel.clone(), Value::Str("ticker".into()));
-            args.insert(symbolOrInstId.clone(), Value::from((marketInner).id.clone()));
+            args.insert(topicOrChannel, Value::Str("ticker".into()));
+            args.insert(symbolOrInstId, Value::from((marketInner).id.clone()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into()));
         }
@@ -1184,17 +1184,17 @@ impl Bitget {
             m
         })]).as_map().cloned().unwrap_or_default();
         if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(symbolOhlcvs.clone())); }
-        let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-        let mut interval: Value = self.safe_string_k(arg, "interval", &[]);
+        let mut channel: String = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut interval: Option<String> = self.safe_string_k(arg, "interval", &[]).as_str().map(str::to_owned);
         let mut isUta: Option<bool> = None;
-        if (interval == Value::Null) {
+        if (interval.is_none()) {
             isUta = Some(false);
-            interval = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
+            interval = Some(channel.replace("candle", ""));
         }  else {
             isUta = Some(true);
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut timeframe: Value = self.find_timeframe(interval, &[timeframes]);
+        let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
         if (timeframe == Value::Null) {
             return;
         }
@@ -1478,8 +1478,8 @@ impl Bitget {
             if isStockOrUta {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel.clone(), channel.clone());
-            args.insert(symbolOrInstId.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            args.insert(topicOrChannel, channel.clone());
+            args.insert(symbolOrInstId, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
         }
@@ -1783,8 +1783,8 @@ impl Bitget {
             if uta.as_bool() == Some(true) {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel.clone(), (if uta.as_bool() == Some(true) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) }));
-            args.insert(symbolOrInstId.clone(), Value::from((market).id.clone()));
+            args.insert(topicOrChannel, (if uta.as_bool() == Some(true) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) }));
+            args.insert(symbolOrInstId, Value::from((market).id.clone()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into()));
         }
@@ -2127,7 +2127,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             channel = "position".to_string();
         }
-        args.insert(topicOrChannel.clone(), Value::from(channel));
+        args.insert(topicOrChannel, Value::from(channel));
         let mut paramsRequest: Value = paramsInstType.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
@@ -2346,7 +2346,7 @@ impl Bitget {
         }
         let mut timestamp: Option<i64> = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut percentageDecimal: Option<String> = self.safe_string2(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Value = crate::precise::Precise::stringMul(&percentageDecimal.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&percentageDecimal.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut contractSize: Value = Value::Null;
         if (market != Value::Null) {
             contractSize = market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null);
@@ -2361,7 +2361,7 @@ impl Bitget {
         m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liqPrice".into()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("openPriceAvg".into()), Value::Str("avgPrice".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("unrealizedPL".into()), Value::Str("unrealisedPnl".into()), &[]));
-        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("total".into()), Value::Str("size".into()), &[]));
         m.insert("contractSize".to_string(), contractSize);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
@@ -2506,7 +2506,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             topicOrChannel = "topic".to_string();
         }
-        args.insert(topicOrChannel.clone(), Value::from(channel));
+        args.insert(topicOrChannel, Value::from(channel));
         let mut paramsRequest: Value = paramsMarginMode.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsMarginMode, &[Value::Map({
@@ -3049,7 +3049,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             topicOrChannel = "topic".to_string();
         }
-        args.insert(topicOrChannel.clone(), Value::Str("fill".into()));
+        args.insert(topicOrChannel, Value::Str("fill".into()));
         let mut paramsRequest: Value = paramsInstType.clone();
         if uta.as_bool() == Some(true) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
@@ -3296,7 +3296,7 @@ impl Bitget {
         if isStockOrUta {
             topicOrChannel = "topic".to_string();
         }
-        args.insert(topicOrChannel.clone(), Value::from(channel));
+        args.insert(topicOrChannel, Value::from(channel));
         let mut paramsRequest: Value = paramsInstType.clone();
         if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
@@ -3856,15 +3856,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut topic: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-        let mut method: Value = self.safe_value(Value::Map(methods), topic.clone(), &[]);
+        let mut topic: String = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut method: Value = self.safe_value(Value::Map(methods), Value::from(topic.clone()), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
-        if topic.as_str().unwrap_or("").contains("candle") {
+        if topic.contains("candle") {
             self.handle_ohlcv(client.clone(), message.clone());
         }
-        if topic.as_str().unwrap_or("").contains("books") {
+        if topic.contains("books") {
             self.handle_order_book(client, message.clone());
         }
 }
@@ -4023,17 +4023,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             type_var = "spot".to_string();
         }
         let mut instId: Option<String> = self.safe_string2(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-        let mut interval: Value = self.safe_string_k(arg, "interval", &[]);
+        let mut channel: String = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut interval: Option<String> = self.safe_string_k(arg, "interval", &[]).as_str().map(str::to_owned);
         let mut isUta: Option<bool> = None;
-        if (interval == Value::Null) {
+        if (interval.is_none()) {
             isUta = Some(false);
-            interval = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
+            interval = Some(channel.replace("candle", ""));
         }  else {
             isUta = Some(true);
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut timeframe: Value = self.find_timeframe(interval, &[timeframes]);
+        let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
         let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Option<String> = None;
@@ -4088,17 +4088,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.len() as i64) } {
             let mut arg: Value = self.safe_dict(argsList.clone(), Value::Int(i), &[]);
-            let mut channel: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-            if channel.as_str().unwrap_or("").contains("books") {
+            let mut channel: String = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if channel.contains("books") {
                 // for now only unWatchOrderBook is supported
                 self.handle_order_book_un_subscription(client.clone(), message.clone());
-            }  else if (channel.as_str().unwrap_or("").contains("trade")) || (channel.as_str().unwrap_or("").contains("publicTrade")) {
+            }  else if (channel.contains("trade")) || (channel.contains("publicTrade")) {
                 self.handle_trades_un_subscription(client.clone(), message.clone());
-            }  else if channel.as_str().unwrap_or("").contains("ticker") {
+            }  else if channel.contains("ticker") {
                 self.handle_ticker_un_subscription(client.clone(), message.clone());
-            }  else if channel.as_str().unwrap_or("").contains("candle") {
+            }  else if channel.contains("candle") {
                 self.handle_ohlcv_un_subscription(client.clone(), message.clone());
-            }  else if channel.as_str().unwrap_or("").contains("kline") {
+            }  else if channel.contains("kline") {
                 self.handle_ohlcv_un_subscription(client.clone(), message.clone());
             }
         }

@@ -906,19 +906,19 @@ impl Latoken {
             let mut quoteCurrencyInfo: Value = self.safe_dict_k(quoteCurrency, "info", &[]);
             if (baseCurrencyInfo != Value::Null) && (quoteCurrencyInfo != Value::Null) {
                 let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
-                let mut quote: Value = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo, "tag", &[]), &[]);
-                if (base.is_none()) || (quote == Value::Null) {
+                let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
+                if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
-                let mut lowercaseQuote: String = quote.as_str().map(str::to_lowercase).unwrap_or_default();
-                let mut capitalizedQuote: Value = self.capitalize(Value::from(lowercaseQuote));
+                let mut lowercaseQuote: Option<String> = quote.as_deref().map(str::to_lowercase);
+                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into()));
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
                         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
-                        m.insert("quote".to_string(), quote);
+                        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1547,7 +1547,7 @@ impl Latoken {
         }
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut isMaker: bool = makerBuyer && isBuy;
-        let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1581,7 +1581,7 @@ impl Latoken {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1895,11 +1895,11 @@ impl Latoken {
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "filled", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut message: Option<String> = self.safe_string_k_opt(order.clone(), "message", &[]);
+        let mut message: Option<String> = self.safe_string_k(order.clone(), "message", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            if message.as_deref().unwrap_or("").contains("cancel") {
+            if message.as_deref().unwrap_or_default().contains("cancel") {
                 status = Value::Str("canceled".into());
-            }  else if message.as_deref().unwrap_or("").contains("accept") {
+            }  else if message.as_deref().unwrap_or_default().contains("accept") {
                 status = Value::Str("open".into());
             }
         }
@@ -2639,12 +2639,12 @@ impl Latoken {
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
-        let mut requestString: Value = Value::from(request.clone());
+        let mut requestString: String = request.clone();
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut urlencodedQuery: Value = self.urlencode(query.clone(), &[]);
         if (method.as_str() == Some("GET")) {
             if (urlencodedQuery.as_str() != Some("")) {
-                requestString = Value::Str(format!("{}{}", requestString, Value::Str(format!("{}{}", Value::Str("?".into()), urlencodedQuery).into())).into());
+                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery));
             }
         }
         if (apiName.as_deref() == Some("private")) {

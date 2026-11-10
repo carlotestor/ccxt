@@ -374,7 +374,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -451,7 +451,7 @@ impl Bithumb {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
             if isGenerationTwo {
-                streamMarketId = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+                streamMarketId = self.parent.get_gen2_market_id((market).raw.clone());
             }  else {
                 streamMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "base", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k((market).raw.clone(), "quote", &[Value::Str("".into())])).into());
             }
@@ -750,7 +750,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -972,7 +972,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -1159,9 +1159,9 @@ impl Bithumb {
         let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error != Value::Null) {
             let mut errorName: String = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
-            let mut errorMessage: Value = self.safe_string_k(error, "message", &[Value::Str("".into())]);
+            let mut errorMessage: String = self.safe_string_k(error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut addedMessage: Value = Value::Null;
-            if (((errorMessage.len() as i64) as f64) > ((0i64) as f64)) {
+            if (((errorMessage.chars().count() as i64)) > 0) {
                 addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".into()), errorMessage).into()));
             }  else {
                 addedMessage = Value::Str("".into());
