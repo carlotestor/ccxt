@@ -1628,8 +1628,8 @@ impl Coinsph {
         let mut prevClose: Option<String> = self.safe_string_k_opt(ticker.clone(), "prevClosePrice", &[]);
         let mut vwap: Option<String> = self.safe_string_k_opt(ticker.clone(), "weightedAvgPrice", &[]);
         let mut changeValue: Option<String> = self.safe_string_k_opt(ticker.clone(), "priceChange", &[]);
-        let mut changePcnt: Value = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
-        changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into()));
+        let mut changePcnt: Option<String> = self.safe_string_k_opt(ticker.clone(), "priceChangePercent", &[]);
+        changePcnt = crate::precise::Precise::stringMul(&changePcnt.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -1646,7 +1646,7 @@ impl Coinsph {
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), prevClose.map(Value::from).unwrap_or(Value::Null));
         m.insert("change".to_string(), changeValue.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), changePcnt);
+        m.insert("percentage".to_string(), changePcnt.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
@@ -2017,9 +2017,9 @@ impl Coinsph {
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker.as_deref() == Some("true")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        let mut costString: Value = Value::Null;
+        let mut costString: Option<String> = None;
         if (orderId.is_some()) {
-            costString = self.safe_string_k(trade.clone(), "quoteQty", &[]);
+            costString = self.safe_string_k_opt(trade.clone(), "quoteQty", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2033,7 +2033,7 @@ impl Coinsph {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), costString);
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("info".to_string(), trade);
     m

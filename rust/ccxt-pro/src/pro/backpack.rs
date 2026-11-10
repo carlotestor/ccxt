@@ -1686,11 +1686,11 @@ impl Backpack {
         }
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "p", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "q", &[]);
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         if (side.as_str() == Some("buy")) {
-            orderId = self.safe_string_k(trade.clone(), "b", &[]);
+            orderId = self.safe_string_k_opt(trade.clone(), "b", &[]);
         }  else {
-            orderId = self.safe_string_k(trade.clone(), "a", &[]);
+            orderId = self.safe_string_k_opt(trade.clone(), "a", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1699,7 +1699,7 @@ impl Backpack {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);

@@ -964,12 +964,12 @@ impl Bitflyer {
                 side = Value::Null;
             }
         }
-        let mut order: Value = Value::Null;
+        let mut order: Option<String> = None;
         if (side != Value::Null) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]);
+            order = self.safe_string_opt(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]);
         }
-        if (order == Value::Null) {
-            order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]);
+        if (order.is_none()) {
+            order = self.safe_string_k_opt(trade.clone(), "child_order_acceptance_id", &[]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "exec_date", &[]));
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
@@ -983,7 +983,7 @@ impl Bitflyer {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), order);
+        m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);

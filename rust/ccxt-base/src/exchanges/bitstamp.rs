@@ -2565,7 +2565,7 @@ impl Bitstamp {
         //      }
         //
         let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut side: Value = Value::Null;
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -2617,7 +2617,7 @@ impl Bitstamp {
         if (costString == Value::Null) {
             costString = self.safe_string(trade.clone(), quoteIdLower, &[]);
         }
-        symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
+        symbol = self.safe_string_k_opt(marketResolved.clone(), "symbol", &[]);
         let mut datetimeString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Value = Value::Null;
         if (datetimeString.is_some()) {
@@ -2669,7 +2669,7 @@ impl Bitstamp {
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
@@ -3827,19 +3827,19 @@ impl Bitstamp {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut feeCost: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);
         let mut feeCurrency: Value = Value::Null;
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<String> = None;
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("amount"))) {
-            amount = self.safe_string_k(transaction.clone(), "amount", &[]);
+            amount = self.safe_string_k_opt(transaction.clone(), "amount", &[]);
         }  else if (currency != Value::Null) {
-            amount = self.safe_string(transaction.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
+            amount = self.safe_string_opt(transaction.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
             feeCurrency = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         }  else if (code != Value::Null) && (currencyId != Value::Null) {
-            amount = self.safe_string(transaction.clone(), currencyId, &[]);
+            amount = self.safe_string_opt(transaction.clone(), currencyId, &[]);
             feeCurrency = code.clone();
         }
-        if (amount != Value::Null) {
+        if (amount.is_some()) {
             // withdrawals have a negative amount
-            amount = crate::precise::Precise::stringAbs(&amount);
+            amount = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut status: Value = Value::Str("ok".into());
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("status"))) {
@@ -3858,15 +3858,15 @@ impl Bitstamp {
             // from fetchWithdrawals
             type_var = Value::Str("withdrawal".into());
         }
-        let mut tag: Value = Value::Null;
-        let mut address: Value = Value::Null;
+        let mut tag: Option<String> = None;
+        let mut address: Option<String> = None;
         let mut addressRaw: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         if (addressRaw.is_some()) {
             // dt (destination tag) is embedded into the address field
             let mut addressParts: Value = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
-            address = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
+            address = self.safe_string_opt(addressParts.clone(), Value::Int(0), &[]);
             if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
-                tag = self.safe_string(addressParts, Value::Int(1), &[]);
+                tag = self.safe_string_opt(addressParts, Value::Int(1), &[]);
             }
         }
         let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -3893,16 +3893,16 @@ impl Bitstamp {
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.parse_number(amount, &[]));
+        m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), status);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("address".to_string(), address.clone());
+        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("addressTo".to_string(), address);
-        m.insert("tag".to_string(), tag.clone());
+        m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tag);
+        m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);

@@ -1722,9 +1722,9 @@ impl Dydx {
         let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(position.clone(), "side", &[]);
-        let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
+        let mut quantity: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
         if (side.as_deref() != Some("long")) {
-            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity);
+            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(position.clone(), "createdAt", &[]));
         return self.safe_position(Value::Map({
@@ -1738,7 +1738,7 @@ impl Dydx {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealizedPnl", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
+        m.insert("contracts".to_string(), self.parse_number(quantity.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2080,7 +2080,7 @@ impl Dydx {
         let mut conditionalType: Value = Value::Int(0);
         let mut conditionalOrderTriggerSubticks: Value = Value::Str("0".into());
         let mut orderFlag: Value = Value::Null;
-        let mut timeInForceNumber: Value = Value::Null;
+        let mut timeInForceNumber: Option<i64> = None;
         if (timeInForce.as_deref() == Some("FOK")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" timeInForce fok has been deprecated".into()))));
         }
@@ -2090,21 +2090,21 @@ impl Dydx {
             clientMetadata = Value::Int(1); // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce.is_some()) {
                 // default is ioc
-                timeInForceNumber = Value::Int(1);
+                timeInForceNumber = Some(1);
             }
         }  else if (orderType.as_str() == Some("LIMIT")) {
             if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
                 orderFlag = Value::Int(64);
                 if postOnly.as_bool() == Some(true) {
-                    timeInForceNumber = Value::Int(2);
+                    timeInForceNumber = Some(2);
                 }  else {
-                    timeInForceNumber = Value::Int(0);
+                    timeInForceNumber = Some(0);
                 }
             }  else {
                 orderFlag = Value::Int(0);
                 if (timeInForce.as_deref() == Some("IOC")) {
-                    timeInForceNumber = Value::Int(1);
+                    timeInForceNumber = Some(1);
                 }  else {
                     panic!("{}", crate::exchange_errors::invalid_order("unexpected code path: timeInForce"));
                 }
@@ -2169,7 +2169,7 @@ impl Dydx {
         m.insert("subticks".to_string(), self.to_dydx_long(subticks));
         m.insert("goodTilBlock".to_string(), goodTillBlock);
         m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
-        m.insert("timeInForce".to_string(), timeInForceNumber);
+        m.insert("timeInForce".to_string(), timeInForceNumber.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
         m.insert("clientMetadata".to_string(), clientMetadata);
         m.insert("conditionType".to_string(), conditionalType);
@@ -2762,17 +2762,17 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut gasPrice: Value = Value::Null;
-        let mut denom: Value = Value::Null;
+        let mut gasPrice: Option<String> = None;
+        let mut denom: Option<String> = None;
         if (defaultFeeDenom.as_deref() == Some("uusdc")) {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "USDC_GAS_PRICE", &[]);
-            denom = self.safe_string_k(feeDenom.clone(), "USDC_DENOM", &[]);
+            gasPrice = self.safe_string_k_opt(feeDenom.clone(), "USDC_GAS_PRICE", &[]);
+            denom = self.safe_string_k_opt(feeDenom.clone(), "USDC_DENOM", &[]);
         }  else {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]);
-            denom = self.safe_string_k(feeDenom, "CHAINTOKEN_DENOM", &[]);
+            gasPrice = self.safe_string_k_opt(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]);
+            denom = self.safe_string_k_opt(feeDenom, "CHAINTOKEN_DENOM", &[]);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.clone().map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.clone().map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice);
+        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null));
         if (feeAmount == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
@@ -2782,7 +2782,7 @@ impl Dydx {
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), feeAmount);
-                m.insert("denom".to_string(), denom);
+                m.insert("denom".to_string(), denom.map(Value::from).unwrap_or(Value::Null));
             m
         });
         return Value::Map({

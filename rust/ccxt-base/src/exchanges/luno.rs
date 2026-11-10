@@ -1652,16 +1652,16 @@ impl Luno {
         }
         let mut feeBaseString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_base", &[]);
         let mut feeCounterString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_counter", &[]);
-        let mut feeCurrency: Value = Value::Null;
+        let mut feeCurrency: Option<String> = None;
         let mut feeCost: Value = Value::Null;
         if (feeBaseString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
-                feeCurrency = self.safe_string_k(market.clone(), "base", &[]);
+                feeCurrency = self.safe_string_k_opt(market.clone(), "base", &[]);
                 feeCost = feeBaseString.map(Value::from).unwrap_or(Value::Null);
             }
         }  else if (feeCounterString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
-                feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
+                feeCurrency = self.safe_string_k_opt(market.clone(), "quote", &[]);
                 feeCost = feeCounterString.map(Value::from).unwrap_or(Value::Null);
             }
         }
@@ -1683,7 +1683,7 @@ impl Luno {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), feeCost);
-        m.insert("currency".to_string(), feeCurrency);
+        m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
     m
 }));
     m
@@ -2169,7 +2169,7 @@ impl Luno {
                 m.insert("Failure".to_string(), Value::Str("failed".into()));
             m
         });
-        let mut referenceId: Value = Value::Null;
+        let mut referenceId: Option<String> = None;
         let mut firstWord: Option<String> = self.safe_string_opt(words.clone(), Value::Int(0), &[]);
         let mut thirdWord: Option<String> = self.safe_string(words.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut fourthWord: Option<String> = self.safe_string(words.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
@@ -2178,12 +2178,12 @@ impl Luno {
             type_var = Value::Str("fee".into());
         }
         if (type_var.as_str() == Some("reserved")) && (fourthWord.as_deref() == Some("order")) {
-            referenceId = self.safe_string(words, Value::Int(4), &[]);
+            referenceId = self.safe_string_opt(words, Value::Int(4), &[]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var);
-        m.insert("referenceId".to_string(), referenceId);
+        m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

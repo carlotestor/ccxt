@@ -852,13 +852,13 @@ impl Revolutx {
         let mut priceChange: Option<String> = self.safe_string_k_opt(ticker.clone(), "price_change_24h", &[]);
         let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume_24h", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
-        let mut open: Value = Value::Null;
+        let mut open: Option<String> = None;
         if (last.is_some()) && (priceChange.is_some()) {
-            open = crate::precise::Precise::stringSub(&last.clone().map(Value::from).unwrap_or(Value::Null), &priceChange.clone().map(Value::from).unwrap_or(Value::Null));
+            open = crate::precise::Precise::stringSub(&last.clone().map(Value::from).unwrap_or(Value::Null), &priceChange.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut percentage: Value = Value::Null;
-        if (open != Value::Null) && (priceChange.is_some()) {
-            let mut percentageString: Value = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open, &Value::Int(8));
+        if (open.is_some()) && (priceChange.is_some()) {
+            let mut percentageString: Value = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8));
             percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]);
         }
         return self.safe_ticker(Value::Map({
@@ -873,7 +873,7 @@ impl Revolutx {
         m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
@@ -1447,9 +1447,9 @@ impl Revolutx {
         let mut conditional: Value = self.safe_dict_k(order.clone(), "conditional", &[]);
         let mut takeProfit: Value = self.safe_dict_k(order.clone(), "take_profit", &[]);
         let mut stopLoss: Value = self.safe_dict_k(order.clone(), "stop_loss", &[]);
-        let mut triggerPrice: Value = Value::Null;
+        let mut triggerPrice: Option<String> = None;
         if (orderType.as_deref() == Some("conditional")) {
-            triggerPrice = self.safe_string_k(conditional.clone(), "trigger_price", &[]);
+            triggerPrice = self.safe_string_k_opt(conditional.clone(), "trigger_price", &[]);
             orderType = self.safe_string_lower_k_opt(conditional.clone(), "type", &[]);
             if (price.is_none()) {
                 price = self.safe_string_k_opt(conditional, "limit_price", &[]);
@@ -1517,7 +1517,7 @@ impl Revolutx {
         m.insert("remaining".to_string(), self.parse_number(remainingValue, &[]));
         m.insert("status".to_string(), status);
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.parse_number(triggerPrice, &[]));
+        m.insert("triggerPrice".to_string(), self.parse_number(triggerPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(stopLoss, "trigger_price", &[]), &[]));
         m.insert("takeProfitPrice".to_string(), self.parse_number(self.safe_string_k(takeProfit, "trigger_price", &[]), &[]));
         m.insert("timestamp".to_string(), Value::from(createdDate));

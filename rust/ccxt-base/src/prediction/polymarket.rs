@@ -1509,25 +1509,25 @@ impl Polymarket {
             let mut parsedOutcomes: Value = self.parse_json_value(self.safe_string(market.clone(), Value::Str("outcomes".into()), &[Value::Str("[]".into())]));
             let mut parsedTokenIds: Value = self.parse_json_value(self.safe_string(market.clone(), Value::Str("clobTokenIds".into()), &[Value::Str("[]".into())]));
             let mut parsedPrices: Value = self.parse_json_value(self.safe_string(market.clone(), Value::Str("outcomePrices".into()), &[Value::Str("[]".into())]));
-            let mut parsedOutcomesLength: Value = Value::Null;
+            let mut parsedOutcomesLength: Option<i64> = None;
             if (parsedOutcomes != Value::Null) {
-                parsedOutcomesLength = Value::Int(parsedOutcomes.len() as i64);
+                parsedOutcomesLength = Some(parsedOutcomes.len() as i64);
             }
-            let mut parsedTokenIdsLength: Value = Value::Null;
+            let mut parsedTokenIdsLength: Option<i64> = None;
             if (parsedTokenIds != Value::Null) {
-                parsedTokenIdsLength = Value::Int(parsedTokenIds.len() as i64);
+                parsedTokenIdsLength = Some(parsedTokenIds.len() as i64);
             }
-            let mut parsedPricesLength: Value = Value::Null;
+            let mut parsedPricesLength: Option<i64> = None;
             if (parsedPrices != Value::Null) {
-                parsedPricesLength = Value::Int(parsedPrices.len() as i64);
+                parsedPricesLength = Some(parsedPrices.len() as i64);
             }
-            if (parsedOutcomes != Value::Null) && (parsedOutcomesLength != Value::Null) {
+            if (parsedOutcomes != Value::Null) && (parsedOutcomesLength.is_some()) {
                 outcomeLabels = parsedOutcomes;
             }
-            if (parsedTokenIds != Value::Null) && (parsedTokenIdsLength != Value::Null) {
+            if (parsedTokenIds != Value::Null) && (parsedTokenIdsLength.is_some()) {
                 clobTokenIds = parsedTokenIds;
             }
-            if (parsedPrices != Value::Null) && (parsedPricesLength != Value::Null) {
+            if (parsedPrices != Value::Null) && (parsedPricesLength.is_some()) {
                 outcomePrices = parsedPrices;
             }
             let mut outcomeLabelsLength: f64 = ((outcomeLabels.len() as i64) as f64);
@@ -1550,26 +1550,26 @@ impl Polymarket {
                     continue;
                 }
                 let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), outcomeLabel.clone());
-                let mut winnerRaw: Value = Value::Null;
-                let mut settleFractionRaw: Value = Value::Null;
+                let mut winnerRaw: Option<bool> = None;
+                let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice != Value::Null) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
                     if outcomePrice.as_f64().unwrap_or(f64::NAN) >= (0.99) {
-                        winnerRaw = Value::Bool(true);
-                        settleFractionRaw = Value::Int(1);
+                        winnerRaw = Some(true);
+                        settleFractionRaw = Some(1);
                         resolvedOutcome = outcomeHandle.clone();
                     }  else if (0.01) >= outcomePrice.as_f64().unwrap_or(f64::NAN) {
-                        winnerRaw = Value::Bool(false);
-                        settleFractionRaw = Value::Int(0);
+                        winnerRaw = Some(false);
+                        settleFractionRaw = Some(0);
                     }
                 }
                 // effectively-final copies: Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
-                let mut winner: Value = winnerRaw;
-                let mut settleFraction: Value = settleFractionRaw;
+                let mut winner: Value = winnerRaw.map(Value::from).unwrap_or(Value::Null);
+                let mut settleFraction: Value = settleFractionRaw.map(Value::from).unwrap_or(Value::Null);
                 outcomes.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("outcome".to_string(), outcomeHandle);
@@ -4203,9 +4203,9 @@ impl Polymarket {
         let mut updatedAt: Option<String> = self.safe_string2_opt(rawEvent.clone(), Value::Str("updatedAt".into()), Value::Str("last_updated_date_iso".into()), &[]);
         let mut rawActive: Option<bool> = self.safe_bool_k_opt(rawEvent.clone(), "active", &[]);
         let mut closed: bool = self.safe_bool_k_opt(rawEvent.clone(), "closed", &[Value::Bool(false)]).unwrap_or(false);
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         if (rawActive.is_some()) {
-            active = Value::Bool(rawActive == Some(true) && (!(closed)));
+            active = Some(rawActive == Some(true) && (!(closed)));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -4243,7 +4243,7 @@ impl Polymarket {
         m.insert("title".to_string(), __ws_arg_20);
         m.insert("tags".to_string(), Value::from(parsedTags));
         m.insert("markets".to_string(), marketsList);
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("url".to_string(), __ws_arg_21);
         m.insert("image".to_string(), __ws_arg_22);
         m.insert("created".to_string(), __ws_arg_23);

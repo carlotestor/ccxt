@@ -1457,14 +1457,14 @@ impl Hitbtc {
             let mut type_var: String = "spot".to_string();
             let mut contractSize: Value = Value::Null;
             let mut linear: Value = Value::Null;
-            let mut inverse: Value = Value::Null;
+            let mut inverse: Option<bool> = None;
             if matches!(&contract, Value::Bool(true)) {
                 contractSize = self.parse_number(Value::Str("1".into()), &[]);
                 settleId = feeCurrencyId.map(Value::from).unwrap_or(Value::Null);
                 let mut settleCode: Value = self.safe_currency_code(settleId.clone(), &[]);
                 settle = settleCode.clone();
                 linear = (Value::Bool(quote.as_str() == settleCode.as_str()));
-                inverse = Value::Bool(!(linear.as_bool() == Some(true)));
+                inverse = Some(!(linear.as_bool() == Some(true)));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
                 if matches!(&future, Value::Bool(true)) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()),
@@ -1497,7 +1497,7 @@ impl Hitbtc {
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear);
-                    m.insert("inverse".to_string(), inverse);
+                    m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), self.safe_number_k(market.clone(), "take_rate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(market.clone(), "make_rate", &[]));
                     m.insert("contractSize".to_string(), contractSize);

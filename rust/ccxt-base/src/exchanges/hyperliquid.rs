@@ -4832,9 +4832,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut userAddress: Value = Value::Null;
+        let mut userAddress: Option<String> = None;
         let mut params2: Value = Value::Null;
-        userAddress = self.safe_string(self.handle_public_address(Value::Str("fetchOrder".into()), params.clone()), Value::Int(0), &[]);
+        userAddress = self.safe_string_opt(self.handle_public_address(Value::Str("fetchOrder".into()), params.clone()), Value::Int(0), &[]);
         params2 = self.safe_dict(self.handle_public_address(Value::Str("fetchOrder".into()), params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4850,7 +4850,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (clientOrderId.is_some()) {
@@ -5232,7 +5232,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (side != Value::Null) {
             side = (if (side.as_str() == Some("A")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }
-        let mut fee: Value = self.safe_string_k(trade.clone(), "fee", &[]);
+        let mut fee: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut crossed: Option<bool> = self.safe_bool_k_opt(trade.clone(), "crossed", &[]);
         if (crossed.is_some()) {
@@ -5240,7 +5240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut builderFee: Option<String> = self.safe_string_k_opt(trade.clone(), "builderFee", &[]);
         if (builderFee.is_some()) {
-            fee = crate::precise::Precise::stringAdd(&fee, &builderFee.clone().map(Value::from).unwrap_or(Value::Null));
+            fee = crate::precise::Precise::stringAdd(&fee.clone().map(Value::from).unwrap_or(Value::Null), &builderFee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5258,7 +5258,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), fee);
+        m.insert("cost".to_string(), fee.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_string_k(trade, "feeToken", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -6492,9 +6492,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut userAddress: Value = Value::Null;
+        let mut userAddress: Option<String> = None;
         let mut params2: Value = Value::Null;
-        userAddress = self.safe_string(self.handle_public_address(Value::Str("fetchLedger".into()), params.clone()), Value::Int(0), &[]);
+        userAddress = self.safe_string_opt(self.handle_public_address(Value::Str("fetchLedger".into()), params.clone()), Value::Int(0), &[]);
         params2 = self.safe_dict(self.handle_public_address(Value::Str("fetchLedger".into()), params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6502,7 +6502,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
@@ -6612,9 +6612,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut userAddress: Value = Value::Null;
+        let mut userAddress: Option<String> = None;
         let mut params2: Value = Value::Null;
-        userAddress = self.safe_string(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params.clone()), Value::Int(0), &[]);
+        userAddress = self.safe_string_opt(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params.clone()), Value::Int(0), &[]);
         params2 = self.safe_dict(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6622,7 +6622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
@@ -6714,9 +6714,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut userAddress: Value = Value::Null;
+        let mut userAddress: Option<String> = None;
         let mut params2: Value = Value::Null;
-        userAddress = self.safe_string(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params.clone()), Value::Int(0), &[]);
+        userAddress = self.safe_string_opt(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params.clone()), Value::Int(0), &[]);
         params2 = self.safe_dict(self.handle_public_address(Value::Str("fetchDepositsWithdrawals".into()), params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6724,7 +6724,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {

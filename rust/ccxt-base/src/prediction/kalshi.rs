@@ -1593,27 +1593,27 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        let mut bidSizeString: Value = Value::Null;
+        let mut bidSizeString: Option<String> = None;
         if isNo {
-            bidSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]);
+            bidSizeString = self.safe_string_k_opt(raw.clone(), "yes_ask_size_fp", &[]);
         }  else {
-            bidSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]);
+            bidSizeString = self.safe_string_k_opt(raw.clone(), "yes_bid_size_fp", &[]);
         }
-        let mut askSizeString: Value = Value::Null;
+        let mut askSizeString: Option<String> = None;
         if isNo {
-            askSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]);
+            askSizeString = self.safe_string_k_opt(raw.clone(), "yes_bid_size_fp", &[]);
         }  else {
-            askSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]);
+            askSizeString = self.safe_string_k_opt(raw.clone(), "yes_ask_size_fp", &[]);
         }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         let mut bidVolume: Value = Value::Null;
-        if (bidSizeString != Value::Null) && crate::precise::Precise::stringGe(&bidSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
-            bidVolume = self.parse_number(bidSizeString.clone(), &[]);
+        if (bidSizeString.is_some()) && crate::precise::Precise::stringGe(&bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            bidVolume = self.parse_number(bidSizeString.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut askVolume: Value = Value::Null;
-        if (askSizeString != Value::Null) && crate::precise::Precise::stringGe(&askSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
-            askVolume = self.parse_number(askSizeString.clone(), &[]);
+        if (askSizeString.is_some()) && crate::precise::Precise::stringGe(&askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            askVolume = self.parse_number(askSizeString.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {

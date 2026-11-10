@@ -3402,7 +3402,7 @@ impl Digifinex {
         let mut lastTradeTimestamp: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
         let mut type_var: Value = Value::Null;
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut sideRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
@@ -3427,16 +3427,16 @@ impl Digifinex {
             // 1 open long, 2 open short, 3 close long, 4 close short
             if (sideRaw.as_deref() == Some("1")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("2")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("3")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }  else if (sideRaw.as_deref() == Some("4")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }
             timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]);
             lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]);
@@ -3469,7 +3469,7 @@ impl Digifinex {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number2(order.clone(), Value::Str("amount".into()), Value::Str("size".into()), &[]));
         m.insert("filled".to_string(), self.safe_number2(order.clone(), Value::Str("executed_amount".into()), Value::Str("filled_qty".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -5579,10 +5579,10 @@ impl Digifinex {
                 collateralString = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)) } else { isolatedMargin.clone() });
             }
         }
-        let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "maintain_margin", &[]);
+        let mut maintenanceMarginString: Option<String> = self.safe_string_k_opt(position.clone(), "maintain_margin", &[]);
         let mut forceCloseFee: Value = self.omit_zero(self.safe_string_k(position.clone(), "force_close_fee", &[]));
-        if (maintenanceMarginString != Value::Null) && (forceCloseFee != Value::Null) {
-            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString, &forceCloseFee);
+        if (maintenanceMarginString.is_some()) && (forceCloseFee != Value::Null) {
+            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &forceCloseFee).as_str().map(str::to_owned);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5601,7 +5601,7 @@ impl Digifinex {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString, &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position.clone(), "maint_margin_ratio", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));

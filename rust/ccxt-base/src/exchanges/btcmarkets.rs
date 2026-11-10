@@ -857,9 +857,9 @@ impl Btcmarkets {
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "assetName", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut amount: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(transaction.clone(), "amount", &[]);
         if (fee.is_some()) && (fee.as_deref() != Some("")) {
-            amount = crate::precise::Precise::stringSub(&amount, &fee.clone().map(Value::from).unwrap_or(Value::Null));
+            amount = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &fee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -875,7 +875,7 @@ impl Btcmarkets {
         m.insert("tagTo".to_string(), tag);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
-        m.insert("amount".to_string(), self.parse_number(amount, &[]));
+        m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), code.clone());
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), lastUpdate);
@@ -1649,13 +1649,13 @@ impl Btcmarkets {
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<String> = None;
         let mut cost: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
-            currency = self.safe_string_k(market.clone(), "quote", &[]);
+            currency = self.safe_string_k_opt(market.clone(), "quote", &[]);
             cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price)));
         }  else {
-            currency = self.safe_string_k(market.clone(), "base", &[]);
+            currency = self.safe_string_k_opt(market.clone(), "base", &[]);
             cost = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut rate: Value = self.safe_value(market, takerOrMaker.clone(), &[]);
@@ -1667,7 +1667,7 @@ impl Btcmarkets {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker);
-        m.insert("currency".to_string(), currency);
+        m.insert("currency".to_string(), currency.map(Value::from).unwrap_or(Value::Null));
         m.insert("rate".to_string(), rate);
         m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
     m

@@ -2604,7 +2604,7 @@ impl Upbit {
             cost = price.clone().map(Value::from).unwrap_or(Value::Null);
             price = None;
         }
-        let mut average: Value = Value::Null;
+        let mut average: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
@@ -2647,7 +2647,7 @@ impl Upbit {
                 }
             }
             }
-            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null));
+            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -2673,7 +2673,7 @@ impl Upbit {
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.parse_number(cost, &[]));
-        m.insert("average".to_string(), self.parse_number(average, &[]));
+        m.insert("average".to_string(), self.parse_number(average.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));

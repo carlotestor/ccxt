@@ -757,7 +757,7 @@ impl Cryptomus {
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         // currency here is array of networks
-        let mut id: Value = Value::Null; // all entries have same id, as they were grouped by
+        let mut id: Option<String> = None; // all entries have same id, as they were grouped by
         let mut code: Value = Value::Null;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -769,9 +769,9 @@ impl Cryptomus {
             while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
-            if (id == Value::Null) {
-                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
-                code = self.safe_currency_code(id.clone(), &[]);
+            if (id.is_none()) {
+                id = self.safe_string_k_opt(networkEntry.clone(), "currency_code", &[]);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "network_code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -809,7 +809,7 @@ impl Cryptomus {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("info".to_string(), rawCurrency);
@@ -1659,10 +1659,10 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut makerFee: Value = self.safe_string_k(currentFeeTier.clone(), "maker_percent", &[]);
-        let mut takerFee: Value = self.safe_string_k(currentFeeTier, "taker_percent", &[]);
-        makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into()));
-        takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into()));
+        let mut makerFee: Option<String> = self.safe_string_k_opt(currentFeeTier.clone(), "maker_percent", &[]);
+        let mut takerFee: Option<String> = self.safe_string_k_opt(currentFeeTier, "taker_percent", &[]);
+        makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut feeTiers: Value = self.safe_list_k(data, "tariff_steps", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1682,8 +1682,8 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.parse_number(makerFee.clone(), &[]));
-        m.insert("taker".to_string(), self.parse_number(takerFee.clone(), &[]));
+        m.insert("maker".to_string(), self.parse_number(makerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("taker".to_string(), self.parse_number(takerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map(tiers.clone()));
@@ -1706,12 +1706,12 @@ impl Cryptomus {
             while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
-            let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
-            let mut maker: Value = self.safe_string_k(tier, "maker_percent", &[]);
-            maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into()));
-            taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into()));
-            makerFees.push(Value::from(vec![turnover.clone(), self.parse_number(maker, &[])]));
-            takerFees.push(Value::from(vec![turnover, self.parse_number(taker, &[])]));
+            let mut taker: Option<String> = self.safe_string_k_opt(tier.clone(), "taker_percent", &[]);
+            let mut maker: Option<String> = self.safe_string_k_opt(tier, "maker_percent", &[]);
+            maker = crate::precise::Precise::stringDiv(&maker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            makerFees.push(Value::from(vec![turnover.clone(), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[])]));
+            takerFees.push(Value::from(vec![turnover, self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         return Value::Map({

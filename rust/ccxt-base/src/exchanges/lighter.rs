@@ -1497,13 +1497,13 @@ if _try_result.is_err() {
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOrderExpiry.clone(), "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOrderExpiry.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]);
-        let mut orderTypeNum: Value = Value::Null;
-        let mut timeInForceNum: Value = Value::Null;
+        let mut orderTypeNum: Option<i64> = None;
+        let mut timeInForceNum: Option<i64> = None;
         if matches!(&isMarketOrder, Value::Bool(true)) {
-            orderTypeNum = Value::Int(1);
-            timeInForceNum = Value::Int(0);
+            orderTypeNum = Some(1);
+            timeInForceNum = Some(0);
         }  else {
-            orderTypeNum = Value::Int(0);
+            orderTypeNum = Some(0);
         }
         if (orderSide.as_str() == Some("BUY")) {
             request.insert("is_ask".into(), Value::Int(0));
@@ -1511,15 +1511,15 @@ if _try_result.is_err() {
             request.insert("is_ask".into(), Value::Int(1));
         }
         if postOnly.as_bool() == Some(true) {
-            timeInForceNum = Value::Int(2);
+            timeInForceNum = Some(2);
             orderExpiry = Value::Int(-1);
         }  else {
             if !(matches!(&isMarketOrder, Value::Bool(true))) {
                 if (timeInForce.as_deref() == Some("ioc")) {
-                    timeInForceNum = Value::Int(0);
+                    timeInForceNum = Some(0);
                     orderExpiry = Value::Int(0);
                 }  else if (timeInForce.as_deref() == Some("gtt")) {
-                    timeInForceNum = Value::Int(1);
+                    timeInForceNum = Some(1);
                     orderExpiry = Value::Int(-1);
                 }
             }
@@ -1541,16 +1541,16 @@ if _try_result.is_err() {
             amountStr = self.number_to_string(amount.clone());
             if (stopLossPrice != Value::Null) {
                 if matches!(&isMarketOrder, Value::Bool(true)) {
-                    orderTypeNum = Value::Int(2);
+                    orderTypeNum = Some(2);
                 }  else {
-                    orderTypeNum = Value::Int(3);
+                    orderTypeNum = Some(3);
                 }
                 triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice);
             }  else if (takeProfitPrice.is_some()) {
                 if matches!(&isMarketOrder, Value::Bool(true)) {
-                    orderTypeNum = Value::Int(4);
+                    orderTypeNum = Some(4);
                 }  else {
-                    orderTypeNum = Value::Int(5);
+                    orderTypeNum = Some(5);
                 }
                 triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
             }
@@ -1558,8 +1558,8 @@ if _try_result.is_err() {
             amountStr = self.amount_to_precision(symbol.clone(), amount);
         }
         request.insert("order_expiry".into(), orderExpiry);
-        request.insert("order_type".into(), orderTypeNum);
-        request.insert("time_in_force".into(), timeInForceNum);
+        request.insert("order_type".into(), orderTypeNum.map(Value::from).unwrap_or(Value::Null));
+        request.insert("time_in_force".into(), timeInForceNum.map(Value::from).unwrap_or(Value::Null));
         request.insert("reduce_only".into(), (if reduceOnly { Value::Int(1) } else { Value::Int(0) }));
         request.insert("client_order_index".into(), clientOrderId);
         request.insert("base_amount".into(), self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale)));
@@ -4369,14 +4369,14 @@ if _try_result.is_err() {
         let mut bidAccountId: Value = self.safe_string_k(trade.clone(), "bid_account_id", &[]);
         let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
         let mut side: Value = Value::Null;
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         if (accountIndex != Value::Null) {
             if (accountIndex == askAccountId) {
                 side = Value::Str("sell".into());
-                orderId = self.safe_string_k(trade.clone(), "ask_id", &[]);
+                orderId = self.safe_string_k_opt(trade.clone(), "ask_id", &[]);
             }  else if (accountIndex == bidAccountId) {
                 side = Value::Str("buy".into());
-                orderId = self.safe_string_k(trade.clone(), "bid_id", &[]);
+                orderId = self.safe_string_k_opt(trade.clone(), "bid_id", &[]);
             }
         }
         // public trades use Lighter's taker-side convention
@@ -4395,7 +4395,7 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);

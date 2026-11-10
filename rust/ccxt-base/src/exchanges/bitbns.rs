@@ -1407,7 +1407,7 @@ impl Bitbns {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "date", &[]));
         timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[timestamp.clone()]);
         let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("rate".into()), Value::Str("price".into()), &[]);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "type", &[]);
         if (side != Value::Null) {
             if side.as_str().unwrap_or("").contains("buy") {
@@ -1417,12 +1417,12 @@ impl Bitbns {
             }
         }
         let mut factor: Option<String> = self.safe_string_k_opt(trade.clone(), "factor", &[]);
-        let mut costString: Value = Value::Null;
+        let mut costString: Option<String> = None;
         if (factor.is_some()) {
-            amountString = crate::precise::Precise::stringDiv(&amountString, &factor.clone().map(Value::from).unwrap_or(Value::Null));
+            amountString = crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &factor.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
-            amountString = self.safe_string_k(trade.clone(), "base_volume", &[]);
-            costString = self.safe_string_k(trade.clone(), "quote_volume", &[]);
+            amountString = self.safe_string_k_opt(trade.clone(), "base_volume", &[]);
+            costString = self.safe_string_k_opt(trade.clone(), "quote_volume", &[]);
         }
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
@@ -1448,8 +1448,8 @@ impl Bitbns {
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[marketResolved]);

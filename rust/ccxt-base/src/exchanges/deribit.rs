@@ -1906,7 +1906,7 @@ impl Deribit {
                 let mut isComboMarket: bool = kind.as_deref().unwrap_or("").contains("combo");
                 let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64();
                 let mut strike: Value = Value::Null;
-                let mut optionType: Value = Value::Null;
+                let mut optionType: Option<String> = None;
                 let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
                 let mut type_var: String = "swap".to_string();
                 if matches!(&future, Value::Bool(true)) {
@@ -1926,8 +1926,8 @@ impl Deribit {
                         symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])).into());
                         if matches!(&option, Value::Bool(true)) {
                             strike = self.safe_number_k(market.clone(), "strike", &[]);
-                            optionType = self.safe_string_k(market.clone(), "option_type", &[]);
-                            let mut letter: Value = (if (optionType.as_str() == Some("call")) { Value::Str("C".into()) } else { Value::Str("P".into()) });
+                            optionType = self.safe_string_k_opt(market.clone(), "option_type", &[]);
+                            let mut letter: Value = (if (optionType.as_deref() == Some("call")) { Value::Str("C".into()) } else { Value::Str("P".into()) });
                             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), letter).into());
                         }
                     }
@@ -1969,7 +1969,7 @@ impl Deribit {
                         m.insert("expiry".to_string(), Value::from(expiry));
                         m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
                         m.insert("strike".to_string(), strike);
-                        m.insert("optionType".to_string(), optionType);
+                        m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
                         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), minTradeAmount.clone());
@@ -2446,7 +2446,7 @@ impl Deribit {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut code: Value = self.safe_string2(params.clone(), Value::Str("code".into()), Value::Str("currency".into()), &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]);
         if (symbolsNormalized != Value::Null) {
             {
@@ -2460,7 +2460,7 @@ impl Deribit {
                 }
                 if (code == Value::Null) {
                     code = self.safe_string_k(market.clone(), "base", &[]);
-                    type_var = self.safe_string_k(market, "type", &[]);
+                    type_var = self.safe_string_k_opt(market, "type", &[]);
                 }
             }
             }
@@ -2474,12 +2474,12 @@ impl Deribit {
                 m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        if (type_var != Value::Null) {
-            if (type_var.as_str() == Some("spot")) {
+        if (type_var.is_some()) {
+            if (type_var.as_deref() == Some("spot")) {
                 request.insert("kind".into(), Value::Str("spot".into()));
-            }  else if (type_var.as_str() == Some("future")) || (type_var.as_str() == Some("contract")) {
+            }  else if (type_var.as_deref() == Some("future")) || (type_var.as_deref() == Some("contract")) {
                 request.insert("kind".into(), Value::Str("future".into()));
-            }  else if (type_var.as_str() == Some("option")) {
+            }  else if (type_var.as_deref() == Some("option")) {
                 request.insert("kind".into(), Value::Str("option".into()));
             }
         }
@@ -3174,13 +3174,13 @@ impl Deribit {
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "order_state", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "direction", &[]);
-        let mut feeCostString: Value = self.safe_string_k(order.clone(), "commission", &[]);
+        let mut feeCostString: Option<String> = self.safe_string_k_opt(order.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
-        if (feeCostString != Value::Null) {
-            feeCostString = crate::precise::Precise::stringAbs(&feeCostString);
+        if (feeCostString.is_some()) {
+            feeCostString = crate::precise::Precise::stringAbs(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCostString);
+                    m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
                 m
             });

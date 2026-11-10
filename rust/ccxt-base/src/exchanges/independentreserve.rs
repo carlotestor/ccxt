@@ -907,11 +907,11 @@ impl Independentreserve {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(ticker.clone(), "CreatedTimestampUtc", &[]));
         let mut baseId: Option<String> = self.safe_string_k_opt(ticker.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(ticker.clone(), "SecondaryCurrencyCode", &[]);
-        let mut defaultMarketId: Value = Value::Null;
+        let mut defaultMarketId: Option<String> = None;
         if (baseId.is_some()) && (quoteId.is_some()) {
-            defaultMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)).into());
+            defaultMarketId = Some(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = self.safe_market(&[defaultMarketId, market, Value::Str("/".into())]);
+        let mut marketResolved: Value = self.safe_market(&[defaultMarketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("/".into())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "LastPrice", &[]);
         return self.safe_ticker(Value::Map({
@@ -1029,7 +1029,7 @@ impl Independentreserve {
         //        "VolumeFilled": 0,
         //        "VolumeOrdered": 0.358
         //    }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut baseId: Option<String> = self.safe_string_k_opt(order.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(order.clone(), "SecondaryCurrencyCode", &[]);
         let mut base: Value = Value::Null;
@@ -1038,10 +1038,10 @@ impl Independentreserve {
             base = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
             quote = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (base != Value::Null) && (quote != Value::Null) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
             }
         }  else if (market != Value::Null) {
-            symbol = self.safe_string_k(market.clone(), "symbol", &[]);
+            symbol = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             base = self.safe_string_k(market.clone(), "base", &[]);
             quote = self.safe_string_k(market.clone(), "quote", &[]);
         }
@@ -1062,9 +1062,9 @@ impl Independentreserve {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "CreatedTimestampUtc", &[]));
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "VolumeFilled", &[]);
         let mut feeRate: Option<String> = self.safe_string_k_opt(order.clone(), "FeePercent", &[]);
-        let mut feeCost: Value = Value::Null;
+        let mut feeCost: Option<String> = None;
         if (feeRate.is_some()) && (filled.is_some()) {
-            feeCost = crate::precise::Precise::stringMul(&feeRate.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null));
+            feeCost = crate::precise::Precise::stringMul(&feeRate.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1074,7 +1074,7 @@ impl Independentreserve {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType);
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "TimeInForce", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
@@ -1090,7 +1090,7 @@ impl Independentreserve {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), feeRate.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), feeCost);
+        m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), base);
     m
 }));
@@ -1323,11 +1323,11 @@ impl Independentreserve {
         let mut cost: Value = self.parse_number(crate::precise::Precise::stringMul(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(trade.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "SecondaryCurrencyCode", &[]);
-        let mut marketId: Value = Value::Null;
+        let mut marketId: Option<String> = None;
         if (baseId.is_some()) && (quoteId.is_some()) {
-            marketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)).into());
+            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quoteId.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
             if side.as_str().unwrap_or("").contains("Bid") {

@@ -1355,11 +1355,11 @@ impl Bullish {
         let mut future: Value = Value::Bool(false);
         let mut option: Value = Value::Bool(false);
         let mut contract: Value = Value::Bool(true);
-        let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
-        let mut expiryDatetime: Value = Value::Null;
+        let mut linear: Option<bool> = None;
+        let mut inverse: Option<bool> = None;
+        let mut expiryDatetime: Option<String> = None;
         let mut contractSize: Value = Value::Null;
-        let mut optionType: Value = Value::Null;
+        let mut optionType: Option<String> = None;
         let mut strike: Value = Value::Null;
         let mut margin: Value = Value::Bool(false);
         if (type_var.as_str() == Some("spot")) {
@@ -1369,12 +1369,12 @@ impl Bullish {
         }  else {
             contractSize = self.safe_number_k(market.clone(), "contractMultiplier", &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
-            linear = Value::Bool(settle.as_str() == quote.as_str());
-            inverse = Value::Bool(!(linear.as_bool() == Some(true)));
+            linear = Some(settle.as_str() == quote.as_str());
+            inverse = Some(!(linear == Some(true)));
             if (type_var.as_str() == Some("swap")) {
                 swap = Value::Bool(true);
             }  else {
-                expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]);
+                expiryDatetime = self.safe_string_k_opt(market.clone(), "expiryDatetime", &[]);
                 let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut datePart: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(2), &[]);
                 let mut dateYmd: Value = datePart.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
@@ -1383,7 +1383,7 @@ impl Bullish {
                     future = Value::Bool(true);
                 }  else if (type_var.as_str() == Some("option")) {
                     option = Value::Bool(true);
-                    optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]);
+                    optionType = self.safe_string_lower_k_opt(market.clone(), "optionType", &[]);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
                     symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), self.safe_string(idParts, Value::Int(4), &[])).into())).into());
                 }
@@ -1410,15 +1410,15 @@ impl Bullish {
         m.insert("future".to_string(), future);
         m.insert("option".to_string(), option);
         m.insert("contract".to_string(), contract);
-        m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), tradingFees.get("taker").cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), tradingFees.get("maker").cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize);
-        m.insert("expiry".to_string(), self.parse8601(expiryDatetime.clone()));
-        m.insert("expiryDatetime".to_string(), expiryDatetime);
+        m.insert("expiry".to_string(), self.parse8601(expiryDatetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("expiryDatetime".to_string(), expiryDatetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("strike".to_string(), strike);
-        m.insert("optionType".to_string(), optionType);
+        m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({

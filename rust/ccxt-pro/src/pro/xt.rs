@@ -384,11 +384,11 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut url: Value = self.safe_string(apiUrls, Value::from(tradeType.clone()), &[]);
+        let mut url: Option<String> = self.safe_string_opt(apiUrls, Value::from(tradeType.clone()), &[]);
         if !isContract {
-            url = Value::Str(format!("{}{}", url, Value::Str("/private".into())).into());
+            url = Some(format!("{}{}", url.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/private".into())));
         }
-        let mut client: Value = self.client(&[url]);
+        let mut client: Value = self.client(&[url.map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut token: Option<String> = self.safe_string(__ch.subscriptions.clone(), Value::Str("token".into()), &[]).as_str().map(str::to_owned);
         if (token.is_none()) {
@@ -406,7 +406,7 @@ impl Xt {
             // the flight here, before any suspension point, makes concurrent callers wait
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut listenKey: Value = Value::Null;
+                let mut listenKey: Option<String> = None;
                 if isContract {
                     let mut response: Value = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await;
                     //
@@ -417,7 +417,7 @@ impl Xt {
                     //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
                     //    }
                     //
-                    listenKey = self.safe_string_k(response.clone(), "result", &[]);
+                    listenKey = self.safe_string_k_opt(response.clone(), "result", &[]);
                 }  else {
                     let mut response: Value = self.parent.private_spot_post_ws_token(&[]).await;
                     //
@@ -432,13 +432,13 @@ impl Xt {
                     //    }
                     //
                     let mut result: Value = self.safe_dict_k(response, "result", &[]);
-                    listenKey = self.safe_string_k(result, "accessToken", &[]);
+                    listenKey = self.safe_string_k_opt(result, "accessToken", &[]);
                 }
-                if (listenKey == Value::Null) {
+                if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" getListenKey() received an empty listen key".into()))));
                 }
-                __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
-                client.resolve(&[listenKey, messageHash.clone()]);
+                __ch.add_subscription(&Value::Str("token".into()), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
+                client.resolve(&[listenKey.map(Value::from).unwrap_or(Value::Null), messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // hand the failure to every waiter so the next caller re-leads instead of

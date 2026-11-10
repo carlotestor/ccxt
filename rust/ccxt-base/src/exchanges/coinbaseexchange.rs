@@ -1573,46 +1573,46 @@ impl Coinbaseexchange {
         //     }
         //
         let mut timestamp: Value = Value::Null;
-        let mut bid: Value = Value::Null;
-        let mut ask: Value = Value::Null;
+        let mut bid: Option<String> = None;
+        let mut ask: Option<String> = None;
         let mut last: Value = Value::Null;
-        let mut high: Value = Value::Null;
-        let mut low: Value = Value::Null;
-        let mut open: Value = Value::Null;
-        let mut volume: Value = Value::Null;
+        let mut high: Option<String> = None;
+        let mut low: Option<String> = None;
+        let mut open: Option<String> = None;
+        let mut volume: Option<String> = None;
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (matches!(&ticker, Value::Arr(_))) {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]);
         }  else {
             timestamp = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
-            bid = self.safe_string_k(ticker.clone(), "bid", &[]);
-            ask = self.safe_string_k(ticker.clone(), "ask", &[]);
-            high = self.safe_string_k(ticker.clone(), "high", &[]);
-            low = self.safe_string_k(ticker.clone(), "low", &[]);
-            open = self.safe_string_k(ticker.clone(), "open", &[]);
+            bid = self.safe_string_k_opt(ticker.clone(), "bid", &[]);
+            ask = self.safe_string_k_opt(ticker.clone(), "ask", &[]);
+            high = self.safe_string_k_opt(ticker.clone(), "high", &[]);
+            low = self.safe_string_k_opt(ticker.clone(), "low", &[]);
+            open = self.safe_string_k_opt(ticker.clone(), "open", &[]);
             last = self.safe_string2(ticker.clone(), Value::Str("price".into()), Value::Str("last".into()), &[]);
-            volume = self.safe_string_k(ticker.clone(), "volume", &[]);
+            volume = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), high);
-        m.insert("low".to_string(), low);
-        m.insert("bid".to_string(), bid);
+        m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
+        m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
+        m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), ask);
+        m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), volume);
+        m.insert("baseVolume".to_string(), volume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
@@ -1765,17 +1765,17 @@ impl Coinbaseexchange {
         let mut timestamp: Value = self.parse8601(self.safe_string2(trade.clone(), Value::Str("time".into()), Value::Str("created_at".into()), &[]));
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "product_id", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
-        let mut feeRate: Value = Value::Null;
+        let mut feeRate: Option<String> = None;
         let mut takerOrMaker: Value = Value::Null;
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<String> = None;
         let mut feeCurrencyId: Option<String> = self.safe_string_lower_k_opt(marketResolved.clone(), "quoteId", &[]);
         if (feeCurrencyId.is_some()) {
             let mut costField: Value = Value::Str(format!("{}{}", feeCurrencyId.map(Value::from).unwrap_or(Value::Null), Value::Str("_value".into())).into());
-            cost = self.safe_string(trade.clone(), costField, &[]);
+            cost = self.safe_string_opt(trade.clone(), costField, &[]);
             let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
             if (liquidity.is_some()) {
                 takerOrMaker = (if (liquidity.as_deref() == Some("T")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
-                feeRate = self.safe_string(marketResolved.clone(), takerOrMaker.clone(), &[]);
+                feeRate = self.safe_string_opt(marketResolved.clone(), takerOrMaker.clone(), &[]);
             }
         }
         let mut feeCost: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("fill_fees".into()), Value::Str("fee".into()), &[]);
@@ -1783,7 +1783,7 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
                 m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-                m.insert("rate".to_string(), feeRate);
+                m.insert("rate".to_string(), feeRate.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
@@ -1816,7 +1816,7 @@ impl Coinbaseexchange {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[marketResolved]);
 
@@ -2711,17 +2711,17 @@ impl Coinbaseexchange {
         //     }
         //  }
         let mut id: Option<String> = self.safe_string_k_opt(item.clone(), "id", &[]);
-        let mut amountString: Value = self.safe_string_k(item.clone(), "amount", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(item.clone(), "amount", &[]);
         let mut direction: Value = Value::Null;
         let mut afterString: Option<String> = self.safe_string_k_opt(item.clone(), "balance", &[]);
-        let mut beforeString: Value = crate::precise::Precise::stringSub(&afterString.clone().map(Value::from).unwrap_or(Value::Null), &amountString);
-        if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
+        let mut beforeString: Value = crate::precise::Precise::stringSub(&afterString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+        if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Value::Str("out".into());
-            amountString = crate::precise::Precise::stringAbs(&amountString);
+            amountString = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             direction = Value::Str("in".into());
         }
-        let mut amount: Value = self.parse_number(amountString, &[]);
+        let mut amount: Value = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut after: Value = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut before: Value = self.parse_number(beforeString, &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
@@ -2731,15 +2731,15 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut account: Value = Value::Null;
-        let mut referenceAccount: Value = Value::Null;
-        let mut referenceId: Value = Value::Null;
+        let mut account: Option<String> = None;
+        let mut referenceAccount: Option<String> = None;
+        let mut referenceId: Option<String> = None;
         if (type_var.as_str() == Some("transfer")) {
-            account = self.safe_string_k(details.clone(), "from", &[]);
-            referenceAccount = self.safe_string_k(details.clone(), "to", &[]);
-            referenceId = self.safe_string_k(details.clone(), "profile_transfer_id", &[]);
+            account = self.safe_string_k_opt(details.clone(), "from", &[]);
+            referenceAccount = self.safe_string_k_opt(details.clone(), "to", &[]);
+            referenceId = self.safe_string_k_opt(details.clone(), "profile_transfer_id", &[]);
         }  else {
-            referenceId = self.safe_string_k(details, "order_id", &[]);
+            referenceId = self.safe_string_k_opt(details, "order_id", &[]);
         }
         let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
@@ -2749,9 +2749,9 @@ impl Coinbaseexchange {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), direction);
-        m.insert("account".to_string(), account);
-        m.insert("referenceAccount".to_string(), referenceAccount);
-        m.insert("referenceId".to_string(), referenceId);
+        m.insert("account".to_string(), account.map(Value::from).unwrap_or(Value::Null));
+        m.insert("referenceAccount".to_string(), referenceAccount.map(Value::from).unwrap_or(Value::Null));
+        m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), amount);

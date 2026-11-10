@@ -1640,15 +1640,15 @@ impl Hashkey {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), suffix).into());
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
-        let mut isLinear: Value = Value::Null;
+        let mut isLinear: Option<bool> = None;
         let mut subType: Value = Value::Null;
         let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
         if (isInverse.is_some()) {
             if isInverse == Some(true) {
-                isLinear = Value::Bool(false);
+                isLinear = Some(false);
                 subType = Value::Str("inverse".into());
             }  else {
-                isLinear = Value::Bool(true);
+                isLinear = Some(true);
                 subType = Value::Str("linear".into());
             }
         }
@@ -1668,15 +1668,15 @@ impl Hashkey {
 })]);
         let mut minCostString: Value = self.omit_zero(self.safe_string_k(costFilter, "min_notional", &[]));
         let mut contractSizeString: Option<String> = self.safe_string_k_opt(market.clone(), "contractMultiplier", &[]);
-        let mut amountPrecisionString: Value = self.safe_string_k(amountFilter.clone(), "stepSize", &[]);
-        let mut amountMinLimitString: Value = self.safe_string_k(amountFilter.clone(), "minQty", &[]);
-        let mut amountMaxLimitString: Value = self.safe_string_k(amountFilter, "maxQty", &[]);
+        let mut amountPrecisionString: Option<String> = self.safe_string_k_opt(amountFilter.clone(), "stepSize", &[]);
+        let mut amountMinLimitString: Option<String> = self.safe_string_k_opt(amountFilter.clone(), "minQty", &[]);
+        let mut amountMaxLimitString: Option<String> = self.safe_string_k_opt(amountFilter, "maxQty", &[]);
         let mut minLeverage: Value = Value::Null;
         let mut maxLeverage: Value = Value::Null;
         if isSwap {
-            amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null));
-            amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null));
-            amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null));
+            amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut riskLimits: Value = self.safe_list_k(market.clone(), "riskLimits", &[]);
             if (riskLimits != Value::Null) {
                 let mut first: Value = self.safe_dict(riskLimits.clone(), Value::Int(0), &[]);
@@ -1720,7 +1720,7 @@ impl Hashkey {
         m.insert("settle".to_string(), settle);
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("linear".to_string(), isLinear);
+        m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::Bool).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
@@ -1733,7 +1733,7 @@ impl Hashkey {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amountPrecisionString, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), self.safe_number_k(priceFilter.clone(), "tickSize", &[]));
     m
 }));
@@ -1741,8 +1741,8 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(amountMinLimitString, &[]));
-        m.insert("max".to_string(), self.parse_number(amountMaxLimitString, &[]));
+        m.insert("min".to_string(), self.parse_number(amountMinLimitString.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("max".to_string(), self.parse_number(amountMaxLimitString.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -2388,11 +2388,11 @@ impl Hashkey {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
-        let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
+        let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "v", &[]);
         let mut contractSizeValue: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
         if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSizeValue.is_some()) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null)));
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2413,7 +2413,7 @@ impl Hashkey {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume);
+        m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "qv", &[]));
         m.insert("info".to_string(), ticker);
     m

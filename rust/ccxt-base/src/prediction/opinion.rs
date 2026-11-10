@@ -1617,21 +1617,21 @@ impl Opinion {
             makerRaw = crate::precise::Precise::stringMul(&amountStr, &priceStr);
         }
         let mut makerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut makerAmount: Value = Value::Null;
-        let mut takerAmount: Value = Value::Null;
+        let mut makerAmount: Option<String> = None;
+        let mut takerAmount: Option<String> = None;
         if (side.as_str() == Some("BUY")) {
             let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum, &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum);
-            takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom);
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
         }  else {
             let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceDenom, &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom);
-            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum);
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("makerAmount".to_string(), makerAmount);
-        m.insert("takerAmount".to_string(), takerAmount);
+        m.insert("makerAmount".to_string(), makerAmount.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerAmount".to_string(), takerAmount.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

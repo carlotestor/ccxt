@@ -1328,9 +1328,9 @@ impl Predictfun {
         if (rawMarketsLength == 0.0) {
             active = Value::Bool((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
-        let mut resolved: Value = Value::Null;
+        let mut resolved: Option<bool> = None;
         if (status.is_some()) {
-            resolved = Value::Bool((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
+            resolved = Some((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1348,7 +1348,7 @@ impl Predictfun {
         m.insert("end".to_string(), self.parse8601(endDate.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("endDatetime".to_string(), endDate.map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), self.safe_string_k(rawTopic.clone(), "marketVariant", &[]));
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), resolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawTopic);
     m
 });
@@ -1572,17 +1572,17 @@ impl Predictfun {
             let mut outcomeHandle: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label).into());
             let mut winner: Value = Value::Null;
             let mut outcomeStatus: Option<String> = self.safe_string_k(rawOutcome.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut settleFractionRaw: Value = Value::Null;
+            let mut settleFractionRaw: Option<i64> = None;
             if (outcomeStatus.is_some()) {
                 winner = (Value::Bool(outcomeStatus.as_deref() == Some("WON")));
                 if winner.as_bool() == Some(true) {
-                    settleFractionRaw = Value::Int(1);
+                    settleFractionRaw = Some(1);
                     resolvedOutcomeRaw = outcomeHandle.clone();
                 }  else {
-                    settleFractionRaw = Value::Int(0); // todo check
+                    settleFractionRaw = Some(0); // todo check
                 }
             }
-            let mut settleFraction: Value = settleFractionRaw;
+            let mut settleFraction: Value = settleFractionRaw.map(Value::from).unwrap_or(Value::Null);
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2276,10 +2276,10 @@ impl Predictfun {
             priceStr = self.safe_string_k(trade.clone(), "priceExecuted", &[priceStr.clone()]);
         }
         priceStr = crate::precise::Precise::stringDiv(&priceStr, &Value::Str("1000000000000000000".into()));
-        let mut amountStr: Value = self.safe_string_k(party.clone(), "amount", &[]);
-        amountStr = crate::precise::Precise::stringDiv(&amountStr, &Value::Str("1000000000000000000".into()));
+        let mut amountStr: Option<String> = self.safe_string_k_opt(party.clone(), "amount", &[]);
+        amountStr = crate::precise::Precise::stringDiv(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        let mut order: Value = Value::Null;
+        let mut order: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut quoteType: Option<String> = self.safe_string_lower_k(party.clone(), "quoteType", &[]).as_str().map(str::to_owned);
         if (quoteType.as_deref() == Some("bid")) {
@@ -2287,7 +2287,7 @@ impl Predictfun {
         }  else if (quoteType.as_deref() == Some("ask")) {
             side = Value::Str("sell".into());
         }
-        order = self.safe_string_k(party.clone(), "hash", &[]);
+        order = self.safe_string_k_opt(party.clone(), "hash", &[]);
         let mut rawFee: Value = self.safe_dict_k(party.clone(), "fee", &[]);
         if (rawFee != Value::Null) {
             let mut feeType: Option<String> = self.safe_string_k(rawFee.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -2303,7 +2303,7 @@ impl Predictfun {
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "settlementId", &[]));
-        m.insert("order".to_string(), order);
+        m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
@@ -2314,7 +2314,7 @@ impl Predictfun {
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), self.safe_string_k(party, "takerOrMaker", &[]));
         m.insert("price".to_string(), self.parse_number(priceStr, &[]));
-        m.insert("amount".to_string(), self.parse_number(amountStr, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), self.omit(trade, Value::Str("partyToParse".into()), &[]));
@@ -2998,13 +2998,13 @@ impl Predictfun {
         let mut pnl: Option<String> = self.safe_string_k_opt(position.clone(), "pnlUsd", &[]);
         // what the shares cost, which is also the collateral committed to the position
         let mut collateral: Value = crate::precise::Precise::stringMul(&entryPrice.clone().map(Value::from).unwrap_or(Value::Null), &contracts);
-        let mut markPrice: Value = Value::Null;
+        let mut markPrice: Option<String> = None;
         if (notional.is_some()) && (contracts != Value::Null) && crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
-            markPrice = crate::precise::Precise::stringDiv(&notional.clone().map(Value::from).unwrap_or(Value::Null), &contracts);
+            markPrice = crate::precise::Precise::stringDiv(&notional.clone().map(Value::from).unwrap_or(Value::Null), &contracts).as_str().map(str::to_owned);
         }
-        let mut percentage: Value = Value::Null;
+        let mut percentage: Option<String> = None;
         if (pnl.is_some()) && (collateral != Value::Null) && crate::precise::Precise::stringGt(&collateral, &Value::Str("0".into())).as_bool() == Some(true) {
-            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&pnl.clone().map(Value::from).unwrap_or(Value::Null), &collateral), &Value::Str("100".into()));
+            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&pnl.clone().map(Value::from).unwrap_or(Value::Null), &collateral), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         // a settled outcome reports WON or LOST, an open one leaves the field null - and the
         // market can read RESOLVED while the outcome has not been marked yet, so the two are
@@ -3042,9 +3042,9 @@ impl Predictfun {
         m.insert("realizedPnl".to_string(), self.parse_number(realizedPnl, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("won".to_string(), won);
         m.insert("settleFraction".to_string(), self.parse_number(settleFraction, &[]));
@@ -3488,16 +3488,16 @@ impl Predictfun {
         let mut amount: Value = crate::precise::Precise::stringDiv(&amountWei, &Value::Str("1000000000000000000".into()));
         let mut cost: Value = crate::precise::Precise::stringDiv(&costWei, &Value::Str("1000000000000000000".into()));
         let mut type_var: Option<String> = self.safe_string_lower_k(order.clone(), "strategy", &[]).as_str().map(str::to_owned);
-        let mut price: Value = Value::Null;
+        let mut price: Option<String> = None;
         // orders show same takerAmount and makerAmount as it was when they were placed
         // the price of market orders will be calculated incorrectly
         // we can calculate price for limit orders only
         if (type_var.as_deref() == Some("limit")) {
-            price = crate::precise::Precise::stringDiv(&cost, &amount);
+            price = crate::precise::Precise::stringDiv(&cost, &amount).as_str().map(str::to_owned);
         }
         let mut amountFilled: Option<String> = self.safe_string_k_opt(order.clone(), "amountFilled", &[]);
         let mut filled: Value = crate::precise::Precise::stringDiv(&amountFilled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into()));
-        let mut filledCost: Value = crate::precise::Precise::stringMul(&filled, &price);
+        let mut filledCost: Value = crate::precise::Precise::stringMul(&filled, &price.clone().map(Value::from).unwrap_or(Value::Null));
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderHash);
@@ -3508,7 +3508,7 @@ impl Predictfun {
         m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "strategy", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
@@ -4879,9 +4879,9 @@ impl Predictfun {
         }  else if (quoteType.as_deref() == Some("ask")) {
             side = Value::Str("sell".into());
         }
-        let mut remaining: Value = Value::Null;
+        let mut remaining: Option<String> = None;
         if (amount.is_some()) && (filled.is_some()) {
-            remaining = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null));
+            remaining = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(event.clone(), "timestamp", &[]).as_i64();
         return self.safe_prediction_order(Value::Map({
@@ -4900,7 +4900,7 @@ impl Predictfun {
         m.insert("average".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("remaining".to_string(), self.parse_number(remaining, &[]));
+        m.insert("remaining".to_string(), self.parse_number(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.safe_number_k(details, "valueFilled", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);

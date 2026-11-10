@@ -2671,11 +2671,11 @@ impl Bitvavo {
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "amountRemaining", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filledAmount", &[]);
-        let mut cost: Value = self.safe_string_k(order.clone(), "filledAmountQuote", &[]);
-        if (cost == Value::Null) {
+        let mut cost: Option<String> = self.safe_string_k_opt(order.clone(), "filledAmountQuote", &[]);
+        if (cost.is_none()) {
             let mut amountQuote: Option<String> = self.safe_string_k_opt(order.clone(), "amountQuote", &[]);
             let mut amountQuoteRemaining: Option<String> = self.safe_string_k_opt(order.clone(), "amountQuoteRemaining", &[]);
-            cost = crate::precise::Precise::stringSub(&amountQuote.clone().map(Value::from).unwrap_or(Value::Null), &amountQuoteRemaining.clone().map(Value::from).unwrap_or(Value::Null));
+            cost = crate::precise::Precise::stringSub(&amountQuote.clone().map(Value::from).unwrap_or(Value::Null), &amountQuoteRemaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_number_k(order.clone(), "feePaid", &[]);
@@ -2708,7 +2708,7 @@ impl Bitvavo {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));

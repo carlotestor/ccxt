@@ -1984,9 +1984,9 @@ impl Paradex {
         //         "price_change_rate_24h": "0.009032"
         //     }
         //
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "price_change_rate_24h", &[]);
-        if (percentage != Value::Null) {
-            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into()));
+        let mut percentage: Option<String> = self.safe_string_k_opt(ticker.clone(), "price_change_rate_24h", &[]);
+        if (percentage.is_some()) {
+            percentage = crate::precise::Precise::stringMul(&percentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last_traded_price", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
@@ -2010,7 +2010,7 @@ impl Paradex {
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume_24h", &[]));
@@ -2138,9 +2138,9 @@ impl Paradex {
     m
 })]), Value::Str("funding_period_hours".into()), &[]);
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        let mut interval: Value = Value::Null;
+        let mut interval: Option<String> = None;
         if (hours.is_some()) && crate::precise::Precise::stringGt(&hours.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            interval = Value::Str(format!("{}{}", hours.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())).into());
+            interval = Some(format!("{}{}", hours.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2161,7 +2161,7 @@ impl Paradex {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), interval);
+        m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
     m
 });
 

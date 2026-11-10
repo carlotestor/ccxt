@@ -1274,12 +1274,12 @@ impl Backpack {
         }
         }
         let mut active: Value = Value::Null;
-        let mut deposit: Value = Value::Null;
-        let mut withdraw: Value = Value::Null;
+        let mut deposit: Option<bool> = None;
+        let mut withdraw: Option<bool> = None;
         if self.is_empty(Value::Map(parsedNetworks.clone())).as_bool() == Some(true) {
             active = (if (stock) { Value::Null } else { Value::Bool(false) });
-            deposit = Value::Bool(false);
-            withdraw = Value::Bool(false);
+            deposit = Some(false);
+            withdraw = Some(false);
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1289,8 +1289,8 @@ impl Backpack {
         m.insert("type".to_string(), (if (stock) { Value::Str("stock".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "displayName", &[]));
         m.insert("active".to_string(), active);
-        m.insert("deposit".to_string(), deposit);
-        m.insert("withdraw".to_string(), withdraw);
+        m.insert("deposit".to_string(), deposit.map(Value::from).unwrap_or(Value::Null));
+        m.insert("withdraw".to_string(), withdraw.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1612,11 +1612,11 @@ impl Backpack {
         let mut baseSymbol: Value = self.safe_string_k(market.clone(), "baseSymbol", &[Value::Str("".into())]);
         let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security != Value::Null) || (baseSymbol.as_str().unwrap_or("").ends_with(".US")) || (baseSymbol.as_str().unwrap_or("").ends_with(".HK")));
         let mut typeOfMarket: Option<String> = self.parse_market_type(rawType.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
+        let mut linear: Option<bool> = None;
+        let mut inverse: Option<bool> = None;
         let mut settle: Value = Value::Null;
-        let mut settleId: Value = Value::Null;
-        let mut contractSize: Value = Value::Null;
+        let mut settleId: Option<String> = None;
+        let mut contractSize: Option<i64> = None;
         if (typeOfMarket.as_deref() == Some("spot")) || matches!(&rfq, Value::Bool(true)) {
             type_var = Value::Str("spot".into());
             if matches!(&rfq, Value::Bool(true)) {
@@ -1655,12 +1655,12 @@ impl Backpack {
             }
         }  else if (typeOfMarket.as_deref() == Some("swap")) {
             type_var = Value::Str("swap".into());
-            linear = Value::Bool(true);
-            inverse = Value::Bool(false);
-            settleId = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
-            settle = self.safe_currency_code(settleId.clone(), &[]);
+            linear = Some(true);
+            inverse = Some(false);
+            settleId = self.safe_string_k_opt(market.clone(), "quoteSymbol", &[]);
+            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()); // settle is the quote currency
-            contractSize = Value::Int(1);
+            contractSize = Some(1);
         }  else {
             return Value::Null;
         }
@@ -1676,7 +1676,7 @@ impl Backpack {
         m.insert("settle".to_string(), settle);
         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());
         m.insert("spot".to_string(), Value::Bool(type_var.as_str() == Some("spot")));
         m.insert("margin".to_string(), Value::Bool((type_var.as_str() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !(matches!(&rfq, Value::Bool(true)))));
@@ -1687,11 +1687,11 @@ impl Backpack {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(type_var.as_str() != Some("spot")));
-        m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("linear".to_string(), linear.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), Value::Null);
         m.insert("maker".to_string(), Value::Null);
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), contractSize.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2452,11 +2452,11 @@ impl Backpack {
         let mut low: Option<String> = self.safe_string_k_opt(ticker.clone(), "low", &[]);
         let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
         let mut quoteVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "quoteVolume", &[]);
-        let mut percentage: Value = Value::Null;
+        let mut percentage: Option<String> = None;
         let mut percentageNumber: Value = self.safe_float_k(ticker.clone(), "priceChangePercent", &[]);
         // in some cases priceChangePercent is a non-numeric string like "N/A"
         if (percentageNumber != Value::Null) {
-            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChangePercent", &[]), &Value::Str("100".into()));
+            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChangePercent", &[]), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut change: Option<String> = self.safe_string_k_opt(ticker.clone(), "priceChange", &[]);
         let mut parsedTicker: Value = self.safe_ticker(Value::Map({
@@ -2476,7 +2476,7 @@ impl Backpack {
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));

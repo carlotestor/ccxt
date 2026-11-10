@@ -2141,14 +2141,14 @@ impl Coinbase {
         let mut sizeInQuote: bool = self.safe_bool_k_opt(trade.clone(), "size_in_quote", &[Value::Bool(false)]).unwrap_or(false);
         let mut v3Price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut v3Cost: Value = Value::Null;
-        let mut v3Amount: Value = self.safe_string_k(trade.clone(), "size", &[]);
+        let mut v3Amount: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         if sizeInQuote {
             // calculate base size
-            v3Cost = v3Amount.clone();
-            v3Amount = crate::precise::Precise::stringDiv(&v3Amount, &v3Price.clone().map(Value::from).unwrap_or(Value::Null));
+            v3Cost = v3Amount.clone().map(Value::from).unwrap_or(Value::Null);
+            v3Amount = crate::precise::Precise::stringDiv(&v3Amount.clone().map(Value::from).unwrap_or(Value::Null), &v3Price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut v3FeeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "commission", &[]);
-        let mut amountString: Value = self.safe_string_k(amountObject, "amount", &[v3Amount]);
+        let mut amountString: Value = self.safe_string_k(amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]);
         let mut costString: Value = self.safe_string_k(subtotalObject, "amount", &[v3Cost]);
         let mut priceString: Value = Value::Null;
         let mut cost: Value = Value::Null;
@@ -4198,11 +4198,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut amount: Value = self.safe_string_k(amountInfo.clone(), "amount", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(amountInfo.clone(), "amount", &[]);
         let mut direction: Value = Value::Null;
-        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Value::Str("out".into());
-            amount = crate::precise::Precise::stringNeg(&amount);
+            amount = crate::precise::Precise::stringNeg(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             direction = Value::Str("in".into());
         }
@@ -4261,7 +4261,7 @@ if _try_result.is_err() {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
-        m.insert("amount".to_string(), self.parse_number(amount, &[]));
+        m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), status);
@@ -4784,10 +4784,10 @@ if _try_result.is_err() {
         let mut marketIOC: Value = self.safe_dict_k(orderConfiguration, "market_market_ioc", &[]);
         let mut isLimit: bool = (limitGTC != Value::Null) || (limitGTD != Value::Null) || (limitIOC != Value::Null);
         let mut isStop: bool = (stopLimitGTC != Value::Null) || (stopLimitGTD != Value::Null);
-        let mut price: Value = Value::Null;
-        let mut amount: Value = Value::Null;
+        let mut price: Option<String> = None;
+        let mut amount: Option<String> = None;
         let mut postOnly: Value = Value::Null;
-        let mut triggerPrice: Value = Value::Null;
+        let mut triggerPrice: Option<String> = None;
         if isLimit {
             let mut target: Value = Value::Null;
             if (limitGTC != Value::Null) {
@@ -4797,23 +4797,23 @@ if _try_result.is_err() {
             }  else {
                 target = limitIOC;
             }
-            price = self.safe_string_k(target.clone(), "limit_price", &[]);
-            amount = self.safe_string_k(target.clone(), "base_size", &[]);
+            price = self.safe_string_k_opt(target.clone(), "limit_price", &[]);
+            amount = self.safe_string_k_opt(target.clone(), "base_size", &[]);
             postOnly = self.safe_bool_k(target, "post_only", &[]);
         }  else if isStop {
             let mut stopTarget: Value = (if (stopLimitGTC != Value::Null) { stopLimitGTC } else { stopLimitGTD });
-            price = self.safe_string_k(stopTarget.clone(), "limit_price", &[]);
-            amount = self.safe_string_k(stopTarget.clone(), "base_size", &[]);
+            price = self.safe_string_k_opt(stopTarget.clone(), "limit_price", &[]);
+            amount = self.safe_string_k_opt(stopTarget.clone(), "base_size", &[]);
             postOnly = self.safe_bool_k(stopTarget.clone(), "post_only", &[]);
-            triggerPrice = self.safe_string_k(stopTarget, "stop_price", &[]);
+            triggerPrice = self.safe_string_k_opt(stopTarget, "stop_price", &[]);
         }  else {
-            amount = self.safe_string_k(marketIOC, "base_size", &[]);
+            amount = self.safe_string_k_opt(marketIOC, "base_size", &[]);
         }
         let mut datetime: Option<String> = self.safe_string_k_opt(order.clone(), "created_time", &[]);
         let mut totalFees: Option<String> = self.safe_string_k(order.clone(), "total_fees", &[]).as_str().map(str::to_owned);
-        let mut currencyFee: Value = Value::Null;
+        let mut currencyFee: Option<String> = None;
         if (totalFees.is_some()) && (marketResolved != Value::Null) {
-            currencyFee = self.safe_string_k(marketResolved.clone(), "quote", &[]);
+            currencyFee = self.safe_string_k_opt(marketResolved.clone(), "quote", &[]);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4828,9 +4828,9 @@ if _try_result.is_err() {
         m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
-        m.insert("price".to_string(), price);
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("amount".to_string(), amount);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "filled_size", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
@@ -4839,7 +4839,7 @@ if _try_result.is_err() {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_string_k(order, "total_fees", &[]));
-        m.insert("currency".to_string(), currencyFee);
+        m.insert("currency".to_string(), currencyFee.map(Value::from).unwrap_or(Value::Null));
     m
 }));
         m.insert("trades".to_string(), Value::Null);
@@ -6166,18 +6166,18 @@ if _try_result.is_err() {
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "network", &[]);
         let mut code: Value = self.safe_currency_code(Value::Null, &[currency.clone()]);
         let mut addressLabel: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address_label", &[]);
-        let mut currencyId: Value = Value::Null;
+        let mut currencyId: Option<String> = None;
         if (addressLabel.is_some()) {
             let mut splitAddressLabel: Value = Value::Array(if let Some(__s) = addressLabel.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
-            currencyId = self.safe_string(splitAddressLabel, Value::Int(0), &[]);
+            currencyId = self.safe_string_opt(splitAddressLabel, Value::Int(0), &[]);
         }  else {
-            currencyId = self.safe_string_k(depositAddress.clone(), "currency", &[]);
+            currencyId = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
         }
         let mut addressInfo: Value = self.safe_dict_k(depositAddress.clone(), "address_info", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code]));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(addressInfo, "destination_tag", &[]));

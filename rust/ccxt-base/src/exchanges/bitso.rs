@@ -1487,9 +1487,9 @@ impl Bitso {
                 m
             });
         }
-        let mut cost: Value = self.safe_string_k(trade.clone(), "minor", &[]);
-        if (cost != Value::Null) {
-            cost = crate::precise::Precise::stringAbs(&cost);
+        let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "minor", &[]);
+        if (cost.is_some()) {
+            cost = crate::precise::Precise::stringAbs(&cost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "oid", &[]);
@@ -1507,7 +1507,7 @@ impl Bitso {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[market]);
@@ -2291,11 +2291,11 @@ impl Bitso {
     m
 })]);
         let mut address: Option<String> = self.safe_string_k_opt(payload, "account_identifier", &[]);
-        let mut tag: Value = Value::Null;
+        let mut tag: Option<String> = None;
         if address.as_deref().unwrap_or("").contains("?dt=") {
             let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
-            tag = self.safe_string(parts, Value::Int(1), &[]);
+            tag = self.safe_string_opt(parts, Value::Int(1), &[]);
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -2304,7 +2304,7 @@ impl Bitso {
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
 });
         Value::Null

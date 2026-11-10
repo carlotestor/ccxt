@@ -981,11 +981,11 @@ impl Coincheck {
         let mut quoteId: Value = marketResolved.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut takerOrMaker: Value = Value::Null;
-        let mut amountString: Value = Value::Null;
-        let mut costString: Value = Value::Null;
-        let mut side: Value = Value::Null;
+        let mut amountString: Option<String> = None;
+        let mut costString: Option<String> = None;
+        let mut side: Option<String> = None;
         let mut fee: Value = Value::Null;
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
         if (liquidity.is_some()) {
             if (liquidity.as_deref() == Some("T")) {
@@ -997,19 +997,19 @@ impl Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            amountString = self.safe_string(funds.clone(), baseId, &[]);
-            costString = self.safe_string(funds, quoteId, &[]);
+            amountString = self.safe_string_opt(funds.clone(), baseId, &[]);
+            costString = self.safe_string_opt(funds, quoteId, &[]);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "fee_currency", &[]));
                     m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
                 m
             });
-            side = self.safe_string_k(trade.clone(), "side", &[]);
-            orderId = self.safe_string_k(trade.clone(), "order_id", &[]);
+            side = self.safe_string_k_opt(trade.clone(), "side", &[]);
+            orderId = self.safe_string_k_opt(trade.clone(), "order_id", &[]);
         }  else {
-            amountString = self.safe_string_k(trade.clone(), "amount", &[]);
-            side = self.safe_string_k(trade.clone(), "order_type", &[]);
+            amountString = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+            side = self.safe_string_k_opt(trade.clone(), "order_type", &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1019,12 +1019,12 @@ impl Coincheck {
         m.insert("timestamp".to_string(), timestamp);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
-        m.insert("order".to_string(), orderId);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[marketResolved]);

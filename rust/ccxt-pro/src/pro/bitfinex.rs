@@ -964,9 +964,9 @@ impl Bitfinex {
                 type_var = Value::Str("market".into());
             }
         }
-        let mut orderId: Value = Value::Null;
+        let mut orderId: Option<String> = None;
         if !isPublic {
-            orderId = self.safe_string(trade.clone(), Value::Int(3), &[]);
+            orderId = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
         }
         let mut id: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(0), &[]);
         let mut timestamp: Option<i64> = self.safe_integer(trade.clone(), createdKey, &[]).as_i64();
@@ -1002,7 +1002,7 @@ impl Bitfinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);
@@ -1802,10 +1802,10 @@ impl Bitfinex {
         let mut marketId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut marketResolved: Value = self.safe_market(&[symbol.clone()]);
-        let mut amount: Value = self.safe_string(order.clone(), Value::Int(7), &[]);
+        let mut amount: Option<String> = self.safe_string_opt(order.clone(), Value::Int(7), &[]);
         let mut side: String = "buy".to_string();
-        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
-            amount = crate::precise::Precise::stringAbs(&amount);
+        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            amount = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             side = "sell".to_string();
         }
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[]));
@@ -1838,7 +1838,7 @@ impl Bitfinex {
         m.insert("stopPrice".to_string(), stopPrice.clone());
         m.insert("triggerPrice".to_string(), stopPrice);
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining);
         m.insert("filled".to_string(), Value::Null);
         m.insert("status".to_string(), status);

@@ -1091,14 +1091,14 @@ impl Whitebit {
         let mut stopPrice: Option<String> = self.safe_string_k_opt(order.clone(), "activation_price", &[]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut type_var: Value = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<String> = None;
         let mut remaining: Value = Value::Null;
         if (type_var.as_str() == Some("market")) {
-            amount = self.safe_string_k(order.clone(), "deal_stock", &[]);
+            amount = self.safe_string_k_opt(order.clone(), "deal_stock", &[]);
             remaining = Value::Str("0".into());
         }  else {
             remaining = self.safe_string_k(order.clone(), "left", &[]);
-            amount = self.safe_string_k(order.clone(), "amount", &[]);
+            amount = self.safe_string_k_opt(order.clone(), "amount", &[]);
         }
         let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "ctime", &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp_k(order.clone(), "mtime", &[]);
@@ -1144,7 +1144,7 @@ impl Whitebit {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));

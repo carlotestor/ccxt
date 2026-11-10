@@ -1706,9 +1706,9 @@ impl Limitless {
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         let mut rawVolume: Option<String> = self.safe_string_k_opt(raw, "volume", &[]);
-        let mut volumeStr: Value = Value::Null;
+        let mut volumeStr: Option<String> = None;
         if (rawVolume.is_some()) {
-            volumeStr = crate::precise::Precise::stringDiv(&rawVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into()));
+            volumeStr = crate::precise::Precise::stringDiv(&rawVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
         if (bidSizeStr != Value::Null) {
             bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr, &Value::Str("1000000".into()));
@@ -1740,7 +1740,7 @@ impl Limitless {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), self.parse_number(midStr, &[]));
         m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), self.parse_number(volumeStr, &[]));
+        m.insert("quoteVolume".to_string(), self.parse_number(volumeStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("info".to_string(), ticker);
     m
 }), &[]);
@@ -2013,30 +2013,30 @@ impl Limitless {
                         let mut bi: i64 = 0;
             let mut __for_first_1308: bool = true;
             while { if !__for_first_1308 { bi += 1; } __for_first_1308 = false; bi < (bidsSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("price".into()), &[]);
-            if !isYes && (priceStr != Value::Null) {
-                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
+            let mut priceStr: Option<String> = self.safe_string_opt(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("price".into()), &[]);
+            if !isYes && (priceStr.is_some()) {
+                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("size".into()), &[]);
-            if (sizeStr != Value::Null) {
-                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
+            let mut sizeStr: Option<String> = self.safe_string_opt(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("size".into()), &[]);
+            if (sizeStr.is_some()) {
+                sizeStr = crate::precise::Precise::stringDiv(&sizeStr.clone().map(Value::from).unwrap_or(Value::Null), &scaleStr).as_str().map(str::to_owned);
             }
-            bids.push(Value::from(vec![self.parse_number(priceStr.clone(), &[]), self.parse_number(sizeStr.clone(), &[])]));
+            bids.push(Value::from(vec![self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(sizeStr.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         {
                         let mut ai: i64 = 0;
             let mut __for_first_1309: bool = true;
             while { if !__for_first_1309 { ai += 1; } __for_first_1309 = false; ai < (asksSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("price".into()), &[]);
-            if !isYes && (priceStr != Value::Null) {
-                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
+            let mut priceStr: Option<String> = self.safe_string_opt(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("price".into()), &[]);
+            if !isYes && (priceStr.is_some()) {
+                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("size".into()), &[]);
-            if (sizeStr != Value::Null) {
-                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
+            let mut sizeStr: Option<String> = self.safe_string_opt(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("size".into()), &[]);
+            if (sizeStr.is_some()) {
+                sizeStr = crate::precise::Precise::stringDiv(&sizeStr.clone().map(Value::from).unwrap_or(Value::Null), &scaleStr).as_str().map(str::to_owned);
             }
-            asks.push(Value::from(vec![self.parse_number(priceStr, &[]), self.parse_number(sizeStr, &[])]));
+            asks.push(Value::from(vec![self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(sizeStr.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         let mut orderbook: indexmap::IndexMap<String, Value> = ({
@@ -2718,13 +2718,13 @@ impl Limitless {
         let mut rawStatus: Option<String> = self.safe_string_k_opt(rawOrder, "status", &[]);
         let mut execution: Value = self.safe_dict_k(data, "execution", &[]);
         let mut fee: Value = Value::Null;
-        let mut filled: Value = Value::Null;
-        let mut cost: Value = Value::Null;
+        let mut filled: Option<String> = None;
+        let mut cost: Option<String> = None;
         if (execution != Value::Null) {
             rawStatus = self.safe_string_k_opt(execution.clone(), "settlementStatus", &[]);
             let mut totals: Value = self.safe_dict_k(execution, "totalsRaw", &[]);
-            cost = self.safe_string_k(totals.clone(), "usdGross", &[]);
-            filled = self.safe_string_k(totals.clone(), "contractsGross", &[]);
+            cost = self.safe_string_k_opt(totals.clone(), "usdGross", &[]);
+            filled = self.safe_string_k_opt(totals.clone(), "contractsGross", &[]);
             let mut feeCurrency: Value = Value::Str("USDC".into());
             let mut feeCost: Option<String> = self.safe_string_k_opt(totals.clone(), "usdFee", &[]);
             if (side.as_str() == Some("buy")) {
@@ -2760,8 +2760,8 @@ impl Limitless {
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("amount".to_string(), self.apply_scale(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("cost".to_string(), self.apply_scale(cost, &[]));
-        m.insert("filled".to_string(), self.apply_scale(filled, &[]));
+        m.insert("cost".to_string(), self.apply_scale(cost.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("filled".to_string(), self.apply_scale(filled.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), self.apply_scale(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::from(vec![]));
@@ -2920,13 +2920,13 @@ impl Limitless {
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         let mut tradeWalletOption: Option<String> = self.safe_string_k(accountInfo.clone(), "tradeWalletOption", &[]).as_str().map(str::to_owned);
         let mut usesSmartWallet: bool = tradeWalletOption.as_deref() == Some("smartWallet");
-        let mut walletFromAccount: Value = Value::Null;
+        let mut walletFromAccount: Option<String> = None;
         if usesSmartWallet {
-            walletFromAccount = self.safe_string_k(accountInfo.clone(), "smartWallet", &[]);
+            walletFromAccount = self.safe_string_k_opt(accountInfo.clone(), "smartWallet", &[]);
         }  else {
-            walletFromAccount = self.safe_string_k(accountInfo.clone(), "account", &[]);
+            walletFromAccount = self.safe_string_k_opt(accountInfo.clone(), "account", &[]);
         }
-        let mut maker: Value = walletFromAccount;
+        let mut maker: Value = walletFromAccount.map(Value::from).unwrap_or(Value::Null);
         if (self.walletAddress.as_str() != Some("")) {
             maker = self.walletAddress.clone();
         }
@@ -3611,9 +3611,9 @@ if _try_result.is_err() {
             }
             let mut amountStr: Value = crate::precise::Precise::stringDiv(&matchedSize.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into()));
             let mut priceStr: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-            let mut costStr: Value = Value::Null;
+            let mut costStr: Option<String> = None;
             if (priceStr.is_some()) {
-                costStr = crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &amountStr);
+                costStr = crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &amountStr).as_str().map(str::to_owned);
             }
             let mut feedOutcome: Value = self.safe_outcome_symbol(Value::Null, &[market.clone()]);
             return self.safe_prediction_trade(Value::Map({
@@ -3632,7 +3632,7 @@ if _try_result.is_err() {
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountStr, &[]));
-        m.insert("cost".to_string(), self.parse_number(costStr, &[]));
+        m.insert("cost".to_string(), self.parse_number(costStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[]);

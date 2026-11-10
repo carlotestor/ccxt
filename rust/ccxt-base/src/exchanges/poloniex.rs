@@ -4809,17 +4809,17 @@ impl Poloniex {
         let mut id: Option<String> = self.safe_string2_opt(transactionValue.clone(), Value::Str("withdrawalRequestsId".into()), Value::Str("depositNumber".into()), &[]);
         let mut address: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "address", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "paymentID", &[]);
-        let mut amountString: Value = self.safe_string_k(transactionValue.clone(), "amount", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "amount", &[]);
         let mut feeCostString: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "fee", &[]);
         if ((type_var == "withdrawal")) {
-            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString.clone().map(Value::from).unwrap_or(Value::Null));
+            amountString = crate::precise::Precise::stringSub(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &feeCostString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transactionValue);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), Value::Null);
@@ -4949,18 +4949,18 @@ impl Poloniex {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut shortLeverage: Value = Value::Null;
         let mut longLeverage: Value = Value::Null;
-        let mut marketId: Value = Value::Null;
-        let mut marginMode: Value = Value::Null;
+        let mut marketId: Option<String> = None;
+        let mut marginMode: Option<String> = None;
         let mut data: Value = self.safe_list_k(leverage.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1090: bool = true;
             while { if !__for_first_1090 { i += 1; } __for_first_1090 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
-            marketId = self.safe_string_k(entry.clone(), "symbol", &[]);
+            marketId = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
-            marginMode = self.safe_string_lower_k(entry.clone(), "mgnMode", &[]);
+            marginMode = self.safe_string_lower_k_opt(entry.clone(), "mgnMode", &[]);
             let mut lever: Value = self.safe_integer_k(entry.clone(), "lever", &[]);
             let mut posSide: Option<String> = self.safe_string_k(entry, "posSide", &[]).as_str().map(str::to_owned);
             if (posSide.as_deref() == Some("LONG")) {
@@ -4976,8 +4976,8 @@ impl Poloniex {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market]));
+        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("longLeverage".to_string(), longLeverage);
         m.insert("shortLeverage".to_string(), shortLeverage);
     m
