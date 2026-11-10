@@ -327,13 +327,13 @@ impl Mudrex {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
-        let mut baseIdString: Value = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]);
-        let mut quoteIdString: Value = self.safe_string_k(market, "quoteId", &[Value::Str("".into())]);
-        let mut assetId: Value = (if let Some(__s) = baseIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
+        let mut baseIdString: Option<String> = self.safe_string_k_opt(market.clone(), "baseId", &[Value::Str("".into())]);
+        let mut quoteIdString: Option<String> = self.safe_string_k_opt(market, "quoteId", &[Value::Str("".into())]);
+        let mut assetId: Value = (if let Some(__s) = baseIdString.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
@@ -343,7 +343,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -372,10 +372,10 @@ impl Mudrex {
                 while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
-                let mut baseIdString: Value = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]);
-                let mut quoteIdString: Value = self.safe_string_k(market, "quoteId", &[Value::Str("".into())]);
-                let mut assetId: Value = (if let Some(__s) = baseIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-                assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
+                let mut baseIdString: Option<String> = self.safe_string_k_opt(market.clone(), "baseId", &[Value::Str("".into())]);
+                let mut quoteIdString: Option<String> = self.safe_string_k_opt(market, "quoteId", &[Value::Str("".into())]);
+                let mut assetId: Value = (if let Some(__s) = baseIdString.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+                assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
                 assets.push(assetId);
             }
             }
@@ -437,18 +437,18 @@ impl Mudrex {
         if (priceType.as_deref() == Some("mark")) {
             prefix = "markKline".to_string();
         }
-        let mut streamBaseId: Value = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]);
-        let mut streamQuoteId: Value = self.safe_string_k(market, "quoteId", &[Value::Str("".into())]);
-        let mut stream: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval).into()), Value::Str("@".into())).into()),
-            (if let Some(__s) = streamBaseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into()), (if let Some(__s) = streamQuoteId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
-        let mut messageHash: Value = stream.clone();
+        let mut streamBaseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseId", &[Value::Str("".into())]);
+        let mut streamQuoteId: Option<String> = self.safe_string_k_opt(market, "quoteId", &[Value::Str("".into())]);
+        let mut stream: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval).into()), Value::Str("@".into())).into()),
+            (if let Some(__s) = streamBaseId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into()), (if let Some(__s) = streamQuoteId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+        let mut messageHash: Value = Value::from(stream.clone());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), Value::from(vec![stream]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(stream)]));
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[paramsOmitted]);
@@ -492,11 +492,11 @@ impl Mudrex {
 }) });
         let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
         let msg: String = self.safe_string_k_opt(error, "msg", &[Value::Str("".into())]).unwrap_or_default();
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg).into());
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg);
         if (code.as_deref() == Some("429")) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(Value::from(feedback.clone())));
         }
-        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
@@ -526,8 +526,8 @@ impl Mudrex {
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), tf.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            stored = ArrayCacheByTimestamp::new(limit);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            stored = ArrayCacheByTimestamp::new(Value::from(limit));
             if (symbol != Value::Null) && (tf != Value::Null) {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), stored.clone()); } }
             }
@@ -553,20 +553,20 @@ impl Mudrex {
             let mut market: Value = self.safe_market(&[(if let Some(__s) = s.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.milliseconds();
-            let mut last: Value = self.safe_number_k(t.clone(), "p", &[]);
+            let mut last: Option<f64> = self.safe_number_k(t.clone(), "p", &[]).as_f64();
             let mut result: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
-                    m.insert("last".to_string(), last.clone());
-                    m.insert("close".to_string(), last);
+                    m.insert("last".to_string(), Value::from(last));
+                    m.insert("close".to_string(), Value::from(last));
                     m.insert("info".to_string(), t);
                 m
             }), &[]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-            client.resolve(&[result.clone(), messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+            client.resolve(&[result.clone(), Value::from(messageHash)]);
             client.resolve(&[result, Value::Str("tickers".into())]);
         }
         }

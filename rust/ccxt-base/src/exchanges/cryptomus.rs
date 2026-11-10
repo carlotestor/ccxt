@@ -935,8 +935,8 @@ impl Cryptomus {
                 m.insert("currencyPair".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let mut level: Value = Value::Int(0);
-        let levelOptionparamsLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[level]).as_array().cloned().unwrap_or_default();
+        let mut level: i64 = 0;
+        let levelOptionparamsLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[Value::from(level)]).as_array().cloned().unwrap_or_default();
         let mut levelOption: Value = levelOptionparamsLevelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsLevel: Value = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null);
         request.insert("level".into(), levelOption);
@@ -1516,7 +1516,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut averageFilledPrice: Value = self.safe_number_k(deal.clone(), "averageFilledPrice", &[]);
+        let mut averageFilledPrice: Option<f64> = self.safe_number_k(deal.clone(), "averageFilledPrice", &[]).as_f64();
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "direction", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
@@ -1535,8 +1535,8 @@ impl Cryptomus {
         if (price == Value::Null) {
             price = self.safe_number_k(firstTx, "filledPrice", &[]);
         }
-        let mut amount: Value = self.safe_number_k(order.clone(), "quantity", &[]);
-        let mut cost: Value = self.safe_number_k(order.clone(), "value", &[]);
+        let mut amount: Option<f64> = self.safe_number_k(order.clone(), "quantity", &[]).as_f64();
+        let mut cost: Option<f64> = self.safe_number_k(order.clone(), "value", &[]).as_f64();
         let mut status: Value = self.parse_order_status(&[self.safe_string_k(order.clone(), "state", &[])]).map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOrderId", &[]);
         return self.safe_order(Value::Map({
@@ -1554,9 +1554,9 @@ impl Cryptomus {
         m.insert("price".to_string(), price);
         m.insert("stopPrice".to_string(), self.safe_string_k(order.clone(), "stopLossPrice", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string_k(order.clone(), "stopLossPrice", &[]));
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
-        m.insert("average".to_string(), averageFilledPrice);
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
+        m.insert("average".to_string(), Value::from(averageFilledPrice));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "filledQuantity", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status);
@@ -1705,13 +1705,13 @@ impl Cryptomus {
             let mut __for_first_606: bool = true;
             while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
-            let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
+            let mut turnover: Option<f64> = self.safe_number_k(tier.clone(), "from_turnover", &[]).as_f64();
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
             let mut maker: Value = self.safe_string_k(tier, "maker_percent", &[]);
             maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into()));
             taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into()));
-            makerFees.push(Value::from(vec![turnover.clone(), self.parse_number(maker, &[])]));
-            takerFees.push(Value::from(vec![turnover, self.parse_number(taker, &[])]));
+            makerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(maker, &[])]));
+            takerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(taker, &[])]));
         }
         }
         return Value::Map({
@@ -1740,7 +1740,7 @@ impl Cryptomus {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut jsonParams: Value = Value::Str("".into());
@@ -1755,17 +1755,17 @@ impl Cryptomus {
             }  else {
                 let mut query: Value = self.urlencode(paramsOmitted.clone(), &[]);
                 if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+                    url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into()));
                 }
             }
             let mut jsonParamsBase64: Value = self.string_to_base64(jsonParams.clone(), &[]);
-            let mut stringToSign: Value = Value::Str(format!("{}{}", jsonParamsBase64, self.secret.clone()).into());
-            let mut signature: Value = self.hash(self.encode(stringToSign), Value::Str("md5".into()), &[]);
+            let mut stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret.clone());
+            let mut signature: Value = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]);
             privateHeaders.insert("sign".into(), signature);
             let mut privateBody: Value = (if (method.as_str() != Some("GET")) { jsonParams } else { Value::Null });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), privateBody);
         m.insert("headers".to_string(), Value::Map(privateHeaders));
@@ -1774,12 +1774,12 @@ impl Cryptomus {
         }  else {
             let mut query: Value = self.urlencode(paramsOmitted, &[]);
             if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+                url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into()));
             }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);
@@ -1796,17 +1796,17 @@ impl Cryptomus {
         let mut codeError: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
         let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (codeError.is_some()) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
         }  else if (message.is_some()) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
         }
         return Value::Null;
 

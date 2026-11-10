@@ -610,9 +610,9 @@ impl Paymium {
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-        let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "base", &[Value::Str("".into())]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
-        let mut amount: Option<String> = self.safe_string_opt(trade.clone(), amountField, &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "base", &[Value::Str("".into())]);
+        let mut amountField: String = format!("{}{}", Value::Str("traded_".into()), (if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+        let mut amount: Option<String> = self.safe_string_opt(trade.clone(), Value::from(amountField), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -1024,22 +1024,22 @@ impl Paymium {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
             if hasQuery {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into()));
             }
         }  else {
             self.check_required_credentials(&[]);
             // paymium requires an increasing nonce
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            let mut auth: Value = Value::Str(format!("{}{}", nonce, url).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
+            let mut auth: String = format!("{}{}", nonce, url);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Api-Key".to_string(), self.apiKey.clone());
-                    m.insert("Api-Nonce".to_string(), nonce.clone());
+                    m.insert("Api-Nonce".to_string(), Value::from(nonce.clone()));
                 m
             });
             let mut signedBody: Value = Value::Str("".into());
@@ -1048,20 +1048,20 @@ impl Paymium {
             }
             if (method.as_str() == Some("POST")) {
                 if hasQuery {
-                    auth = Value::Str(format!("{}{}", auth, signedBody).into());
+                    auth = format!("{}{}", auth, signedBody);
                     signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 }
             }  else {
                 if hasQuery {
                     let mut queryString: Value = self.urlencode(query, &[]);
-                    auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString).into());
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                    auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
+                    url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into()));
                 }
             }
-            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), signedBody);
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -1070,7 +1070,7 @@ impl Paymium {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);

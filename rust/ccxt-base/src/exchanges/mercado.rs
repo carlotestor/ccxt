@@ -612,18 +612,18 @@ impl Mercado {
                         let mut i: i64 = 0;
             let mut __for_first_943: bool = true;
             while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (coins.len() as i64) } {
-            let mut coin: Value = self.safe_string(coins.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let mut baseId: Value = coin.clone();
+            let mut coin: Option<String> = self.safe_string_opt(coins.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut baseId: Value = coin.clone().map(Value::from).unwrap_or(Value::Null);
             let mut quoteId: String = "BRL".to_string();
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(Value::from(quoteId.clone()), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
-            let mut id: Value = Value::Str(format!("{}{}", quote, base).into());
+            let mut id: String = format!("{}{}", quote, base);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), Value::from(id));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
@@ -681,7 +681,7 @@ impl Mercado {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), coin);
+                    m.insert("info".to_string(), coin.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -1635,19 +1635,19 @@ impl Mercado {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into());
+        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("v4Public")) || (apiName.as_str() == Some("v4PublicNet"));
         let mut privateBody: Value = Value::Str("".into());
         let mut privateHeaders: Value = Value::Null;
         if isPublic {
-            url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
+            url = format!("{}{}", url, self.implode_params(path.clone(), params.clone()));
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
+                url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into()));
             }
         }  else {
             self.check_required_credentials(&[]);
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into())).into());
+            url = format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()));
             // mercado requires each tonce to be greater than the previous one
             let mut nonce: Value = self.incrementing_nonce();
             let __ws_arg_16 = self.extend(Value::Map({
@@ -1657,12 +1657,12 @@ impl Mercado {
                 m
             }), &[params]);
             privateBody = self.urlencode(__ws_arg_16, &[]);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody).into());
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody);
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("TAPI-ID".to_string(), self.apiKey.clone());
-                    m.insert("TAPI-MAC".to_string(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
+                    m.insert("TAPI-MAC".to_string(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
                 m
             });
         }
@@ -1676,7 +1676,7 @@ impl Mercado {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);

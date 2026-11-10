@@ -749,10 +749,10 @@ impl Apex {
     }
 
     pub fn parse_account(&self, mut account: Value) -> Value {
-        let mut accountId: Value = self.safe_string_k(account.clone(), "id", &[Value::Str("0".into())]);
+        let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "id", &[Value::Str("0".into())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), accountId);
+        m.insert("id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
         m.insert("info".to_string(), account);
@@ -1067,7 +1067,7 @@ impl Apex {
         if (baseId.is_none()) || (quote == Value::Null) || (settle == Value::Null) {
             return Value::Null;
         }
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle);
         let mut expiry: Value = Value::Int(0);
         let mut takerFee: Value = self.parse_number(Value::Str("0.0002".into()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("0.0005".into()), &[]);
@@ -1075,7 +1075,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("id2".to_string(), id2.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), settle);
@@ -1640,9 +1640,9 @@ impl Apex {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
-        if (page != Value::Null) {
-            request.insert("page".into(), page);
+        let mut page: Option<i64> = self.safe_integer_k(params.clone(), "page", &[]).as_i64();
+        if (page.is_some()) {
+            request.insert("page".into(), Value::from(page));
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]);
         if (endTimeExclusive != Value::Null) {
@@ -1974,7 +1974,7 @@ impl Apex {
     m
 })]);
         let mut taker: Value = self.safe_string_k(fees.clone(), "taker", &[Value::Str("0.0005".into())]);
-        let mut maker: Value = self.safe_string_k(fees, "maker", &[Value::Str("0.0002".into())]);
+        let mut maker: Option<String> = self.safe_string_k_opt(fees, "maker", &[Value::Str("0.0002".into())]);
         let mut pricePrecision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
         let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &self.number_to_string(pricePrecision.clone())), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
         let mut timeNow: Value = self.milliseconds();
@@ -1992,16 +1992,16 @@ impl Apex {
         if isMarket && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
-        let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
-        if (timeInForce == Value::Null) {
-            timeInForce = Value::Str("GOOD_TIL_CANCEL".into());
+        let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
+        if (timeInForce.is_none()) {
+            timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
         if !(isMarket) {
             if postOnly.as_bool() == Some(true) {
-                timeInForce = Value::Str("POST_ONLY".into());
-            }  else if (timeInForce.as_str() == Some("ioc")) {
-                timeInForce = Value::Str("IMMEDIATE_OR_CANCEL".into());
+                timeInForce = Some("POST_ONLY".to_string());
+            }  else if (timeInForce.as_deref() == Some("ioc")) {
+                timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("timeInForce".into()), &[]);
@@ -2020,7 +2020,7 @@ impl Apex {
                 m.insert("size".to_string(), orderSize.clone());
                 m.insert("price".to_string(), finalOrderPrice.clone());
                 m.insert("direction".to_string(), Value::from(orderSide.clone()));
-                m.insert("makerFeeRate".to_string(), maker);
+                m.insert("makerFeeRate".to_string(), maker.map(Value::from).unwrap_or(Value::Null));
                 m.insert("takerFeeRate".to_string(), taker);
             m
         });
@@ -2041,7 +2041,7 @@ impl Apex {
                     (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
-                m.insert("timeInForce".to_string(), timeInForce);
+                m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("clientId".to_string(), finalClientOrderId);
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6956".into())]));
             m
@@ -2107,10 +2107,10 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut receiverAddress: Value = self.safe_string_k(globalConfig.clone(), "contractAssetPoolEthAddress", &[Value::Str("".into())]);
-        let mut receiverZkAccountId: Value = self.safe_string_k(globalConfig.clone(), "contractAssetPoolZkAccountId", &[Value::Str("".into())]);
-        let mut receiverSubAccountId: Value = self.safe_string_k(globalConfig.clone(), "contractAssetPoolSubAccount", &[Value::Str("".into())]);
-        let mut receiverAccountId: Value = self.safe_string_k(globalConfig, "contractAssetPoolAccountId", &[Value::Str("".into())]);
+        let mut receiverAddress: Option<String> = self.safe_string_k_opt(globalConfig.clone(), "contractAssetPoolEthAddress", &[Value::Str("".into())]);
+        let mut receiverZkAccountId: Option<String> = self.safe_string_k_opt(globalConfig.clone(), "contractAssetPoolZkAccountId", &[Value::Str("".into())]);
+        let mut receiverSubAccountId: Option<String> = self.safe_string_k_opt(globalConfig.clone(), "contractAssetPoolSubAccount", &[Value::Str("".into())]);
+        let mut receiverAccountId: Option<String> = self.safe_string_k_opt(globalConfig, "contractAssetPoolAccountId", &[Value::Str("".into())]);
         let mut accountResponse: Value = self.private_get_v3_account(&[params.clone()]).await;
         let mut accountData: Value = self.safe_dict_k(accountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2120,16 +2120,16 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut zkAccountId: Value = self.safe_string_k(spotAccount.clone(), "zkAccountId", &[Value::Str("".into())]);
-        let mut subAccountId: Value = self.safe_string_k(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".into())]);
+        let mut zkAccountId: Option<String> = self.safe_string_k_opt(spotAccount.clone(), "zkAccountId", &[Value::Str("".into())]);
+        let mut subAccountId: Option<String> = self.safe_string_k_opt(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".into())]);
         let mut subAccounts: Vec<Value> = self.safe_list_k(spotAccount, "subAccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut nonce: Value = Value::Str("0".into());
         if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
             nonce = self.safe_string_k(subAccounts.get(0).cloned().unwrap_or(Value::Null), "nonce", &[Value::Str("0".into())]);
         }
         let mut finalNonce: Value = nonce; // java req
-        let mut ethAddress: Value = self.safe_string_k(accountData.clone(), "ethereumAddress", &[Value::Str("".into())]);
-        let mut accountId: Value = self.safe_string_k(accountData, "id", &[Value::Str("".into())]);
+        let mut ethAddress: Option<String> = self.safe_string_k_opt(accountData.clone(), "ethereumAddress", &[Value::Str("".into())]);
+        let mut accountId: Option<String> = self.safe_string_k_opt(accountData, "id", &[Value::Str("".into())]);
         let mut currency: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2141,10 +2141,10 @@ impl Apex {
         }
         let mut numAssets: f64 = ((assets.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < numAssets } {
-            let mut asset: Value = self.safe_dict(assets.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; (i as f64) < numAssets } {
+            let mut asset: Value = self.safe_dict(assets.clone(), Value::from(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2153,7 +2153,7 @@ impl Apex {
             }
         }
         }
-        let mut tokenId: Value = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".into())]);
+        let mut tokenId: Option<String> = self.safe_string_k_opt(currency.clone(), "tokenId", &[Value::Str("".into())]);
         let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
         let mut decimalsNumber: Value = (if (decimalsNum == Value::Null) { Value::Int(0) } else { decimalsNum });
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
@@ -2165,18 +2165,18 @@ impl Apex {
         let mut finalClientOrderId: Value = (if (clientOrderId != Value::Null) { clientOrderId } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if isContract {
-            let mut formattedUint32: Value = Value::Str("4294967295".into());
-            let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&accountId, &formattedUint32);
+            let mut formattedUint32: String = "4294967295".to_string();
+            let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&accountId.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(formattedUint32.clone()));
             let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("zkAccountId".to_string(), zkSignAccountId);
-                    m.insert("receiverAddress".to_string(), ethAddress.clone());
-                    m.insert("subAccountId".to_string(), subAccountId.clone());
-                    m.insert("receiverSubAccountId".to_string(), subAccountId.clone());
-                    m.insert("tokenId".to_string(), tokenId.clone());
+                    m.insert("receiverAddress".to_string(), ethAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("subAccountId".to_string(), subAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverSubAccountId".to_string(), subAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("tokenId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), finalClientOrderId.clone());
@@ -2192,7 +2192,7 @@ impl Apex {
                     m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone());
                     m.insert("signature".to_string(), signature.clone());
                     m.insert("token".to_string(), code.clone());
-                    m.insert("ethAddress".to_string(), ethAddress);
+                    m.insert("ethAddress".to_string(), ethAddress.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_7 = self.extend(request.clone(), &[paramsOmitted.clone()]);
@@ -2217,11 +2217,11 @@ impl Apex {
         }  else {
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("zkAccountId".to_string(), zkAccountId.clone());
-                    m.insert("receiverAddress".to_string(), receiverAddress.clone());
-                    m.insert("subAccountId".to_string(), subAccountId.clone());
-                    m.insert("receiverSubAccountId".to_string(), receiverSubAccountId.clone());
-                    m.insert("tokenId".to_string(), tokenId.clone());
+                    m.insert("zkAccountId".to_string(), zkAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverAddress".to_string(), receiverAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("subAccountId".to_string(), subAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverSubAccountId".to_string(), receiverSubAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("tokenId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), finalNonce.clone());
@@ -2236,15 +2236,15 @@ impl Apex {
                     m.insert("timestamp".to_string(), ts);
                     m.insert("clientTransferId".to_string(), finalClientOrderId);
                     m.insert("signature".to_string(), signature);
-                    m.insert("zkAccountId".to_string(), zkAccountId);
-                    m.insert("subAccountId".to_string(), subAccountId);
+                    m.insert("zkAccountId".to_string(), zkAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("subAccountId".to_string(), subAccountId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("token".to_string(), code.clone());
-                    m.insert("tokenId".to_string(), tokenId);
-                    m.insert("receiverAccountId".to_string(), receiverAccountId);
-                    m.insert("receiverZkAccountId".to_string(), receiverZkAccountId);
-                    m.insert("receiverSubAccountId".to_string(), receiverSubAccountId);
-                    m.insert("receiverAddress".to_string(), receiverAddress);
+                    m.insert("tokenId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverAccountId".to_string(), receiverAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverZkAccountId".to_string(), receiverZkAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverSubAccountId".to_string(), receiverSubAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("receiverAddress".to_string(), receiverAddress.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("nonce".to_string(), finalNonce);
                 m
             });
@@ -2902,7 +2902,7 @@ impl Apex {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("User-Agent".to_string(), Value::Str("apex-CCXT".into()));
@@ -2910,12 +2910,12 @@ impl Apex {
                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
             m
         });
-        let mut signPath: Value = Value::Str(format!("{}{}", Value::Str("/api/".into()), path).into());
+        let mut signPath: String = format!("{}{}", Value::Str("/api/".into()), path);
         let mut signBody: Value = Value::Null;
         if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into())).into());
+                signPath = format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into()));
+                url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])).into()));
             }
         }  else {
             let mut sortedQuery: Value = self.keysort(params, &[]);
@@ -2923,20 +2923,20 @@ impl Apex {
         }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut messageString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), signPath).into());
+            let mut timestamp: String = format!("{}", self.milliseconds());
+            let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), signPath);
             if (signBody != Value::Null) {
-                messageString = Value::Str(format!("{}{}", messageString, signBody).into());
+                messageString = format!("{}{}", messageString, signBody);
             }
-            let mut signature: Value = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: Value = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue.insert("APEX-SIGNATURE".into(), signature);
             headersValue.insert("APEX-API-KEY".into(), self.apiKey.clone());
-            headersValue.insert("APEX-TIMESTAMP".into(), timestamp);
+            headersValue.insert("APEX-TIMESTAMP".into(), Value::from(timestamp));
             headersValue.insert("APEX-PASSPHRASE".into(), self.password.clone());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), signBody);
         m.insert("headers".to_string(), Value::Map(headersValue));
@@ -2956,12 +2956,12 @@ impl Apex {
         }
         let mut errorCode: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         if (errorCode.is_some()) && (errorCode != Some(0)) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
             let mut message: Option<String> = self.safe_string2_opt(response, Value::Str("key".into()), Value::Str("msg".into()), &[]);
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            let mut status: Value = Value::Str(format!("{}", code).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status, feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            let mut status: String = format!("{}", code);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(status), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
         }
         return Value::Null;
 

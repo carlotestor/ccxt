@@ -804,8 +804,8 @@ impl Bitbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
-        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
+        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -974,11 +974,11 @@ impl Bitbank {
             let mut pair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(pair.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
-            let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut symbol: Option<String> = self.safe_string_k_opt(market, "symbol", &[Value::Str("".into())]);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), pair.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(pair.clone(), "maker_fee_rate_quote", &[]));
         m.insert("taker".to_string(), self.safe_number_k(pair, "taker_fee_rate_quote", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -1678,13 +1678,13 @@ impl Bitbank {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into());
+        let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into()));
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("markets")) {
-            url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
+            url = format!("{}{}", url, self.implode_params(path.clone(), params.clone()));
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into()));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -1694,14 +1694,14 @@ impl Bitbank {
             // since bitbank offers no server time endpoint to compensate against
             let mut authMethod: Option<String> = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".into())]).as_str().map(str::to_owned);
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
-            let mut requestTime: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]);
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            let mut auth: Value = nonce.clone();
+            let mut requestTime: String = format!("{}", self.milliseconds());
+            let mut timeWindow: Option<String> = self.safe_string_k_opt(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]);
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
+            let mut auth: Value = Value::from(nonce.clone());
             if isTimeWindow {
-                auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());
+                auth = Value::Str(format!("{}{}", requestTime, timeWindow.clone().map(Value::from).unwrap_or(Value::Null)).into());
             }
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into())).into());
+            url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into()));
             if (method.as_str() == Some("POST")) {
                 let mut jsonBody: Value = json_stringify(&query);
                 requestBody = jsonBody.clone();
@@ -1710,7 +1710,7 @@ impl Bitbank {
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), path).into())).into());
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     let mut queryString: Value = self.urlencode(query, &[]);
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                    url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into()));
                     auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
                 }
             }
@@ -1724,14 +1724,14 @@ impl Bitbank {
             if isTimeWindow {
                 requestHeaders = self.extend(requestHeaders.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("ACCESS-REQUEST-TIME".to_string(), requestTime);
-                        m.insert("ACCESS-TIME-WINDOW".to_string(), timeWindow);
+                        m.insert("ACCESS-REQUEST-TIME".to_string(), Value::from(requestTime));
+                        m.insert("ACCESS-TIME-WINDOW".to_string(), timeWindow.map(Value::from).unwrap_or(Value::Null));
                     m
                 })]);
             }  else {
                 requestHeaders = self.extend(requestHeaders.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("ACCESS-NONCE".to_string(), nonce);
+                        m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
                     m
                 })]);
             }
@@ -1740,7 +1740,7 @@ impl Bitbank {
         let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);
@@ -1821,9 +1821,9 @@ impl Bitbank {
                     m.insert("70010".to_string(), Value::Str("We are temporarily raising the minimum order quantity as the system load is now rising.".into()));
                 m
             });
-            let mut codeError: Option<String> = self.safe_string_k_opt(data, "code", &[]);
-            let mut message: Value = self.safe_string(errorMessages, codeError.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("Error".into())]);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), message);
+            let mut codeError: Value = self.safe_string_k(data, "code", &[]);
+            let mut message: Option<String> = self.safe_string_opt(errorMessages, codeError.clone(), &[Value::Str("Error".into())]);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError, message.map(Value::from).unwrap_or(Value::Null));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
         }
         return Value::Null;

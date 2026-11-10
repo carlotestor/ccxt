@@ -931,10 +931,10 @@ impl Coinspot {
             let mut rows: Value = self.to_array(balances.clone());
             let mut numRows: f64 = ((rows.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_582: bool = true;
-                while { if !__for_first_582 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_582 = false; i.as_f64().unwrap_or(f64::NAN) < numRows } {
-                let mut currencies: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_582 { i += 1; } __for_first_582 = false; (i as f64) < numRows } {
+                let mut currencies: Value = self.safe_dict(rows.clone(), Value::from(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1325,18 +1325,18 @@ impl Coinspot {
         // }
         let mut buyTrades: Value = self.safe_list_k(response.clone(), "buyorders", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((buyTrades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".into()), Value::Str("buy".into()));
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; (i as f64) < ((buyTrades.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut buyTrades, &Value::from(i)), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
         let mut sellTrades: Value = self.safe_list_k(response, "sellorders", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((sellTrades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".into()), Value::Str("sell".into()));
+            while { if !__for_first_586 { i += 1; } __for_first_586 = false; (i as f64) < ((sellTrades.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut sellTrades, &Value::from(i)), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }
         let mut trades: Value = self.array_concat(buyTrades, sellTrades);
@@ -1381,10 +1381,10 @@ impl Coinspot {
         let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "market", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]);
-        let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
-        if (solddate != Value::Null) {
+        let mut solddate: Option<i64> = self.safe_integer_k(trade.clone(), "solddate", &[]).as_i64();
+        if (solddate.is_some()) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]);
-            timestamp = solddate;
+            timestamp = Value::from(solddate);
         }  else {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut createdString: Option<String> = self.safe_string_k_opt(trade.clone(), "created", &[]);
@@ -1541,8 +1541,8 @@ impl Coinspot {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
         }
         return Value::Null;
 
@@ -1570,8 +1570,8 @@ impl Coinspot {
         if isVersionedApi {
             accessType = api.as_array().into_iter().flatten().nth(1).cloned().unwrap_or(Value::Null);
         }
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
-        let mut fullPath: Value = endpoint.clone();
+        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone()));
+        let mut fullPath: Value = Value::from(endpoint.clone());
         if isVersionedApi {
             fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint).into());
         }
@@ -1579,7 +1579,7 @@ impl Coinspot {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath).into());
+        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // coinspot requires an increasing nonce
@@ -1600,7 +1600,7 @@ impl Coinspot {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);

@@ -602,8 +602,8 @@ impl Bit2c {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: Value = self.currency(code.clone());
-            let mut currencyId: Value = self.safe_string_k(currency, "id", &[Value::Str("".into())]);
-            let mut uppercase: Value = (if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut currencyId: Option<String> = self.safe_string_k_opt(currency, "id", &[Value::Str("".into())]);
+            let mut uppercase: Value = (if let Some(__s) = currencyId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             if (self.safe_string(response.clone(), uppercase.clone(), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), uppercase, &[]));
@@ -1187,19 +1187,19 @@ impl Bit2c {
         }
         // bit2c order type:
         // 0 = LMT,  1 = MKT
-        let mut type_var: Value = self.safe_string_k(orderUnified.clone(), "order_type", &[]);
-        if (type_var.as_str() == Some("0")) {
-            type_var = Value::Str("limit".into());
-        }  else if (type_var.as_str() == Some("1")) {
-            type_var = Value::Str("market".into());
+        let mut type_var: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "order_type", &[]);
+        if (type_var.as_deref() == Some("0")) {
+            type_var = Some("limit".to_string());
+        }  else if (type_var.as_deref() == Some("1")) {
+            type_var = Some("market".to_string());
         }
         // bit2c side:
         // 0 = buy, 1 = sell
-        let mut side: Value = self.safe_string_k(orderUnified.clone(), "type", &[]);
-        if (side.as_str() == Some("0")) {
-            side = Value::Str("buy".into());
-        }  else if (side.as_str() == Some("1")) {
-            side = Value::Str("sell".into());
+        let mut side: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "type", &[]);
+        if (side.as_deref() == Some("0")) {
+            side = Some("buy".to_string());
+        }  else if (side.as_deref() == Some("1")) {
+            side = Some("sell".to_string());
         }
         let mut price: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "price", &[]);
         let mut amount: Value = Value::Null;
@@ -1220,10 +1220,10 @@ impl Bit2c {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);
@@ -1331,16 +1331,16 @@ impl Bit2c {
     }
 
     pub fn remove_comma_from_value(&self, mut str_val: Value) -> Option<String> {
-        let mut newString: Value = Value::Str("".into());
+        let mut newString: String = "".to_string();
         let mut strParts: Vec<Value> = Value::Array(if let Some(__s) = str_val.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (strParts.len() as i64) } {
-            newString = Value::Str(format!("{}{}", newString, strParts.get(i as usize).cloned().unwrap_or(Value::Null)).into());
+            newString = format!("{}{}", newString, strParts.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        return newString.as_str().map(str::to_owned);
+        return Some(newString.as_str()).map(str::to_owned);
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1539,11 +1539,11 @@ impl Bit2c {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone()));
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(".json".into())).into());
+            url = format!("{}{}", url, Value::Str(".json".into()));
         }  else {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
@@ -1556,7 +1556,7 @@ impl Bit2c {
             let mut auth: Value = self.urlencode(query.clone(), &[]);
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
+                    url = format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into()));
                 }
             }  else {
                 requestBody = auth.clone();
@@ -1574,7 +1574,7 @@ impl Bit2c {
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
         m.insert("headers".to_string(), headersResult);
@@ -1598,10 +1598,10 @@ impl Bit2c {
             error = self.safe_string_k_opt(response, "Error", &[]);
         }
         if (error.is_some()) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
         }
         return Value::Null;
 

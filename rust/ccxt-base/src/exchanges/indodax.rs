@@ -864,8 +864,8 @@ impl Indodax {
         let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "server_time", &[]);
         let baseId: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
         let quoteId: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
-        let mut baseVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), baseId).into());
-        let mut quoteVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), quoteId).into());
+        let mut baseVolume: String = format!("{}{}", Value::Str("vol_".into()), baseId);
+        let mut quoteVolume: String = format!("{}{}", Value::Str("vol_".into()), quoteId);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -886,8 +886,8 @@ impl Indodax {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string(ticker.clone(), baseVolume, &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string(ticker.clone(), quoteVolume, &[]));
+        m.insert("baseVolume".to_string(), self.safe_string(ticker.clone(), Value::from(baseVolume), &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string(ticker.clone(), Value::from(quoteVolume), &[]));
         m.insert("info".to_string(), ticker);
     m
 }), &[market]);
@@ -1215,20 +1215,20 @@ impl Indodax {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         if (marketResolved != Value::Null) {
             symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut quoteId: Value = self.safe_string_k(marketResolved.clone(), "quoteId", &[Value::Str("".into())]);
-            let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]);
+            let mut quoteId: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "quoteId", &[Value::Str("".into())]);
+            let mut baseId: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "baseId", &[Value::Str("".into())]);
             if (marketResolved.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "order_rp", &[]) != Value::Null) {
-                quoteId = Value::Str("rp".into());
+                quoteId = Some("rp".to_string());
             }
             if (marketResolved.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "remain_rp", &[]) != Value::Null) {
-                baseId = Value::Str("rp".into());
+                baseId = Some("rp".to_string());
             }
-            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId).into()), &[]);
-            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), baseId).into()), &[]);
-            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".into()), baseId).into()), &[]);
+            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId.map(Value::from).unwrap_or(Value::Null)).into()), &[]);
+            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), baseId.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]);
+            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".into()), baseId.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]);
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]);
+            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId.map(Value::from).unwrap_or(Value::Null)).into()), &[]);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
         let mut fee: Value = Value::Null;
@@ -1487,9 +1487,9 @@ impl Indodax {
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Value = Value::Null;
-                let mut cost: Value = self.safe_number_k(params, "cost", &[]);
-                if (cost != Value::Null) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost);
+                let mut cost: Option<f64> = self.safe_number_k(params, "cost", &[]).as_f64();
+                if (cost.is_some()) {
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".into()))));
@@ -1958,13 +1958,13 @@ impl Indodax {
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
         let mut timestamp: Value = self.safe_timestamp2(transaction.clone(), Value::Str("success_time".into()), Value::Str("submit_time".into()), &[]);
         let mut depositId: Option<String> = self.safe_string_k(transaction.clone(), "deposit_id", &[]).as_str().map(str::to_owned);
-        let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
+        let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         let mut fee: Value = Value::Null;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("rate".to_string(), Value::Null);
                 m
             });
@@ -2157,7 +2157,7 @@ impl Indodax {
         let mut isPublic: bool = apiName.as_str() == Some("public");
         if isPublic {
             let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-            let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
+            let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
             url = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), requestPath).into());
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestPath).into()), Value::Str("?".into())).into()), self.urlencode_with_array_repeat(query)).into());
@@ -2211,9 +2211,9 @@ impl Indodax {
         if (matches!(&response, Value::Arr(_))) {
             return Value::Null;
         }
-        let mut error: Value = self.safe_string_k(response.clone(), "error", &[Value::Str("".into())]);
+        let mut error: Option<String> = self.safe_string_k_opt(response.clone(), "error", &[Value::Str("".into())]);
         let mut status: Option<String> = self.safe_string_k(response.clone(), "success", &[]).as_str().map(str::to_owned);
-        if (status.is_none()) && (error.as_str() == Some("")) {
+        if (status.is_none()) && (error.as_deref() == Some("")) {
             return Value::Null;
         }
         if (status.as_deref() == Some("approved")) {
@@ -2227,10 +2227,10 @@ impl Indodax {
                 return Value::Null;
             }
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
-        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error, feedback.clone());
-        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+        panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
 
     Value::Null
 }

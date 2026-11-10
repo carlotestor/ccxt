@@ -803,9 +803,9 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut referenceId: Value = self.safe_string2(details.clone(), Value::Str("fid".into()), Value::Str("wid".into()), &[]);
-        if (referenceId == Value::Null) {
-            referenceId = self.safe_string_k(details, "tid", &[]);
+        let mut referenceId: Option<String> = self.safe_string2_opt(details.clone(), Value::Str("fid".into()), Value::Str("wid".into()), &[]);
+        if (referenceId.is_none()) {
+            referenceId = self.safe_string_k_opt(details, "tid", &[]);
         }
         if (operation.as_deref() == Some("funding")) {
             direction = Value::Str("in".into());
@@ -830,7 +830,7 @@ impl Bitso {
         m.insert("id".to_string(), self.safe_string_k(item, "eid", &[]));
         m.insert("direction".to_string(), direction);
         m.insert("account".to_string(), Value::Null);
-        m.insert("referenceId".to_string(), referenceId);
+        m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code);
@@ -908,10 +908,10 @@ impl Bitso {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
             let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
-            let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
-            let mut base: Value = self.safe_currency_code((if let Some(__s) = baseId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
-            let mut quote: Value = self.safe_currency_code((if let Some(__s) = quoteId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
+            let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
+            let mut quoteId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[Value::Str("".into())]);
+            let mut base: Value = self.safe_currency_code((if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
+            let mut quote: Value = self.safe_currency_code((if let Some(__s) = quoteId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -939,18 +939,18 @@ impl Bitso {
             let mut takerFees: Vec<Value> = Vec::new();
             let mut makerFees: Vec<Value> = Vec::new();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_419: bool = true;
-                while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-                let mut tier: Value = self.safe_dict(feeTiers.clone(), j.clone(), &[]);
-                let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
-                let mut takerFee: Value = self.safe_number_k(tier.clone(), "taker", &[]);
-                let mut makerFee: Value = self.safe_number_k(tier, "maker", &[]);
-                takerFees.push(Value::from(vec![volume.clone(), takerFee.clone()]));
-                makerFees.push(Value::from(vec![volume, makerFee.clone()]));
-                if (j.as_f64() == Some(0.0)) {
-                    fee.insert("taker".into(), takerFee);
-                    fee.insert("maker".into(), makerFee);
+                while { if !__for_first_419 { j += 1; } __for_first_419 = false; (j as f64) < ((feeTiers.len() as i64) as f64) } {
+                let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::from(j), &[]);
+                let mut volume: Option<f64> = self.safe_number_k(tier.clone(), "volume", &[]).as_f64();
+                let mut takerFee: Option<f64> = self.safe_number_k(tier.clone(), "taker", &[]).as_f64();
+                let mut makerFee: Option<f64> = self.safe_number_k(tier, "maker", &[]).as_f64();
+                takerFees.push(Value::from(vec![Value::from(volume), Value::from(takerFee)]));
+                makerFees.push(Value::from(vec![Value::from(volume), Value::from(makerFee)]));
+                if (Some((j as f64)) == Some(0.0)) {
+                    fee.insert("taker".into(), Value::from(takerFee));
+                    fee.insert("maker".into(), Value::from(makerFee));
                 }
             }
             }
@@ -969,8 +969,8 @@ impl Bitso {
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
@@ -1455,20 +1455,20 @@ impl Bitso {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "book", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
-        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         let mut makerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_side", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (side != Value::Null) {
-            if (side.as_str() == makerSide.as_deref()) {
+        if (side.is_some()) {
+            if (side.as_deref() == makerSide.as_deref()) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());
             }
         }  else {
             if (makerSide.as_deref() == Some("buy")) {
-                side = Value::Str("sell".into());
+                side = Some("sell".to_string());
             }  else {
-                side = Value::Str("buy".into());
+                side = Some("buy".to_string());
             }
         }
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("major".into()), &[]);
@@ -1503,7 +1503,7 @@ impl Bitso {
         m.insert("symbol".to_string(), symbol);
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
@@ -2681,9 +2681,9 @@ impl Bitso {
                 m.insert("destination_tag".to_string(), tagWithdrawTag);
             m
         });
-        let mut classMethod: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("privatePost".into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("Withdrawal".into())).into());
+        let mut classMethod: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("privatePost".into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("Withdrawal".into()));
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
-        let mut response: Value = self.call_dynamic_checked(classMethod, vec![(__ws_arg_16).clone()]).await;
+        let mut response: Value = self.call_dynamic_checked(Value::from(classMethod), vec![(__ws_arg_16).clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2819,33 +2819,33 @@ impl Bitso {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                endpoint = format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into()));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint).into());
+        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitso rejects a nonce that is not higher than the previous one (error 104)
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            endpoint = Value::Str(format!("{}{}", Value::Str("/api".into()), endpoint).into());
-            let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
+            endpoint = format!("{}{}", Value::Str("/api".into()), endpoint);
+            let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     let mut jsonBody: Value = json_stringify(&query);
                     requestBody = jsonBody.clone();
-                    request = Value::Str(format!("{}{}", request, jsonBody).into());
+                    request = format!("{}{}", request, jsonBody);
                 }
             }
-            let mut signature: Value = self.hmac(self.encode(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), nonce).into()), Value::Str(":".into())).into()), signature).into());
+            let mut signature: Value = self.hmac(self.encode(Value::from(request)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), nonce).into()), Value::Str(":".into())).into()), signature);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bitso ".into()), auth).into()));
@@ -2854,7 +2854,7 @@ impl Bitso {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);
@@ -2874,14 +2874,14 @@ impl Bitso {
             //
             let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
             if !(success) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
                 let mut error: Value = self.safe_dict_k(response, "error", &[]);
                 if (error == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                    panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback.clone())));
                 }
                 let mut codeError: Option<String> = self.safe_string_k_opt(error, "code", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::from(feedback)));
             }
         }
         return Value::Null;
