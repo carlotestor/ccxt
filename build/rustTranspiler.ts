@@ -5544,6 +5544,14 @@ function strLocalReassign(content: string): string {
                 } else if (rhsMasked.startsWith('Value::Bool(') && closeParen(rhsMasked, 'Value::Bool'.length) === rhsMasked.length) {
                     if (!join('bool')) { ok = false; break; }
                     edits.push({ start: rhsStart, end: rhsStart + 'Value::Bool('.length, text: 'Some(' });
+                } else if (rhsMasked.startsWith('Value::Int(') && closeParen(rhsMasked, 'Value::Int'.length) === rhsMasked.length) {
+                    if (!join('int')) { ok = false; break; }
+                    edits.push({ start: rhsStart, end: rhsStart + 'Value::Int('.length, text: 'Some(' });
+                } else if ((call = /^self\.safe_integer(?:_k)?\(/.exec(rhsMasked)) !== null && nilDecl
+                    && closeParen(rhsMasked, call[0].length - 1) === rhsMasked.length && /,\s*&\[\]\)$/.test(rhsMasked)) {
+                    // A defaultless `safe_integer` yields `Int` or `Null`: `as_i64()` is exact.
+                    if (!join('int')) { ok = false; break; }
+                    edits.push({ start: rhsStart + rhsRaw.length, end: rhsStart + rhsRaw.length, text: '.as_i64()' });
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null && join('str')) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
                 } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
@@ -5568,6 +5576,8 @@ function strLocalReassign(content: string): string {
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
             } else if ((g = /^\.as_str\(\)/.exec(after)) !== null && join('str')) {
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
+            } else if ((g = /^\.as_i64\(\)/.exec(after)) !== null && join('int')) {
+                edits.push({ start: abs, end: abs + name.length + g[0].length, text: name });
             } else if ((g = /^\.as_bool\(\)/.exec(after)) !== null && join('bool')) {
                 // `Option<bool>` is the same value `Value::as_bool()` gave.
                 edits.push({ start: abs, end: abs + name.length + g[0].length, text: name });
@@ -5583,6 +5593,7 @@ function strLocalReassign(content: string): string {
         }
         if (!ok || assigned === 0) continue;
         if (kind === 'bool') declEdit.text = `${m[1]}let mut ${name}: Option<bool> = None`;
+        if (kind === 'int') declEdit.text = `${m[1]}let mut ${name}: Option<i64> = None`;
         const declText = `${m[1]}let mut ${name}: Option<String> = `;
         const all: Edit[] = nilDecl ? edits : [{ start: m.index, end: m.index + m[0].length - `self.${fam}(`.length, text: declText }, ...edits];
         const lineGrow = new Map<number, number>();
