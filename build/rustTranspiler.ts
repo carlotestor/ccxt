@@ -5414,7 +5414,8 @@ function strLocalReassign(content: string): string {
         safe_string_lower_k: 'safe_string_lower_k_opt',
         safe_string_upper_k: 'safe_string_upper_k_opt',
     };
-    const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
+    // ral-c: a nil-declared `let mut X: Value = Value::Null;` joins its writes the same way.
+    const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (?:self\.(safe_string[a-z_0-9]*)\(|Value::Null;)/gm;
     const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
     const strLitRe = /^Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/;
     const maskText = (src: string): string => {
@@ -5487,11 +5488,11 @@ function strLocalReassign(content: string): string {
     let m: RegExpExecArray | null;
     while ((m = declRe.exec(masked)) !== null) {
         const fam = m[3];
-        const opt = OPT[fam];
-        if (opt === undefined) continue;
+        const nilDecl = fam === undefined;
+        if (!nilDecl && OPT[fam] === undefined) continue;
         const name = m[2];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
+        const callOpen = nilDecl ? -1 : m.index + m[0].length - 1;
+        const callClose = nilDecl ? m.index + m[0].length - 1 : closeParen(masked, callOpen);
         if (callClose < 0) continue;
         const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
         if (tail === null) continue;
@@ -5514,7 +5515,7 @@ function strLocalReassign(content: string): string {
             const nameAt = open - famName.length;
             return { start: nameAt, end: open, text: twin };
         };
-        const declEdit = callEdit(fam, callOpen, callClose);
+        const declEdit = nilDecl ? { start: m.index, end: stmtEnd - 1, text: `${m[1]}let mut ${name}: Option<String> = None` } : callEdit(fam, callOpen, callClose);
         if (declEdit === null) continue;
         const end = braceEnd(masked, stmtEnd);
         const body = masked.slice(stmtEnd, end);
@@ -5567,7 +5568,7 @@ function strLocalReassign(content: string): string {
         }
         if (!ok || assigned === 0) continue;
         const declText = `${m[1]}let mut ${name}: Option<String> = `;
-        const all: Edit[] = [{ start: m.index, end: m.index + m[0].length - `self.${fam}(`.length, text: declText }, ...edits];
+        const all: Edit[] = nilDecl ? edits : [{ start: m.index, end: m.index + m[0].length - `self.${fam}(`.length, text: declText }, ...edits];
         const lineGrow = new Map<number, number>();
         for (const e of all) {
             const ls = content.lastIndexOf('\n', e.start) + 1;
