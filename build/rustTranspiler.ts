@@ -10859,11 +10859,13 @@ export class RustTranspilerBuilder {
     /** `m.as_map()..get("k")..unwrap_or(Null)` where `m` is a `self.market(..)` local
      *  and `k` a `Bool` field of the TS `MarketInterface`: the payload is Bool or Null. */
     private isMarketBoolFieldRead(raw: string, region: string): boolean {
-        const m = /^\(?([A-Za-z_]\w*)\.as_map\(\)\.and_then\(\|__m\| __m\.get\("(spot|margin|swap|future|option|index|stock|prediction|contract|linear|inverse|quanto)"\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)\)?$/.exec(raw.trim());
+        const m = /^\(?(?:\(([A-Za-z_]\w*)\)\.raw|([A-Za-z_]\w*))\.as_map\(\)\.and_then\(\|__m\| __m\.get\("(spot|margin|swap|future|option|index|stock|prediction|contract|linear|inverse|quanto)"\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)\)?$/.exec(raw.trim());
         if (m === null) return false;
-        const recv = m[1];
+        const recv = m[1] ?? m[2];
         const decls = region.match(new RegExp(`let (?:mut )?${recv}\\b`, 'g')) ?? [];
         if (decls.length !== 1) return false;
+        // a typed `crate::types::Market` local reads the same dict through its `raw`
+        if (m[1] !== undefined) return new RegExp(`let (?:mut )?${recv}: crate::types::Market = \\(match self\\.market\\(`).test(region);
         return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*(?:crate::types::IntoRaw::into_raw\\()?self\\.market\\(`).test(region);
     }
 
