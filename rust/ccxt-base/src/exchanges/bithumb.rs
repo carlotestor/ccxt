@@ -2129,11 +2129,11 @@ impl Bithumb {
         let mut isGenerationTwo: bool = generationTwoTimestamp.is_some();
         let mut transactionDatetime: Option<String> = self.safe_string_k_opt(trade.clone(), "transaction_date", &[]);
         if (transactionDatetime.is_some()) {
-            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
-                let mut transactionDate: Value = parts.get(0).cloned().unwrap_or(Value::Null);
-                let mut rawTransactionTime: Value = self.safe_string(parts.clone().into(), Value::Int(1), &[Value::Str("".into())]);
+                let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut rawTransactionTime: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
                 let mut transactionTime: Value = rawTransactionTime.clone();
                 if ((rawTransactionTime.len() as i64) as f64) < ((8i64) as f64) {
                     transactionTime = Value::Str(format!("{}{}", Value::Str("0".into()), rawTransactionTime).into());

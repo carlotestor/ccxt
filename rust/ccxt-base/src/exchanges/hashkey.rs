@@ -4510,9 +4510,9 @@ impl Hashkey {
 }
 
     pub fn parse_order_side_and_reduce_only(&self, mut unparsed: Value) -> Value {
-        let mut parts: Vec<Value> = split(&unparsed, &Value::Str("_".into())).as_array().cloned().unwrap_or_default();
-        let mut side: Value = parts.get(0).cloned().unwrap_or(Value::Null);
-        let mut secondPart: Option<String> = self.safe_string(parts.clone().into(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut parts: Value = split(&unparsed, &Value::Str("_".into()));
+        let mut side: Value = get_value(&parts, &Value::Int(0));
+        let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         if (secondPart.as_deref() == Some("open")) {
             return Value::from(vec![side.clone(), Value::Bool(false)]);
         }

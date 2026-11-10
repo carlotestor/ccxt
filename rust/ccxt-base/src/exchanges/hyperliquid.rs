@@ -4498,10 +4498,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
         let mut baseName: Value = (match market.get("baseName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut part: Vec<Value> = Value::Array(if let Some(__s) = baseName.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let mut part: Value = Value::Array(if let Some(__s) = baseName.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut partsLength: f64 = ((part.len() as i64) as f64);
         if partsLength > ((1i64) as f64) {
-            return self.safe_string(part.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            return self.safe_string(part, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         return None;
 }

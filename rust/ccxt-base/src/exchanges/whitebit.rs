@@ -1842,8 +1842,8 @@ impl Whitebit {
             let mut __for_first_1150: bool = true;
             while { if !__for_first_1150 { i += 1; } __for_first_1150 = false; i < (currencyIds.len() as i64) } {
             let mut entry: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut splitEntry: Vec<Value> = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut currencyId: Value = splitEntry.get(0).cloned().unwrap_or(Value::Null);
+            let mut splitEntry: Value = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+            let mut currencyId: Value = splitEntry.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut feeInfo: Value = self.safe_value(response.clone(), entry.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
@@ -1855,7 +1855,7 @@ impl Whitebit {
 }))); }
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &entry, feeInfo.clone());
-                let mut networkId: Value = self.safe_string(splitEntry.clone().into(), Value::Int(1), &[]);
+                let mut networkId: Value = self.safe_string(splitEntry, Value::Int(1), &[]);
                 let mut withdraw: Value = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]);
                 let mut deposit: Value = self.safe_dict_k(feeInfo, "deposit", &[]);
                 let mut withdrawFee: Option<f64> = self.safe_number_k(withdraw, "fixed", &[]).as_f64();

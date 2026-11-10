@@ -3864,10 +3864,10 @@ impl Bitstamp {
         let mut addressRaw: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         if (addressRaw.is_some()) {
             // dt (destination tag) is embedded into the address field
-            let mut addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            address = self.safe_string(addressParts.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut addressParts: Value = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
+            address = self.safe_string(addressParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
-                tag = self.safe_string(addressParts.clone().into(), Value::Int(1), &[]).as_str().map(str::to_owned);
+                tag = self.safe_string(addressParts, Value::Int(1), &[]).as_str().map(str::to_owned);
             }
         }
         let mut fee: indexmap::IndexMap<String, Value> = ({

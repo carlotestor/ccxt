@@ -785,15 +785,15 @@ impl Myriad {
     m
 }));
         // the unified event id is a composite networkId:marketId
-        let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let mut parts: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut partsLength: f64 = ((parts.len() as i64) as f64);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if partsLength > ((1i64) as f64) {
-            request.insert("network_id".into(), self.safe_string(parts.clone().into(), Value::Int(0), &[]));
-            request.insert("id".into(), self.safe_string(parts.clone().into(), Value::Int(1), &[]));
+            request.insert("network_id".into(), self.safe_string(parts.clone(), Value::Int(0), &[]));
+            request.insert("id".into(), self.safe_string(parts, Value::Int(1), &[]));
         }  else {
             request.insert("id".into(), id);
         }

@@ -4434,12 +4434,12 @@ impl Woo {
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut parts: Value = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: f64 = ((parts.len() as i64) as f64);
-            let mut firstPart: Option<String> = self.safe_string(parts.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut currencyId: Value = self.safe_string(parts.clone().into(), Value::Int(1), &[firstPart.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.clone().map(Value::from).unwrap_or(Value::Null)]);
             if partsLength > ((2i64) as f64) {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts.clone().into(), Value::Int(2), &[Value::Str("".into())])).into())).into());
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
             }
             return self.safe_currency(currencyId, &[]);
         }
