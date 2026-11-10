@@ -10190,7 +10190,7 @@ export class RustTranspilerBuilder {
                 rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
             }
         }
-        if (rewrites.length === 0) return content;
+        if (rewrites.length === 0) return this.narrowIntLiteralLocals(content);
         rewrites.sort((a, b) => a.start - b.start);
         let out = ''; let last = 0;
         for (const r of rewrites) {
@@ -10199,9 +10199,32 @@ export class RustTranspilerBuilder {
             last = r.end;
         }
         out += content.slice(last);
-        return out;
+        return this.narrowIntLiteralLocals(out);
     }
 
+    /**
+     * `let mut X: Value = Value::Int(<lit>);` (loop counters, page/offset seeds) becomes a bare
+     * `i64` when every later write is an Int literal or the `for` incrementor and every use is
+     * native per `nativeScalarUses`. Locals read only through `as_f64()` are left to
+     * `narrowFloatLocals` (it prints them `f64` without the cast).
+     */
+    narrowIntLiteralLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = Value::Int\((-?\d+)\);/gm;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[2];
+            const stmtEnd = m.index + m[0].length;
+            const masked = this.maskStrings(content.slice(stmtEnd, this.scopeEndOf(content, stmtEnd)));
+            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
+            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
+            const uses = this.nativeScalarUses(masked, name, 'i64');
+            if (uses === undefined || uses.every((u) => u.text === `Some(${name} as f64)`)) continue;
+            rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: i64 = ${m[3]};` });
+            for (const u of uses) rewrites.push({ start: stmtEnd + u.start, end: stmtEnd + u.end, text: u.text });
+        }
+        return this.applyRewrites(content, rewrites);
+    }
 
     /**
      * The edits that make every use of a bare `i64` / `f64` local `name` in `masked` (its fn body
@@ -10219,8 +10242,15 @@ export class RustTranspilerBuilder {
             const at = u.index; const end = at + name.length;
             const before = masked.slice(Math.max(0, at - 40), at); const after = masked.slice(end, end + 60);
             let g: RegExpExecArray | null;
-            if (/^\.as_f64\(\)/.test(after)) {
-                out.push({ start: at, end: end + '.as_f64()'.length, text: acc === 'i64' ? `Some(${name} as f64)` : `Some(${name})` });
+            let inc: RegExpExecArray | null;
+            if ((g = /^\)?\.as_(f64|i64)\(\)/.exec(after)) !== null && (g[0][0] !== ')' || before.endsWith('('))
+                && (acc === 'i64' || g[1] === 'f64')) {
+                const paren = g[0][0] === ')' ? 1 : 0;
+                out.push({ start: at - paren, end: end + g[0].length, text: acc === 'i64' && g[1] === 'f64' ? `Some(${name} as f64)` : `Some(${name})` });
+            } else if (acc === 'i64' && (inc = /if let Value::Int\((\w+)\) = &mut $/.exec(before)) !== null
+                && (g = new RegExp(`^\\s*\\{\\s*\\*${inc[1]} \\+= 1;\\s*\\}`).exec(after)) !== null) {
+                // The `for` incrementor: the guarded in-place `+= 1` on the Int box is `+= 1` on the i64.
+                out.push({ start: at - inc[0].length, end: end + g[0].length, text: `${name} += 1;` });
             } else if ((g = /^\s*=(?!=)/.exec(after)) !== null && !/[!<>=&|+\-*/]\s*$/.test(before)) {
                 const w = litRe.exec(after);
                 if (w === null) return undefined;
