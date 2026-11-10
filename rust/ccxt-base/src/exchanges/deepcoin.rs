@@ -2744,10 +2744,10 @@ impl Deepcoin {
         if postOnly {
             typePostOnly = Value::Str("post_only".into());
         }
-        let mut timeInForce: Value = self.handle_time_in_force(&[paramsPostOnly.clone()]);
+        let mut timeInForce: Option<String> = self.handle_time_in_force(&[paramsPostOnly.clone()]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::Str("timeInForce".into()), &[]);
         let mut typeValue: Value = typePostOnly;
-        if (timeInForce.as_str() == Some("IOC")) {
+        if (timeInForce.as_deref() == Some("IOC")) {
             typeValue = Value::Str("ioc".into());
         }
         return Value::from(vec![typeValue, paramsOmitted]);

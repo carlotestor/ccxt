@@ -6091,20 +6091,20 @@ impl Okx {
             }
             if (takeProfitPrice != Value::Null) {
                 request.insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice));
-                let mut tpOrdPxReq: Value = Value::Str("-1".into());
+                let mut tpOrdPxReq: Option<String> = Some("-1".to_string());
                 if (tpOrdPx != Value::Null) {
-                    tpOrdPxReq = self.price_to_precision(symbol.clone(), tpOrdPx);
+                    tpOrdPxReq = self.price_to_precision(symbol.clone(), tpOrdPx).as_str().map(str::to_owned);
                 }
-                request.insert("tpOrdPx".into(), tpOrdPxReq);
+                request.insert("tpOrdPx".into(), tpOrdPxReq.clone().map(Value::from).unwrap_or(Value::Null));
                 request.insert("tpTriggerPxType".into(), Value::from(tpTriggerPxType));
             }
             if (stopLossPrice != Value::Null) {
                 request.insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice));
-                let mut slOrdPxReq: Value = Value::Str("-1".into());
+                let mut slOrdPxReq: Option<String> = Some("-1".to_string());
                 if (slOrdPx != Value::Null) {
-                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx);
+                    slOrdPxReq = self.price_to_precision(symbol, slOrdPx).as_str().map(str::to_owned);
                 }
-                request.insert("slOrdPx".into(), slOrdPxReq);
+                request.insert("slOrdPx".into(), slOrdPxReq.clone().map(Value::from).unwrap_or(Value::Null));
                 request.insert("slTriggerPxType".into(), Value::from(slTriggerPxType));
             }
         }
@@ -9683,8 +9683,8 @@ impl Okx {
         let mut rounder: String = "0.00005".to_string(); // round to closest 0.01%
         let mut maintenanceMarginPercentage: Value = (if (maintenanceMarginPercentageString != Value::Null) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &Value::from(rounder)), &Value::Str("1".into()), &Value::Int(4)), &[]) } else { Value::Null });
         // okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
-        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liqPx", &[]));
-        let mut liquidationPrice: Value = (if ((liquidationPriceString != Value::Null) && crate::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString, &[]) } else { Value::Null });
+        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liqPx", &[])).as_str().map(str::to_owned);
+        let mut liquidationPrice: Value = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]) } else { Value::Null });
         let mut percentageString: Option<String> = self.safe_string_k(position.clone(), "uplRatio", &[]).as_str().map(str::to_owned);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "cTime", &[]).as_i64();

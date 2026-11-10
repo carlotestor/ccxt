@@ -3458,12 +3458,12 @@ impl Tokocrypto {
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m
                 });
-                let mut bodyStream: Value = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]) } else { Value::Null });
+                let mut bodyStream: Option<String> = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]).as_str().map(str::to_owned) } else { None });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyStream);
+        m.insert("body".to_string(), bodyStream.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersStream));
     m
 });

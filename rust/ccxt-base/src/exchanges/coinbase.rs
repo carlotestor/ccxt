@@ -7288,16 +7288,16 @@ if _try_result.is_err() {
             }  else {
                 self.check_required_credentials(&[]);
                 let mut seconds: Option<i64> = self.seconds().as_i64();
-                let mut payload: Value = Value::Str("".into());
+                let mut payload: Option<String> = Some("".to_string());
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {
-                        payload = json_stringify(&query);
-                        requestBody = payload.clone();
+                        payload = json_stringify(&query).as_str().map(str::to_owned);
+                        requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                     }
                 }  else {
                     if !isV3 {
                         if queryLength > ((0i64) as f64) {
-                            payload = Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into());
+                            payload = Some(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                         }
                     }
                 }
@@ -7336,7 +7336,7 @@ if _try_result.is_err() {
                     let mut nonce: Value = self.parse_to_int(self.nonce());
                     let mut timestamp: Value = self.parse_to_int((match ((nonce).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                     let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
-                    let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload);
+                    let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Value::Map({
                         let mut m = indexmap::IndexMap::new();

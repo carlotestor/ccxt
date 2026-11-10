@@ -1554,9 +1554,9 @@ impl Upbit {
         //
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("sequential_id".into()), Value::Str("uuid".into()), &[]).as_str().map(str::to_owned);
         let mut orderId: Value = Value::Null;
-        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
         }
         let mut side: Option<String> = None;
         let mut askOrBid: String = self.safe_string_lower2(trade.clone(), Value::Str("ask_bid".into()), Value::Str("side".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1585,8 +1585,8 @@ impl Upbit {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("order".to_string(), orderId);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));

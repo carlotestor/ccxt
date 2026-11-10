@@ -3023,13 +3023,13 @@ impl Bingx {
         //         "tradeTime": 1722146730000
         //     }
         //
-        let mut time: Value = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("filledTm".into()), Value::Str("T".into()), Value::Str("tradeTime".into())]), &[]);
+        let mut time: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("filledTm".into()), Value::Str("T".into()), Value::Str("tradeTime".into())]), &[]).as_i64();
         let mut datetimeId: Option<String> = self.safe_string_k(trade.clone(), "filledTm", &[]).as_str().map(str::to_owned);
         if (datetimeId.is_some()) {
-            time = self.parse8601(datetimeId.clone().map(Value::from).unwrap_or(Value::Null));
+            time = self.parse8601(datetimeId.clone().map(Value::from).unwrap_or(Value::Null)).as_i64();
         }
-        if (time.as_f64() == Some(0.0)) {
-            time = Value::Null;
+        if (time == Some(0)) {
+            time = None.clone();
         }
         // Spot execution reports distinguish the last fill from the original order's p/q.
         let mut isSpotExecution: bool = (self.safe_string_k(trade.clone(), "e", &[]).as_str() == Some("executionReport")) && (self.safe_string_k(trade.clone(), "x", &[]).as_str() == Some("TRADE"));
@@ -3080,8 +3080,8 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("t".into()), Value::Str("fillId".into()), Value::Str("tradeId".into())]), &[]));
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), time.clone());
-        m.insert("datetime".to_string(), self.iso8601(time));
+        m.insert("timestamp".to_string(), Value::from(time));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(time)));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("i".into()), &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "o", &[]));
@@ -5850,17 +5850,17 @@ impl Bingx {
             takeProfitPrice = self.omit_zero(self.safe_string_k(takeProfit.clone(), "stopPrice", &[]));
         }
         let mut rawType: Value = self.safe_string_lower2(orderData.clone(), Value::Str("type".into()), Value::Str("o".into()), &[]);
-        let mut stopPrice: Value = self.omit_zero(self.safe_string2(orderData.clone(), Value::Str("StopPrice".into()), Value::Str("stopPrice".into()), &[]));
-        let mut triggerPrice: Value = stopPrice.clone();
+        let mut stopPrice: Option<String> = self.omit_zero(self.safe_string2(orderData.clone(), Value::Str("StopPrice".into()), Value::Str("stopPrice".into()), &[])).as_str().map(str::to_owned);
+        let mut triggerPrice: Value = stopPrice.clone().map(Value::from).unwrap_or(Value::Null);
         // spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
         let mut isTakeStop: bool = (rawType != Value::Null) && (rawType.as_str().unwrap_or("").contains("take_stop"));
-        if (stopPrice != Value::Null) && !isTakeStop {
+        if (stopPrice.is_some()) && !isTakeStop {
             if (rawType.as_str().unwrap_or("").contains("stop")) && (stopLossPrice == Value::Null) {
-                stopLossPrice = stopPrice.clone();
+                stopLossPrice = stopPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 triggerPrice = Value::Null;
             }
             if (rawType.as_str().unwrap_or("").contains("take")) && (takeProfitPrice == Value::Null) {
-                takeProfitPrice = stopPrice;
+                takeProfitPrice = stopPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 triggerPrice = Value::Null;
             }
         }
@@ -7430,11 +7430,11 @@ impl Bingx {
         let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[dataId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "addressTag", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("timestamp".into()), &[]);
-        let mut datetime: Option<String> = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
-        if (timestamp == Value::Null) {
-            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
-            datetime = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
+        let mut datetime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
+        if (timestamp.is_none()) {
+            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[])).as_i64();
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut network: Option<String> = self.safe_string_k_opt(transaction.clone(), "network", &[]);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "coin", &[]).as_str().map(str::to_owned);
@@ -7464,7 +7464,7 @@ impl Bingx {
         m.insert("network".to_string(), self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), &[Value::from(type_var)]).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);

@@ -5241,14 +5241,14 @@ impl Hitbtc {
             }
         }
         let mut url: String = format!("{}{}", baseUrl, getRequest);
-        let mut bodyString: Value = Value::Str("".into());
+        let mut bodyString: Option<String> = Some("".to_string());
         if (method.as_str() != Some("GET")) {
-            bodyString = json_stringify(&params);
+            bodyString = json_stringify(&params).as_str().map(str::to_owned);
         }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
-            let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/api/3/".into())).into()), implodedPath).into()), getRequest).into()), bodyString).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/api/3/".into())).into()), implodedPath).into()), getRequest).into()), bodyString.clone().map(Value::from).unwrap_or(Value::Null)).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(payloadString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut secondPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), signature).into()), Value::Str(":".into())).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("HS256 ".into()), self.string_to_base64(Value::from(secondPayload), &[])).into()));
@@ -5257,7 +5257,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), (if (method.as_str() == Some("GET")) { Value::Null } else { bodyString }));
+        m.insert("body".to_string(), (if (method.as_str() == Some("GET")) { Value::Null } else { bodyString.clone().map(Value::from).unwrap_or(Value::Null) }));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });

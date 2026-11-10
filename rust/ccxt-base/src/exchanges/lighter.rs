@@ -1536,7 +1536,7 @@ if _try_result.is_err() {
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price);
         let mut amountScale: Value = self.pow(Value::Str("10".into()), marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null));
         let mut priceScale: Value = self.pow(Value::Str("10".into()), marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
-        let mut triggerPriceStr: Value = Value::Str("0".into()); // default is 0
+        let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // c# only support int32 2147483647.
         let mut clientOrderId: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[defaultClientOrderId]);
         let mut paramsRequest: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
@@ -1549,14 +1549,14 @@ if _try_result.is_err() {
                 }  else {
                     orderTypeNum = Value::Int(3);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice);
+                triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice).as_str().map(str::to_owned);
             }  else if (takeProfitPrice.is_some()) {
                 if matches!(&isMarketOrder, Value::Bool(true)) {
                     orderTypeNum = Value::Int(4);
                 }  else {
                     orderTypeNum = Value::Int(5);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null));
+                triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }  else {
             amountStr = self.amount_to_precision(symbol.clone(), amount);
@@ -1568,7 +1568,7 @@ if _try_result.is_err() {
         request.insert("client_order_index".into(), clientOrderId);
         request.insert("base_amount".into(), self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale)));
         request.insert("avg_execution_price".into(), self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale)));
-        request.insert("trigger_price".into(), self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale)));
+        request.insert("trigger_price".into(), self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr.clone().map(Value::from).unwrap_or(Value::Null), &priceScale)));
         if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             request.insert("integrator_account_index".into(), self.safe_integer_k(self.options.clone(), "integratorAccountIndex", &[]));
             request.insert("integrator_taker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[]));

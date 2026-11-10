@@ -1830,9 +1830,9 @@ impl Bitflyer {
         }
         request = Value::Str(format!("{}{}", request, path).into());
         if (method.as_str() == Some("GET")) {
-            let mut query: Value = self.urlencode(params.clone(), &[]);
-            if (query.as_str() != Some("")) {
-                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+            let mut query: Option<String> = self.urlencode(params.clone(), &[]).as_str().map(str::to_owned);
+            if (query.as_deref() != Some("")) {
+                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), query.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

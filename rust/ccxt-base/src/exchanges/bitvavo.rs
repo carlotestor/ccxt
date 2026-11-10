@@ -1966,16 +1966,16 @@ impl Bitvavo {
             fromAccount = subaccountId.clone().map(Value::from).unwrap_or(Value::Null);
             toAccount = Value::Str("master".into());
         }
-        let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "createdAt", &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "createdAt", &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[])).as_i64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transferId", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount);
@@ -3357,15 +3357,15 @@ impl Bitvavo {
         }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut payload: Value = Value::Str("".into());
+            let mut payload: Option<String> = Some("".to_string());
             if !getOrDelete {
                 if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                    payload = json_stringify(&query);
-                    requestBody = payload.clone();
+                    payload = json_stringify(&query).as_str().map(str::to_owned);
+                    requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut accessWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("BITVAVO-ACCESS-WINDOW".into()), &[Value::Str("10000".into())]).as_str().unwrap_or("10000").to_string();
             requestHeaders = Value::Map({

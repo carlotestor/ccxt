@@ -1191,9 +1191,9 @@ impl Hibachi {
         }  else if (orderFlags.as_deref() == Some("REDUCE_ONLY")) {
             reduceOnly = true;
         }
-        let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAt", &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.safe_integer_product_k(order.clone(), "creationTime", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createdAt", &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.safe_integer_product_k(order.clone(), "creationTime", Value::Int(1000), &[]).as_i64();
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "closedAt", &[]).as_i64();
         return self.safe_order(Value::Map({
@@ -1201,8 +1201,8 @@ impl Hibachi {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));

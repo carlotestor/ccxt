@@ -3070,8 +3070,8 @@ impl Coinsph {
     m
 }));
         let mut networkCode: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut networkId: Value = (if (networkCode.is_none()) { Value::Null } else { self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]) });
-        if (networkId == Value::Null) {
+        let mut networkId: Option<String> = (if (networkCode.is_none()) { None } else { self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]).as_str().map(str::to_owned) });
+        if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() require network parameter".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -3081,7 +3081,7 @@ impl Coinsph {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("network".to_string(), networkId);
+                m.insert("network".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);

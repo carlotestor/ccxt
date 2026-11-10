@@ -1596,18 +1596,18 @@ impl Coincheck {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut queryString: Value = Value::Str("".into());
+            let mut queryString: Option<String> = Some("".to_string());
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])).into())).into());
                 }
             }  else {
                 if hasQuery {
-                    queryString = self.urlencode(self.keysort(query, &[]), &[]);
-                    bodySigned = queryString.clone();
+                    queryString = self.urlencode(self.keysort(query, &[]), &[]).as_str().map(str::to_owned);
+                    bodySigned = queryString.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString.clone().map(Value::from).unwrap_or(Value::Null));
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));

@@ -1660,16 +1660,16 @@ impl Btcmarkets {
         }
         let mut rate: Value = self.safe_value((market).raw.clone(), takerOrMaker.clone(), &[]);
         let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(rate.clone()), &cost).as_str().map(str::to_owned);
-        let mut feeCost: Value = self.fee_to_precision(symbol, rateCost.clone().map(Value::from).unwrap_or(Value::Null));
-        if (feeCost == Value::Null) {
-            feeCost = Value::Str("0".into());
+        let mut feeCost: Option<String> = self.fee_to_precision(symbol, rateCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (feeCost.is_none()) {
+            feeCost = Some("0".to_string());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker);
         m.insert("currency".to_string(), currency.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("rate".to_string(), rate);
-        m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
+        m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 });
 

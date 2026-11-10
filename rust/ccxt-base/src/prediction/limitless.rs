@@ -3187,10 +3187,10 @@ if _try_result.is_err() {
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut signature: Value = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Value = self.safe_string_k(signature.clone(), "r", &[]);
-        let mut sHex: Value = self.safe_string_k(signature.clone(), "s", &[]);
-        rHex = self.pad_hex_to_even(rHex.clone());
-        sHex = self.pad_hex_to_even(sHex.clone());
+        let mut rHex: Option<String> = self.safe_string_k(signature.clone(), "r", &[]).as_str().map(str::to_owned);
+        let mut sHex: Option<String> = self.safe_string_k(signature.clone(), "s", &[]).as_str().map(str::to_owned);
+        rHex = self.pad_hex_to_even(rHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        sHex = self.pad_hex_to_even(sHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut yParity: Option<i64> = self.safe_integer_k(signature, "v", &[]).as_i64();
         let mut signedFields: Vec<Value> = Vec::new();
         {
@@ -3201,8 +3201,8 @@ if _try_result.is_err() {
         }
         }
         signedFields.push(self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))));
-        signedFields.push(self.rlp_encode_bytes(rHex));
-        signedFields.push(self.rlp_encode_bytes(sHex));
+        signedFields.push(self.rlp_encode_bytes(rHex.clone().map(Value::from).unwrap_or(Value::Null)));
+        signedFields.push(self.rlp_encode_bytes(sHex.clone().map(Value::from).unwrap_or(Value::Null)));
         return Value::Str(format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::from(signedFields))).into());
 
     Value::Null
@@ -3895,8 +3895,8 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let mut tokensBalance: Value = self.safe_dict_k(entry.clone(), "tokensBalance", &[]);
-        let mut contracts: Value = self.omit_zero(self.safe_string(tokensBalance, label.clone(), &[]));
-        if (contracts == Value::Null) {
+        let mut contracts: Option<String> = self.omit_zero(self.safe_string(tokensBalance, label.clone(), &[])).as_str().map(str::to_owned);
+        if (contracts.is_none()) {
             return Value::Null;
         }
         let mut positions: Value = self.safe_dict_k(entry.clone(), "positions", &[]);
@@ -3908,7 +3908,7 @@ if _try_result.is_err() {
         let mut slug: Option<String> = self.safe_string_k(rawMarket, "slug", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone(), &[]);
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(position, &[outcomeObj]).as_map().cloned().unwrap_or_default();
-        parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts, &[]), &[]));
+        parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]), &[]));
         let mut latestTrade: Value = self.safe_dict_k(entry.clone(), "latestTrade", &[]);
         let mut key: String = "latestYesPrice".to_string();
         if (label.as_str() == Some("no")) {
@@ -4358,21 +4358,21 @@ if _try_result.is_err() {
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("limitless")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Value = self.urlencode_with_array_repeat(query.clone());
-        if (method.as_str() == Some("GET")) && (querystring.as_str() != Some("")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
+        let mut querystring: Option<String> = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
+        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
         let mut headersValue: Value = Value::Null;
         let mut bodyValue: Value = Value::Null;
         if (api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
-            let mut bodyString: Value = Value::Str("".into());
+            let mut bodyString: Option<String> = Some("".to_string());
             headersValue = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (method.as_str() == Some("POST")) && (querystring.as_str() != Some("")) {
-                bodyString = json_stringify(&query);
-                bodyValue = bodyString.clone();
+            if (method.as_str() == Some("POST")) && (querystring.as_deref() != Some("")) {
+                bodyString = json_stringify(&query).as_str().map(str::to_owned);
+                bodyValue = bodyString.clone().map(Value::from).unwrap_or(Value::Null);
                 headersValue = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Accept".to_string(), Value::Str("application/json".into()));
@@ -4383,7 +4383,7 @@ if _try_result.is_err() {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.iso8601(self.milliseconds()).as_str().map(str::to_owned);
             let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString);
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

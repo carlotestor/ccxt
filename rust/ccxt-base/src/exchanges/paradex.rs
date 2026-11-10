@@ -2958,10 +2958,10 @@ impl Paradex {
             request.insert("recv_window".into(), self.parse_to_int(recvWindow));
         }
         let mut isTakeProfitOrStopLoss: bool = isStopLossOrder || isTakeProfitOrder;
-        let mut sizeString: Value = Value::Str("0".into());
+        let mut sizeString: Option<String> = Some("0".to_string());
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
         if !isTakeProfitOrStopLoss || ((amount != Value::Null) && (amount.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
-            sizeString = self.amount_to_precision(symbol.clone(), amount);
+            sizeString = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         }
         let mut stopPrice: Value = Value::Null;
         if isStopOrder {
@@ -2983,7 +2983,7 @@ impl Paradex {
         if (stopPrice != Value::Null) {
             request.insert("trigger_price".into(), stopPrice);
         }
-        request.insert("size".into(), sizeString);
+        request.insert("size".into(), sizeString.clone().map(Value::from).unwrap_or(Value::Null));
         if (reduceOnly == Some(true)) {
             request.insert("flags".into(), Value::from(vec![Value::Str("REDUCE_ONLY".into())]));
         }

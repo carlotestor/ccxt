@@ -1667,9 +1667,9 @@ impl Onetrading {
     m
 })]);
         let mut tradeValue: Value = self.safe_dict_k(trade.clone(), "trade", &[trade.clone()]);
-        let mut timestamp: Value = self.safe_integer_k(tradeValue.clone(), "trade_timestamp", &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.parse8601(self.safe_string_k(tradeValue.clone(), "time", &[]));
+        let mut timestamp: Option<i64> = self.safe_integer_k(tradeValue.clone(), "trade_timestamp", &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.parse8601(self.safe_string_k(tradeValue.clone(), "time", &[])).as_i64();
         }
         let mut side: Option<String> = self.safe_string_lower2(tradeValue.clone(), Value::Str("side".into()), Value::Str("taker_side".into()), &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(tradeValue.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1697,8 +1697,8 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(tradeValue.clone(), Value::Str("trade_id".into()), Value::Str("sequence".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(tradeValue.clone(), "order_id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2529,7 +2529,7 @@ impl Onetrading {
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), self.apiKey.clone()).into()));
                 m
             });
-            let mut bodyJson: Value = (if (method.as_str() == Some("POST")) { json_stringify(&query) } else { Value::Null });
+            let mut bodyJson: Option<String> = (if (method.as_str() == Some("POST")) { json_stringify(&query).as_str().map(str::to_owned) } else { None });
             if (method.as_str() == Some("POST")) {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
@@ -2541,7 +2541,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyJson);
+        m.insert("body".to_string(), bodyJson.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

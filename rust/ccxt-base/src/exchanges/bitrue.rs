@@ -1440,15 +1440,15 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_414: bool = true;
             while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (types.len() as i64) } {
-            let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if (marketType.as_str() == Some("spot")) {
+            let mut marketType: Option<String> = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (marketType.as_deref() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
-            }  else if (marketType.as_str() == Some("linear")) {
+            }  else if (marketType.as_deref() == Some("linear")) {
                 promisesRaw.push(self.fapi_v1_public_get_contracts(&[params.clone()]).await);
-            }  else if (marketType.as_str() == Some("inverse")) {
+            }  else if (marketType.as_deref() == Some("inverse")) {
                 promisesRaw.push(self.dapi_v1_public_get_contracts(&[params.clone()]).await);
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".into())).into()), marketType).into()), Value::Str("\" is not a supported market type".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".into())).into()), marketType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("\" is not a supported market type".into()))));
             }
         }
         }

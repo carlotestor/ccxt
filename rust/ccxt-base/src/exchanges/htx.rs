@@ -3866,13 +3866,13 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_767: bool = true;
             while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if matches!(self.safe_bool(types.clone(), key.clone(), &[Value::Bool(false)]), Value::Bool(true)) {
-                if (key.as_str() == Some("spot")) {
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if matches!(self.safe_bool(types.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]), Value::Bool(true)) {
+                if (key.as_deref() == Some("spot")) {
                     promises.push(self.fetch_markets_by_type_and_sub_type(Value::Str("spot".into()), Value::Null, &[paramsTypes.clone()]).await);
-                }  else if (key.as_str() == Some("linear")) {
+                }  else if (key.as_deref() == Some("linear")) {
                     promises.push(self.fetch_markets_by_type_and_sub_type(Value::Null, Value::Str("linear".into()), &[paramsTypes.clone()]).await);
-                }  else if (key.as_str() == Some("inverse")) {
+                }  else if (key.as_deref() == Some("inverse")) {
                     promises.push(self.fetch_markets_by_type_and_sub_type(Value::Str("swap".into()), Value::Str("inverse".into()), &[paramsTypes.clone()]).await);
                     promises.push(self.fetch_markets_by_type_and_sub_type(Value::Str("future".into()), Value::Str("inverse".into()), &[paramsTypes.clone()]).await);
                 }
@@ -4978,13 +4978,13 @@ impl Htx {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("ts".into()), Value::Str("created-at".into()), Value::Str("created_at".into()), Value::Str("create_date".into()), Value::Str("created_time".into())]), &[]).as_i64();
         let mut order: Option<String> = self.safe_string2(trade.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]);
+        let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
-        let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         if (rawType.is_some()) && (rawType.as_deref().unwrap_or("").contains("-")) {
             let mut typeParts: Vec<Value> = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            side = typeParts.get(0).cloned().unwrap_or(Value::Null);
-            type_var = typeParts.get(1).cloned().unwrap_or(Value::Null);
+            side = typeParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            type_var = typeParts.get(1).and_then(Value::as_str).map(str::to_owned);
         }
         let mut takerOrMaker: Option<String> = self.safe_string_lower_k(trade.clone(), "role", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("price".into()), Value::Str("trade_price".into()), &[]).as_str().map(str::to_owned);
@@ -5034,8 +5034,8 @@ impl Htx {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
-        m.insert("side".to_string(), side);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
@@ -9832,11 +9832,11 @@ impl Htx {
         if (networkCode != Value::Null) {
             request.insert("chain".into(), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         }
-        let mut amountPrecision: Value = self.currency_to_precision(code.clone(), amount, &[networkCode.clone()]);
-        if (amountPrecision == Value::Null) {
-            amountPrecision = Value::Str("0".into());
+        let mut amountPrecision: Option<String> = self.currency_to_precision(code.clone(), amount, &[networkCode.clone()]).as_str().map(str::to_owned);
+        if (amountPrecision.is_none()) {
+            amountPrecision = Some("0".to_string());
         }
-        let mut amountValue: Value = self.parse_number(amountPrecision, &[]);
+        let mut amountValue: Value = self.parse_number(amountPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9873,11 +9873,11 @@ impl Htx {
                 feeParsed = Value::Str("0".into());
             }
             request.insert("fee".into(), self.parse_number(feeParsed, &[]));
-            let mut amountAfterFee: Value = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed.map(Value::from).unwrap_or(Value::Null), &[]), &[networkCode]);
-            if (amountAfterFee == Value::Null) {
-                amountAfterFee = Value::Str("0".into());
+            let mut amountAfterFee: Option<String> = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed.map(Value::from).unwrap_or(Value::Null), &[]), &[networkCode]).as_str().map(str::to_owned);
+            if (amountAfterFee.is_none()) {
+                amountAfterFee = Some("0".to_string());
             }
-            amountValue = self.parse_number(amountAfterFee, &[]);
+            amountValue = self.parse_number(amountAfterFee.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         request.insert("amount".into(), amountValue);
         let __ws_arg_115 = self.extend(Value::Map(request), &[paramsFee]);
@@ -9989,14 +9989,14 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut transferAmount: Value = self.currency_to_precision(code, amount, &[]);
-        if (transferAmount == Value::Null) {
-            transferAmount = Value::Str("0".into());
+        let mut transferAmount: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        if (transferAmount.is_none()) {
+            transferAmount = Some("0".to_string());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.parse_number(transferAmount, &[]));
+                m.insert("amount".to_string(), self.parse_number(transferAmount.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("transfer".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();

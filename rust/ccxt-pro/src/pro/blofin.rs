@@ -1624,12 +1624,12 @@ impl Blofin {
             }));
             self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
         }  else if (channel.as_str().unwrap_or("").starts_with("candle")) {
-            let mut timeframe: Value = self.find_timeframe(channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone()), &[]);
-            if (timeframe != Value::Null) {
+            let mut timeframe: Option<String> = self.find_timeframe(channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone()), &[]).as_str().map(str::to_owned);
+            if (timeframe.is_some()) {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol, timeframe])]));
+                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol, timeframe.clone().map(Value::from).unwrap_or(Value::Null)])]));
                     m
                 }));
             }

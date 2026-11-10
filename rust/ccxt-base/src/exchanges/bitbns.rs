@@ -1905,11 +1905,11 @@ impl Bitbns {
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
         let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
-        let mut postBody: Value = Value::Str("{}".into());
+        let mut postBody: Option<String> = Some("{}".to_string());
         if queryLength > ((0i64) as f64) {
-            postBody = json_stringify(&query);
+            postBody = json_stringify(&query).as_str().map(str::to_owned);
         }
-        let mut requestBody: Value = (if (method.as_str() == Some("POST")) { postBody } else { Value::Null });
+        let mut requestBody: Option<String> = (if (method.as_str() == Some("POST")) { postBody } else { None });
         if (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
@@ -1918,7 +1918,7 @@ impl Bitbns {
             let mut auth: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timeStamp_nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("body".to_string(), requestBody.clone());
+                    m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let mut payload: Value = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
@@ -1931,7 +1931,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders));
     m
 });

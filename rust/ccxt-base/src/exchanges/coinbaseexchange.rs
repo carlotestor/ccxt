@@ -3242,14 +3242,14 @@ impl Coinbaseexchange {
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut payload: Value = Value::Str("".into());
+            let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() != Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    payload = json_stringify(&query);
-                    requestBody = payload.clone();
+                    payload = json_stringify(&query).as_str().map(str::to_owned);
+                    requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
-            let mut what: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request).into()), payload);
+            let mut what: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request).into()), payload.clone().map(Value::from).unwrap_or(Value::Null));
             let mut secret: Value = Value::Null;
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 secret = self.base64_to_binary(self.secret.clone(), &[]);

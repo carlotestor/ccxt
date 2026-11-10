@@ -2683,9 +2683,9 @@ if _try_result.is_err() {
         let mut addressTo: Option<String> = self.safe_string_k(transaction.clone(), "to_account_id", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut metaData: Value = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[]));
-        if (metaData != Value::Null) {
-            let mut parsedMeta: Value = self.parse_json_value(metaData);
+        let mut metaData: Option<String> = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[])).as_str().map(str::to_owned);
+        if (metaData.is_some()) {
+            let mut parsedMeta: Value = self.parse_json_value(metaData.clone().map(Value::from).unwrap_or(Value::Null));
             direction = self.safe_string_lower_k(parsedMeta.clone(), "direction", &[]).as_str().map(str::to_owned);
             txId = self.safe_string_k(parsedMeta.clone(), "provider_tx_id", &[]).as_str().map(str::to_owned);
             networkCode = self.network_id_to_code(&[self.safe_string_k(parsedMeta.clone(), "chainid", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -3082,12 +3082,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut networkId: Value = self.network_code_to_id(networkCode, &[code.clone()]);
-        if (networkId == Value::Null) {
+        let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code.clone()]).as_str().map(str::to_owned);
+        if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
         let mut withdrawSignature: indexmap::IndexMap<String, Value> = self.default_signature().as_map().cloned().unwrap_or_default();
-        withdrawSignature.insert("chain_id".into(), networkId);
+        withdrawSignature.insert("chain_id".into(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_eth_address".to_string(), address);
@@ -4781,11 +4781,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), requestPath).into());
-        let mut queryString: Value = Value::Str("".into());
+        let mut queryString: Option<String> = Some("".to_string());
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query, &[]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode(query, &[]).as_str().map(str::to_owned);
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }  else if (method.as_str() == Some("POST")) {
             // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
@@ -4806,8 +4806,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut isPrivate: bool = apiName.as_str().unwrap_or("").starts_with("private");
         if isPrivate {
             self.check_required_credentials(&[]);
-            if (queryString.as_str() != Some("")) {
-                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString).into());
+            if (queryString.as_deref() != Some("")) {
+                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into());
             }
             if (requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
                 requestHeaders = Value::Map({

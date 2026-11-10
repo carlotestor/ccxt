@@ -3403,7 +3403,7 @@ impl Digifinex {
         let mut timeInForce: Option<String> = None;
         let mut type_var: Value = Value::Null;
         let mut reduceOnly: Option<bool> = None;
-        let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut sideRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Option<String> = self.safe_string2(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
@@ -3426,16 +3426,16 @@ impl Digifinex {
             }
             // 1 open long, 2 open short, 3 close long, 4 close short
             if (sideRaw.as_deref() == Some("1")) {
-                side = Value::Str("buy".into());
+                side = Some("buy".to_string());
                 reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("2")) {
-                side = Value::Str("sell".into());
+                side = Some("sell".to_string());
                 reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("3")) {
-                side = Value::Str("sell".into());
+                side = Some("sell".to_string());
                 reduceOnly = Some(true);
             }  else if (sideRaw.as_deref() == Some("4")) {
-                side = Value::Str("buy".into());
+                side = Some("buy".to_string());
                 reduceOnly = Some(true);
             }
             timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]).as_i64();
@@ -3447,7 +3447,7 @@ impl Digifinex {
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = sideRaw.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut numParts: f64 = ((parts.len() as i64) as f64);
                 if numParts > ((1i64) as f64) {
-                    side = parts.get(0).cloned().unwrap_or(Value::Null);
+                    side = parts.get(0).and_then(Value::as_str).map(str::to_owned);
                     type_var = parts.get(1).cloned().unwrap_or(Value::Null);
                 }  else {
                     type_var = Value::Str("limit".into());
@@ -3466,7 +3466,7 @@ impl Digifinex {
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
@@ -5580,9 +5580,9 @@ impl Digifinex {
             }
         }
         let mut maintenanceMarginString: Option<String> = self.safe_string_k(position.clone(), "maintain_margin", &[]).as_str().map(str::to_owned);
-        let mut forceCloseFee: Value = self.omit_zero(self.safe_string_k(position.clone(), "force_close_fee", &[]));
-        if (maintenanceMarginString.is_some()) && (forceCloseFee != Value::Null) {
-            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &forceCloseFee).as_str().map(str::to_owned);
+        let mut forceCloseFee: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "force_close_fee", &[])).as_str().map(str::to_owned);
+        if (maintenanceMarginString.is_some()) && (forceCloseFee.is_some()) {
+            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &forceCloseFee.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();

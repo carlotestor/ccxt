@@ -2385,18 +2385,18 @@ impl Delta {
             limitValue = limit.clone(); // max 2000
             windowSeconds = (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
-        let mut until: Value = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]);
+        let mut until: Option<i64> = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]).as_i64();
         if (since == Value::Null) {
             let mut end: Value = self.seconds();
-            if (until != Value::Null) {
-                end = self.parse_to_int(until.clone());
+            if (until.is_some()) {
+                end = self.parse_to_int(Value::from(until));
             }
             request.insert("end".into(), end.clone());
             request.insert("start".into(), (match (&(end), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("start".into(), start.clone());
-            request.insert("end".into(), (if (until != Value::Null) { until } else { self.sum(&[start, windowSeconds]) }));
+            request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { self.sum(&[start, windowSeconds]) }));
         }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2945,11 +2945,11 @@ impl Delta {
             m
         });
         if (amount != Value::Null) {
-            let mut sizeString: Value = self.amount_to_precision(symbol.clone(), amount);
-            if (sizeString == Value::Null) {
-                sizeString = Value::Str("0".into());
+            let mut sizeString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+            if (sizeString.is_none()) {
+                sizeString = Some("0".to_string());
             }
-            request.insert("size".into(), self.parse_to_int(sizeString));
+            request.insert("size".into(), self.parse_to_int(sizeString.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         if (price != Value::Null) {
             request.insert("limit_price".into(), self.price_to_precision(symbol, price));

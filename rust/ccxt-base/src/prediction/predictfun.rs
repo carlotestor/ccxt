@@ -1376,11 +1376,11 @@ impl Predictfun {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1465: bool = true;
             while { if !__for_first_1465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1465 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Value = chars.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut ch: Option<String> = chars.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
             let mut keep: bool = true;
-            if (ch.as_str() == Some("$")) {
+            if (ch.as_deref() == Some("$")) {
                 keep = false;
-            }  else if (ch.as_str() == Some(",")) {
+            }  else if (ch.as_deref() == Some(",")) {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
@@ -1398,7 +1398,7 @@ impl Predictfun {
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if keep {
-                stripped = format!("{}{}", stripped, ch);
+                stripped = format!("{}{}", stripped, ch.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -3707,12 +3707,12 @@ impl Predictfun {
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut signature: Value = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Value = self.safe_string_k(signature.clone(), "r", &[]);
-        let mut sHex: Value = self.safe_string_k(signature.clone(), "s", &[]);
-        rHex = self.pad_hex_to_even(rHex.clone());
-        sHex = self.pad_hex_to_even(sHex.clone());
+        let mut rHex: Option<String> = self.safe_string_k(signature.clone(), "r", &[]).as_str().map(str::to_owned);
+        let mut sHex: Option<String> = self.safe_string_k(signature.clone(), "s", &[]).as_str().map(str::to_owned);
+        rHex = self.pad_hex_to_even(rHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        sHex = self.pad_hex_to_even(sHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut yParity: Option<i64> = self.safe_integer_k(signature, "v", &[]).as_i64();
-        let mut signedFields: Value = self.array_concat(fields, Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))), self.rlp_encode_bytes(rHex), self.rlp_encode_bytes(sHex)]));
+        let mut signedFields: Value = self.array_concat(fields, Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))), self.rlp_encode_bytes(rHex.clone().map(Value::from).unwrap_or(Value::Null)), self.rlp_encode_bytes(sHex.clone().map(Value::from).unwrap_or(Value::Null))]));
         return Value::Str(format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(signedFields)).into());
 
     Value::Null

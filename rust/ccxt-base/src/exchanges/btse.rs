@@ -2786,9 +2786,9 @@ impl Btse {
         if postOnly.as_bool() == Some(true) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let mut timeInForce: Value = self.handle_time_in_force(&[query.clone()]);
-        if (timeInForce != Value::Null) {
-            request.insert("timeInForce".into(), timeInForce);
+        let mut timeInForce: Option<String> = self.handle_time_in_force(&[query.clone()]).as_str().map(str::to_owned);
+        if (timeInForce.is_some()) {
+            request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
@@ -3024,9 +3024,9 @@ impl Btse {
         if postOnly.as_bool() == Some(true) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let mut timeInForce: Value = self.handle_time_in_force(&[query.clone()]);
-        if (timeInForce != Value::Null) {
-            request.insert("timeInForce".into(), timeInForce);
+        let mut timeInForce: Option<String> = self.handle_time_in_force(&[query.clone()]).as_str().map(str::to_owned);
+        if (timeInForce.is_some()) {
+            request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
@@ -5088,11 +5088,11 @@ impl Btse {
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
         let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (path.as_str().unwrap_or("").starts_with("futures/api/v3/"));
-        let mut queryString: Value = Value::Str("".into());
+        let mut queryString: Option<String> = Some("".to_string());
         if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode(query.clone(), &[]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }
         if (apiName.as_str() == Some("private")) {

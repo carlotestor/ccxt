@@ -2355,7 +2355,7 @@ impl Ndax {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into()), Value::Str("triggerPrice".into())]), &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
-        let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.clone())));
@@ -2363,7 +2363,7 @@ impl Ndax {
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide);
-                m.insert("Quantity".to_string(), (if (amountString == Value::Null) { Value::Null } else { self.parse_number(amountString, &[]) }));
+                m.insert("Quantity".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]) }));
                 m.insert("OrderType".to_string(), Value::from(orderType));
             m
         });
@@ -2425,7 +2425,7 @@ impl Ndax {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into())]), &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
-        let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), self.parse_to_int(id.clone()));
@@ -2434,7 +2434,7 @@ impl Ndax {
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide);
-                m.insert("Quantity".to_string(), (if (amountString == Value::Null) { Value::Null } else { self.parse_number(amountString, &[]) }));
+                m.insert("Quantity".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]) }));
                 m.insert("OrderType".to_string(), self.safe_integer(self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

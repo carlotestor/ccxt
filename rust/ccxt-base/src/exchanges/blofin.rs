@@ -4496,8 +4496,8 @@ impl Blofin {
         }
         let mut rounder: String = "0.00005".to_string(); // round to closest 0.01%
         let mut maintenanceMarginPercentage: Value = (if (maintenanceMarginPercentageString != Value::Null) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &Value::from(rounder)), &Value::Str("1".into()), &Value::Int(4)), &[]) } else { Value::Null });
-        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
-        if (liquidationPriceString == Value::Null) && (marginMode.as_deref() == Some("isolated")) && (initialMarginString != Value::Null) && (entryPriceString.is_some()) && (contractsAbs != Value::Null) && crate::precise::Precise::stringGt(&contractsAbs, &Value::Str("0".into())).as_bool() == Some(true) && (contractSizeString.is_some()) && (maintenanceMarginPercentage != Value::Null) {
+        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[])).as_str().map(str::to_owned);
+        if (liquidationPriceString.is_none()) && (marginMode.as_deref() == Some("isolated")) && (initialMarginString != Value::Null) && (entryPriceString.is_some()) && (contractsAbs != Value::Null) && crate::precise::Precise::stringGt(&contractsAbs, &Value::Str("0".into())).as_bool() == Some(true) && (contractSizeString.is_some()) && (maintenanceMarginPercentage != Value::Null) {
             let mut takerFeeRate: String = self.safe_string_k(marketResolved, "taker", &[Value::Str("0.0006".into())]).as_str().unwrap_or("0.0006").to_string();
             let mut mmpWithFee: Value = crate::precise::Precise::stringAdd(&self.number_to_string(maintenanceMarginPercentage.clone()), &Value::from(takerFeeRate));
             let mut totalSize: Option<String> = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -4505,10 +4505,10 @@ impl Blofin {
             let mut num: Option<String> = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &marginPerUnit).as_str().map(str::to_owned) } else { crate::precise::Precise::stringAdd(&entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &marginPerUnit).as_str().map(str::to_owned) });
             let mut denom: Option<String> = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&Value::Str("1".into()), &mmpWithFee).as_str().map(str::to_owned) } else { crate::precise::Precise::stringAdd(&Value::Str("1".into()), &mmpWithFee).as_str().map(str::to_owned) });
             if (denom.is_some()) && crate::precise::Precise::stringGt(&denom.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                liquidationPriceString = crate::precise::Precise::stringDiv(&num.clone().map(Value::from).unwrap_or(Value::Null), &denom.clone().map(Value::from).unwrap_or(Value::Null));
+                liquidationPriceString = crate::precise::Precise::stringDiv(&num.clone().map(Value::from).unwrap_or(Value::Null), &denom.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
-        let mut liquidationPrice: Value = (if ((liquidationPriceString != Value::Null) && crate::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString, &[]) } else { Value::Null });
+        let mut liquidationPrice: Value = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]) } else { Value::Null });
         let mut percentageString: Option<String> = self.safe_string_k(position.clone(), "unrealizedPnlRatio", &[]).as_str().map(str::to_owned);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
@@ -5226,7 +5226,7 @@ impl Blofin {
                     m.insert("ACCESS-NONCE".to_string(), timestamp.clone());
                 m
             });
-            let mut sign_body: Value = Value::Str("".into());
+            let mut sign_body: Option<String> = Some("".to_string());
             let mut signedBody: Value = Value::Null;
             if (method.as_str() == Some("GET")) {
                 if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
@@ -5236,12 +5236,12 @@ impl Blofin {
                 }
             }  else {
                 if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                    sign_body = json_stringify(&query);
-                    signedBody = sign_body.clone();
+                    sign_body = json_stringify(&query).as_str().map(str::to_owned);
+                    signedBody = sign_body.clone().map(Value::from).unwrap_or(Value::Null);
                 }
                 signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", request, method).into()), timestamp).into()), timestamp).into()), sign_body);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", request, method).into()), timestamp).into()), timestamp).into()), sign_body.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.string_to_base64(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]);
             signedHeaders.insert("ACCESS-SIGN".into(), signature);
             let mut bodyResolved: Value = signedBody;

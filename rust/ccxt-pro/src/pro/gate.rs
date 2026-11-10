@@ -1907,14 +1907,14 @@ impl Gate {
         // this matters for aliased timeframes such as gate's '1w': '7d';
         // an unsupported timeframe falls back to the caller's key, matching
         // the previous no-op cleanup instead of an undefined cache key
-        let mut cacheTimeframe: Value = self.find_timeframe(interval, &[]);
+        let mut cacheTimeframe: Option<String> = self.find_timeframe(interval, &[]).as_str().map(str::to_owned);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
-                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue, (if (cacheTimeframe != Value::Null) { cacheTimeframe } else { timeframe })])]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue, (if (cacheTimeframe.is_some()) { cacheTimeframe.clone().map(Value::from).unwrap_or(Value::Null) } else { timeframe })])]));
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
             m

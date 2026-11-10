@@ -472,26 +472,27 @@ impl Revolutx {
         }
         let mut baseUrl: Option<String> = baseApiUrl;
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), implodedPath).into());
-        let mut queryString: Value = Value::Str("".into());
-        let mut bodyString: Value = Value::Str("".into());
+        let mut queryString: Option<String> = Some("".to_string());
+        let mut bodyString: Option<String> = Some("".to_string());
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
-                if (queryString.as_str() != Some("")) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                if (queryString.as_deref() != Some("")) {
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
                 }
             }  else if (method.as_str() == Some("DELETE")) {
-                queryString = self.urlencode(query.clone(), &[]);
-                if (queryString.as_str() != Some("")) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                if (queryString.as_deref() != Some("")) {
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
                 }
             }  else {
-                bodyString = json_stringify(&query);
+                bodyString = json_stringify(&query).as_str().map(str::to_owned);
             }
             let mut requestPath: String = format!("{}{}", Value::Str("/api/".into()), implodedPath);
-            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString);
+            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into()),
+                bodyString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = eddsa(self.encode(Value::from(message)), self.privateKey.clone(), Value::Str("ed25519".into()));
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -509,12 +510,12 @@ impl Revolutx {
             }
         }  else {
             if (method.as_str() == Some("GET")) {
-                queryString = self.urlencode(query.clone(), &[]);
-                if (queryString.as_str() != Some("")) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                if (queryString.as_deref() != Some("")) {
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
                 }
             }  else {
-                bodyString = json_stringify(&query);
+                bodyString = json_stringify(&query).as_str().map(str::to_owned);
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -523,12 +524,12 @@ impl Revolutx {
             }
         }
         let mut headersResult: Value = requestHeaders;
-        let mut bodyResult: Value = (if (bodyString.as_str() != Some("")) { bodyString } else { Value::Null });
+        let mut bodyResult: Option<String> = (if (bodyString.as_deref() != Some("")) { bodyString } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });

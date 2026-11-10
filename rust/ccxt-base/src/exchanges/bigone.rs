@@ -1550,11 +1550,11 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product_k(data, "Timestamp", Value::Float(0.000001), &[]);
-        if (timestamp == Value::Null) {
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(data, "Timestamp", Value::Float(0.000001), &[]).as_i64();
+        if (timestamp.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".into()))));
         }
-        return timestamp;
+        return Value::from(timestamp);
         Value::Null
         }).await?))
     }

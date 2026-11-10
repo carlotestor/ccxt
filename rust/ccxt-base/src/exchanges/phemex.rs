@@ -2994,9 +2994,9 @@ impl Phemex {
                     let mut currencyId: Option<String> = self.safe_string_k(trade.clone(), "currency", &[]).as_str().map(str::to_owned);
                     feeCurrencyCode = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 }  else {
-                    let mut ptFeeRv: Value = self.omit_zero(self.safe_string_k(trade.clone(), "ptFeeRv", &[]));
-                    if (ptFeeRv != Value::Null) {
-                        feeCostString = ptFeeRv;
+                    let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(trade.clone(), "ptFeeRv", &[])).as_str().map(str::to_owned);
+                    if (ptFeeRv.is_some()) {
+                        feeCostString = ptFeeRv.clone().map(Value::from).unwrap_or(Value::Null);
                         feeCurrencyCode = Value::Str("PT".into());
                     }
                 }
@@ -3695,14 +3695,14 @@ impl Phemex {
             // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
             remaining = None.clone();
         }
-        let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.safe_integer_k(order.clone(), "createdAt", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.safe_integer_k(order.clone(), "createdAt", &[]).as_i64();
         }
         let mut cost: Option<f64> = self.safe_number2(order.clone(), Value::Str("cumValue".into()), Value::Str("cumValueRv".into()), &[]).as_f64();
-        let mut lastTradeTimestamp: Value = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
-        if (lastTradeTimestamp.as_f64() == Some(0.0)) {
-            lastTradeTimestamp = Value::Null;
+        let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
+        if (lastTradeTimestamp == Some(0)) {
+            lastTradeTimestamp = None.clone();
         }
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));
@@ -3714,20 +3714,20 @@ impl Phemex {
         }
         let mut takeProfit: Option<String> = self.safe_string_k(order.clone(), "takeProfitRp", &[]).as_str().map(str::to_owned);
         let mut stopLoss: Option<String> = self.safe_string_k(order.clone(), "stopLossRp", &[]).as_str().map(str::to_owned);
-        let mut feeValue: Value = self.omit_zero(self.safe_string_k(order.clone(), "execFeeRv", &[]));
-        let mut ptFeeRv: Value = self.omit_zero(self.safe_string_k(order.clone(), "ptFeeRv", &[]));
+        let mut feeValue: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "execFeeRv", &[])).as_str().map(str::to_owned);
+        let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "ptFeeRv", &[])).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
-        if (feeValue != Value::Null) {
+        if (feeValue.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeValue);
+                    m.insert("cost".to_string(), feeValue.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m
             });
-        }  else if (ptFeeRv != Value::Null) {
+        }  else if (ptFeeRv.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), ptFeeRv);
+                    m.insert("cost".to_string(), ptFeeRv.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), Value::Str("PT".into()));
                 m
             });
@@ -3737,9 +3737,9 @@ impl Phemex {
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId);
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("timestamp".to_string(), timestamp);
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -3817,12 +3817,12 @@ impl Phemex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut requestSide: String = self.capitalize(side.clone()).to_string();
-        let mut typeValue: Value = self.capitalize(type_var);
+        let mut typeValue: Option<String> = self.capitalize(type_var).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("side".to_string(), Value::from(requestSide));
-                m.insert("ordType".to_string(), typeValue.clone());
+                m.insert("ordType".to_string(), typeValue.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -3852,15 +3852,15 @@ impl Phemex {
         let mut orderParams: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("stopPx".into()), Value::Str("stopPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("triggerPrice".into())]), &[]);
         if (market).spot {
             let mut qtyType: String = self.safe_string_k(orderParams.clone(), "qtyType", &[Value::Str("ByBase".into())]).as_str().unwrap_or("ByBase").to_string();
-            if (typeValue.as_str() == Some("Market")) || (typeValue.as_str() == Some("Stop")) || (typeValue.as_str() == Some("MarketIfTouched")) {
+            if (typeValue.as_deref() == Some("Market")) || (typeValue.as_deref() == Some("Stop")) || (typeValue.as_deref() == Some("MarketIfTouched")) {
                 if (price != Value::Null) {
                     qtyType = "ByQuote".to_string();
                 }
             }
             if (triggerPrice.is_some()) {
-                if (typeValue.as_str() == Some("Limit")) {
+                if (typeValue.as_deref() == Some("Limit")) {
                     request.insert("ordType".into(), Value::Str("StopLimit".into()));
-                }  else if (typeValue.as_str() == Some("Market")) {
+                }  else if (typeValue.as_deref() == Some("Market")) {
                     request.insert("ordType".into(), Value::Str("Stop".into()));
                 }
                 request.insert("trigger".into(), Value::Str("ByLastPrice".into()));
@@ -3928,15 +3928,15 @@ impl Phemex {
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
                 if (triggerDirection.as_deref() == Some("ascending")) || (triggerDirection.as_deref() == Some("up")) {
                     if (sideResolved.as_str() == Some("sell")) {
-                        request.insert("ordType".into(), (if (typeValue.as_str() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
+                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
                     }  else if (sideResolved.as_str() == Some("buy")) {
-                        request.insert("ordType".into(), (if (typeValue.as_str() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
+                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
                     }
                 }  else if (triggerDirection.as_deref() == Some("descending")) || (triggerDirection.as_deref() == Some("down")) {
                     if (sideResolved.as_str() == Some("sell")) {
-                        request.insert("ordType".into(), (if (typeValue.as_str() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
+                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
                     }  else if (sideResolved.as_str() == Some("buy")) {
-                        request.insert("ordType".into(), (if (typeValue.as_str() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
+                        request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
                     }
                 }
             }
@@ -3981,7 +3981,7 @@ impl Phemex {
                 }
             }
         }
-        if (typeValue.as_str() == Some("Limit")) || (typeValue.as_str() == Some("StopLimit")) || (typeValue.as_str() == Some("LimitIfTouched")) {
+        if (typeValue.as_deref() == Some("Limit")) || (typeValue.as_deref() == Some("StopLimit")) || (typeValue.as_deref() == Some("LimitIfTouched")) {
             if isStableSettled {
                 request.insert("priceRp".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }  else {
@@ -6268,11 +6268,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut url: Value = Value::from(requestPath.clone());
-        let mut queryString: Value = Value::Str("".into());
+        let mut queryString: Option<String> = Some("".to_string());
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (method.as_str() == Some("PUT")) || (url.as_str() == Some("/positions/assign")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                queryString = self.urlencode_with_array_repeat(query);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                queryString = self.urlencode_with_array_repeat(query).as_str().map(str::to_owned);
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }
         let mut requestBody: Value = Value::Null;
@@ -6288,7 +6288,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut expiryString: Value = Value::str(expiry.to_string());
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-access-token".into(), self.apiKey.clone()); }
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-request-expiry".into(), expiryString.clone()); }
-            let mut payload: Value = Value::Str("".into());
+            let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() == Some("POST")) {
                 let mut isOrderPlacement: bool = (path.as_str() == Some("g-orders")) || (path.as_str() == Some("spot/orders")) || (path.as_str() == Some("orders"));
                 if isOrderPlacement {
@@ -6297,11 +6297,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdID".into(), Value::Str(format!("{}{}", id, self.uuid16(&[])).into())); }
                     }
                 }
-                payload = json_stringify(&params);
-                requestBody = payload.clone();
+                payload = json_stringify(&params).as_str().map(str::to_owned);
+                requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", requestPath, queryString).into()), expiryString).into()), payload);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", requestPath, queryString.clone().map(Value::from).unwrap_or(Value::Null)).into()), expiryString).into()), payload.clone().map(Value::from).unwrap_or(Value::Null));
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-request-signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
         }
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);

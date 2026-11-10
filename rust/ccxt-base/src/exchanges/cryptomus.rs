@@ -1743,14 +1743,14 @@ impl Cryptomus {
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into());
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut jsonParams: Value = Value::Str("".into());
+            let mut jsonParams: Option<String> = Some("".to_string());
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("userId".to_string(), self.uid.clone());
                 m
             });
             if (method.as_str() != Some("GET")) {
-                jsonParams = json_stringify(&paramsOmitted);
+                jsonParams = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }  else {
                 let mut query: Value = self.urlencode(paramsOmitted.clone(), &[]);
@@ -1758,16 +1758,16 @@ impl Cryptomus {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
                 }
             }
-            let mut jsonParamsBase64: Value = self.string_to_base64(jsonParams.clone(), &[]);
+            let mut jsonParamsBase64: Value = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret.clone());
             let mut signature: Value = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]);
             privateHeaders.insert("sign".into(), signature);
-            let mut privateBody: Value = (if (method.as_str() != Some("GET")) { jsonParams } else { Value::Null });
+            let mut privateBody: Option<String> = (if (method.as_str() != Some("GET")) { jsonParams } else { None });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), privateBody);
+        m.insert("body".to_string(), privateBody.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
 });

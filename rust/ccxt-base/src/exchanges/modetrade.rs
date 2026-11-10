@@ -1641,9 +1641,9 @@ impl Modetrade {
             let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             // TODO: transform chain id to human readable name
             let mut networkId: Value = self.safe_string_k(network.clone(), "chain_id", &[Value::Str("".into())]);
-            let mut precision: Value = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]);
-            if (precision != Value::Null) {
-                minPrecision = (if (minPrecision == Value::Null) { precision.clone() } else { crate::precise::Precise::stringMin(&precision, &minPrecision) });
+            let mut precision: Option<String> = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]).as_str().map(str::to_owned);
+            if (precision.is_some()) {
+                minPrecision = (if (minPrecision == Value::Null) { precision.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringMin(&precision.clone().map(Value::from).unwrap_or(Value::Null), &minPrecision) });
             }
             resultingNetworks.insert(crate::runtime::stringify_param(&networkId), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1669,7 +1669,7 @@ impl Modetrade {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(network.clone(), "withdrawal_fee", &[]));
-        m.insert("precision".to_string(), self.parse_number(precision, &[]));
+        m.insert("precision".to_string(), self.parse_number(precision.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("info".to_string(), network);
     m
 }));

@@ -401,12 +401,12 @@ impl Phemex {
         let mut change: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         let mut average: Value = Value::Null;
-        let mut openString: Value = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone(), &[]);
-        if (openString != Value::Null) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()])).as_str().map(str::to_owned);
+        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        if (openString.is_some()) && (lastString != Value::Null) {
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -467,12 +467,12 @@ impl Phemex {
         let mut change: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         let mut average: Value = Value::Null;
-        let mut openString: Value = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone(), &[]);
-        if (openString != Value::Null) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()])).as_str().map(str::to_owned);
+        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        if (openString.is_some()) && (lastString != Value::Null) {
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2084,9 +2084,9 @@ impl Phemex {
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "leavesQty", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]);
         let mut cost: Value = self.safe_string_k(order.clone(), "cumValueRv", &[self.from_ev(self.safe_string(order.clone(), Value::Str("cumValueEv".into()), &[]), &[marketValue.clone()])]);
-        let mut lastTradeTimestamp: Value = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
-        if (lastTradeTimestamp.as_f64() == Some(0.0)) {
-            lastTradeTimestamp = Value::Null;
+        let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
+        if (lastTradeTimestamp == Some(0)) {
+            lastTradeTimestamp = None.clone();
         }
         let mut timeInForce: Value = self.parent.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut stopPrice: Option<String> = self.safe_string_k(order.clone(), "stopPx", &[]).as_str().map(str::to_owned);
@@ -2098,7 +2098,7 @@ impl Phemex {
         m.insert("clientOrderId".to_string(), clientOrderId);
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timestamp".to_string(), timestamp);
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);

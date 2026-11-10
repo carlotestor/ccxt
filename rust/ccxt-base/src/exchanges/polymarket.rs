@@ -2568,11 +2568,11 @@ impl Polymarket {
         if (isBuy.is_some()) {
             side = (if isBuy == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
-        let mut price: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]));
+        let mut price: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("p".into()), &[])).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         let mut tif: Option<String> = self.safe_string_k(order.clone(), "tif", &[]).as_str().map(str::to_owned);
         if (tif.is_some()) {
-            type_var = (if (price == Value::Null) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
+            type_var = (if (price.is_none()) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
         }
         let mut tpsl: Value = self.safe_dict_k(order.clone(), "tpsl", &[]);
         let mut stopLossPrice: Value = Value::Null;
@@ -2601,7 +2601,7 @@ impl Polymarket {
         m.insert("postOnly".to_string(), self.safe_bool2(order.clone(), Value::Str("post_only".into()), Value::Str("po".into()), &[]));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "ro", &[]));
         m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("takeProfitPrice".to_string(), takeProfitPrice);
@@ -4081,12 +4081,12 @@ impl Polymarket {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut significant: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::Int(5), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS)]);
-        let mut result: Value = self.decimal_to_precision(significant, Value::Int(crate::runtime::ROUND), precision.get("price").cloned().unwrap_or(Value::Null), &[Value::Int(crate::runtime::TICK_SIZE)]);
-        if (result.as_str() == Some("0")) {
+        let mut result: Option<String> = self.decimal_to_precision(significant, Value::Int(crate::runtime::ROUND), precision.get("price").cloned().unwrap_or(Value::Null), &[Value::Int(crate::runtime::TICK_SIZE)]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("0")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" price of ".into())).into()), Value::from((market).symbol.clone())).into()), Value::Str(" must be greater than minimum price precision of ".into())).into()),
                 self.number_to_string(precision.get("price").cloned().unwrap_or(Value::Null)))));
         }
-        return result;
+        return result.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -4102,12 +4102,12 @@ impl Polymarket {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut significant: Value = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::Int(5), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS)]);
-        let mut result: Value = self.decimal_to_precision(significant, Value::Int(crate::runtime::TRUNCATE), precision.get("amount").cloned().unwrap_or(Value::Null), &[Value::Int(crate::runtime::TICK_SIZE)]);
-        if (result.as_str() == Some("0")) {
+        let mut result: Option<String> = self.decimal_to_precision(significant, Value::Int(crate::runtime::TRUNCATE), precision.get("amount").cloned().unwrap_or(Value::Null), &[Value::Int(crate::runtime::TICK_SIZE)]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("0")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".into())).into()), Value::from((market).symbol.clone())).into()), Value::Str(" must be greater than minimum amount precision of ".into())).into()),
                 self.number_to_string(precision.get("amount").cloned().unwrap_or(Value::Null)))));
         }
-        return result;
+        return result.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

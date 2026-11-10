@@ -1061,15 +1061,15 @@ if _try_result.is_err() {
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
-        let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Int(0), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer(trade.clone(), Value::Int(0), &[]).as_i64();
         let mut datetime: Value = Value::Null;
-        if (timestamp != Value::Null) {
-            datetime = (self.iso8601(timestamp.clone()));
+        if (timestamp.is_some()) {
+            datetime = (self.iso8601(Value::from(timestamp)));
         }  else {
             datetime = (self.safe_string_k(trade.clone(), "TS", &[]));
         }
-        if (timestamp == Value::Null) {
-            timestamp = self.parse8601(datetime.clone());
+        if (timestamp.is_none()) {
+            timestamp = self.parse8601(datetime.clone()).as_i64();
         }
         let mut rawSide: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
         let mut parts: Value = Value::Array(if let Some(__s) = rawSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
@@ -1082,7 +1082,7 @@ if _try_result.is_err() {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime);
         m.insert("symbol".to_string(), Value::Null);
         m.insert("id".to_string(), Value::Null);
@@ -1132,7 +1132,7 @@ if _try_result.is_err() {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Option<String> = None;
         let mut pair: Value = Value::Str("all".into());
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Null } else { self.symbol(symbol.clone()) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { self.symbol(symbol.clone()).as_str().map(str::to_owned) });
         if (symbol == Value::Null) {
             messageHash = Some("orders:all".to_string());
         }  else {
@@ -1150,7 +1150,7 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(url, messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))
     }

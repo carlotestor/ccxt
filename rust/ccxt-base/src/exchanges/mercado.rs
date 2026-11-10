@@ -1638,7 +1638,7 @@ impl Mercado {
         let mut url: Value = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("v4Public")) || (apiName.as_str() == Some("v4PublicNet"));
-        let mut privateBody: Value = Value::Str("".into());
+        let mut privateBody: Option<String> = Some("".to_string());
         let mut privateHeaders: Value = Value::Null;
         if isPublic {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
@@ -1651,13 +1651,13 @@ impl Mercado {
             // mercado requires each tonce to be greater than the previous one
             let mut nonce: Value = self.incrementing_nonce();
             let __ws_arg_16 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("tapi_method".to_string(), path);
-                    m.insert("tapi_nonce".to_string(), nonce);
-                m
-            }), &[params]);
-            privateBody = self.urlencode(__ws_arg_16, &[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("tapi_method".to_string(), path);
+        m.insert("tapi_nonce".to_string(), nonce);
+    m
+}), &[params]);
+            privateBody = self.urlencode(__ws_arg_16, &[]).as_str().map(str::to_owned);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody.clone().map(Value::from).unwrap_or(Value::Null));
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -1666,9 +1666,9 @@ impl Mercado {
                 m
             });
         }
-        let mut requestBody: Value = privateBody;
+        let mut requestBody: Option<String> = privateBody;
         if isPublic {
-            requestBody = Value::Null;
+            requestBody = None.clone();
         }
         let mut requestHeaders: Value = privateHeaders;
         if isPublic {
@@ -1678,7 +1678,7 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

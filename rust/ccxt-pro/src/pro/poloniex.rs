@@ -2152,7 +2152,7 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(Value::from(channel.clone()), &[timeframes]);
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[timeframes]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
@@ -2167,11 +2167,11 @@ impl Poloniex {
                     m
                 }));
                 self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
-            }  else if (timeframe != Value::Null) {
+            }  else if (timeframe.is_some()) {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.clone().map(Value::from).unwrap_or(Value::Null), timeframe.clone()])]));
+                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.clone().map(Value::from).unwrap_or(Value::Null), timeframe.clone().map(Value::from).unwrap_or(Value::Null)])]));
                     m
                 }));
                 self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);

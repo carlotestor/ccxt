@@ -2641,15 +2641,15 @@ impl Latoken {
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: Value = Value::from(request.clone());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut urlencodedQuery: Value = self.urlencode(query.clone(), &[]);
+        let mut urlencodedQuery: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
         if (method.as_str() == Some("GET")) {
-            if (urlencodedQuery.as_str() != Some("")) {
-                requestString = Value::Str(format!("{}{}", requestString, Value::Str(format!("{}{}", Value::Str("?".into()), urlencodedQuery).into())).into());
+            if (urlencodedQuery.as_deref() != Some("")) {
+                requestString = Value::Str(format!("{}{}", requestString, Value::Str(format!("{}{}", Value::Str("?".into()), urlencodedQuery.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

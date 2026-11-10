@@ -1814,9 +1814,9 @@ impl Mudrex {
         }  else if (rawSide.as_deref() == Some("SHORT")) {
             side = Some("short".to_string());
         }
-        let mut ts: Value = self.parse8601(self.safe_string_k(position.clone(), "updated_at", &[]));
-        if (ts == Value::Null) {
-            ts = self.parse8601(self.safe_string_k(position.clone(), "created_at", &[]));
+        let mut ts: Option<i64> = self.parse8601(self.safe_string_k(position.clone(), "updated_at", &[])).as_i64();
+        if (ts.is_none()) {
+            ts = self.parse8601(self.safe_string_k(position.clone(), "created_at", &[])).as_i64();
         }
         let mut quantityString: Option<String> = self.safe_string_k(position.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entry_price", &[]).as_str().map(str::to_owned);
@@ -1831,8 +1831,8 @@ impl Mudrex {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), ts.clone());
-        m.insert("datetime".to_string(), self.iso8601(ts));
+        m.insert("timestamp".to_string(), Value::from(ts));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
         m.insert("isolated".to_string(), Value::Bool(true));
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));

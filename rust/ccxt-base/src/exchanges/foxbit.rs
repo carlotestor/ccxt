@@ -2897,15 +2897,15 @@ impl Foxbit {
         let mut url: Value = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), fullPath).into());
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
         let mut timestamp: Value = self.milliseconds();
-        let mut query: Value = Value::Str("".into());
+        let mut query: Option<String> = Some("".to_string());
         let mut signatureQuery: Value = Value::Str("".into());
         if (method.as_str() == Some("GET")) {
             let mut paramKeys: Vec<Value> = Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut paramKeysLength: Value = Value::Int(paramKeys.len() as i64);
             let mut lastKeyIndex: Value = (match (&(paramKeysLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if paramKeysLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                query = self.urlencode(paramsOmitted.clone(), &[]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+                query = self.urlencode(paramsOmitted.clone(), &[]).as_str().map(str::to_owned);
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
             {
                                 let mut i: Value = Value::Int(0);

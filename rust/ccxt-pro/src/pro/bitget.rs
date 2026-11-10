@@ -2937,9 +2937,9 @@ impl Bitget {
             totalAmount = self.safe_string2(order.clone(), Value::Str("size".into()), Value::Str("qty".into()), &[]);
             cost = self.safe_string_k(order.clone(), "cumExecValue", &[]);
             if (cost == Value::Null) {
-                let mut priceAvgString: Value = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[]));
-                if (priceAvgString != Value::Null) && (totalFilled.is_some()) {
-                    cost = crate::precise::Precise::stringMul(&totalFilled.clone().map(Value::from).unwrap_or(Value::Null), &priceAvgString);
+                let mut priceAvgString: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[])).as_str().map(str::to_owned);
+                if (priceAvgString.is_some()) && (totalFilled.is_some()) {
+                    cost = crate::precise::Precise::stringMul(&totalFilled.clone().map(Value::from).unwrap_or(Value::Null), &priceAvgString.clone().map(Value::from).unwrap_or(Value::Null));
                 }
             }
         }

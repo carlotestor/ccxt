@@ -14025,10 +14025,10 @@ if _try_result.is_err() {
         let mut notional: Value = crate::precise::Precise::stringMul(&baseAmount.clone().map(Value::from).unwrap_or(Value::Null), &markPrice.clone().map(Value::from).unwrap_or(Value::Null));
         let mut initialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin, &notional);
         let mut liquidationPriceString: Option<String> = self.safe_string_k(position.clone(), "liquidationPrice", &[]).as_str().map(str::to_owned);
-        let mut rawLiquidationPrice: Value = self.omit_zero(liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut rawLiquidationPrice: Option<String> = self.omit_zero(liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut liquidationPrice: Value = Value::Null;
-        if (rawLiquidationPrice != Value::Null) && crate::precise::Precise::stringGt(&rawLiquidationPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            liquidationPrice = self.parse_number(rawLiquidationPrice, &[]);
+        if (rawLiquidationPrice.is_some()) && crate::precise::Precise::stringGt(&rawLiquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            liquidationPrice = self.parse_number(rawLiquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut calcTakerFeeRate: String = self.safe_string_k(marketResolved, "taker", &[Value::Str("0.0006".into())]).as_str().unwrap_or("0.0006").to_string();
         let mut calcTakerFeeMult: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(calcTakerFeeRate.clone())).as_str().map(str::to_owned);

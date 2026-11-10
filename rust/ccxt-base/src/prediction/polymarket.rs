@@ -2725,9 +2725,9 @@ impl Polymarket {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         let mut id: Option<String> = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("transactionHash".into()), Value::Str("transaction_hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Int(1000), &[]);
-        if (timestamp == Value::Null) {
-            timestamp = self.safe_integer_product_k(trade.clone(), "match_time", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Int(1000), &[]).as_i64();
+        if (timestamp.is_none()) {
+            timestamp = self.safe_integer_product_k(trade.clone(), "match_time", Value::Int(1000), &[]).as_i64();
         }
         let mut price: Option<f64> = self.safe_number_k(trade.clone(), "price", &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "size", &[]).as_f64();
@@ -2763,8 +2763,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("outcome".to_string(), outcome);
         m.insert("outcomeId".to_string(), assetId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));

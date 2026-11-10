@@ -1281,8 +1281,8 @@ impl Sxbet {
         m.insert("data".to_string(), Value::from(nonceCallData));
     m
 }), Value::Str("latest".into())])).await;
-        let mut nonceHex: Value = self.hex_to_rlp_bytes(nonceResult);
-        let mut nonce: Option<String> = (if (nonceHex.as_str() == Some("")) { Some("0".to_string()) } else { self.number_to_string(self.hex_to_int(nonceHex)).as_str().map(str::to_owned) });
+        let mut nonceHex: Option<String> = self.hex_to_rlp_bytes(nonceResult).as_str().map(str::to_owned);
+        let mut nonce: Option<String> = (if (nonceHex.as_deref() == Some("")) { Some("0".to_string()) } else { self.number_to_string(self.hex_to_int(nonceHex.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned) });
         let mut tokenName: Value = self.fetch_erc20_name(rpcUrl, tokenAddress.clone()).await;
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
         let mut deadline: Value = self.safe_integer_k(paramsSpender.clone(), "deadline", &[self.sum(&[self.seconds(), Value::from(defaultDeadlineSeconds)])]);
@@ -4077,9 +4077,9 @@ impl Sxbet {
         }
         let mut bodyValue: Value = Value::Null;
         if sendAsQuery {
-            let mut querystring: Value = self.urlencode(query.clone(), &[]);
-            if (querystring.as_str() != Some("")) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
+            let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+            if (querystring.as_deref() != Some("")) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }  else {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {

@@ -5132,27 +5132,27 @@ impl Krakenfutures {
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", version, Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone())).into());
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, self.extract_params(path.clone()), &[]);
         let mut query: Value = endpoint.clone();
-        let mut postData: Value = Value::Str("".into());
+        let mut postData: Option<String> = Some("".to_string());
         if (path.as_str() == Some("batchorder")) {
-            postData = Value::Str(format!("{}{}", Value::Str("json=".into()), json_stringify(&paramsOmitted2)).into());
+            postData = Some(format!("{}{}", Value::Str("json=".into()), json_stringify(&paramsOmitted2)));
         }  else if ((Value::Array(paramsOmitted2.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
             if (matches!(&paramsOmitted2, Value::Dict(__d) if __d.contains_key("orderIds"))) {
-                postData = self.urlencode_with_array_repeat(paramsOmitted2.clone());
+                postData = self.urlencode_with_array_repeat(paramsOmitted2.clone()).as_str().map(str::to_owned);
             }  else {
-                postData = self.urlencode(paramsOmitted2, &[]);
+                postData = self.urlencode(paramsOmitted2, &[]).as_str().map(str::to_owned);
             }
-            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str("?".into()), postData).into())).into());
+            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str("?".into()), postData.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), query);
-        let mut requestBody: Value = (if (path.as_str() == Some("batchorder")) { postData.clone() } else { Value::Null });
+        let mut requestBody: Option<String> = (if (path.as_str() == Some("batchorder")) { postData.clone() } else { None });
         let mut privateHeaders: Value = Value::Null;
         if (apiName.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut auth: Value = Value::Str(format!("{}{}", postData, Value::Str("/api/".into())).into());
+            let mut auth: Value = Value::Str(format!("{}{}", postData.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/api/".into())).into());
             if (apiName.as_str() != Some("private")) {
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", apiName, Value::Str("/".into())).into())).into());
             }
@@ -5174,7 +5174,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

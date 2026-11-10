@@ -1083,11 +1083,11 @@ impl Alpaca {
         //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(response, "timestamp", &[]));
-        if (timestamp == Value::Null) {
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response, "timestamp", &[])).as_i64();
+        if (timestamp.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".into()))));
         }
-        return timestamp;
+        return Value::from(timestamp);
         Value::Null
         }).await?))
     }

@@ -920,7 +920,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: Value = self.omit(params, Value::Str("interval".into()), &[]);
@@ -939,7 +939,7 @@ impl Deribit {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut trades: Value = self.watch(url, Value::from(channel.clone()), &[request.clone(), Value::from(channel), request]).await;
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))
     }

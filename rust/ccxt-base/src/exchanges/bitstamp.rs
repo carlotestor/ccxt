@@ -3234,9 +3234,9 @@ impl Bitstamp {
         }
         let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params });
         let mut response: Value = Value::Null;
-        let mut capitalizedSide: Value = self.capitalize(side);
+        let mut capitalizedSide: Option<String> = self.capitalize(side).as_str().map(str::to_owned);
         if (type_var.as_str() == Some("market")) {
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_market_pair(&[__ws_arg_5]).await;
             }  else {
@@ -3244,7 +3244,7 @@ impl Bitstamp {
                 response = self.private_post_sell_market_pair(&[__ws_arg_6]).await;
             }
         }  else if (type_var.as_str() == Some("instant")) {
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await;
             }  else {
@@ -3253,7 +3253,7 @@ impl Bitstamp {
             }
         }  else {
             request.insert("price".into(), self.price_to_precision(symbol, price));
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
             }  else {
@@ -4575,14 +4575,14 @@ impl Bitstamp {
         let mut isPrivatePost: bool = (apiName.as_str() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        let mut queryString: Value = self.urlencode(query, &[]);
+        let mut queryString: Option<String> = self.urlencode(query, &[]).as_str().map(str::to_owned);
         let mut postBody: Value = self.urlencode(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("foo".to_string(), Value::Str("bar".into()));
             m
         }), &[]);
-        if (queryString.as_str() != Some("")) {
-            postBody = queryString.clone();
+        if (queryString.as_deref() != Some("")) {
+            postBody = queryString.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut requestBody: Value = Value::Null;
         if isPrivatePost {
@@ -4593,8 +4593,8 @@ impl Bitstamp {
             m
         });
         if (apiName.as_str() == Some("public")) {
-            if (queryString.as_str() != Some("")) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+            if (queryString.as_deref() != Some("")) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
