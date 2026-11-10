@@ -1017,9 +1017,9 @@ impl Lighter {
             return Value::from(vec![self.parse_to_int(apiKeyIndex), paramsApiKeyIndex.clone()]);
         }
         // apiKeyIndex = this.randNumber (2);
-        let mut defaultApiKeyIndex: i64 = 254;
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
-        return Value::from(vec![Value::from(defaultApiKeyIndex), paramsApiKeyIndex]);
+        let mut defaultApiKeyIndex: Value = Value::Int(254);
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), defaultApiKeyIndex.clone()); }; // default to a value to avoid overriding other keys
+        return Value::from(vec![defaultApiKeyIndex, paramsApiKeyIndex]);
 
     Value::Null
 }
@@ -3772,10 +3772,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response.clone(), "transfers", &[Value::from(vec![])]);
-        let mut cursor: Option<String> = self.safe_string_k(response, "cursor", &[]).as_str().map(str::to_owned);
+        let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[]);
         if (first != Value::Null) && (cursor.is_some()) {
-            add_element_to_object(get_value_mut(&mut rows, &Value::Int(0)), &Value::Str("cursor".into()), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+            add_element_to_object(get_value_mut(&mut rows, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transfers(rows, &[currency, since, limit, paramsApiKeyIndex]);
         Value::Null
@@ -3910,10 +3910,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "deposits", &[Value::from(vec![])]);
-        let mut cursor: Option<String> = self.safe_string_k(response, "cursor", &[]).as_str().map(str::to_owned);
+        let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if (first != Value::Null) && (cursor.is_some()) {
-            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transactions(data, &[currency, since, limit]);
         Value::Null
@@ -3994,10 +3994,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "withdraws", &[Value::from(vec![])]);
-        let mut cursor: Option<String> = self.safe_string_k(response, "cursor", &[]).as_str().map(str::to_owned);
+        let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if (first != Value::Null) && (cursor.is_some()) {
-            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transactions(data, &[currency, since, limit]);
         Value::Null
@@ -4323,10 +4323,10 @@ if _try_result.is_err() {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("account_index".into()), accountIndex.clone());
         }
         }
-        let mut nextCursor: Option<String> = self.safe_string_k(response, "next_cursor", &[]).as_str().map(str::to_owned);
+        let mut nextCursor: Option<String> = self.safe_string_k_opt(response, "next_cursor", &[]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if (first != Value::Null) && (nextCursor.is_some()) {
-            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("next_cursor".into()), nextCursor.clone().map(Value::from).unwrap_or(Value::Null));
+            add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("next_cursor".into()), nextCursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_trades(data, &[market, since, limit, paramsUntil]);
         Value::Null

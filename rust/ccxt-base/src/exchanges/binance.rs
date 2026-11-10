@@ -7864,9 +7864,9 @@ impl Binance {
                 m.insert("created".to_string(), self.safe_integer2(market.clone(), Value::Str("onboardDate".into()), Value::Str("listingTime".into()), &[]));
             m
         });
-        let mut stepSize: Option<f64> = self.safe_number_k(market, "stepSize", &[]).as_f64();
-        if (stepSize.is_some()) {
-            if let Value::Dict(__d) = entry.entry("precision".into()).or_default() { std::sync::Arc::make_mut(__d).insert("amount".into(), Value::from(stepSize)); }
+        let mut stepSize: Value = self.safe_number_k(market, "stepSize", &[]);
+        if (stepSize != Value::Null) {
+            if let Value::Dict(__d) = entry.entry("precision".into()).or_default() { std::sync::Arc::make_mut(__d).insert("amount".into(), stepSize); }
         }
         if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER"))) {
             let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
@@ -14918,9 +14918,9 @@ impl Binance {
                 let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
                 let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
-                let mut fee: Option<f64> = self.safe_number_k(networkEntry, "withdrawFee", &[]).as_f64();
+                let mut fee: Value = self.safe_number_k(networkEntry, "withdrawFee", &[]);
                 if (code != Value::Null) && (networkCode != Value::Null) {
-                    withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default().insert(crate::runtime::stringify_param(&networkCode), Value::from(fee));
+                    withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default().insert(crate::runtime::stringify_param(&networkCode), fee);
                 }
             }
             }
@@ -15023,12 +15023,12 @@ impl Binance {
             let mut networkEntry: Value = self.safe_dict(networkList.clone(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut withdrawFee: Option<f64> = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]).as_f64();
+            let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
             let mut isDefault: bool = self.safe_bool_k(networkEntry, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if isDefault {
                 result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), Value::from(withdrawFee));
+        m.insert("fee".to_string(), withdrawFee.clone());
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
@@ -15038,7 +15038,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), Value::from(withdrawFee));
+        m.insert("fee".to_string(), withdrawFee);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));

@@ -5410,18 +5410,18 @@ impl Woofipro {
             if ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT"))) && ((path.as_str() == Some("algo/order")) || (path.as_str() == Some("order")) || (path.as_str() == Some("batch-order"))) {
                 let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if !isSandboxMode {
-                    let mut brokerId: String = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
+                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
                         let mut ordersList: Vec<Value> = self.safe_list(Value::Map(requestParams.clone()), Value::Str("orders".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_1177: bool = true;
                             while { if !__for_first_1177 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1177 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
-                            add_element_to_object(get_value_mut(requestParams.entry("orders".into()).or_default(), &i), &Value::Str("order_tag".into()), Value::from(brokerId.clone()));
+                            add_element_to_object(get_value_mut(requestParams.entry("orders".into()).or_default(), &i), &Value::Str("order_tag".into()), brokerId.clone());
                         }
                         }
                     }  else {
-                        requestParams.insert("order_tag".into(), Value::from(brokerId));
+                        requestParams.insert("order_tag".into(), brokerId);
                     }
                 }
                 requestParams = self.keysort(Value::Map(requestParams.clone()), &[]).as_map().cloned().unwrap_or_default();

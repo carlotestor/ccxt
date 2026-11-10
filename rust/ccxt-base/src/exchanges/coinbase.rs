@@ -3912,9 +3912,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut cursor: Option<String> = self.safe_string_k(pagination, "next_starting_after", &[]).as_str().map(str::to_owned);
+            let mut cursor: Option<String> = self.safe_string_k_opt(pagination, "next_starting_after", &[]);
             if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-                add_element_to_object(get_value_mut(&mut last, &Value::Str("info".into())), &Value::Str("next_starting_after".into()), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+                add_element_to_object(get_value_mut(&mut last, &Value::Str("info".into())), &Value::Str("next_starting_after".into()), cursor.map(Value::from).unwrap_or(Value::Null));
                 add_element_to_object(&mut ledger, &lastIndex, last);
             }
         }

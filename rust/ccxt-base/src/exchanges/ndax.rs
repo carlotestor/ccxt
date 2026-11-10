@@ -1105,17 +1105,17 @@ impl Ndax {
         //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
         //     }
         //
-        let mut sessionToken: Option<String> = self.safe_string_k(response.clone(), "SessionToken", &[]).as_str().map(str::to_owned);
+        let mut sessionToken: Option<String> = self.safe_string_k_opt(response.clone(), "SessionToken", &[]);
         if (sessionToken.is_some()) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
             return response;
         }
-        let mut pending2faToken: Option<String> = self.safe_string_k(response.clone(), "Pending2FaToken", &[]).as_str().map(str::to_owned);
+        let mut pending2faToken: Option<String> = self.safe_string_k_opt(response.clone(), "Pending2FaToken", &[]);
         if (pending2faToken.is_some()) {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".into()))));
             }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".into(), pending2faToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".into(), pending2faToken.map(Value::from).unwrap_or(Value::Null)); }
             request = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Code".to_string(), totp(self.twofa.clone()));
@@ -1130,8 +1130,8 @@ impl Ndax {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = self.safe_string_k(responseInner.clone(), "SessionToken", &[]).as_str().map(str::to_owned);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+            sessionToken = self.safe_string_k_opt(responseInner.clone(), "SessionToken", &[]);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.map(Value::from).unwrap_or(Value::Null)); }
             return responseInner;
         }
         return response;

@@ -3954,8 +3954,8 @@ pub trait ExchangeBase:
             let mut feeCurrencyCode: Value = (if (code.is_some()) { code.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Str(format!("{}", i).into()) });
             if (feeCurrencyCode != Value::Null) {
                 let mut rate: Option<String> = self.safe_string_k(fee.clone(), "rate", &[]).as_str().map(str::to_owned);
-                let mut cost: Option<String> = self.safe_string_k(fee, "cost", &[]).as_str().map(str::to_owned);
-                if (cost.is_none()) {
+                let mut cost: Value = self.safe_string_k(fee, "cost", &[]);
+                if (cost == Value::Null) {
                     continue;
                 }
                 if !(matches!((&reduced, &feeCurrencyCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -3966,12 +3966,12 @@ pub trait ExchangeBase:
                 }
                 let mut rateKey: Value = (if (rate.is_none()) { Value::Str("".into()) } else { rate.clone().map(Value::from).unwrap_or(Value::Null) });
                 if (in_op(&(if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &rateKey)) {
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&get_value(&reduced, &feeCurrencyCode), &rateKey), "cost"), &cost.clone().map(Value::from).unwrap_or(Value::Null)); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); }
                 }  else {
                     let mut newRateFee: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                            m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
+                            m.insert("cost".to_string(), cost);
                         m
                     });
                     if (rate.is_some()) {
@@ -7708,12 +7708,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (fields.len() as i64) } {
             let mut field: Value = fields.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut current: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), field.clone(), &[]).as_str().map(str::to_owned);
-            let mut incoming: Option<String> = self.safe_string(account.clone(), field.clone(), &[]).as_str().map(str::to_owned);
+            let mut current: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), field.clone(), &[]);
+            let mut incoming: Value = self.safe_string(account.clone(), field.clone(), &[]);
             if (current.is_none()) {
-                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), incoming.clone().map(Value::from).unwrap_or(Value::Null)); } }
-            }  else if (incoming.is_some()) {
-                add_element_to_object(get_value_mut(&mut result, &code), &field, crate::precise::Precise::stringAdd(&current.clone().map(Value::from).unwrap_or(Value::Null), &incoming.clone().map(Value::from).unwrap_or(Value::Null)));
+                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), incoming.clone()); } }
+            }  else if (incoming != Value::Null) {
+                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), crate::precise::Precise::stringAdd(&current.clone().map(Value::from).unwrap_or(Value::Null), &incoming)); } }
             }
         }
         }

@@ -2927,8 +2927,8 @@ impl Coinbaseexchange {
                 while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut account_id: Option<String> = self.safe_string(response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("account_id".into()), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.safe_dict(self.accountsById.clone(), account_id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut codeInner: Option<String> = self.safe_string_k(account, "code", &[]).as_str().map(str::to_owned);
-                add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".into()), codeInner.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut codeInner: Option<String> = self.safe_string_k_opt(account, "code", &[]);
+                add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".into()), codeInner.map(Value::from).unwrap_or(Value::Null));
             }
             }
         }  else {

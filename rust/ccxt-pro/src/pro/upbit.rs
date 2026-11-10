@@ -615,12 +615,12 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut limit: i64 = self.safe_integer_k(options, "limit", &[Value::Int(15)]).as_i64().unwrap_or(15);
+        let mut limit: Value = self.safe_integer_k(options, "limit", &[Value::Int(15)]);
         if (type_var.as_deref() == Some("SNAPSHOT")) && !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::from(limit)]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         // upbit always returns a snapshot of 15 topmost entries

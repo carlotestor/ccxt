@@ -646,7 +646,7 @@ impl Apex {
         let mut url: Value = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[]);
         if (url == Value::Null) {
             let mut timeStamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut wsEndpoint: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[Value::Str("".into())]);
         }
@@ -657,7 +657,7 @@ impl Apex {
         let mut url: Value = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[]);
         if (url == Value::Null) {
             let mut timeStamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
-            let mut wsEndpoint: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[Value::Str("".into())]);
         }

@@ -1898,7 +1898,7 @@ impl Nado {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null)));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null))).into());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("streamType".to_string(), streamType);
@@ -1907,14 +1907,14 @@ impl Nado {
         });
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut clientSubscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(subscribeHash.clone()), &[]);
+        let mut clientSubscription: Value = self.safe_value(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
         if (clientSubscription == Value::Null) {
             __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("subscribeHash".to_string(), Value::from(subscribeHash.clone()));
+        m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::from(subscribeHash.clone())]), &[Value::Map(request), Value::from(vec![Value::from(subscribeHash)]), Value::Map(subscription)]).await;
+            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
         }
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[]).await;
 
@@ -1934,7 +1934,7 @@ impl Nado {
             return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[]).await;
         }
         let mut id: Value = self.request_id();
-        let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:".into()), messageHash);
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), messageHash).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1949,10 +1949,10 @@ impl Nado {
         });
         __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("subscribeHash".to_string(), Value::from(subscribeHash.clone()));
+        m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-        self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::from(subscribeHash)]), &[Value::Map(request), Value::from(vec![messageHash.clone()]), Value::Map(subscription)]).await;
+        self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash]), &[Value::Map(request), Value::from(vec![messageHash.clone()]), Value::Map(subscription)]).await;
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[]).await;
 
     Value::Null
@@ -1965,7 +1965,7 @@ impl Nado {
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("subscriptions".into()), &[]).as_str().map(str::to_owned);
         let mut id: Value = self.request_id();
-        let mut unsubscribeHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), messageHash);
+        let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1984,10 +1984,10 @@ impl Nado {
         __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
-        m.insert("unsubscribeHash".to_string(), Value::from(unsubscribeHash.clone()));
+        m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(unsubscribeHash.clone()), &[Value::Map(request), Value::from(unsubscribeHash), Value::Map(subscription)]).await;
+        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[Value::Map(request), unsubscribeHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2042,7 +2042,7 @@ impl Nado {
         });
         __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::from(messageHash.clone()));
         let __ws_arg_17 = self.extend(Value::Map(request), &[paramsSubaccount]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_17, Value::from(messageHash)]).await;
+        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_17, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }
@@ -2123,8 +2123,8 @@ impl Nado {
                 let mut id: Value = self.request_id();
                 let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
                 let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request(Value::Str("subscribe".into()), streamType.clone(), &[market.clone(), id, requestParams]).as_map().cloned().unwrap_or_default();
-                let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null)));
-                let mut streamSubscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(subscribeHash.clone()), &[]);
+                let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null))).into());
+                let mut streamSubscription: Value = self.safe_value(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
                 if (streamSubscription == Value::Null) {
                     let mut subscription: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -2134,10 +2134,10 @@ impl Nado {
                     });
                     __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("subscribeHash".to_string(), Value::from(subscribeHash.clone()));
+        m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-                    self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::from(subscribeHash.clone())]), &[Value::Map(request), Value::from(vec![Value::from(subscribeHash)]), Value::Map(subscription)]).await;
+                    self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
                 }
             }
         }
@@ -2161,16 +2161,16 @@ impl Nado {
                 m.insert("messageHash".to_string(), messageHash.clone());
             m
         });
-        let mut unsubscribeHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), messageHash);
+        let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into());
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.safe_string_k(request.clone(), "id", &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("messageHash".to_string(), messageHash);
-        m.insert("unsubscribeHash".to_string(), Value::from(unsubscribeHash.clone()));
+        m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(unsubscribeHash.clone()), &[request, Value::from(unsubscribeHash), Value::Map(subscription)]).await;
+        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[request, unsubscribeHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2190,24 +2190,24 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_512: bool = true;
             while { if !__for_first_512 { i += 1; } __for_first_512 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: String = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut id: Value = self.request_id();
-            let mut unsubscribeHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), messageHash);
+            let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into());
             let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
             let mut request: Value = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType.clone(), &[markets.get(i as usize).cloned().unwrap_or(Value::Null), id.clone(), requestParams]);
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
-                    m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                    m.insert("messageHash".to_string(), messageHash.clone());
                 m
             });
             __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), self.safe_string_k(request.clone(), "id", &[Value::Str("".into())])).into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("messageHash".to_string(), Value::from(messageHash));
-        m.insert("unsubscribeHash".to_string(), Value::from(unsubscribeHash.clone()));
+        m.insert("messageHash".to_string(), messageHash);
+        m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::from(unsubscribeHash.clone())]), &[request, Value::from(vec![Value::from(unsubscribeHash)]), Value::Map(subscription)]).await;
+            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![unsubscribeHash.clone()]), &[request, Value::from(vec![unsubscribeHash]), Value::Map(subscription)]).await;
         }
         }
         return Value::Bool(true);

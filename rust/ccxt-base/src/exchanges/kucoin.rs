@@ -4586,13 +4586,13 @@ impl Kucoin {
             }
             return Value::Map(resultNew);
         }
-        let mut minWithdrawFee: Option<f64> = self.safe_number_k(fee.clone(), "withdrawMinFee", &[]).as_f64();
+        let mut minWithdrawFee: Value = self.safe_number_k(fee.clone(), "withdrawMinFee", &[]);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
                 m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), Value::from(minWithdrawFee));
+        m.insert("fee".to_string(), minWithdrawFee.clone());
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
@@ -4617,7 +4617,7 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), Value::from(minWithdrawFee));
+        m.insert("fee".to_string(), minWithdrawFee);
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));

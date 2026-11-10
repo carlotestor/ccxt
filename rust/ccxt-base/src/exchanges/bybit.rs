@@ -12772,8 +12772,8 @@ impl Bybit {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_523: bool = true;
                 while { if !__for_first_523 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_523 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&entry).as_f64().unwrap_or(f64::NAN) } {
-                let mut id: Option<i64> = self.safe_integer_k(get_value(&entry, &j), "id", &[]).as_i64();
-                add_element_to_object(get_value_mut(&mut entry, &j), &Value::Str("id".into()), Value::from(id));
+                let mut id: Value = self.safe_integer_k(get_value(&entry, &j), "id", &[]);
+                add_element_to_object(get_value_mut(&mut entry, &j), &Value::Str("id".into()), id);
             }
             }
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("contract".into())]);
