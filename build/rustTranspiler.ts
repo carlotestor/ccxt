@@ -8060,6 +8060,11 @@ export class RustTranspilerBuilder {
         let escape = false;
         const isIdentStart = (c: string) => /[a-zA-Z_]/.test(c);
         const isIdentCont  = (c: string) => /[a-zA-Z0-9_]/.test(c);
+        const regions = fnRegions(content);
+        const marketLocalAt = (name: string, pos: number): boolean => {
+            const r = regionAt(regions, pos);
+            return r !== undefined && new RegExp(`let (?:mut )?${name}: crate::types::Market\\b`).test(content.slice(r.start, r.end));
+        };
         while (i < content.length) {
             const c = content[i];
             if (escape) { out += c; escape = false; i++; continue; }
@@ -8108,8 +8113,8 @@ export class RustTranspilerBuilder {
                     i = k;
                     continue;
                 }
-                // skip excluded identifiers + low-cased non-locals
-                if (skipObjs.has(obj) || !/^[a-z]/.test(obj)) {
+                // skip excluded identifiers, low-cased non-locals and typed Market struct locals
+                if (skipObjs.has(obj) || !/^[a-z]/.test(obj) || marketLocalAt(obj, i)) {
                     out += content.slice(i, k);
                     i = k;
                     continue;
