@@ -9996,6 +9996,14 @@ export class RustTranspilerBuilder {
             const rebindRe = new RegExp(
                 `\\blet\\s+(?:mut\\s+)?${name}\\b|\\bfor\\s+(?:mut\\s+)?${name}\\b|\\|\\s*(?:mut\\s+)?${name}\\s*[:|,]`);
             if (rebindRe.test(masked)) continue;
+            // An Int-literal seed (loop counter, page/offset) used beyond number reads is a bare `i64`
+            // when every write is an Int literal / the `for` incrementor and every use is native.
+            const intLit = m[3] === 'Value::Int' && /^-?\d+$/.test(inner) && tail[0] === ';' ? this.nativeScalarUses(masked, name, 'i64') : undefined;
+            if (intLit !== undefined && !intLit.every((x) => x.text === `Some((${name} as f64))` || x.text === `(${name} as f64)`)) {
+                rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: i64 = ${inner};` });
+                for (const x of intLit) rewrites.push({ start: stmtEnd + x.start, end: stmtEnd + x.end, text: x.text });
+                continue;
+            }
             const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
             const uses: Array<{ start: number, end: number, text: string }> = [];
             let ok = true; let u: RegExpExecArray | null;
@@ -10227,7 +10235,7 @@ export class RustTranspilerBuilder {
                 rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
             }
         }
-        if (rewrites.length === 0) return this.narrowIntLiteralLocals(content);
+        if (rewrites.length === 0) return content;
         rewrites.sort((a, b) => a.start - b.start);
         let out = ''; let last = 0;
         for (const r of rewrites) {
@@ -10236,31 +10244,7 @@ export class RustTranspilerBuilder {
             last = r.end;
         }
         out += content.slice(last);
-        return this.narrowIntLiteralLocals(out);
-    }
-
-    /**
-     * `let mut X: Value = Value::Int(<lit>);` (loop counters, page/offset seeds) becomes a bare
-     * `i64` when every later write is an Int literal or the `for` incrementor and every use is
-     * native per `nativeScalarUses`. Locals read only through `as_f64()` are left to
-     * `narrowFloatLocals` (it prints them `f64` without the cast).
-     */
-    narrowIntLiteralLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = Value::Int\((-?\d+)\);/gm;
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(content)) !== null) {
-            const name = m[2];
-            const stmtEnd = m.index + m[0].length;
-            const masked = this.maskStrings(content.slice(stmtEnd, this.scopeEndOf(content, stmtEnd)));
-            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
-            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
-            const uses = this.nativeScalarUses(masked, name, 'i64');
-            if (uses === undefined || uses.every((u) => u.text === `Some((${name} as f64))` || u.text === `(${name} as f64)`)) continue;
-            rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: i64 = ${m[3]};` });
-            for (const u of uses) rewrites.push({ start: stmtEnd + u.start, end: stmtEnd + u.end, text: u.text });
-        }
-        return this.applyRewrites(content, rewrites);
+        return out;
     }
 
     /**
