@@ -5540,6 +5540,10 @@ function strLocalReassign(content: string): string {
                     edits.push({ start: rhsStart, end: rhsStart + 'Value::Null'.length, text: 'None' });
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
+                } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
+                    && closeParen(rhsMasked, 'Value::Str'.length) === rhsMasked.length) {
+                    // `format!` already yields the `String` payload.
+                    edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${rhsRaw.slice('Value::Str('.length, -'.into())'.length)})` });
                 } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
                     const open = rhsStart + call[0].length - 1;
                     const close = closeParen(masked, open);
