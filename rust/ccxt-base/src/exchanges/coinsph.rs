@@ -2811,10 +2811,10 @@ impl Coinsph {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("network".to_string(), networkId);
                 m.insert("address".to_string(), address);
@@ -2826,7 +2826,7 @@ impl Coinsph {
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2865,7 +2865,7 @@ impl Coinsph {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -2915,7 +2915,7 @@ impl Coinsph {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3077,17 +3077,17 @@ impl Coinsph {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("network".to_string(), networkId);
             m
         });
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
         let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_openapi_wallet_v1_deposit_address(&[__ws_arg_22]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

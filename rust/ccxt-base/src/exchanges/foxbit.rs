@@ -1959,10 +1959,10 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency_symbol".to_string(), Value::from((currency).id.clone()));
             m
         });
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
@@ -1973,7 +1973,7 @@ impl Foxbit {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmited]);
         let mut response: Value = self.v3_private_get_deposits_address(&[__ws_arg_12]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2009,9 +2009,9 @@ impl Foxbit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -2041,7 +2041,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2077,9 +2077,9 @@ impl Foxbit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -2124,7 +2124,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2348,10 +2348,10 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency_symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("destination_address".to_string(), address);
             m
@@ -2415,12 +2415,12 @@ impl Foxbit {
         if (since != Value::Null) {
             request.insert("start_time".into(), self.iso8601(since.clone()));
         }
-        let mut currency: Value = self.currency(code);
-        request.insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        request.insert("symbol".into(), Value::from((currency).id.clone()));
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_get_accounts_symbol_transactions(&[__ws_arg_17]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ledger(data, &[currency, since, limit]);
+        return self.parse_ledger(data, &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

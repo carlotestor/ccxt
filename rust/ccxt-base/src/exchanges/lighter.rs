@@ -3655,8 +3655,8 @@ if _try_result.is_err() {
         let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[paramsToAccountIndex.clone()]).await;
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
-        let mut currencyCode: Value = currency.get("code").cloned().unwrap_or(Value::Null);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut currencyCode: Value = Value::from((currency).code.clone());
         if (currencyCode.as_str() != Some("USDC")) && (currencyCode.as_str() != Some("ETH")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports USDC and ETH transfers".into()))));
         }
@@ -3670,7 +3670,7 @@ if _try_result.is_err() {
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_account_index".to_string(), toAccountIndex);
-                m.insert("asset_index".to_string(), self.parse_to_int(currency.get("id").cloned().unwrap_or(Value::Null)));
+                m.insert("asset_index".to_string(), self.parse_to_int(Value::from((currency).id.clone())));
                 m.insert("from_route_type".to_string(), fromRouteType);
                 m.insert("to_route_type".to_string(), toRouteType);
                 m.insert("amount".to_string(), amountScaled);
@@ -3746,9 +3746,9 @@ if _try_result.is_err() {
         let mut strAccountIndex: Value = self.number_to_string(accountIndex);
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex);
         self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[paramsApiKeyIndex.clone()]).await;
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[paramsApiKeyIndex.clone()]);
         let mut response: Value = self.private_get_transfer_history(&[__ws_arg_26]).await;
@@ -3781,7 +3781,7 @@ if _try_result.is_err() {
         if (first != Value::Null) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_transfers(rows, &[currency, since, limit, paramsApiKeyIndex]);
+        return self.parse_transfers(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, paramsApiKeyIndex]);
         Value::Null
         }).await?))
     }
@@ -3892,7 +3892,7 @@ if _try_result.is_err() {
         self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[paramsApiKeyIndex.clone()]).await;
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_27 = self.extend(Value::Map(request), &[paramsApiKeyIndex]);
@@ -3975,7 +3975,7 @@ if _try_result.is_err() {
         self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[paramsApiKeyIndex.clone()]).await;
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[paramsApiKeyIndex]);
@@ -4118,8 +4118,8 @@ if _try_result.is_err() {
         let mut strAccountIndex: Value = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[paramsAccountIndex.clone()]).await;
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
-        let mut currencyCode: Value = currency.get("code").cloned().unwrap_or(Value::Null);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut currencyCode: Value = Value::from((currency).code.clone());
         if (currencyCode.as_str() != Some("USDC")) && (currencyCode.as_str() != Some("ETH")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only supports USDC and ETH transfers".into()))));
         }
@@ -4130,7 +4130,7 @@ if _try_result.is_err() {
         let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[paramsOmitted.clone()]).await;
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_index".to_string(), self.parse_to_int(currency.get("id").cloned().unwrap_or(Value::Null)));
+                m.insert("asset_index".to_string(), self.parse_to_int(Value::from((currency).id.clone())));
                 m.insert("route_type".to_string(), Value::from(routeType));
                 m.insert("amount".to_string(), amountScaled);
                 m.insert("nonce".to_string(), nonce);

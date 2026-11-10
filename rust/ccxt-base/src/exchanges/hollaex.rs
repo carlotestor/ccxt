@@ -2274,7 +2274,7 @@ impl Hollaex {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -2340,7 +2340,7 @@ impl Hollaex {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
@@ -2411,7 +2411,7 @@ impl Hollaex {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -2590,7 +2590,7 @@ impl Hollaex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut addressWithTag: Value = address.clone();
         if (tagWithdrawTag != Value::Null) {
             addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag).into());
@@ -2601,7 +2601,7 @@ impl Hollaex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("address".to_string(), addressWithTag);
                 m.insert("network".to_string(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[code]));
@@ -2609,7 +2609,7 @@ impl Hollaex {
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsWithdrawTag, Value::Str("network".into()), &[])]);
         let mut response: Value = self.private_post_user_withdrawal(&[__ws_arg_17]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

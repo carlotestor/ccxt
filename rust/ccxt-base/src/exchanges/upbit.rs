@@ -748,8 +748,8 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
-        return self.fetch_currency_by_id(currency.get("id").cloned().unwrap_or(Value::Null), &[params]).await;
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.fetch_currency_by_id(Value::from((currency).id.clone()), &[params]).await;
 
     Value::Null
 }
@@ -2269,7 +2269,7 @@ impl Upbit {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -2310,7 +2310,7 @@ impl Upbit {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
@@ -2354,7 +2354,7 @@ impl Upbit {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -2395,7 +2395,7 @@ impl Upbit {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
@@ -2966,7 +2966,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2975,8 +2975,8 @@ impl Upbit {
         }
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("net_type".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency, "code", &[])]));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
+                m.insert("net_type".to_string(), self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]));
             m
         }), &[paramsNetworkCode]);
         let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_21]).await;
@@ -3009,10 +3009,10 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         // https://github.com/ccxt/ccxt/issues/6452
@@ -3074,7 +3074,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
@@ -3090,7 +3090,7 @@ impl Upbit {
             }
             let mut paramsOmitted: Value = self.omit(paramsTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
             request.insert("net_type".into(), network.clone().map(Value::from).unwrap_or(Value::Null));
-            request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
+            request.insert("currency".into(), Value::from((currency).id.clone()));
             request.insert("address".into(), address);
             if (tagResolved != Value::Null) {
                 request.insert("secondary_address".into(), tagResolved);

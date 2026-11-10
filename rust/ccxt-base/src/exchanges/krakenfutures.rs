@@ -3559,9 +3559,9 @@ impl Krakenfutures {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3626,7 +3626,7 @@ impl Krakenfutures {
             }
         }
         }
-        return self.parse_ledger(Value::from(rows), &[currency, since, limit]);
+        return self.parse_ledger(Value::from(rows), &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4874,7 +4874,7 @@ impl Krakenfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (fromAccount.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer does not yet support transfers from spot".into()))));
         }
@@ -4888,13 +4888,13 @@ impl Krakenfutures {
             if (self.parse_kraken_account_name(fromAccount.clone()).as_str() != Some("cash")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".into())).into()), fromAccount).into()), Value::Str(" to ".into())).into()), toAccount)));
             }
-            request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("currency".into(), Value::from((currency).id.clone()));
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_withdrawal(&[__ws_arg_20]).await;
         }  else {
             request.insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.clone()));
             request.insert("toAccount".into(), self.parse_kraken_account_name(toAccount.clone()));
-            request.insert("unit".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("unit".into(), Value::from((currency).id.clone()));
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_transfer(&[__ws_arg_21]).await;
         }
@@ -4904,7 +4904,7 @@ impl Krakenfutures {
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        let mut transfer: Value = self.parse_transfer(response, &[currency]);
+        let mut transfer: Value = self.parse_transfer(response, &[(currency).raw.clone()]);
         return self.extend(transfer, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);

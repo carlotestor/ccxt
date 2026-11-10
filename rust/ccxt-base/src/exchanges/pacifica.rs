@@ -4923,7 +4923,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut operationType: String = "transfer_funds".to_string();
         let mut sigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -2637,10 +2637,10 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let networkCodeInParamsparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
@@ -2665,7 +2665,7 @@ impl Hashkey {
         //         "coinType": "ERC20_TOKEN"
         //     }
         //
-        let mut depositAddress: Value = self.parse_deposit_address(response, &[currency]);
+        let mut depositAddress: Value = self.parse_deposit_address(response, &[(currency).raw.clone()]);
         if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("network".into(), networkCode); }
         return depositAddress;
         Value::Null
@@ -2743,7 +2743,7 @@ impl Hashkey {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -2804,7 +2804,7 @@ impl Hashkey {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -2865,10 +2865,10 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("address".to_string(), address);
                 m.insert("quantity".to_string(), amount);
             m
@@ -2880,11 +2880,11 @@ impl Hashkey {
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
-            request.insert("chainType".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
+            request.insert("chainType".into(), self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_13]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3039,10 +3039,10 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("quantity".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("fromAccountId".to_string(), fromAccount);
                 m.insert("toAccountId".to_string(), toAccount);
@@ -3050,7 +3050,7 @@ impl Hashkey {
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_api_v1_account_asset_transfer(&[__ws_arg_14]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3210,7 +3210,7 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

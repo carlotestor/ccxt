@@ -3424,7 +3424,7 @@ impl Delta {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("asset_id".into(), currency.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -3560,10 +3560,10 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset_symbol".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networkCode: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
@@ -3594,7 +3594,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_deposit_address(result, &[currency]);
+        return self.parse_deposit_address(result, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

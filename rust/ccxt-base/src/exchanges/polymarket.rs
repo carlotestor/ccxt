@@ -3283,11 +3283,11 @@ impl Polymarket {
         let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_account_deposits(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3335,11 +3335,11 @@ impl Polymarket {
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_account_withdrawals(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3370,7 +3370,7 @@ impl Polymarket {
 }));
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut owner: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let mut collateral: Value = self.safe_dict_k(self.options.clone(), "collateral", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -2297,10 +2297,10 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("address".to_string(), address);
             m
@@ -2331,7 +2331,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transaction(result, &[currency]);
+        return self.parse_transaction(result, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

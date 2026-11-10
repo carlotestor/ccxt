@@ -2541,9 +2541,9 @@ impl Extended {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2580,7 +2580,7 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_ledger(Value::from(result), &[currency, since, limit]);
+        return self.parse_ledger(Value::from(result), &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2674,9 +2674,9 @@ impl Extended {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransactions".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2735,7 +2735,7 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_transactions(Value::from(result), &[currency, since, limit]);
+        return self.parse_transactions(Value::from(result), &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2842,7 +2842,7 @@ impl Extended {
         let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut chainId: String = self.safe_string_upper2(paramsWithdrawTag.clone(), Value::Str("chainId".into()), Value::Str("network".into()), &[Value::Str("STRK".into())]).as_str().unwrap_or("STRK").to_string();
         if (chainId != "STRK") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only supports Starknet withdrawals with chainId STRK".into()))));
@@ -2851,15 +2851,15 @@ impl Extended {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow".into()))));
         }
         let mut account: Value = self.fetch_extended_account(&[]).await;
-        let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
+        let mut amountString: Value = self.currency_to_precision(code.clone(), amount, &[]);
         let mut accountId: Option<String> = self.safe_string_k(account.clone(), "accountId", &[]).as_str().map(str::to_owned);
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), currency.clone(), account, &[paramsWithdrawTag.clone()]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), (currency).raw.clone(), account, &[paramsWithdrawTag.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.clone());
                 m.insert("chainId".to_string(), Value::from(chainId.clone()));
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
@@ -2888,7 +2888,7 @@ impl Extended {
         m.insert("tagTo".to_string(), tag);
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
-        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from((currency).code.clone()));
         m.insert("status".to_string(), Value::Str("pending".into()));
         m.insert("updated".to_string(), Value::from(now));
         m.insert("fee".to_string(), Value::Null);
@@ -2933,9 +2933,9 @@ impl Extended {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2973,7 +2973,7 @@ impl Extended {
             result.push(entry);
         }
         }
-        return self.parse_transfers(Value::from(result), &[currency, since, limit]);
+        return self.parse_transfers(Value::from(result), &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3009,7 +3009,7 @@ impl Extended {
 }));
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut account: Value = self.fetch_extended_account(&[]).await;
         let mut currentAccountId: Value = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]);
         if (fromAccount != Value::Null) && (fromAccount.as_str() != currentAccountId.as_str()) {
@@ -3020,14 +3020,14 @@ impl Extended {
         if (toVault.is_none()) || (toL2Key.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]".into()))));
         }
-        let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone(), currency.clone(), account, toVault.clone().map(Value::from).unwrap_or(Value::Null), toL2Key.clone().map(Value::from).unwrap_or(Value::Null), &[params.clone()]).as_map().cloned().unwrap_or_default();
+        let mut amountString: Value = self.currency_to_precision(code.clone(), amount, &[]);
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone(), (currency).raw.clone(), account, toVault.clone().map(Value::from).unwrap_or(Value::Null), toL2Key.clone().map(Value::from).unwrap_or(Value::Null), &[params.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromAccount".to_string(), currentAccountId.clone());
                 m.insert("toAccount".to_string(), toAccount.clone());
                 m.insert("amount".to_string(), amountString.clone());
-                m.insert("transferredAsset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("transferredAsset".to_string(), Value::from((currency).id.clone()));
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
@@ -3060,7 +3060,7 @@ impl Extended {
         m.insert("id".to_string(), self.safe_string_k(data, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
-        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from((currency).code.clone()));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("fromAccount".to_string(), currentAccountId);
         m.insert("toAccount".to_string(), toAccount);

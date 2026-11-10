@@ -2720,12 +2720,12 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchLedger".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2996,15 +2996,15 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut transferIn: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
         let mut transferOut: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let mut rows: Value = self.array_concat(transferIn, transferOut);
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        return self.parse_transfers(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3106,7 +3106,7 @@ impl Dydx {
         if (subaccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires subaccountId.".into()))));
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())));
@@ -3190,13 +3190,13 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        return self.parse_transactions(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3230,13 +3230,13 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        return self.parse_transactions(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3270,15 +3270,15 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.fetch_transactions_helper(Value::Str("fetchDepositsWithdrawals".into()), &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut withdrawals: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         let mut deposits: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let mut rows: Value = self.array_concat(withdrawals, deposits);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        return self.parse_transactions(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }

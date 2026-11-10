@@ -2641,10 +2641,10 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
             m
         });
@@ -2666,7 +2666,7 @@ impl Coinbaseexchange {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".into())).into()), json_stringify(&response))));
         }
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2798,7 +2798,7 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".into()));
         let mut account: Value = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]);
         if (account == Value::Null) {
@@ -2865,11 +2865,11 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         let mut id: Option<String> = self.safe_string_k(params.clone(), "id", &[]).as_str().map(str::to_owned); // account id
         if (id.is_none()) {
             if (code != Value::Null) {
-                currency = self.currency(code.clone());
+                currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".into()));
                 let mut account: Value = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]);
                 if (account == Value::Null) {
@@ -2969,7 +2969,7 @@ impl Coinbaseexchange {
             }
             }
         }
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3179,14 +3179,14 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut accounts: Value = self.safe_value_k(self.options.clone(), "coinbaseAccounts", &[]);
         if (accounts == Value::Null) {
             accounts = self.private_get_coinbase_accounts(&[]).await;
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccounts".into(), accounts.clone()); }; // cache it
             { let __be_tmp = self.index_by(accounts, Value::Str("currency".into())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
         }
-        let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
+        let mut currencyId: Value = Value::from((currency).id.clone());
         let mut accountsByCurrencyId: Value = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]);
         let mut account: Value = self.safe_dict(accountsByCurrencyId, currencyId.clone(), &[]);
         if (account == Value::Null) {

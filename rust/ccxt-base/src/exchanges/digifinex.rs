@@ -4121,7 +4121,7 @@ impl Digifinex {
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert(currencyIdRequest.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -4239,10 +4239,10 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
@@ -4261,7 +4261,7 @@ impl Digifinex {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut addresses: Value = self.index_by(self.parse_deposit_addresses(data, &[Value::from(vec![currency.get("code").cloned().unwrap_or(Value::Null)]), Value::Bool(false)]), Value::Str("currency".into()));
+        let mut addresses: Value = self.index_by(self.parse_deposit_addresses(data, &[Value::from(vec![Value::from((currency).code.clone())]), Value::Bool(false)]), Value::Str("currency".into()));
         let mut address: Value = self.safe_dict(addresses, code.clone(), &[]);
         if (address == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() did not return an address for ".into())).into()), code).into()), Value::Str(" - create the deposit address in the user settings on the exchange website first.".into()))));
@@ -4288,7 +4288,7 @@ impl Digifinex {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -4577,8 +4577,8 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
-        let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut currencyId: Value = Value::from((currency).id.clone());
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4628,7 +4628,7 @@ impl Digifinex {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" transfer() returned empty response".into()))));
         }
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4664,12 +4664,12 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         if (tagWithdrawTag != Value::Null) {
@@ -4677,7 +4677,7 @@ impl Digifinex {
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = self.private_spot_post_withdraw_new(&[__ws_arg_36]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4835,7 +4835,7 @@ impl Digifinex {
             }
         }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         return self.parse_borrow_rate(result, &[currency]);
         Value::Null
         }).await?))
@@ -5718,17 +5718,17 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
-            if (currency == Value::Null) {
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            if (currency.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() could not resolve currency".into()))));
             }
-            request.insert("currency".into(), self.safe_string_k(currency.clone(), "id", &[]));
+            request.insert("currency".into(), self.safe_string_k(currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
@@ -5754,7 +5754,7 @@ impl Digifinex {
         //     }
         //
         let mut transfers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        return self.parse_transfers(transfers, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -6122,7 +6122,7 @@ impl Digifinex {
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = self.currency(code.clone());
+            let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             { let __be_tmp = self.assign_default_deposit_withdraw_fees((if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
         }

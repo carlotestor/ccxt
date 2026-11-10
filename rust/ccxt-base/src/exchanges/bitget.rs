@@ -6807,13 +6807,13 @@ if _try_result.is_err() {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsMarginMode.clone()]);
             response = self.private_margin_get_v2_margin_isolated_tier_data(&[__ws_arg_4]).await;
         }  else if (marginMode.as_str() == Some("cross")) {
-            let mut code: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "code", &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_string_k_opt(paramsMarginMode.clone(), "code", &[]);
             if (code.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() requires a code argument".into()))));
             }
             paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::Str("code".into()), &[]);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            request.insert("coin".into(), currency.get("id").cloned().unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = (match self.currency(code.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("coin".into(), Value::from((currency).id.clone()));
             let __ws_arg_5 = self.extend(Value::Map(request), &[paramsMarginMode]);
             response = self.private_margin_get_v2_margin_crossed_tier_data(&[__ws_arg_5]).await;
         }  else {
@@ -7041,7 +7041,7 @@ if _try_result.is_err() {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -7189,11 +7189,11 @@ if _try_result.is_err() {
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(paramsNetworkCode, Value::Str("withdraw".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[code.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("address".to_string(), address.clone());
                 m.insert("chain".to_string(), networkId);
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[networkCode.clone()]));
@@ -7226,7 +7226,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = self.parse_transaction(data, &[currency]);
+        let mut result: Value = self.parse_transaction(data, &[(currency).raw.clone()]);
         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("withdrawal".into())); }
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7292,7 +7292,7 @@ if _try_result.is_err() {
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         }
         let mut defaultWindow: Value = Value::Int(7776000000); // uta allows a window of 30 days at most, else 90 days
         if (uta.as_bool() == Some(true)) {
@@ -7577,10 +7577,10 @@ if _try_result.is_err() {
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsUTA).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         if (networkCode != Value::Null) {
@@ -7612,7 +7612,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_deposit_address(data, &[currency]);
+        return self.parse_deposit_address(data, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -12835,7 +12835,7 @@ if _try_result.is_err() {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), request.clone(), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -15272,10 +15272,10 @@ if _try_result.is_err() {
     m
 })]);
         type_var = self.safe_string(accountsByType, fromAccount, &[]);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("fromType".to_string(), type_var);
             m
         });
@@ -15310,7 +15310,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(data, &[currency, since, limit]);
+        return self.parse_transfers(data, &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -15351,7 +15351,7 @@ if _try_result.is_err() {
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Value::Str("transfer".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -15363,7 +15363,7 @@ if _try_result.is_err() {
                 m.insert("fromType".to_string(), fromType.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("toType".to_string(), toType.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amount);
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut symbol: Option<String> = self.safe_string_k_opt(paramsUTA.clone(), "symbol", &[]);
@@ -15397,7 +15397,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         data.insert("ts".into(), self.safe_integer_k(response, "requestTime", &[]));
-        return self.parse_transfer(Value::Map(data), &[currency]);
+        return self.parse_transfer(Value::Map(data), &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -15637,10 +15637,10 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
@@ -15662,7 +15662,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_margin_loan(data, &[currency]);
+        return self.parse_margin_loan(data, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -15694,11 +15694,11 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
@@ -15722,7 +15722,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_margin_loan(data, &[currency, (market).raw.clone()]);
+        return self.parse_margin_loan(data, &[(currency).raw.clone(), (market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -15754,11 +15754,11 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
@@ -15783,7 +15783,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_margin_loan(data, &[currency, (market).raw.clone()]);
+        return self.parse_margin_loan(data, &[(currency).raw.clone(), (market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -15813,10 +15813,10 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
@@ -15839,7 +15839,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_margin_loan(data, &[currency]);
+        return self.parse_margin_loan(data, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -16266,10 +16266,10 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut response: Value = Value::Null;
@@ -16336,7 +16336,7 @@ if _try_result.is_err() {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(response, "requestTime", &[]).as_i64();
         add_element_to_object(&mut result, &Value::Str("timestamp".into()), Value::from(timestamp));
-        return self.parse_borrow_rate(result, &[currency]);
+        return self.parse_borrow_rate(result, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -16435,7 +16435,7 @@ if _try_result.is_err() {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -16921,9 +16921,9 @@ if _try_result.is_err() {
     m
 })]);
         let mut fromCurrencyId: Value = self.safe_string_k(data.clone(), "fromCoin", &[fromCode]);
-        let mut fromCurrency: Value = self.currency(fromCurrencyId);
+        let mut fromCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(fromCurrencyId.as_str().unwrap_or_default()));
         let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "toCoin", &[toCode]);
-        let mut toCurrency: Value = self.currency(toCurrencyId);
+        let mut toCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(toCurrencyId.as_str().unwrap_or_default()));
         return self.parse_conversion(data, &[fromCurrency, toCurrency]);
         Value::Null
         }).await?))
@@ -16999,7 +16999,7 @@ if _try_result.is_err() {
     m
 })]);
         let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "toCoin", &[toCode]);
-        let mut toCurrency: Value = self.currency(toCurrencyId);
+        let mut toCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(toCurrencyId.as_str().unwrap_or_default()));
         return self.parse_conversion(data, &[Value::Null, toCurrency]);
         Value::Null
         }).await?))

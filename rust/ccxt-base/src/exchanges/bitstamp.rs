@@ -3732,12 +3732,12 @@ impl Bitstamp {
         //         },
         //     ]
         //
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), &[Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), Value::Bool(false)]);
-        return self.parse_transactions(transactions, &[currency, since, limit]);
+        return self.parse_transactions(transactions, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4130,7 +4130,7 @@ impl Bitstamp {
             let mut hasTransactionCurrency: bool = !(matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) && (transactionCurrency.is_some());
             let mut currencyResolved: Value = currency.clone();
             if hasTransactionCurrency {
-                currencyResolved = self.currency(self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[]));
+                currencyResolved = crate::types::IntoRaw::into_raw(self.currency((self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[])).as_str().unwrap_or_default()));
             }
             if (matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) {
                 let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "amount", &[]);
@@ -4199,11 +4199,11 @@ impl Bitstamp {
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_user_transactions(&[__ws_arg_22]).await;
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4439,7 +4439,7 @@ impl Bitstamp {
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[paramsWithdrawTag.clone()]);
             response = self.request(Value::Str(format!("{}{}", __ws_arg_24.map(Value::from).unwrap_or(Value::Null), Value::Str("_withdrawal/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), __ws_arg_25]).await;
         }  else {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("iban".into(), address);
             request.insert("account_currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_26 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
@@ -4480,7 +4480,7 @@ impl Bitstamp {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), self.parse_to_numeric(self.currency_to_precision(code, amount.clone(), &[])));

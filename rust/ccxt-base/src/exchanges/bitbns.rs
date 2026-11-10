@@ -1617,10 +1617,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
@@ -1650,7 +1650,7 @@ impl Bitbns {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1684,10 +1684,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
@@ -1697,7 +1697,7 @@ impl Bitbns {
         //     ...
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1832,10 +1832,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);

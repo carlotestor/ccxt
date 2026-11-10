@@ -3065,9 +3065,9 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut maxLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -3087,7 +3087,7 @@ impl Weex {
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_15 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
-        return self.parse_transfers(response, &[currency, since, limit]);
+        return self.parse_transfers(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4648,7 +4648,7 @@ impl Weex {
         let mut items: Value = Value::Null;
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         }
         if (accountType.as_deref() == Some("contract")) {
             if (currency != Value::Null) {

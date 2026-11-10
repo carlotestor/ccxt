@@ -4746,9 +4746,9 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4767,7 +4767,7 @@ impl Aster {
         }
         let __ws_arg_42 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_42]).await;
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -5533,11 +5533,11 @@ impl Aster {
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
         self.load_markets_and_sign_in().await;
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut nonce: Value = (match (&(self.milliseconds()), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("receiver".to_string(), address);
                 m.insert("userNonce".to_string(), Value::Str(format!("{}", nonce).into()));
             m
@@ -5574,7 +5574,7 @@ impl Aster {
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5637,10 +5637,10 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
@@ -5661,7 +5661,7 @@ impl Aster {
         request.insert("clientTranId".into(), clientTranId);
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

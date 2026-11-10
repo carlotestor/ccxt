@@ -314,11 +314,11 @@ impl Kucoinfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "id", &[]));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amountToPrecision.clone());
             m
         });
@@ -339,7 +339,7 @@ impl Kucoinfutures {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let __ws_arg_3 = self.parse_transfer(data, &[currency]);
+        let __ws_arg_3 = self.parse_transfer(data, &[(currency).raw.clone()]);
         let __ws_arg_4 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_3, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

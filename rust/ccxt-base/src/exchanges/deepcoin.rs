@@ -1783,7 +1783,7 @@ impl Deepcoin {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -1855,7 +1855,7 @@ impl Deepcoin {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -1981,10 +1981,10 @@ impl Deepcoin {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses requires a list with one currency code".into()))));
         }
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_id".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency_id".to_string(), Value::from((currency).id.clone()));
                 m.insert("lang".to_string(), Value::Str("en".into()));
             m
         });
@@ -2172,7 +2172,7 @@ impl Deepcoin {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("ccy".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -2321,7 +2321,7 @@ impl Deepcoin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2330,7 +2330,7 @@ impl Deepcoin {
         let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_id".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency_id".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
                 m.insert("from_id".to_string(), fromId);
                 m.insert("to_id".to_string(), toId);
@@ -2354,7 +2354,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut transfer: Value = self.parse_transfer(data, &[currency]);
+        let mut transfer: Value = self.parse_transfer(data, &[(currency).raw.clone()]);
         let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

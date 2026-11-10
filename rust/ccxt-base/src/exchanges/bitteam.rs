@@ -2924,7 +2924,7 @@ impl Bitteam {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {

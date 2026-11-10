@@ -4161,10 +4161,10 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
-            request.insert("token".into(), self.safe_string_k(currency.clone(), "id", &[]));
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("token".into(), self.safe_string_k(currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("start_t".into(), since);
@@ -4208,7 +4208,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::from(vec![currency, self.safe_list_k(data, "rows", &[Value::from(vec![])])]);
+        return Value::from(vec![currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), self.safe_list_k(data, "rows", &[Value::from(vec![])])]);
 
     Value::Null
 }
@@ -4581,7 +4581,7 @@ impl Modetrade {
         if (codeUpper.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
-        let mut currency: Value = self.currency(codeUpper.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(codeUpper.as_str().unwrap_or_default()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({

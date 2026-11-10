@@ -2206,7 +2206,7 @@ impl Apex {
 })]);
             let mut currentTime: Value = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
-            let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
+            let __ws_arg_8 = self.parse_transfer(data.clone(), &[crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()))]);
             let __ws_arg_9 = self.iso8601(currentTime.clone());
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2258,7 +2258,7 @@ impl Apex {
     m
 })]);
             let mut currentTime: Value = self.milliseconds();
-            let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
+            let __ws_arg_11 = self.parse_transfer(data, &[crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()))]);
             let __ws_arg_12 = self.iso8601(currentTime.clone());
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({

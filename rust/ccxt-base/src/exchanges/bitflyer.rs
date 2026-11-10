@@ -1525,16 +1525,16 @@ impl Bitflyer {
         if (code.as_str() != Some("JPY")) && (code.as_str() != Some("USD")) && (code.as_str() != Some("EUR")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" allows withdrawing JPY, USD, EUR only, ".into())).into()), code).into()), Value::Str(" is not supported".into()))));
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_code".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency_code".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_withdraw(&[__ws_arg_11]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1566,20 +1566,20 @@ impl Bitflyer {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone()); // default 100
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_getcoinins(&[__ws_arg_12]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1611,20 +1611,20 @@ impl Bitflyer {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone()); // default 100
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_getcoinouts(&[__ws_arg_13]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }

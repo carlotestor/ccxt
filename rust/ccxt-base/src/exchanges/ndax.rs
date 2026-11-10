@@ -2176,11 +2176,11 @@ impl Ndax {
         //         },
         //     ]
         //
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2903,18 +2903,18 @@ impl Ndax {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[]))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
-                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("ProductId".to_string(), Value::from((currency).id.clone()));
                 m.insert("GenerateNewKey".to_string(), Value::Bool(false));
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_deposit_info(&[__ws_arg_20]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3023,9 +3023,9 @@ impl Ndax {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[]))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3064,9 +3064,9 @@ impl Ndax {
         //    ]"
         //
         if matches!(&response, Value::Str(_)) {
-            return self.parse_transactions(json_parse(&response), &[currency.clone(), since.clone(), limit.clone()]);
+            return self.parse_transactions(json_parse(&response), &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
         }
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3103,9 +3103,9 @@ impl Ndax {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[]))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3115,7 +3115,7 @@ impl Ndax {
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_get_withdraws(&[__ws_arg_23]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3342,12 +3342,12 @@ impl Ndax {
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[]))]);
         let mut accountId: Value = self.safe_integer2(paramsWithdrawTag.clone(), Value::Str("accountId".into()), Value::Str("AccountId".into()), &[defaultAccountId]);
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into())]), &[]);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut withdrawTemplateTypesRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("ProductId".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut withdrawTemplateTypesResponse: Value = self.private_get_get_withdraw_template_types(&[Value::Map(withdrawTemplateTypesRequest)]).await;
@@ -3366,14 +3366,14 @@ impl Ndax {
         let mut templateTypes: Value = self.safe_list_k(withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
         let mut firstTemplateType: Value = self.safe_dict(templateTypes, Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), Value::from((currency).code.clone()))));
         }
         let mut templateName: Option<String> = self.safe_string_k(firstTemplateType.clone(), "TemplateName", &[]).as_str().map(str::to_owned);
         let mut withdrawTemplateRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("ProductId".to_string(), Value::from((currency).id.clone()));
                 m.insert("TemplateType".to_string(), templateName.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("AccountProviderId".to_string(), firstTemplateType.as_map().and_then(|__m| __m.get("AccountProviderId")).cloned().unwrap_or(Value::Null));
             m
@@ -3389,7 +3389,7 @@ impl Ndax {
         //
         let mut template: Option<String> = self.safe_string_k_opt(withdrawTemplateResponse, "Template", &[]);
         if (template.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".into())).into()), Value::from((currency).code.clone()))));
         }
         let mut withdrawTemplate: Value = json_parse(&template.clone().map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".into()), address);
@@ -3402,7 +3402,7 @@ impl Ndax {
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
-                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("ProductId".to_string(), Value::from((currency).id.clone()));
                 m.insert("TemplateForm".to_string(), json_stringify(&withdrawTemplate));
                 m.insert("TemplateType".to_string(), templateName.clone().map(Value::from).unwrap_or(Value::Null));
             m
@@ -3415,7 +3415,7 @@ impl Ndax {
             m
         });
         let mut response: Value = self.private_post_create_withdraw_ticket(&[self.deep_extend(Value::Map(withdrawRequest), &[paramsOmitted])]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

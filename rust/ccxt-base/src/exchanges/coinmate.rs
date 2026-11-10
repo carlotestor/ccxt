@@ -1217,8 +1217,8 @@ impl Coinmate {
             request.insert("timestampFrom".into(), since.clone());
         }
         if (code != Value::Null) {
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
-            request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), Value::from((currency).id.clone()));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_transfer_history(&[__ws_arg_2]).await;
@@ -1359,7 +1359,7 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

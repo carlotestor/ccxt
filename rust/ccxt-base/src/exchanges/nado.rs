@@ -2134,7 +2134,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);

@@ -3416,7 +3416,7 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3425,7 +3425,7 @@ impl Toobit {
         let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("quantity".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("fromAccountType".to_string(), fromId);
                 m.insert("toAccountType".to_string(), toId);
@@ -3433,7 +3433,7 @@ impl Toobit {
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_api_v1_sub_account_transfer(&[__ws_arg_24]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3492,7 +3492,7 @@ impl Toobit {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3720,7 +3720,7 @@ impl Toobit {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3919,10 +3919,10 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params]);
@@ -3935,7 +3935,7 @@ impl Toobit {
         request.insert("chainType".into(), self.network_code_to_id(networkCode, &[code]));
         let __ws_arg_32 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_32]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3998,12 +3998,12 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("address".to_string(), address);
-                m.insert("quantity".to_string(), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount, &[]));
+                m.insert("quantity".to_string(), self.currency_to_precision(Value::from((currency).code.clone()), amount, &[]));
                 m.insert("chainType".to_string(), self.network_code_to_id(networkCode, &[code]));
                 m.insert("clientOrderId".to_string(), self.milliseconds());
             m
@@ -4013,7 +4013,7 @@ impl Toobit {
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

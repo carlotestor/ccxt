@@ -1620,10 +1620,10 @@ impl Indodax {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -1647,7 +1647,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("rate".to_string(), self.safe_number_k(data, "withdraw_fee", &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[(currency).raw.clone()]));
     m
 });
 
@@ -1675,10 +1675,10 @@ impl Indodax {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
@@ -1710,7 +1710,7 @@ impl Indodax {
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
-        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[currency]);
+        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1844,7 +1844,7 @@ impl Indodax {
             }
             }
         }  else {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             let mut withdraws: Value = self.safe_list(Value::Map(withdraw), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
             let mut deposits: Value = self.safe_list(Value::Map(deposit), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
             transactions = self.array_concat(withdraws, deposits);
@@ -1886,7 +1886,7 @@ impl Indodax {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
@@ -1896,7 +1896,7 @@ impl Indodax {
         // let requestId = this.uuid ();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("withdraw_amount".to_string(), amount);
                 m.insert("withdraw_address".to_string(), address);
                 m.insert("request_id".to_string(), Value::Str(format!("{}", requestId).into()));
@@ -1907,7 +1907,7 @@ impl Indodax {
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_13]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

@@ -2103,7 +2103,7 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         let mut id: Option<String> = self.safe_string_k(params.clone(), "id", &[]).as_str().map(str::to_owned); // account id
         let mut minRowParam: Option<i64> = self.safe_integer_k(params.clone(), "min_row", &[]).as_i64();
         let mut maxRowParam: Option<i64> = self.safe_integer_k(params.clone(), "max_row", &[]).as_i64();
@@ -2111,7 +2111,7 @@ impl Luno {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
             }
-            currency = self.currency(code.clone());
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
             let mut account: Value = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]);
             if (account == Value::Null) {
@@ -2147,7 +2147,7 @@ impl Luno {
         let __ws_arg_15 = self.extend(params, &[Value::Map(request)]);
         let mut response: Value = self.private_get_accounts_id_transactions(&[__ws_arg_15]).await;
         let mut entries: Value = self.safe_list_k(response, "transactions", &[Value::from(vec![])]);
-        return self.parse_ledger(entries, &[currency, since, limit]);
+        return self.parse_ledger(entries, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2275,15 +2275,15 @@ impl Luno {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_funding_address(&[__ws_arg_16]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2313,15 +2313,15 @@ impl Luno {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_funding_address(&[__ws_arg_17]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2389,10 +2389,10 @@ impl Luno {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -2410,7 +2410,7 @@ impl Luno {
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
-        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[currency]);
+        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

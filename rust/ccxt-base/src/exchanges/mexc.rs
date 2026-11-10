@@ -6459,10 +6459,10 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networkCode: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
@@ -6470,7 +6470,7 @@ impl Mexc {
         if (networkCode.is_some()) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             let mut networkUnified: Value = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
-            let mut networks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
+            let mut networks: Value = self.safe_dict_k((currency).raw.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6539,10 +6539,10 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networkCode: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
@@ -6552,7 +6552,7 @@ impl Mexc {
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         let mut networkId: Value = Value::Null;
         let mut networkUnified: Value = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
-        let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+        let mut networks: Value = self.safe_dict_k((currency).raw.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6578,7 +6578,7 @@ impl Mexc {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
         let __ws_arg_50 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -6665,7 +6665,7 @@ impl Mexc {
             rawNetwork = self.safe_string_k(params.clone(), "network", &[]);
         }
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             request.insert("coin".into(), currencyId.clone());
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
@@ -6724,7 +6724,7 @@ impl Mexc {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -7247,9 +7247,9 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let fromAccountTypeparamsFromAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("fetchTransfers".into()), Value::Str("fromAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut fromAccountType: Value = fromAccountTypeparamsFromAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7317,7 +7317,7 @@ impl Mexc {
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
             resultList = self.safe_value_k(data, "resultList", &[]);
         }
-        return self.parse_transfers(resultList, &[currency, since, limit]);
+        return self.parse_transfers(resultList, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -7352,7 +7352,7 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut accounts: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".into()));
@@ -7372,7 +7372,7 @@ impl Mexc {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount.clone());
                 m.insert("fromAccountType".to_string(), fromId.clone());
                 m.insert("toAccountType".to_string(), toId.clone());
@@ -7398,7 +7398,7 @@ impl Mexc {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        let mut transaction: Value = self.parse_transfer(response, &[currency]);
+        let mut transaction: Value = self.parse_transfer(response, &[(currency).raw.clone()]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -7544,7 +7544,7 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let tagResolvedparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagResolved: Value = tagResolvedparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagResolvedparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -7553,7 +7553,7 @@ impl Mexc {
             let mut paramsInternal: Value = self.omit(paramsWithdrawTag.clone(), Value::Str("internal".into()), &[]);
             let mut requestForInternal: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                    m.insert("asset".to_string(), Value::from((currency).id.clone()));
                     m.insert("amount".to_string(), amount.clone());
                     m.insert("toAccount".to_string(), address.clone());
                 m
@@ -7564,18 +7564,18 @@ impl Mexc {
             }
             let __ws_arg_58 = self.extend(Value::Map(requestForInternal), &[paramsInternal]);
             let mut responseForInternal: Value = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await;
-            return self.parse_transaction(responseForInternal, &[currency.clone()]);
+            return self.parse_transaction(responseForInternal, &[(currency).raw.clone()]);
         }
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut networkRaw: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]).as_str().map(str::to_owned); // this line allows the user to specify either ERC20 or ETH
-        let mut network: Value = self.network_code_to_id(self.safe_string(networks, networkRaw.clone().map(Value::from).unwrap_or(Value::Null), &[networkRaw.clone().map(Value::from).unwrap_or(Value::Null)]), &[self.safe_string_k(currency.clone(), "code", &[])]); // handle ETH > ERC-20 alias
+        let mut network: Value = self.network_code_to_id(self.safe_string(networks, networkRaw.clone().map(Value::from).unwrap_or(Value::Null), &[networkRaw.clone().map(Value::from).unwrap_or(Value::Null)]), &[Value::from((currency).code.clone())]); // handle ETH > ERC-20 alias
         self.check_address(&[address.clone(), code, tagResolved.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), amount);
             m
@@ -7589,7 +7589,7 @@ impl Mexc {
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]) } else { paramsWithdrawTag });
         let __ws_arg_59 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

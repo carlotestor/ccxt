@@ -4167,14 +4167,14 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("token".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("network".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
+                m.insert("token".to_string(), Value::from((currency).id.clone()));
+                m.insert("network".to_string(), self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]));
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsNetworkCode]);
@@ -4198,7 +4198,7 @@ impl Woo {
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
     m
 })]);
-        return self.parse_deposit_address(__ws_arg_22, &[currency]);
+        return self.parse_deposit_address(__ws_arg_22, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4263,7 +4263,7 @@ impl Woo {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
@@ -4660,10 +4660,10 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("token".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("token".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.parse_to_numeric(amount.clone()));
                 m.insert("from".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4690,9 +4690,9 @@ impl Woo {
     m
 })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
-        data.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        data.insert("token".into(), Value::from((currency).id.clone()));
         data.insert("status".into(), Value::Str("ok".into()));
-        let mut transfer: Value = self.parse_transfer(Value::Map(data), &[currency]);
+        let mut transfer: Value = self.parse_transfer(Value::Map(data), &[(currency).raw.clone()]);
         let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4737,9 +4737,9 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (limit != Value::Null) {
             request.insert("size".into(), limit.clone());
@@ -4790,7 +4790,7 @@ impl Woo {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_transfers(rows, &[currency, since, limit, paramsOmitted]);
+        return self.parse_transfers(rows, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
@@ -4898,7 +4898,7 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount.clone());
@@ -4913,8 +4913,8 @@ impl Woo {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter for ".into())).into()), code)));
         }
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
-        request.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-        request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]));
+        request.insert("token".into(), Value::from((currency).id.clone()));
+        request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from((currency).code.clone())]));
         let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_29]).await;
         //
@@ -4943,7 +4943,7 @@ impl Woo {
                 m.insert("status".to_string(), Value::Str("pending".into()));
             m
         })]);
-        return self.parse_transaction(transactionData, &[currency]);
+        return self.parse_transaction(transactionData, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4976,10 +4976,10 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolResolved: Value = (if (symbol != Value::Null) { crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("token".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("token".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
             m
         });
@@ -4990,7 +4990,7 @@ impl Woo {
         //         "success": true,
         //     }
         //
-        let mut transaction: Value = self.parse_margin_loan(response, &[currency]);
+        let mut transaction: Value = self.parse_margin_loan(response, &[(currency).raw.clone()]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -6183,9 +6183,9 @@ impl Woo {
     m
 })]);
         let mut fromCurrencyId: Value = self.safe_string_k(data.clone(), "sellToken", &[fromCode]);
-        let mut fromCurrency: Value = self.currency(fromCurrencyId);
+        let mut fromCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(fromCurrencyId.as_str().unwrap_or_default()));
         let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "buyToken", &[toCode]);
-        let mut toCurrency: Value = self.currency(toCurrencyId);
+        let mut toCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(toCurrencyId.as_str().unwrap_or_default()));
         return self.parse_conversion(data, &[fromCurrency, toCurrency]);
         Value::Null
         }).await?))
@@ -6296,17 +6296,17 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromCurrencyId: Option<String> = self.safe_string_k(data.clone(), "sellAsset", &[]).as_str().map(str::to_owned);
-        let mut toCurrencyId: Option<String> = self.safe_string_k(data.clone(), "buyAsset", &[]).as_str().map(str::to_owned);
-        let mut fromCurrency: Value = Value::Null;
-        let mut toCurrency: Value = Value::Null;
+        let mut fromCurrencyId: Option<String> = self.safe_string_k_opt(data.clone(), "sellAsset", &[]);
+        let mut toCurrencyId: Option<String> = self.safe_string_k_opt(data.clone(), "buyAsset", &[]);
+        let mut fromCurrency: Option<crate::types::Currency> = None;
+        let mut toCurrency: Option<crate::types::Currency> = None;
         if (fromCurrencyId.is_some()) {
-            fromCurrency = self.currency(fromCurrencyId.clone().map(Value::from).unwrap_or(Value::Null));
+            fromCurrency = Some(match self.currency(fromCurrencyId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (toCurrencyId.is_some()) {
-            toCurrency = self.currency(toCurrencyId.clone().map(Value::from).unwrap_or(Value::Null));
+            toCurrency = Some(match self.currency(toCurrencyId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_conversion(data, &[fromCurrency, toCurrency]);
+        return self.parse_conversion(data, &[fromCurrency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), toCurrency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -6662,7 +6662,7 @@ impl Woo {
 }
 
     pub fn default_network_code_for_currency(&self, mut code: Value) -> Option<String> {
-        let mut currencyItem: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+        let mut currencyItem: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         let mut networks: Value = currencyItem.get("networks").cloned().unwrap_or(Value::Null);
         let mut networkKeys: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {

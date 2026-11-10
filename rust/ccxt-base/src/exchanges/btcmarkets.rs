@@ -652,9 +652,9 @@ impl Btcmarkets {
         if (since != Value::Null) {
             request.insert("after".into(), since.clone());
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTransfers")) {
@@ -667,7 +667,7 @@ impl Btcmarkets {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_withdrawals(&[__ws_arg_2]).await;
         }
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
 
     Value::Null
 }
@@ -1992,10 +1992,10 @@ impl Btcmarkets {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("assetName".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("assetName".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
             m
         });
@@ -2008,7 +2008,7 @@ impl Btcmarkets {
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

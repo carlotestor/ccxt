@@ -2581,7 +2581,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut now: Value = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
@@ -2593,7 +2593,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("start_timestamp".to_string(), sinceResolved);
                 m.insert("end_timestamp".to_string(), now);
                 m.insert("query".to_string(), Value::Str("transfer".into()));
@@ -2652,7 +2652,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut transfers: Value = self.safe_list_k(result, "logs", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        return self.parse_transfers(transfers, &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2979,7 +2979,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut now: Value = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
@@ -2991,7 +2991,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("start_timestamp".to_string(), sinceResolved);
                 m.insert("end_timestamp".to_string(), now);
             m
@@ -3050,7 +3050,7 @@ impl Coinbaseinternational {
 })]);
         let mut logs: Vec<Value> = self.safe_list_k(result, "logs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
-            return self.parse_transactions(logs.clone().into(), &[currency.clone(), since.clone(), limit.clone()]);
+            return self.parse_transactions(logs.clone().into(), &[(currency).raw.clone(), since.clone(), limit.clone()]);
         }
         let mut transactions: Vec<Value> = Vec::new();
         {
@@ -3064,7 +3064,7 @@ impl Coinbaseinternational {
             }
         }
         }
-        return self.parse_transactions(Value::from(transactions), &[currency, since, limit]);
+        return self.parse_transactions(Value::from(transactions), &[(currency).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

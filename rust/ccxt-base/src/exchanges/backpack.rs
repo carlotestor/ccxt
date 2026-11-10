@@ -2069,7 +2069,7 @@ impl Backpack {
         if (quoteId.is_some()) {
             let mut acceptParams: Value = self.omit(query.clone(), Value::from(vec![Value::Str("quoteId".into()), Value::Str("price".into()), Value::Str("baseAmount".into()), Value::Str("clientOrderId".into())]), &[]);
             let mut accepted: Value = self.accept_rfq_quote(id.clone(), quoteId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_symbol(Value::Null, &[market.clone()]), &[acceptParams]).await;
-            return self.parse_conversion(accepted, &[self.currency(fromCode.clone()), self.currency(toCode.clone())]);
+            return self.parse_conversion(accepted, &[crate::types::IntoRaw::into_raw(self.currency(fromCode.as_str().unwrap_or_default())), crate::types::IntoRaw::into_raw(self.currency(toCode.as_str().unwrap_or_default()))]);
         }
         if (amount == Value::Null) || !(crate::precise::Precise::stringGt(&self.number_to_string(amount.clone()), &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createConvertTrade() requires a positive amount".into()))));
@@ -2159,7 +2159,7 @@ impl Backpack {
     m
 })]);
         let mut order: Value = self.create_rfq_order(__ws_arg_2, Value::Str("market".into()), side, __ws_arg_3, &[Value::from(price), __ws_arg_4]).await;
-        return self.parse_conversion(order, &[self.currency(fromCode), self.currency(toCode)]);
+        return self.parse_conversion(order, &[crate::types::IntoRaw::into_raw(self.currency(fromCode.as_str().unwrap_or_default())), crate::types::IntoRaw::into_raw(self.currency(toCode.as_str().unwrap_or_default()))]);
         Value::Null
         }).await?))
     }
@@ -3360,9 +3360,9 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -3378,7 +3378,7 @@ impl Backpack {
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_15]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3415,9 +3415,9 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -3433,7 +3433,7 @@ impl Backpack {
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_16]).await;
-        return self.parse_transactions(response, &[currency, since, limit]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3470,10 +3470,10 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("quantity".to_string(), self.number_to_string(amount));
                 m.insert("address".to_string(), address);
             m
@@ -3484,14 +3484,14 @@ impl Backpack {
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut networkId: Value = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]);
+        let mut networkId: Value = self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]);
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
         request.insert("blockchain".into(), networkId);
         let __ws_arg_17 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_wapi_v1_capital_withdrawals(&[__ws_arg_17]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3667,15 +3667,15 @@ impl Backpack {
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes".into()))));
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsNetworkCode]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposit_address(&[__ws_arg_18]).await;
-        return self.parse_deposit_address(response, &[currency]);
+        return self.parse_deposit_address(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

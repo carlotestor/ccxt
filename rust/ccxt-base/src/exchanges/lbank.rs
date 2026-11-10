@@ -3283,10 +3283,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("assetCode".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("assetCode".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut network: Value = self.get_network_code_for_currency(code.clone(), params.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -3334,10 +3334,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
@@ -3416,11 +3416,11 @@ impl Lbank {
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("fee".into()), &[]);
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         self.check_required_argument(Value::Str("withdraw".into()), fee.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("fee".into()), &[]);
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
-                m.insert("coin".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("fee".to_string(), fee.clone().map(Value::from).unwrap_or(Value::Null));
             m
@@ -3616,7 +3616,7 @@ impl Lbank {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3690,7 +3690,7 @@ impl Lbank {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("coin".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3882,15 +3882,15 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("coin".into()), Value::Str("assetCode".into()), &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("coin".into()), Value::Str("assetCode".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("coin".into()), Value::Str("assetCode".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (code.is_some()) {
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            request.insert("assetCode".into(), currency.get("id").cloned().unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = (match self.currency(code.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("assetCode".into(), Value::from((currency).id.clone()));
         }
         let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.spot_public_get_withdraw_configs(&[__ws_arg_27]).await;

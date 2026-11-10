@@ -2235,7 +2235,7 @@ impl Cex {
             m
         });
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -2354,9 +2354,9 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (since != Value::Null) {
             request.insert("dateFrom".into(), since.clone());
@@ -2391,7 +2391,7 @@ impl Cex {
         //            ...
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        return self.parse_transactions(data, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2505,7 +2505,7 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut fromMain: bool = fromAccount.as_str() == Some("");
         let mut targetAccount: Value = fromAccount;
         if fromMain {
@@ -2514,7 +2514,7 @@ impl Cex {
         let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("accountId".to_string(), targetAccount);
                 m.insert("clientTxId".to_string(), guid);
@@ -2545,7 +2545,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transfer(data, &[currency]);
+        return self.parse_transfer(data, &[(currency).raw.clone()]);
 
     Value::Null
 }
@@ -2558,10 +2558,10 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("fromAccountId".to_string(), fromAccount);
                 m.insert("toAccountId".to_string(), toAccount);
@@ -2581,7 +2581,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transfer(data, &[currency]);
+        return self.parse_transfer(data, &[(currency).raw.clone()]);
 
     Value::Null
 }
@@ -2662,12 +2662,12 @@ impl Cex {
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsAccountId).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId);
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[Value::from((currency).code.clone())]));
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[paramsNetworkCode]);
@@ -2687,7 +2687,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_deposit_address(data, &[currency]);
+        return self.parse_deposit_address(data, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

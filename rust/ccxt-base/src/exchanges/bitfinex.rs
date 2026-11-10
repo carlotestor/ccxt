@@ -2015,7 +2015,7 @@ impl Bitfinex {
             let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount);
         let mut toCurrencyId: Value = self.convert_derivatives_id(currency.clone(), toAccount);
         let mut requestedAmount: Value = self.currency_to_precision(code, amount, &[]);
@@ -3809,7 +3809,7 @@ impl Bitfinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         // if not provided explicitly we will try to match using the currency name
         let mut networkParam: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
         let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
@@ -4217,7 +4217,7 @@ impl Bitfinex {
         }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut currencyMovements: Value = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await;
@@ -4264,7 +4264,7 @@ impl Bitfinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         // if not provided explicitly we will try to match using the currency name
         let mut networkParam: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
         let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
@@ -4728,7 +4728,7 @@ impl Bitfinex {
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_24 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;

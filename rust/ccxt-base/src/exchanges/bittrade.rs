@@ -2982,7 +2982,7 @@ impl Bittrade {
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3032,7 +3032,7 @@ impl Bittrade {
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3195,12 +3195,12 @@ impl Bittrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), amount);
-                m.insert("currency".to_string(), self.safe_string_lower_k(currency.clone(), "id", &[]));
+                m.insert("currency".to_string(), self.safe_string_lower_k((currency).raw.clone(), "id", &[]));
             m
         });
         if (tagWithdrawTag != Value::Null) {
@@ -3214,15 +3214,15 @@ impl Bittrade {
         if (network != Value::Null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network.as_str() == Some("erc20")) {
-                request.insert("chain".into(), Value::Str(format!("{}{}", currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), network).into()));
+                request.insert("chain".into(), Value::Str(format!("{}{}", Value::from((currency).id.clone()), network).into()));
             }  else {
-                request.insert("chain".into(), Value::Str(format!("{}{}", network, currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+                request.insert("chain".into(), Value::Str(format!("{}{}", network, Value::from((currency).id.clone())).into()));
             }
         }
         let mut paramsNetwork: Value = (if (network != Value::Null) { self.omit(paramsWithdrawTag.clone(), Value::Str("network".into()), &[]) } else { paramsWithdrawTag });
         let __ws_arg_19 = self.extend(Value::Map(request), &[paramsNetwork]);
         let mut response: Value = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

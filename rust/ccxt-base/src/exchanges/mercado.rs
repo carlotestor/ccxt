@@ -1284,10 +1284,10 @@ impl Mercado {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("coin".to_string(), Value::from((currency).id.clone()));
                 m.insert("quantity".to_string(), Value::str(format!("{:.*}", 10, amount.as_f64().unwrap_or(0.0))));
                 m.insert("address".to_string(), address);
             m
@@ -1338,7 +1338,7 @@ impl Mercado {
     m
 })]);
         let mut withdrawal: Value = self.safe_dict_k(responseData, "withdrawal", &[]);
-        return self.parse_transaction(withdrawal, &[currency]);
+        return self.parse_transaction(withdrawal, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

@@ -658,7 +658,7 @@ impl Btcbox {
             let mut __for_first_472: bool = true;
             while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = self.currency(code.clone());
+            let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             let mut currencyId: String = self.safe_string_k(currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into());
             if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

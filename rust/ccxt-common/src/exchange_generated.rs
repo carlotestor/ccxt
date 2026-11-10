@@ -7731,7 +7731,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn currency(&self, mut code: Value) -> Value {
+    fn currency(&self, code: &str) -> crate::Result<crate::types::Currency> {
+        let __args: Vec<Value> = vec![Value::from(code)];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" currency() requires a code argument".into()))));
         }
@@ -7750,9 +7756,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have currency code ".into())).into()), code)));
-
-    Value::Null
-}
+        Value::Null
+        })).expect("a sync body never awaits")?))
+    }
 
     fn market(&self, symbol: &str) -> crate::Result<crate::types::Market> {
         // virtual-dispatch (static: DerivedExchange::market(self, ...))
@@ -13418,7 +13424,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "create_trigger_order_ws" => crate::types::IntoRaw::into_raw(self.create_trigger_order_ws(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                 args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
             "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-            "currency" => self.currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "currency" => crate::types::IntoRaw::into_raw(self.currency(args.get(0).and_then(crate::Value::as_str).unwrap_or_default())),
             "currency_id" => self.currency_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "currency_ids" => self.currency_ids(&args[..]),
             "currency_to_precision" => self.currency_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),

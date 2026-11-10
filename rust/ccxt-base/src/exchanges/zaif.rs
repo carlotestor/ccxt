@@ -1250,13 +1250,13 @@ impl Zaif {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (code.as_str() == Some("JPY")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".into())).into()), code).into()), Value::Str(" withdrawals".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("address".to_string(), address);
             m
@@ -1286,7 +1286,7 @@ impl Zaif {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transaction(returnData, &[currency]);
+        return self.parse_transaction(returnData, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

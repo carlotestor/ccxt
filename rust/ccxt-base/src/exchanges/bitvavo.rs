@@ -1789,7 +1789,7 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut direction: Option<String> = None;
         let mut subaccountId: Value = Value::Null;
         if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
@@ -1810,13 +1810,13 @@ impl Bitvavo {
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccountId".to_string(), subaccountId);
                 m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("subaccountId".into()), &[])]);
         let mut response: Value = self.private_post_subaccounts_transfers(&[__ws_arg_4]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1856,7 +1856,7 @@ impl Bitvavo {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut subaccountId: Option<String> = self.safe_string_k(params.clone(), "subaccountId", &[]).as_str().map(str::to_owned);
@@ -1924,9 +1924,9 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1935,7 +1935,7 @@ impl Bitvavo {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_subaccounts_transfers_transfer_id(&[__ws_arg_6]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -2010,10 +2010,10 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -2083,7 +2083,7 @@ impl Bitvavo {
                 cost = self.safe_number_k(paramsOmitted, "cost", &[]);
             }
             if (cost != Value::Null) {
-                let mut precision: Option<f64> = self.safe_number(self.currency(Value::from((market).quote.clone())), Value::Str("precision".into()), &[]).as_f64();
+                let mut precision: Option<f64> = self.safe_number(crate::types::IntoRaw::into_raw(self.currency((Value::from((market).quote.clone())).as_str().unwrap_or_default())), Value::Str("precision".into()), &[]).as_f64();
                 request.insert("amountQuote".into(), self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
             }  else {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -2828,9 +2828,9 @@ impl Bitvavo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (since != Value::Null) {
             request.insert("fromDate".into(), since.clone());
@@ -2867,7 +2867,7 @@ impl Bitvavo {
         //     }
         //
         let mut items: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
-        return self.parse_ledger(items, &[currency, since, limit]);
+        return self.parse_ledger(items, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2943,10 +2943,10 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
                 m.insert("address".to_string(), address);
             m
@@ -2991,7 +2991,7 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut request: Value = self.withdraw_request(code, amount, address, &[tagWithdrawTag, paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawal(&[request]).await;
         return self.parse_transaction(response, &[currency]);
@@ -3013,7 +3013,7 @@ impl Bitvavo {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3055,12 +3055,12 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: Value = self.fetch_withdrawals_request(&[code.clone(), since.clone(), limit.clone(), params]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.private_get_withdrawal_history(&[request]).await;
-        return self.parse_transactions(response, &[currency, since, limit, Value::Map({
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
@@ -3083,7 +3083,7 @@ impl Bitvavo {
         });
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             request.insert("symbol".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3125,12 +3125,12 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: Value = self.fetch_deposits_request(&[code.clone(), since.clone(), limit.clone(), params]);
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.private_get_deposit_history(&[request]).await;
-        return self.parse_transactions(response, &[currency, since, limit, Value::Map({
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m

@@ -1719,10 +1719,10 @@ impl Hitbtc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
@@ -1780,10 +1780,10 @@ impl Hitbtc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
@@ -2311,13 +2311,13 @@ impl Hitbtc {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("types".to_string(), types);
+                m.insert("types".to_string(), types.clone());
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
-            request.insert("currencies".into(), self.safe_string_k(currency.clone(), "id", &[]));
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currencies".into(), self.safe_string_k(currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("from".into(), self.iso8601(since.clone()));
@@ -2327,7 +2327,7 @@ impl Hitbtc {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.private_get_wallet_transactions(&[__ws_arg_10]).await;
-        return self.parse_transactions(response, &[currency, since, limit, params]);
+        return self.parse_transactions(response, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
 
     Value::Null
 }
@@ -3848,7 +3848,7 @@ impl Hitbtc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut requestAmount: Value = self.currency_to_precision(code, amount, &[]);
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3863,7 +3863,7 @@ impl Hitbtc {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), requestAmount);
                 m.insert("source".to_string(), fromId);
                 m.insert("destination".to_string(), toId);
@@ -3871,7 +3871,7 @@ impl Hitbtc {
         });
         let __ws_arg_54 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_wallet_transfer(&[__ws_arg_54]).await;
-        return self.parse_transfer(response, &[currency]);
+        return self.parse_transfer(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3974,10 +3974,10 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("address".to_string(), address);
             m
@@ -4011,7 +4011,7 @@ impl Hitbtc {
         }
         let __ws_arg_56 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_wallet_crypto_withdraw(&[__ws_arg_56]).await;
-        return self.parse_transaction(response, &[currency]);
+        return self.parse_transaction(response, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

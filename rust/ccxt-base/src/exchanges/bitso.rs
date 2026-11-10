@@ -2222,9 +2222,9 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code);
+            currency = Some(match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut response: Value = self.private_get_fundings(&[params.clone()]).await;
         //
@@ -2251,7 +2251,7 @@ impl Bitso {
         //     }
         //
         let mut transactions: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
-        return self.parse_transactions(transactions, &[currency, since, limit, params]);
+        return self.parse_transactions(transactions, &[currency.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2278,10 +2278,10 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fund_currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("fund_currency".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
@@ -2669,7 +2669,7 @@ impl Bitso {
                 m.insert("LTC".to_string(), Value::Str("Litecoin".into()));
             m
         });
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
         let mut method: Option<String> = self.safe_string(Value::Map(methods), code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".into())).into()), code)));

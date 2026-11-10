@@ -1503,10 +1503,10 @@ impl Bitbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -1525,7 +1525,7 @@ impl Bitbank {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("currency".to_string(), currency.get("code").cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from((currency).code.clone()));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
@@ -1570,10 +1570,10 @@ impl Bitbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = (match self.currency(code.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("asset".to_string(), Value::from((currency).id.clone()));
                 m.insert("amount".to_string(), amount);
             m
         });
@@ -1600,7 +1600,7 @@ impl Bitbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transaction(data, &[currency]);
+        return self.parse_transaction(data, &[(currency).raw.clone()]);
         Value::Null
         }).await?))
     }

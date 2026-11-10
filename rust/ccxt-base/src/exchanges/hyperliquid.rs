@@ -6051,7 +6051,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if useSendAsset {
             let mut paramsSendAsset: Value = query;
-            let mut sendAssetCurrency: Value = self.currency(code.clone());
+            let mut sendAssetCurrency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             let mut sendAssetCurrencyInfo: Value = self.safe_dict_k(sendAssetCurrency.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6129,7 +6129,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a currency code for spot sub-account transfers".into()))));
             }
-            let mut currency: Value = self.currency(code);
+            let mut currency: Value = crate::types::IntoRaw::into_raw(self.currency(code.as_str().unwrap_or_default()));
             let mut currencyInfo: Value = self.safe_dict_k(currency.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
