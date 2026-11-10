@@ -10169,6 +10169,19 @@ export class RustTranspilerBuilder {
                 // local is the bare scalar (`i64` / `f64`). Value slots re-box through `Value::from`,
                 // which builds the same `Value::Int` / `Value::Float` the reader returned.
                 const lit = isInt ? /^&\[\s*Value::Int\((-?\d+)\)\s*\]$/.exec(def) : /^&\[\s*Value::Float\((-?\d+\.\d+)\)\s*\]$/.exec(def);
+                if (lit === null && /^&\[\s*\]$/.test(def)) {
+                    // Nullable: `Option<i64>` / `Option<f64>` through the same accessor.
+                    const optUses = this.nativeScalarUses(masked, name, acc, true);
+                    if (optUses === undefined) continue;
+                    rewrites.push({
+                        start: m.index,
+                        end: stmtEnd,
+                        text: `${content.slice(m.index, callOpen).replace(': Value =', `: Option<${acc}> =`)}`
+                            + `${content.slice(callOpen, callClose)}.as_${acc}()${content.slice(callClose, stmtEnd)}`,
+                    });
+                    for (const sp of optUses) rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
+                    continue;
+                }
                 const native = lit === null ? undefined : this.nativeScalarUses(masked, name, acc);
                 if (native === undefined) continue;
                 rewrites.push({
@@ -10233,39 +10246,62 @@ export class RustTranspilerBuilder {
      * (call arg, slice element, match operand, `return`, assignment source) re-boxes through
      * `Value::from`. `i64`/`f64` are `Copy`, so no use moves the local.
      */
-    nativeScalarUses(masked: string, name: string, acc: string): Array<{ start: number, end: number, text: string }> | undefined {
+    nativeScalarUses(masked: string, name: string, acc: string, opt = false): Array<{ start: number, end: number, text: string }> | undefined {
         const out: Array<{ start: number, end: number, text: string }> = [];
         const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
         const litRe = acc === 'i64' ? /^\s*=\s*Value::Int\((-?\d+)\);/ : /^\s*=\s*Value::Float\((-?\d+\.\d+)\);/;
+        // An edit must not push its line over 400 chars.
+        const fits = (at: number, grow: number): boolean => {
+            const ls = masked.lastIndexOf('\n', at) + 1;
+            let le = masked.indexOf('\n', at); if (le < 0) le = masked.length;
+            return le - ls > 400 || le - ls + grow <= 400;
+        };
         let u: RegExpExecArray | null;
         while ((u = useRe.exec(masked)) !== null) {
             const at = u.index; const end = at + name.length;
             const before = masked.slice(Math.max(0, at - 40), at); const after = masked.slice(end, end + 60);
             let g: RegExpExecArray | null;
             let inc: RegExpExecArray | null;
-            if ((g = /^\)?\.as_(f64|i64)\(\)/.exec(after)) !== null && (g[0][0] !== ')' || before.endsWith('('))
+            let edit: { start: number, end: number, text: string } | undefined;
+            if (opt && (g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
+                // `Option` carries `None` exactly where the reader returned `Null`.
+                edit = { start: at, end: end + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` };
+            } else if (opt && acc === 'i64' && (g = /^\.as_f64\(\)\s*(==|!=)\s*Some\((-?\d+)\.0\)/.exec(after)) !== null) {
+                edit = { start: at, end: end + g[0].length, text: `${name} ${g[1]} Some(${g[2]})` };
+            } else if (opt && (g = /^\.as_(f64|i64)\(\)/.exec(after)) !== null) {
+                // `as_f64()` on an Int box is the only conversion an `Option<i64>` cannot spell closure-free.
+                if (acc === 'i64' && g[1] === 'f64') return undefined;
+                if (acc === 'f64' && g[1] === 'i64') return undefined;
+                edit = { start: at, end: end + g[0].length, text: name };
+            } else if (!opt && (g = /^\)?\.as_(f64|i64)\(\)/.exec(after)) !== null && (g[0][0] !== ')' || before.endsWith('('))
                 && (acc === 'i64' || g[1] === 'f64')) {
                 const paren = g[0][0] === ')' ? 1 : 0;
                 // `.unwrap_or(..)` on the never-`None` accessor is the payload itself.
                 const unwrap = /^\.unwrap_or\((?:f64::NAN|-1)\)/.exec(after.slice(g[0].length));
                 const bare = acc === 'i64' && g[1] === 'f64' ? `(${name} as f64)` : name;
-                out.push(unwrap !== null
+                edit = unwrap !== null
                     ? { start: at - paren, end: end + g[0].length + unwrap[0].length, text: bare }
-                    : { start: at - paren, end: end + g[0].length, text: `Some(${bare})` });
-            } else if (acc === 'i64' && (inc = /if let Value::Int\((\w+)\) = &mut $/.exec(before)) !== null
+                    : { start: at - paren, end: end + g[0].length, text: `Some(${bare})` };
+            } else if (!opt && acc === 'i64' && (inc = /if let Value::Int\((\w+)\) = &mut $/.exec(before)) !== null
                 && (g = new RegExp(`^\\s*\\{\\s*\\*${inc[1]} \\+= 1;\\s*\\}`).exec(after)) !== null) {
                 // The `for` incrementor: the guarded in-place `+= 1` on the Int box is `+= 1` on the i64.
-                out.push({ start: at - inc[0].length, end: end + g[0].length, text: `${name} += 1;` });
+                edit = { start: at - inc[0].length, end: end + g[0].length, text: `${name} += 1;` };
             } else if ((g = /^\s*=(?!=)/.exec(after)) !== null && !/[!<>=&|+\-*/]\s*$/.test(before)) {
                 const w = litRe.exec(after);
-                if (w === null) return undefined;
-                out.push({ start: end, end: end + w[0].length, text: ` = ${w[1]};` });
+                const nul = opt ? /^\s*=\s*Value::Null;/.exec(after) : null;
+                if (w === null && nul === null) return undefined;
+                edit = w !== null
+                    ? { start: end, end: end + w[0].length, text: opt ? ` = Some(${w[1]});` : ` = ${w[1]};` }
+                    : { start: end, end: end + nul![0].length, text: ' = None;' };
             } else if (/(?:[(,\[]\s*&?\(?|\breturn\s+|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
                 && (g = /^(\.clone\(\))?(?=\)?\s*[,)\];])/.exec(after)) !== null) {
-                out.push({ start: at, end: end + g[0].length, text: `Value::from(${name})` });
+                // `Value::from` builds the box the reader returned (`From<Option<i64|f64>>` maps `None` to `Null`); the scalar is `Copy`.
+                edit = { start: at, end: end + g[0].length, text: `Value::from(${name})` };
             } else {
                 return undefined;
             }
+            if (!fits(at, edit.text.length - (edit.end - edit.start))) return undefined;
+            out.push(edit);
         }
         return out.length > 0 ? out : undefined;
     }
