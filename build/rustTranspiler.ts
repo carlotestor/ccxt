@@ -9762,6 +9762,19 @@ export class RustTranspilerBuilder {
                     }
                     continue;
                 }
+                // `matches!(&x, Value::Bool(b))` is `x == b` on the bool.
+                const mt = /^,\s*Value::Bool\((true|false)\)\)/.exec(after);
+                if (mt !== null && before.endsWith('matches!(&')) {
+                    boolCmp.push({ start: stmtEnd + s - 'matches!(&'.length, end: stmtEnd + e + mt[0].length, text: mt[1] === 'true' ? `(${name})` : `(!${name})` });
+                    continue;
+                }
+                // A by-value `Value` operand (call arg, slice/map value, `return`) re-boxes
+                // as the `Value::Bool` it was; `bool` is `Copy`, so nothing moves.
+                const slot = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after);
+                if (slot !== null && /(?:[(,\[]\s*|\breturn\s+)$/.test(before) && !/&\s*(?:mut\s*)?$/.test(before)) {
+                    boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + slot[0].length, text: `Value::Bool(${name})` });
+                    continue;
+                }
                 ok = false;
                 break;
             }
