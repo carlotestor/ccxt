@@ -437,14 +437,14 @@ impl Blockchaincom {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: Value = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("prices".into()));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("granularity".to_string(), self.parse_number(interval, &[]));
             m
         });
@@ -535,14 +535,14 @@ impl Blockchaincom {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("ticker".into()));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         request = self.deep_extend(request.clone(), &[params]);
@@ -676,14 +676,14 @@ impl Blockchaincom {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("trades".into()));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         request = self.deep_extend(request.clone(), &[params]);
@@ -806,7 +806,7 @@ impl Blockchaincom {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone());
+            symbolResolved = Value::from(market.symbol.clone());
         }
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -1064,7 +1064,7 @@ impl Blockchaincom {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::from(type_var));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[paramsOmitted]);

@@ -301,12 +301,12 @@ impl Coincheck {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from(market.symbol.clone()));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("-orderbook".into())).into()));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]), Value::Str("-orderbook".into())).into()));
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
@@ -378,19 +378,19 @@ impl Coincheck {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from(market.symbol.clone()));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("-trades".into())).into()));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]), Value::Str("-trades".into())).into()));
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = trades.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null

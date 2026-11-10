@@ -650,7 +650,7 @@ impl Cex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::Str("private".into())]).as_str().map(str::to_owned); // default to private because the specified ticker is received quicker
@@ -666,7 +666,7 @@ impl Cex {
             message = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("e".to_string(), Value::Str("ticker".into()));
-                    m.insert("data".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+                    m.insert("data".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
                     m.insert("oid".to_string(), self.request_id().map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -761,7 +761,7 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("ticker".into()));
                 m.insert("oid".to_string(), messageHash.clone());
-                m.insert("data".to_string(), Value::from(vec![Value::from((market).base.clone()), Value::from((market).quote.clone())]));
+                m.insert("data".to_string(), Value::from(vec![Value::from(market.base.clone()), Value::from(market.quote.clone())]));
             m
         }), &[params]);
         return self.watch(Value::from(url), messageHash.clone(), &[request, messageHash.clone()]).await;
@@ -940,14 +940,14 @@ impl Cex {
         self.authenticate(&[params.clone()]).await;
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("open-orders".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+        m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
     m
 }));
                 m.insert("oid".to_string(), symbolValue.clone());
@@ -997,7 +997,7 @@ impl Cex {
         self.authenticate(&[params.clone()]).await;
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
         let mut subscriptionHash: String = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -1005,15 +1005,15 @@ impl Cex {
                 m.insert("e".to_string(), Value::Str("open-orders".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+        m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
     m
 }));
-                m.insert("oid".to_string(), Value::from((market).symbol.clone()));
+                m.insert("oid".to_string(), Value::from(market.symbol.clone()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(Value::from(url), Value::from(messageHash), &[request.clone(), Value::from(subscriptionHash), request]).await;
-        return self.filter_by_symbol_since_limit(orders, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, &[Value::from(market.symbol.clone()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1504,7 +1504,7 @@ impl Cex {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
         let mut depth: Value = (if (limit == Value::Null) { Value::Int(0) } else { limit.clone() });
@@ -1513,7 +1513,7 @@ impl Cex {
                 m.insert("e".to_string(), Value::Str("order-book-subscribe".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+        m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
         m.insert("subscribe".to_string(), Value::Bool(true));
         m.insert("depth".to_string(), depth);
     m
@@ -1944,7 +1944,7 @@ impl Cex {
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+                m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
             m
         }), &[params.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1955,7 +1955,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(Value::from(url), messageHash.clone(), &[Value::Map(request), messageHash]).await;
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit, params]);
+        return self.parse_orders(response, &[market.raw.clone(), since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2001,7 +2001,7 @@ impl Cex {
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+                m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
                 m.insert("type".to_string(), side);
@@ -2015,7 +2015,7 @@ impl Cex {
             m
         });
         let mut rawOrder: Value = self.watch(Value::from(url), messageHash.clone(), &[Value::Map(request), messageHash]).await;
-        return self.parse_order(rawOrder, &[(market).raw.clone()]);
+        return self.parse_order(rawOrder, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2063,7 +2063,7 @@ impl Cex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.clone()), Value::from((market).quote_id.clone())]));
+                m.insert("pair".to_string(), Value::from(vec![Value::from(market.base_id.clone()), Value::from(market.quote_id.clone())]));
                 m.insert("type".to_string(), side);
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
@@ -2080,7 +2080,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(Value::from(url), messageHash.clone(), &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

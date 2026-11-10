@@ -822,7 +822,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: String = "kline".to_string();
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -834,7 +834,7 @@ impl Woofipro {
         let mut ohlcv: Value = self.watch_public(Value::from(topic), message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = ohlcv.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -917,8 +917,8 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", marketId, Value::Str("@trade".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -930,7 +930,7 @@ impl Woofipro {
         let mut trades: Value = self.watch_public(Value::from(topic), message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = trades.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, limitResolved, Value::Bool(true)]);
         Value::Null
@@ -1377,7 +1377,7 @@ impl Woofipro {
         let mut orderId: Option<String> = self.safe_string_k(order.clone(), "orderId", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbol: Value = Value::from((marketResolved).symbol.clone());
+        let mut symbol: Value = Value::from(marketResolved.symbol.clone());
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

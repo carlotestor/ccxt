@@ -901,7 +901,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -910,7 +910,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -973,7 +973,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -981,7 +981,7 @@ impl Bitopro {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_1]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1110,13 +1110,13 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_pair(&[__ws_arg_2]).await;
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1278,7 +1278,7 @@ impl Bitopro {
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("resolution".to_string(), resolution);
             m
         });
@@ -1317,7 +1317,7 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut sparse: Value = self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved.clone()]);
+        let mut sparse: Value = self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitResolved.clone()]);
         return self.insert_missing_candles(sparse, (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), alignedSince, limitResolved);
         Value::Null
         }).await?))
@@ -1580,7 +1580,7 @@ impl Bitopro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("action".to_string(), side);
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("timestamp".to_string(), self.milliseconds());
@@ -1612,7 +1612,7 @@ impl Bitopro {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_orders_pair(&[__ws_arg_4]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1649,12 +1649,12 @@ impl Bitopro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders_pair_id(&[__ws_arg_5]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1776,7 +1776,7 @@ impl Bitopro {
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("pair".into(), Value::from((market).id.clone()));
+            request.insert("pair".into(), Value::from(market.id.clone()));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_delete_orders_pair(&[__ws_arg_7]).await;
         }  else {
@@ -1824,12 +1824,12 @@ impl Bitopro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_pair_order_id(&[__ws_arg_9]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1867,7 +1867,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1882,7 +1882,7 @@ impl Bitopro {
         if (orders == Value::Null) {
             orders = Value::from(vec![]);
         }
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(orders, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1999,13 +1999,13 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_orders_trades_pair(&[__ws_arg_13]).await;
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

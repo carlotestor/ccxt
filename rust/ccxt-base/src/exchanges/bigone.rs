@@ -1396,13 +1396,13 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), &[market.raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (type_var.as_deref() == Some("spot")) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                    m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
@@ -1427,7 +1427,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            return self.parse_ticker(ticker, &[(market).raw.clone()]);
+            return self.parse_ticker(ticker, &[market.raw.clone()]);
         }  else {
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), paramsMarketType).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut spotTicker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]);
@@ -1586,19 +1586,19 @@ impl Bigone {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
-        if (market).contract {
+        if market.contract {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m
             });
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await;
-            return self.parse_contract_order_book(response.clone(), Value::from((market).symbol.clone()), &[limit.clone()]);
+            return self.parse_contract_order_book(response.clone(), Value::from(market.symbol.clone()), &[limit.clone()]);
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                    m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
                 m
             };
             if (limit != Value::Null) {
@@ -1624,7 +1624,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+            return self.parse_order_book(orderbook, Value::from(market.symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         }
         Value::Null
         }).await?))
@@ -1863,12 +1863,12 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (market).contract {
+        if market.contract {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades () can only fetch trades for spot markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1895,7 +1895,7 @@ impl Bigone {
         //     }
         //
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1938,7 +1938,7 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (market).contract {
+        if market.contract {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () can only fetch ohlcvs for spot markets".into()))));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
@@ -1952,7 +1952,7 @@ impl Bigone {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
                 m.insert("period".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), limitResolved.clone());
             m
@@ -1998,7 +1998,7 @@ impl Bigone {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2185,7 +2185,7 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).spot {
+        if !market.spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -2248,7 +2248,7 @@ impl Bigone {
         let mut triggerPrice: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), Value::from(requestSide));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
@@ -2323,7 +2323,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(order, &[(market).raw.clone()]);
+        return self.parse_order(order, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2407,7 +2407,7 @@ impl Bigone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
@@ -2538,7 +2538,7 @@ impl Bigone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2567,7 +2567,7 @@ impl Bigone {
         //    }
         //
         let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(orders, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2605,7 +2605,7 @@ impl Bigone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_pair_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2648,7 +2648,7 @@ impl Bigone {
         //     }
         //
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

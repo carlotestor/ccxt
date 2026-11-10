@@ -1366,7 +1366,7 @@ impl Apex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_k((market).raw.clone(), "id2", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(market.raw.clone(), "id2", &[]));
             m
         });
         request.insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); // max 100, default 100
@@ -1403,7 +1403,7 @@ impl Apex {
     m
 })]);
         let mut timestamp: Option<i64> = self.milliseconds().as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), Value::from(market.symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(data, "u", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -1634,7 +1634,7 @@ impl Apex {
             m
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        request.insert("symbol".into(), Value::from((market).id.clone()));
+        request.insert("symbol".into(), Value::from(market.id.clone()));
         if (since != Value::Null) {
             request.insert("beginTimeInclusive".into(), since.clone());
         }
@@ -1681,7 +1681,7 @@ impl Apex {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.raw.clone()]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -2783,7 +2783,7 @@ impl Apex {
         let mut initialMarginRate: Option<String> = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("initialMarginRate".to_string(), initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });

@@ -1872,11 +1872,11 @@ impl Aster {
                 continue;
             }
             let mut market: crate::types::Market = (match self.market(symbolString.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolString = Value::from((market).symbol.clone());
+            symbolString = Value::from(market.symbol.clone());
             let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
@@ -1951,11 +1951,11 @@ impl Aster {
                 continue;
             }
             let mut market: crate::types::Market = (match self.market(symbolString.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolString = Value::from((market).symbol.clone());
+            symbolString = Value::from(market.symbol.clone());
             let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);

@@ -525,7 +525,7 @@ impl Bitrue {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone());
+            symbolResolved = Value::from(market.symbol.clone());
         }
         let mut url: Value = self.authenticate(&[]).await;
         let mut messageHash: String = "orders".to_string();
@@ -679,15 +679,15 @@ impl Bitrue {
         let mut url: Value = Value::Null;
         let mut channel: Option<String> = None;
         let mut cbId: Value = Value::Null;
-        if (market).swap {
-            let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if market.swap {
+            let mut baseIdLower: String = self.safe_string_lower_k(market.raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut quoteIdLower: String = self.safe_string_lower_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
             cbId = Value::from(wsId);
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
-            let mut marketIdLowercase: String = self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketIdLowercase: String = self.safe_string_lower_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
             cbId = Value::from(marketIdLowercase);
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
@@ -839,10 +839,10 @@ impl Bitrue {
             return Value::Null;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).contract {
+        if !market.contract {
             return rawQuantity;
         }
-        let mut contractSize: Value = self.safe_number_k((market).raw.clone(), "contractSize", &[Value::Int(1)]);
+        let mut contractSize: Value = self.safe_number_k(market.raw.clone(), "contractSize", &[Value::Int(1)]);
         if (contractSize == Value::Null) {
             return rawQuantity;
         }
@@ -879,12 +879,12 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
-        if !(market).swap {
+        let mut symbolValue: Value = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]);
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".into()))));
         }
-        let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseIdLower: String = self.safe_string_lower_k(market.raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteIdLower: String = self.safe_string_lower_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_trade_ticker".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
@@ -1032,7 +1032,7 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".into()))));
         }
         let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
@@ -1043,8 +1043,8 @@ impl Bitrue {
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".into())).into()), timeframe)));
         }
-        let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseIdLower: String = self.safe_string_lower_k(market.raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteIdLower: String = self.safe_string_lower_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_kline_".into())).into()), interval.clone().map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
@@ -1173,11 +1173,11 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".into()))));
         }
-        let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseIdLower: String = self.safe_string_lower_k(market.raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteIdLower: String = self.safe_string_lower_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_ticker".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);

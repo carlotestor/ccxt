@@ -1181,7 +1181,7 @@ impl Bitteam {
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairName".to_string(), Value::from((market).id.clone()));
+                m.insert("pairName".to_string(), Value::from(market.id.clone()));
                 m.insert("resolution".to_string(), resolution);
             m
         });
@@ -1219,7 +1219,7 @@ impl Bitteam {
     m
 })]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1259,7 +1259,7 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -2099,7 +2099,7 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from((market).id.clone()));
+                m.insert("name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -2295,7 +2295,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(pair, &[(market).raw.clone()]);
+        return self.parse_ticker(pair, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2469,12 +2469,12 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trade_api_cmc_trades_pair(&[__ws_arg_11]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

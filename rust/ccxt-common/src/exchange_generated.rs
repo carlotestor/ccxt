@@ -2539,7 +2539,7 @@ pub trait ExchangeBase:
          * @returns {object} returns feature value
          */
         let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.feature_value_by_type(Value::from((market).market_type.clone()), (market).raw.as_map().and_then(|__m| __m.get("subType")).cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
+        return self.feature_value_by_type(Value::from(market.market_type.clone()), market.raw.as_map().and_then(|__m| __m.get("subType")).cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
 
     Value::Null
 }
@@ -4582,24 +4582,24 @@ pub trait ExchangeBase:
             while { if !__for_first_112 { i += 1; } __for_first_112 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if sameTypeOnly.as_bool() == Some(true) && (marketType != Value::Null) {
-                if (Value::from((market).market_type.clone()).as_str() != marketType.as_str()) {
+                if (Value::from(market.market_type.clone()).as_str() != marketType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type, either ".into())).into()), marketType).into()), Value::Str(" or ".into())).into()),
-                        Value::from((market).market_type.clone())).into()), Value::Str(".".into()))));
+                        Value::from(market.market_type.clone())).into()), Value::Str(".".into()))));
                 }
             }
             if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType != Value::Null) {
-                if ((market).linear.map(Value::Bool).unwrap_or_default().as_bool() != isLinearSubType.as_bool()) {
+                if (market.linear.map(Value::Bool).unwrap_or_default().as_bool() != isLinearSubType.as_bool()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same subType, either linear or inverse.".into()))));
                 }
             }
-            if (type_var != Value::Null) && (Value::from((market).market_type.clone()).as_str() != type_var.as_str()) {
+            if (type_var != Value::Null) && (Value::from(market.market_type.clone()).as_str() != type_var.as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type ".into())).into()), type_var).into()), Value::Str(". If the type is incorrect you can change it in options or the params of the request".into()))));
             }
-            marketType = Value::from((market).market_type.clone());
-            if !(market).spot {
-                isLinearSubType = (market).raw.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null);
+            marketType = Value::from(market.market_type.clone());
+            if !market.spot {
+                isLinearSubType = market.raw.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null);
             }
-            let mut symbol: Value = self.safe_string_k((market).raw.clone(), "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
+            let mut symbol: Value = self.safe_string_k(market.raw.clone(), "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
             result.push(symbol);
         }
         }
@@ -7146,7 +7146,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
             let mut ranks: Vec<crate::types::ADL> = (match self.fetch_positions_adl_rank((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut rank: Value = self.safe_dict(crate::types::IntoRaw::into_raw(ranks), Value::Int(0), &[]);
             if (rank == Value::Null) {
@@ -8077,7 +8077,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if !(market).contract {
+            if !market.contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
             let mut tiers: crate::types::LeverageTiers = (match self.fetch_leverage_tiers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -8711,8 +8711,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
-            if !(market).contract {
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
+            if !market.contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
             }
             let mut rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -8747,8 +8747,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
-            if !(market).contract {
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
+            if !market.contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
             }
             let mut rates: crate::types::FundingRates = (match self.fetch_funding_intervals((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -8930,7 +8930,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketsById: Value = self.markets_by_id.clone();
         if ((markets != Value::Null) && (matches!((&markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((marketsById != Value::Null) && (matches!((&marketsById, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, account.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return Value::from((market).id.clone());
+            return Value::from(market.id.clone());
         }  else {
             return account;
         }
@@ -10777,7 +10777,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
             let mut tickers: crate::types::Tickers = (match self.fetch_mark_prices((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {
@@ -11735,7 +11735,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers_ws((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {
@@ -12137,7 +12137,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            let mut symbolResolved: Value = Value::from(market.symbol.clone());
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {

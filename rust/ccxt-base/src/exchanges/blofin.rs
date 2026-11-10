@@ -1484,7 +1484,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(50) } else { limit });
@@ -1611,7 +1611,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1621,7 +1621,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(first, &[(market).raw.clone()]);
+        return self.parse_ticker(first, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1653,7 +1653,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -1663,7 +1663,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(first, &[(market).raw.clone()]);
+        return self.parse_ticker(first, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1854,7 +1854,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
@@ -1869,7 +1869,7 @@ impl Blofin {
             response = self.public_get_market_trades(&[__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1922,7 +1922,7 @@ impl Blofin {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit }); // default 100, max 100
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("bar".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), limitResolved.clone());
             m
@@ -1940,7 +1940,7 @@ impl Blofin {
         let __ws_arg_4 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.public_get_market_candles(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1986,7 +1986,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -2016,7 +2016,7 @@ impl Blofin {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
-                    m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(rate, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -2025,7 +2025,7 @@ impl Blofin {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[Value::from(market.symbol.clone()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2104,12 +2104,12 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() is only valid for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -2132,7 +2132,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(entry, &[(market).raw.clone()]);
+        return self.parse_funding_rate(entry, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2336,7 +2336,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), side.clone());
                 m.insert("orderType".to_string(), type_var.clone());
                 m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
@@ -2653,7 +2653,7 @@ impl Blofin {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), side);
                 m.insert("positionSide".to_string(), Value::from(positionSide));
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("ec6dd3a7dd982d0b".into())]));
@@ -2742,7 +2742,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut isTrigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2768,13 +2768,13 @@ impl Blofin {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             let mut triggerResponse: Value = self.private_post_trade_cancel_algo(&[__ws_arg_10]).await;
             let mut triggerData: Value = self.safe_dict_k(triggerResponse, "data", &[]);
-            return self.parse_order(triggerData, &[(market).raw.clone()]);
+            return self.parse_order(triggerData, &[market.raw.clone()]);
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_post_trade_cancel_order(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut order: Value = self.safe_dict(data, Value::Int(0), &[]);
-        return self.parse_order(order, &[(market).raw.clone()]);
+        return self.parse_order(order, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2863,7 +2863,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut isTpsl: bool = self.safe_bool2(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2888,7 +2888,7 @@ impl Blofin {
         if (data == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".into())).into()), id)));
         }
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4099,7 +4099,7 @@ impl Blofin {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), self.safe_string(tpslIds.clone(), Value::Int(i), &[]));
-                            m.insert("instId".to_string(), Value::from((market).id.clone()));
+                            m.insert("instId".to_string(), Value::from(market.id.clone()));
                         m
                     }));
                 }
@@ -4113,14 +4113,14 @@ impl Blofin {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
-                            m.insert("instId".to_string(), Value::from((market).id.clone()));
+                            m.insert("instId".to_string(), Value::from(market.id.clone()));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("orderId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
-                            m.insert("instId".to_string(), Value::from((market).id.clone()));
+                            m.insert("instId".to_string(), Value::from(market.id.clone()));
                         m
                     }));
                 }
@@ -4133,7 +4133,7 @@ impl Blofin {
                 while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (clientOrderIds.len() as i64) } {
                 request.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("instId".to_string(), Value::from((market).id.clone()));
+                        m.insert("instId".to_string(), Value::from(market.id.clone()));
                         m.insert("clientOrderId".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
                     m
                 }));
@@ -4147,7 +4147,7 @@ impl Blofin {
             response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         let mut ordersData: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(ordersData, &[(market).raw.clone(), Value::Null, Value::Null, params]);
+        return self.parse_orders(ordersData, &[market.raw.clone(), Value::Null, Value::Null, params]);
         Value::Null
         }).await?))
     }
@@ -4250,7 +4250,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
@@ -4260,7 +4260,7 @@ impl Blofin {
         if (position == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() returned empty position".into()))));
         }
-        return self.parse_position(position, &[(market).raw.clone()]);
+        return self.parse_position(position, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4651,7 +4651,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
@@ -4672,7 +4672,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(data, &[(market).raw.clone()]);
+        return self.parse_leverage(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4740,7 +4740,7 @@ impl Blofin {
             let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), leverage);
                 m.insert("marginMode".to_string(), marginMode);
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[paramsMarginMode]);
@@ -4789,7 +4789,7 @@ impl Blofin {
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
@@ -4802,7 +4802,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

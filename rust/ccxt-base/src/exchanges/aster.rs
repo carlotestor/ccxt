@@ -2257,16 +2257,16 @@ impl Aster {
         let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("price".into()), &[]);
         let mut response: Value = Value::Null;
         if isMark {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())])); }
             let __ws_arg_0 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
             response = self.fapi_public_get_v3_mark_price_klines(&[__ws_arg_0]).await;
         }  else if isIndex {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())])); }
             let __ws_arg_1 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
             response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await;
         }  else {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
-            if ((market).linear == Some(true)) {
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())])); }
+            if (market.linear == Some(true)) {
                 let __ws_arg_2 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await;
             }  else {
@@ -2274,7 +2274,7 @@ impl Aster {
                 response = self.sapi_public_get_v3_klines(&[__ws_arg_3]).await;
             }
         }
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(response), &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2418,7 +2418,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2435,7 +2435,7 @@ impl Aster {
         }
         // use historical endpoint for targeted requests
         if sinceDefined {
-            if (market).swap {
+            if market.swap {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await;
             }  else {
@@ -2443,7 +2443,7 @@ impl Aster {
                 response = self.sapi_public_get_v3_agg_trades(&[__ws_arg_5]).await;
             }
         }  else {
-            if (market).swap {
+            if market.swap {
                 let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_trades(&[__ws_arg_6]).await;
             }  else {
@@ -2451,7 +2451,7 @@ impl Aster {
                 response = self.sapi_public_get_v3_trades(&[__ws_arg_7]).await;
             }
         }
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2546,14 +2546,14 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
         if (limit != Value::Null) {
             request.insert("limit".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500), Value::Int(1000)]), limit));
         }
-        if (market).swap {
+        if market.swap {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_v3_depth(&[__ws_arg_10]).await;
         }  else {
@@ -2705,18 +2705,18 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_public_get_v3_ticker24hr(&[__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
             response = self.sapi_public_get_v3_ticker24hr(&[__ws_arg_13]).await;
         }
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2990,12 +2990,12 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_public_get_v3_premium_index(&[__ws_arg_15]).await;
-        return self.parse_funding_rate(response, &[(market).raw.clone()]);
+        return self.parse_funding_rate(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3237,7 +3237,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("marginType".to_string(), marginModeValue);
             m
         });
@@ -3354,18 +3354,18 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
             response = self.sapi_private_get_v3_commission_rate(&[__ws_arg_21]).await;
         }
-        return self.parse_trading_fee(response, &[(market).raw.clone()]);
+        return self.parse_trading_fee(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3529,7 +3529,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
@@ -3540,14 +3540,14 @@ impl Aster {
             request.insert("orderId".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_get_v3_order(&[__ws_arg_22]).await;
         }  else {
             let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.sapi_private_get_v3_order(&[__ws_arg_23]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3582,7 +3582,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
@@ -3593,14 +3593,14 @@ impl Aster {
             request.insert("orderId".into(), id);
         }
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.sapi_private_get_v3_open_order(&[__ws_arg_24]).await;
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.fapi_private_get_v3_open_order(&[__ws_arg_25]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3638,7 +3638,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -3651,14 +3651,14 @@ impl Aster {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_26 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil]);
             response = self.sapi_private_get_v3_all_orders(&[__ws_arg_27]).await;
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3769,12 +3769,12 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             response = self.fapi_private_post_v3_order(&[request.clone()]).await;
         }  else {
             response = self.sapi_private_post_v3_order(&[request]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3813,7 +3813,7 @@ impl Aster {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut currentMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            orderSymbols.push(Value::from((currentMarket).symbol.clone()));
+            orderSymbols.push(Value::from(currentMarket.symbol.clone()));
             let mut type_var: Option<String> = self.safe_string_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
@@ -3828,8 +3828,8 @@ impl Aster {
         }
         let mut orderSymbolsResolved: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: crate::types::Market = (match self.market((orderSymbolsResolved.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
+        if market.spot {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k(market.raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3874,7 +3874,7 @@ impl Aster {
         let mut isLimitOrder: bool = initialUppercaseType.as_str() == Some("LIMIT");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
@@ -3894,7 +3894,7 @@ impl Aster {
         let mut uppercaseType: Value = initialUppercaseType;
         let mut stopPrice: Value = Value::Null;
         if isTrailingPercentOrder {
-            if (market).swap {
+            if market.swap {
                 uppercaseType = Value::Str("TRAILING_STOP_MARKET".into());
                 request.insert("callbackRate".into(), trailingPercent.clone().map(Value::from).unwrap_or(Value::Null));
                 if (trailingTriggerPrice.is_some()) {
@@ -3932,11 +3932,11 @@ impl Aster {
         let mut quantityIsRequired: bool = false;
         request.insert("type".into(), uppercaseType.clone());
         if (uppercaseType.as_str() == Some("MARKET")) {
-            if (market).spot {
+            if market.spot {
                 let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]);
                 if (match &(quoteOrderQty) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                     let mut quoteOrderQtyNew: Option<String> = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[]).as_str().map(str::to_owned);
-                    let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k((market).raw.clone(), "precision", &[Value::Map({
+                    let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k(market.raw.clone(), "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -3977,7 +3977,7 @@ impl Aster {
             }
         }
         if quantityIsRequired {
-            let mut marketAmountPrecision: Option<String> = self.safe_string((market).raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
+            let mut marketAmountPrecision: Option<String> = self.safe_string(market.raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
             let mut isPrecisionAvailable: bool = marketAmountPrecision.is_some();
             if isPrecisionAvailable {
                 request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -3989,7 +3989,7 @@ impl Aster {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
-            let mut pricePrecision: Option<String> = self.safe_string((market).raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
+            let mut pricePrecision: Option<String> = self.safe_string(market.raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
             let mut isPricePrecisionAvailable: bool = pricePrecision.is_some();
             if isPricePrecisionAvailable {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -4016,7 +4016,7 @@ impl Aster {
         }  else {
             requestParams = self.omit(params, omitKeys, &[]);
         }
-        if matches!((self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k((market).raw.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) {
+        if matches!((self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.raw.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) {
             request.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             request.insert("feeRate".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
@@ -4053,11 +4053,11 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_delete_v3_all_open_orders(&[__ws_arg_31]).await;
         }  else {
@@ -4103,7 +4103,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -4114,14 +4114,14 @@ impl Aster {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.fapi_private_delete_v3_order(&[__ws_arg_33]).await;
         }  else {
             let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.sapi_private_delete_v3_order(&[__ws_arg_34]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4162,7 +4162,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut clientOrderIdList: Value = self.safe_list_k(params.clone(), "origClientOrderIdList", &[]);
@@ -4181,14 +4181,14 @@ impl Aster {
             request.insert("orderIdList".into(), Value::Array(orderIdList));
         }
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_private_delete_v3_batch_orders(&[__ws_arg_35]).await;
         }  else {
             let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
             response = self.sapi_private_delete_v3_all_open_orders(&[__ws_arg_36]).await;
         }
-        return self.parse_orders(response, &[(market).raw.clone()]);
+        return self.parse_orders(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4225,7 +4225,7 @@ impl Aster {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -4408,7 +4408,7 @@ impl Aster {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (type_var != Value::Null) {
@@ -4498,14 +4498,14 @@ impl Aster {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), addOrReduce);
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), amountValue);
             m
         });
-        let mut code: Value = Value::from((market).quote.clone());
+        let mut code: Value = Value::from(market.quote.clone());
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await;
-        let __ws_arg_40 = self.parse_margin_modification(response, &[(market).raw.clone()]);
+        let __ws_arg_40 = self.parse_margin_modification(response, &[market.raw.clone()]);
         return self.extend(__ws_arg_40, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), code);

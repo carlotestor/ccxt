@@ -1022,10 +1022,10 @@ impl Zebpay {
         let mut data: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
-        if (market).spot {
+        if market.spot {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_tradefee(&[__ws_arg_0]).await;
             //
@@ -1068,7 +1068,7 @@ impl Zebpay {
     m
 })]);
         }
-        return self.parse_trading_fee(data, &[(market).raw.clone()]);
+        return self.parse_trading_fee(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1164,14 +1164,14 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);
         }
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             //
             //       {
             //         "asks": [
@@ -1194,7 +1194,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(bookData.clone(), Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(bookData.clone(), Value::from(market.symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(bookData, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -1228,11 +1228,11 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_spot_get_v2_market_ticker(&[__ws_arg_4]).await;
         }  else {
@@ -1243,7 +1243,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(data, &[(market).raw.clone()]);
+        return self.parse_ticker(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1339,14 +1339,14 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endtime".into()), &[]).as_i64();
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]);
         let mut response: Value = Value::Null;
         let mut limitResolved: Value = limit.clone();
-        if (market).spot {
+        if market.spot {
             if (limit == Value::Null) {
                 limitResolved = Value::Int(100);
             }
@@ -1412,7 +1412,7 @@ impl Zebpay {
         //             ]
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1448,14 +1448,14 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
-        if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (limit != Value::Null) {
+        if matches!((self.safe_bool_k(market.raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_spot_get_v2_market_trades(&[__ws_arg_8]).await;
         }  else {
@@ -1475,7 +1475,7 @@ impl Zebpay {
         //     ]
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1745,18 +1745,18 @@ impl Zebpay {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             response = self.private_spot_post_v2_ex_orders(&[self.spot_order_body(symbol.clone(), type_var.clone(), amount.clone(), &mut request, &[price.clone(), query.clone()])]).await;
         }  else {
             let mut marginAsset: String = self.safe_string_k(query.clone(), "marginAsset", &[Value::Str("INR".into())]).as_str().unwrap_or("INR").to_string();
             let mut formType: String = self.safe_string_upper_k(query.clone(), "formType", &[Value::Str("ORDER_FORM".into())]).as_str().unwrap_or("ORDER_FORM").to_string();
             request.insert("formType".into(), Value::from(formType));
-            request.insert("amount".into(), self.parse_to_numeric(self.amount_to_precision(Value::from((market).id.clone()), amount)));
+            request.insert("amount".into(), self.parse_to_numeric(self.amount_to_precision(Value::from(market.id.clone()), amount)));
             request.insert("marginAsset".into(), Value::from(marginAsset));
             let mut hasTP: bool = takeProfitPrice.is_some();
             let mut hasSL: bool = stopLossPrice.is_some();
@@ -1792,7 +1792,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1862,7 +1862,7 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).spot {
+        if market.spot {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_delete_v2_ex_order(&[__ws_arg_13]).await;
@@ -1872,7 +1872,7 @@ impl Zebpay {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".into()))));
             }
             request.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
             response = self.private_swap_delete_v1_trade_order(&[__ws_arg_14]).await;
         }
@@ -1964,12 +1964,12 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
         let mut orders: Value = Value::from(vec![]);
-        if (market).spot {
+        if market.spot {
             request.insert("currentPage".into(), Value::Int(1));
             if (limit != Value::Null) {
                 request.insert("pageSize".into(), limit.clone());
@@ -1996,7 +1996,7 @@ impl Zebpay {
 })]);
             orders = self.safe_list_k(responseData, "data", &[Value::from(vec![])]);
         }
-        return self.parse_orders(orders, &[(market).raw.clone(), Value::Null, limit]);
+        return self.parse_orders(orders, &[market.raw.clone(), Value::Null, limit]);
         Value::Null
         }).await?))
     }
@@ -2035,7 +2035,7 @@ impl Zebpay {
             m
         });
         let mut response: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_order(&[__ws_arg_17]).await;
@@ -2073,7 +2073,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(responseData, &[(market).raw.clone()]);
+        return self.parse_order(responseData, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2171,7 +2171,7 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
@@ -2180,7 +2180,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2304,7 +2304,7 @@ impl Zebpay {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), leverage);
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         //
@@ -2399,7 +2399,7 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), amount.clone());
             m
         });
@@ -2427,7 +2427,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_24 = self.parse_margin_modification(data, &[(market).raw.clone()]);
+        let __ws_arg_24 = self.parse_margin_modification(data, &[market.raw.clone()]);
         return self.extend(__ws_arg_24, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -2468,7 +2468,7 @@ impl Zebpay {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), amount.clone());
             m
         });
@@ -2490,7 +2490,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_26 = self.parse_margin_modification(data, &[(market).raw.clone()]);
+        let __ws_arg_26 = self.parse_margin_modification(data, &[market.raw.clone()]);
         return self.extend(__ws_arg_26, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);

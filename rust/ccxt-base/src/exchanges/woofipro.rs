@@ -1939,7 +1939,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1967,7 +1967,7 @@ impl Woofipro {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(rows, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1996,7 +1996,7 @@ impl Woofipro {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
-        m.insert("symbol".to_string(), Value::from((marketResolved).symbol.clone()));
+        m.insert("symbol".to_string(), Value::from(marketResolved.symbol.clone()));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), self.parse_number(Value::Str("0".into()), &[]));
@@ -2083,7 +2083,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -2107,7 +2107,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(data, &[(market).raw.clone()]);
+        return self.parse_funding_rate(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2243,7 +2243,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -2275,7 +2275,7 @@ impl Woofipro {
     m
 })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
-        return self.parse_ticker(Value::Map(data), &[(market).raw.clone()]);
+        return self.parse_ticker(Value::Map(data), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2418,7 +2418,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -2442,7 +2442,7 @@ impl Woofipro {
     m
 })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
-        return self.parse_open_interest(Value::Map(data), &[(market).raw.clone()]);
+        return self.parse_open_interest(Value::Map(data), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2559,8 +2559,8 @@ impl Woofipro {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            symbolResolved = Value::from(market.symbol.clone()).as_str().map(str::to_owned);
+            request.insert("symbol".into(), Value::from(market.id.clone()));
         }
         if (since != Value::Null) {
             request.insert("start_t".into(), since.clone());
@@ -2856,7 +2856,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2930,7 +2930,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -2964,7 +2964,7 @@ impl Woofipro {
         // }
         //
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(rows, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3167,7 +3167,7 @@ impl Woofipro {
         let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), orderSide.clone());
             m
         });
@@ -3245,7 +3245,7 @@ impl Woofipro {
             }
             let mut outterOrder: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                     m.insert("reduce_only".to_string(), Value::Bool(false));
                     m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
                     m.insert("child_orders".to_string(), Value::from(childOrders));
@@ -3473,7 +3473,7 @@ impl Woofipro {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.v1_private_put_algo_order(&[__ws_arg_9]).await;
         }  else {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -3512,7 +3512,7 @@ impl Woofipro {
     m
 })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
-        return self.parse_order(Value::Map(data), &[(market).raw.clone()]);
+        return self.parse_order(Value::Map(data), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3716,7 +3716,7 @@ impl Woofipro {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from(market.id.clone()));
         }
         let mut response: Value = Value::Null;
         if (trigger == Some(true)) {
@@ -4864,10 +4864,10 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginModes: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginMode: Value = self.safe_dict(crate::types::IntoRaw::into_raw(marginModes), Value::from((market).symbol.clone()), &[]);
+        let mut marginModes: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![Value::from(market.symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marginMode: Value = self.safe_dict(crate::types::IntoRaw::into_raw(marginModes), Value::from(market.symbol.clone()), &[]);
         if (marginMode == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginMode() did not return a margin mode for ".into())).into()), Value::from((market).symbol.clone()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginMode() did not return a margin mode for ".into())).into()), Value::from(market.symbol.clone()))));
         }
         return marginMode;
         Value::Null
@@ -4909,7 +4909,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("default_margin_mode".to_string(), (if let Some(__s) = marginModeValue.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
@@ -4970,7 +4970,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), self.number_to_string(amount.clone()));
                 m.insert("type".to_string(), type_var.clone());
             m
@@ -4983,7 +4983,7 @@ impl Woofipro {
         //     "timestamp": 1702989203989
         // }
         //
-        let mut modification: indexmap::IndexMap<String, Value> = self.parse_margin_modification(response, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+        let mut modification: indexmap::IndexMap<String, Value> = self.parse_margin_modification(response, &[market.raw.clone()]).as_map().cloned().unwrap_or_default();
         modification.insert("type".into(), (if (type_var.as_str() == Some("ADD")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         modification.insert("amount".into(), self.parse_number(self.number_to_string(amount), &[]));
         return Value::Map(modification);
@@ -5262,7 +5262,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
@@ -5297,7 +5297,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_position(data, &[(market).raw.clone()]);
+        return self.parse_position(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

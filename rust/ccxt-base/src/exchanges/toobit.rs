@@ -1806,7 +1806,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1842,7 +1842,7 @@ impl Toobit {
         //    }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "t", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         Value::Null
         }).await?))
     }
@@ -1878,7 +1878,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1886,7 +1886,7 @@ impl Toobit {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_trades(&[__ws_arg_1]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2028,7 +2028,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -2065,7 +2065,7 @@ impl Toobit {
         }
         let mut response: Value = Value::from(vec![]);
         if (endpoint.as_deref() == Some("index")) {
-            request.insert("symbol".into(), self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("indexToken".into()), &[])); // index klines take the index id instead of the market id
+            request.insert("symbol".into(), self.safe_string(market.raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("indexToken".into()), &[])); // index klines take the index id instead of the market id
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsPrice.clone()]);
             response = self.common_get_quote_v1_index_klines(&[__ws_arg_2]).await;
         }  else if (endpoint.as_deref() == Some("mark")) {
@@ -2081,7 +2081,7 @@ impl Toobit {
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2252,7 +2252,7 @@ impl Toobit {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from(market.id.clone()));
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -2313,7 +2313,7 @@ impl Toobit {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from(market.id.clone()));
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
@@ -2399,7 +2399,7 @@ impl Toobit {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from(market.id.clone()));
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -2482,7 +2482,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2490,7 +2490,7 @@ impl Toobit {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[paramsPaginate]);
         let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
-        return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_funding_rate_histories(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2613,7 +2613,7 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).spot {
+        if market.spot {
             let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
             let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequest: Value = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2626,7 +2626,7 @@ impl Toobit {
             let __ws_arg_12 = self.extend(request, &[paramsRequest]);
             response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2644,7 +2644,7 @@ impl Toobit {
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
         }
-        let mut id: Value = Value::from((market).id.clone());
+        let mut id: Value = Value::from(market.id.clone());
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), id.clone());
@@ -2693,7 +2693,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         };
@@ -3129,14 +3129,14 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).spot {
+        if market.spot {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_api_v1_futures_order(&[__ws_arg_20]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3368,8 +3368,8 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        request.insert("symbol".into(), Value::from((market).id.clone()));
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        request.insert("symbol".into(), Value::from(market.id.clone()));
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
@@ -3382,7 +3382,7 @@ impl Toobit {
         }  else {
             response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await;
         }
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4047,13 +4047,13 @@ impl Toobit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (Value::from((market).market_type.clone()).as_str() != Some("swap")) {
+        if (Value::from(market.market_type.clone()).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
         let mut marginModeValue: String = marginMode.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
@@ -4095,7 +4095,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -4132,7 +4132,7 @@ impl Toobit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
@@ -4150,7 +4150,7 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(data, &[(market).raw.clone()]);
+        return self.parse_leverage(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

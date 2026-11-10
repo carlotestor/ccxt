@@ -2038,7 +2038,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -2079,7 +2079,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut trades: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2124,7 +2124,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("timeframe".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -2180,7 +2180,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2213,7 +2213,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
@@ -2398,7 +2398,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -2408,7 +2408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut broker: String = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
         request.insert("broker_id".into(), Value::from(broker));
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrder".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrder".into()), &[market.raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsValueVariable: Vec<Value> = self.custom_handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
@@ -2684,7 +2684,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
@@ -3009,7 +3009,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut id: Option<String> = self.safe_string(ids.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut order: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                    m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                     m.insert("order_id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -3025,7 +3025,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ws_arg_9 = self.extend(Value::Map(request), &[params.clone()]);
         let mut response: Value = self.v1_private_post_private_cancel_order_list(&[__ws_arg_9]).await;
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
-        return self.parse_orders(result, &[(market).raw.clone(), Value::Null, Value::Null, params]);
+        return self.parse_orders(result, &[market.raw.clone(), Value::Null, Value::Null, params]);
         Value::Null
         }).await?))
     }
@@ -3064,7 +3064,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut orderItem: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                    m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                     m.insert("order_id".to_string(), Value::Str(format!("{}", id).into()));
                 m
             });
@@ -4609,12 +4609,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("valuation_type".to_string(), Value::Str("estimated_funding_rate".into()));
                 m.insert("count".to_string(), Value::Int(1));
             m
@@ -4646,7 +4646,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(entry, &[(market).raw.clone()]);
+        return self.parse_funding_rate(entry, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4730,12 +4730,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("valuation_type".to_string(), Value::Str("funding_hist".into()));
             m
         });
@@ -4784,7 +4784,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.raw.clone()]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "v", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -4793,7 +4793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[Value::from(market.symbol.clone()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4824,7 +4824,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
@@ -4856,7 +4856,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut data: Value = self.safe_list_k(result, "data", &[Value::from(vec![])]);
-        return self.parse_position(self.safe_dict(data, Value::Int(0), &[]), &[(market).raw.clone()]);
+        return self.parse_position(self.safe_dict(data, Value::Int(0), &[]), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5085,7 +5085,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), Value::Str("MARKET".into()));
             m
         });
@@ -5095,7 +5095,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("type".into(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         }
         if (price.is_some()) {
-            request.insert("price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("price".into(), self.price_to_precision(Value::from(market.symbol.clone()), price.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v1_private_post_private_close_position(&[__ws_arg_23]).await;
@@ -5111,7 +5111,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut result: Value = self.safe_dict_k(response, "result", &[]);
-        return self.parse_order(result, &[(market).raw.clone()]);
+        return self.parse_order(result, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5142,7 +5142,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
@@ -5166,7 +5166,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_trading_fee(data, &[(market).raw.clone()]);
+        return self.parse_trading_fee(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

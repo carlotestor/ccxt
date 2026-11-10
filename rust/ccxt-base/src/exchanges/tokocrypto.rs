@@ -1967,9 +1967,9 @@ impl Tokocrypto {
             m
         });
         if (price.as_deref() == Some("index")) {
-            request.insert("pair".into(), Value::from((market).id.clone())); // Index price takes this argument instead of symbol
+            request.insert("pair".into(), Value::from(market.id.clone())); // Index price takes this argument instead of symbol
         }  else {
-            request.insert("symbol".into(), self.get_market_id_by_type((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("symbol".into(), self.get_market_id_by_type(market.raw.clone()).map(Value::from).unwrap_or(Value::Null));
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since != Value::Null) {
@@ -1979,7 +1979,7 @@ impl Tokocrypto {
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Value = Value::Null;
-        if self.is_native_market((market).raw.clone()).as_bool() == Some(true) {
+        if self.is_native_market(market.raw.clone()).as_bool() == Some(true) {
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
@@ -2034,7 +2034,7 @@ impl Tokocrypto {
                 data = self.safe_list_k(dataDict, "list", &[Value::from(vec![])]);
             }
         }
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limitValue]);
         Value::Null
         }).await?))
     }
@@ -2689,7 +2689,7 @@ impl Tokocrypto {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -2738,7 +2738,7 @@ impl Tokocrypto {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(orders, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2911,7 +2911,7 @@ impl Tokocrypto {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut endTime: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
@@ -2957,7 +2957,7 @@ impl Tokocrypto {
     m
 })]);
         let mut trades: Value = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

@@ -665,7 +665,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from(market.id.clone())]));
     m
 }));
             m
@@ -1186,7 +1186,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from(market.id.clone())]));
     m
 }));
             m
@@ -1230,10 +1230,10 @@ impl Hitbtc {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("trades".into()));
-                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(market.symbol.clone())]));
             m
         });
-        return self.un_subscribe_public(Value::Str("trades".into()), Value::Str("trades".into()), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str("trades".into()), Value::Str("trades".into()), Value::from(vec![Value::from(market.symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1403,7 +1403,7 @@ impl Hitbtc {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscribeParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(market.id.clone())]));
             m
         });
         if (limit != Value::Null) {
@@ -1453,10 +1453,10 @@ impl Hitbtc {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from(market.symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe_public(Value::from(name.clone()), Value::from(name), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::from(name.clone()), Value::from(name), Value::from(vec![Value::from(market.symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }

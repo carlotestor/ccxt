@@ -516,7 +516,7 @@ impl Woo {
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), method);
         let mut urlUid: String = "".to_string();
         if (self.uid.clone() != Value::Null) && (self.uid.as_str() != Some("")) {
@@ -536,7 +536,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("name".to_string(), method.clone());
-                m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
+                m.insert("symbol".to_string(), Value::from(market.symbol.clone()));
                 m.insert("limit".to_string(), limit.clone());
                 m.insert("params".to_string(), paramsMethod.clone());
             m
@@ -579,10 +579,10 @@ impl Woo {
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subHash: String = format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), method);
         let mut topic: String = "orderbook".to_string();
-        return self.unwatch_public(Value::from(subHash), Value::from((market).symbol.clone()), Value::from(topic), &[paramsMethod]).await;
+        return self.unwatch_public(Value::from(subHash), Value::from(market.symbol.clone()), Value::from(topic), &[paramsMethod]).await;
         Value::Null
         }).await?))
     }
@@ -836,10 +836,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subHash: String = format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), method);
         let mut topic: String = "ticker".to_string();
-        return self.unwatch_public(Value::from(subHash), Value::from((market).symbol.clone()), Value::from(topic.clone()), &[paramsMethod]).await;
+        return self.unwatch_public(Value::from(subHash), Value::from(market.symbol.clone()), Value::from(topic.clone()), &[paramsMethod]).await;
         Value::Null
         }).await?))
     }
@@ -1216,7 +1216,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: String = "kline".to_string();
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval);
@@ -1230,7 +1230,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut ohlcv: Value = self.watch_public(Value::from(topic.clone()), message.clone()).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = ohlcv.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -1264,13 +1264,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut topic: String = "ohlcv".to_string();
         let mut name: String = "kline".to_string();
         let mut subHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval);
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])])); }
-        return self.unwatch_public(Value::from(subHash), Value::from((market).symbol.clone()), Value::from(topic.clone()), &[params]).await;
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), Value::from(vec![Value::from(vec![Value::from(market.symbol.clone()), timeframe])])); }
+        return self.unwatch_public(Value::from(subHash), Value::from(market.symbol.clone()), Value::from(topic.clone()), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1348,8 +1348,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Option<String> = self.safe_string_k((market).raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: Option<String> = self.safe_string_k(market.raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", marketId, Value::Str("@trade".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1361,7 +1361,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut trades: Value = self.watch_public(Value::from(topic.clone()), message.clone()).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = trades.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolValue.clone().map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
         Value::Null
@@ -1392,10 +1392,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "trades".to_string();
         let mut subHash: String = format!("{}{}", marketId, Value::Str("@trade".into()));
-        return self.unwatch_public(Value::from(subHash), Value::from((market).symbol.clone()), Value::from(topic.clone()), &[params]).await;
+        return self.unwatch_public(Value::from(subHash), Value::from(market.symbol.clone()), Value::from(topic.clone()), &[params]).await;
         Value::Null
         }).await?))
     }

@@ -308,12 +308,12 @@ impl Dydx {
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_trades".into()));
-                m.insert("id".to_string(), Value::from((market).id.clone()));
+                m.insert("id".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -352,12 +352,12 @@ impl Dydx {
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_trades".into()));
-                m.insert("id".to_string(), Value::from((market).id.clone()));
+                m.insert("id".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -476,12 +476,12 @@ impl Dydx {
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_orderbook".into()));
-                m.insert("id".to_string(), Value::from((market).id.clone()));
+                m.insert("id".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -516,12 +516,12 @@ impl Dydx {
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_orderbook".into()));
-                m.insert("id".to_string(), Value::from((market).id.clone()));
+                m.insert("id".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);

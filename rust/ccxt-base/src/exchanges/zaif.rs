@@ -748,12 +748,12 @@ impl Zaif {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_depth_pair(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[]);
         Value::Null
         }).await?))
     }
@@ -830,12 +830,12 @@ impl Zaif {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut ticker: Value = self.public_get_ticker_pair(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -913,7 +913,7 @@ impl Zaif {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -941,7 +941,7 @@ impl Zaif {
                 trades = Value::from(vec![]);
             }
         }
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -983,7 +983,7 @@ impl Zaif {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("currency_pair".to_string(), Value::from(market.id.clone()));
                 m.insert("action".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("bid".into()) } else { Value::Str("ask".into()) }));
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
@@ -1000,7 +1000,7 @@ impl Zaif {
         m.insert("info".to_string(), response);
         m.insert("id".to_string(), self.number_to_string(data.get("order_id").cloned().unwrap_or(Value::Null)));
     m
-}), &[(market).raw.clone()]);
+}), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

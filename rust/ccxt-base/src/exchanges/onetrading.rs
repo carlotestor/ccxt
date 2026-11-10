@@ -1327,12 +1327,12 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_ticker_instrument_code(&[__ws_arg_0]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1431,7 +1431,7 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1495,7 +1495,7 @@ impl Onetrading {
         //     }
         //
         let mut timestamp: Value = self.parse8601(self.safe_string_k(response.clone(), "time", &[]));
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1593,7 +1593,7 @@ impl Onetrading {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1500) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from(market.id.clone()));
                 m.insert("period".to_string(), period);
                 m.insert("unit".to_string(), unit);
             m
@@ -1617,7 +1617,7 @@ impl Onetrading {
         //     ]
         //
         let mut ohlcv: Value = self.safe_list_k(response, "candlesticks", &[]);
-        return self.parse_ohlc_vs(ohlcv, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcv, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1948,7 +1948,7 @@ impl Onetrading {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), uppercaseType.clone());
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
@@ -1982,7 +1982,7 @@ impl Onetrading {
         request.insert("time_in_force".into(), Value::from(timeInForce));
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_post_account_orders(&[__ws_arg_3]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2068,7 +2068,7 @@ impl Onetrading {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("instrument_code".into(), Value::from((market).id.clone()));
+            request.insert("instrument_code".into(), Value::from(market.id.clone()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_account_orders(&[__ws_arg_6]).await;

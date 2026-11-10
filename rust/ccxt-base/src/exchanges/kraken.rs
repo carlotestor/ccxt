@@ -1532,7 +1532,7 @@ impl Kraken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("fee-info".to_string(), Value::Bool(true));
             m
         });
@@ -1571,7 +1571,7 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_trading_fee(result, (market).raw.clone());
+        return self.parse_trading_fee(result, market.raw.clone());
         Value::Null
         }).await?))
     }
@@ -1647,7 +1647,7 @@ impl Kraken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1678,10 +1678,10 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orderbook: Value = self.safe_dict(result.clone(), Value::from((market).id.clone()), &[]);
+        let mut orderbook: Value = self.safe_dict(result.clone(), Value::from(market.id.clone()), &[]);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        let mut marketInfo: Value = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_dict_k(market.raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1845,7 +1845,7 @@ impl Kraken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -1854,8 +1854,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ticker: Value = self.safe_value(tickerResult, Value::from((market).id.clone()), &[]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        let mut ticker: Value = self.safe_value(tickerResult, Value::from(market.id.clone()), &[]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1907,7 +1907,7 @@ impl Kraken {
         let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (parsedTimeframe != Value::Null) {
@@ -1943,8 +1943,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ohlcvs: Value = self.safe_list(result, Value::from((market).id.clone()), &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut ohlcvs: Value = self.safe_list(result, Value::from(market.id.clone()), &[Value::from(vec![])]);
+        return self.parse_ohlc_vs(ohlcvs, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2359,7 +2359,7 @@ impl Kraken {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut id: Value = Value::from((market).id.clone());
+        let mut id: Value = Value::from(market.id.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), id.clone());
@@ -2401,7 +2401,7 @@ impl Kraken {
         let mut lastTradeId: Option<String> = self.safe_string_k(result, "last", &[]).as_str().map(str::to_owned);
         if let Value::Arr(__a) = &mut lastTrade { std::sync::Arc::make_mut(__a).push(lastTradeId.clone().map(Value::from).unwrap_or(Value::Null)); };
         add_element_to_object(&mut trades, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), lastTrade);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2582,7 +2582,7 @@ impl Kraken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), side);
                 m.insert("ordertype".to_string(), type_var.clone());
                 m.insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -3295,8 +3295,8 @@ impl Kraken {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
+        if !market.spot {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k(market.raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3345,7 +3345,7 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(result, &[(market).raw.clone()]);
+        return self.parse_order(result, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

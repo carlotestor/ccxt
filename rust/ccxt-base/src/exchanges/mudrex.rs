@@ -740,7 +740,7 @@ impl Mudrex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_id".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_id".to_string(), Value::from(market.id.clone()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
             m
         });
@@ -750,7 +750,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(data, &[(market).raw.clone()]);
+        return self.parse_ticker(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1124,7 +1124,7 @@ impl Mudrex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_id".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_id".to_string(), Value::from(market.id.clone()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
             m
         });
@@ -1180,7 +1180,7 @@ impl Mudrex {
         let mut marginType: String = self.safe_string_k(params.clone(), "marginType", &[Value::Str("ISOLATED".into())]).as_str().unwrap_or("ISOLATED").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_id".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_id".to_string(), Value::from(market.id.clone()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
                 m.insert("margin_type".to_string(), Value::from(marginType));
                 m.insert("leverage".to_string(), leverage);
@@ -1262,7 +1262,7 @@ impl Mudrex {
             let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[paramsOmitted]);
             let mut riskResponse: Value = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_10]).await;
             let mut riskData: Value = self.safe_dict_k(riskResponse.clone(), "data", &[riskResponse.clone()]);
-            return self.parse_order(riskData, &[(market).raw.clone()]);
+            return self.parse_order(riskData, &[market.raw.clone()]);
         }
         let mut lev: i64 = self.safe_integer_k(params.clone(), "leverage", &[Value::Int(1)]).as_i64().unwrap_or(1);
         if (type_var.as_str() == Some("market")) && (price == Value::Null) {
@@ -1270,7 +1270,7 @@ impl Mudrex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("asset_id".to_string(), Value::from((market).id.clone()));
+                m.insert("asset_id".to_string(), Value::from(market.id.clone()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
                 m.insert("leverage".to_string(), self.number_to_string(Value::from(lev)));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
@@ -1302,7 +1302,7 @@ impl Mudrex {
                 m.insert("trigger_type".to_string(), request.get("trigger_type").cloned().unwrap_or(Value::Null));
             m
         })]);
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(merged, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(merged, &[market.raw.clone()]).as_map().cloned().unwrap_or_default();
         order.insert("info".into(), data);
         return Value::Map(order);
         Value::Null
@@ -1892,7 +1892,7 @@ impl Mudrex {
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut candidates: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), Value::from((market).symbol.clone()), &[]);
+            let mut candidates: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), Value::from(market.symbol.clone()), &[]);
             if (side != Value::Null) {
                 candidates = self.filter_by(candidates.clone(), Value::Str("side".into()), side, &[]);
             }
@@ -1922,13 +1922,13 @@ impl Mudrex {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[partialParams]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_17]).await;
             let mut partialData: Value = self.safe_dict_k(partialResponse.clone(), "data", &[partialResponse.clone()]);
-            return self.parse_order(partialData, &[(market).raw.clone()]);
+            return self.parse_order(partialData, &[market.raw.clone()]);
         }
         let mut closeParams: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
         let __ws_arg_18 = self.extend(Value::Map(request), &[closeParams]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_18]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

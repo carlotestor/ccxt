@@ -836,12 +836,12 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.public_get_api_depth_pair(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]);
+        return self.parse_order_book(orderbook, Value::from(market.symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]);
         Value::Null
         }).await?))
     }
@@ -921,7 +921,7 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -944,7 +944,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1069,12 +1069,12 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_api_trades_pair(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1124,7 +1124,7 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
                 m.insert("to".to_string(), until);
                 m.insert("tf".to_string(), selectedTimeframe);
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit.clone() });
@@ -1144,7 +1144,7 @@ impl Indodax {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(response), &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1293,7 +1293,7 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("order_id".to_string(), id.clone());
             m
         });
@@ -1308,7 +1308,7 @@ impl Indodax {
         m.insert("id".to_string(), id);
     m
 }), &[orders.get("order").cloned().unwrap_or(Value::Null)]);
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(__ws_arg_5, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(__ws_arg_5, &[market.raw.clone()]).as_map().cloned().unwrap_or_default();
         order.insert("info".into(), response);
         return Value::Map(order);
         Value::Null
@@ -1422,7 +1422,7 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -1431,7 +1431,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut orders: Value = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
+        let mut orders: Value = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), &[market.raw.clone()]);
         orders = self.filter_by(orders.clone(), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
         Value::Null
@@ -1472,7 +1472,7 @@ impl Indodax {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), side.clone());
                 m.insert("price".to_string(), price.clone());
             m
@@ -1499,7 +1499,7 @@ impl Indodax {
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.clone()))), quoteAmount);
+                request.insert(crate::runtime::stringify_param(&(Value::from(market.quote_id.clone()))), quoteAmount);
             }  else {
                 quantityIsRequired = true;
             }
@@ -1507,7 +1507,7 @@ impl Indodax {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side.as_str() == Some("buy")) {
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.clone()))), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone())))));
+                request.insert(crate::runtime::stringify_param(&(Value::from(market.quote_id.clone()))), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone())))));
             }
         }
         if priceIsRequired {
@@ -1517,7 +1517,7 @@ impl Indodax {
             request.insert("price".into(), price);
         }
         if quantityIsRequired {
-            request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.clone()))), self.amount_to_precision(symbol, amount));
+            request.insert(crate::runtime::stringify_param(&(Value::from(market.base_id.clone()))), self.amount_to_precision(symbol, amount));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut result: Value = self.private_post_trade(&[__ws_arg_8]).await;
@@ -1531,7 +1531,7 @@ impl Indodax {
         m.insert("info".to_string(), result);
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
     m
-}), &[(market).raw.clone()]);
+}), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1572,7 +1572,7 @@ impl Indodax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("type".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });

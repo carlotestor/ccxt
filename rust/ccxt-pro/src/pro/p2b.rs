@@ -380,8 +380,8 @@ impl P2b {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::from(vec![Value::from((market).id.clone()), Value::from(channel)]);
-        let mut messageHash: String = format!("{}{}", Value::Str("kline::".into()), Value::from((market).symbol.clone()));
+        let mut request: Value = Value::from(vec![Value::from(market.id.clone()), Value::from(channel)]);
+        let mut messageHash: String = format!("{}{}", Value::Str("kline::".into()), Value::from(market.symbol.clone()));
         let mut ohlcv: Value = self.subscribe(Value::Str("kline.subscribe".into()), Value::from(messageHash), request, &[params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -423,10 +423,10 @@ impl P2b {
         let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("tickerSubs".into())), &Value::from((market).id.clone()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
+        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("tickerSubs".into())), &Value::from(market.id.clone()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
         let mut tickerSubs: Value = self.options.as_map().and_then(|__m| __m.get("tickerSubs")).cloned().unwrap_or(Value::Null);
         let mut request: Value = object_keys(&tickerSubs);
-        return self.subscribe(Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), request, &[paramsName]).await;
+        return self.subscribe(Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())])).into()), request, &[paramsName]).await;
         Value::Null
         }).await?))
     }
@@ -469,8 +469,8 @@ impl P2b {
             let mut __for_first_569: bool = true;
             while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into())); }
-            args.push(Value::from((market).id.clone()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())])).into())); }
+            args.push(Value::from(market.id.clone()));
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -605,10 +605,10 @@ impl P2b {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut name: String = "depth.subscribe".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), Value::from(market.symbol.clone()));
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]).as_str().unwrap_or("0.001").to_string();
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
-        let mut request: Value = Value::from(vec![Value::from((market).id.clone()), limitResolved, Value::from(interval)]);
+        let mut request: Value = Value::from(vec![Value::from(market.id.clone()), limitResolved, Value::from(interval)]);
         let mut orderbook: Value = self.subscribe(Value::from(name), Value::from(messageHash), request, &[params]).await;
         return orderbook.limit();
         Value::Null

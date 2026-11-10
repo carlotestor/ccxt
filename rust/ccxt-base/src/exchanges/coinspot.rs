@@ -1037,12 +1037,12 @@ impl Coinspot {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), Value::from((market).id.clone()));
+                m.insert("cointype".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
+        return self.parse_order_book(orderbook, Value::from(market.symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1238,7 +1238,7 @@ impl Coinspot {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), Value::from((market).id.clone()));
+                m.insert("cointype".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1252,7 +1252,7 @@ impl Coinspot {
         //     }
         //
         let mut trades: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1461,7 +1461,7 @@ impl Coinspot {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), Value::from((market).id.clone()));
+                m.insert("cointype".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("rate".to_string(), price);
             m

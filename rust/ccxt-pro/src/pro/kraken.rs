@@ -666,7 +666,7 @@ impl Kraken {
                 m.insert("order_type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
                 m.insert("order_qty".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
-                m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
+                m.insert("symbol".to_string(), Value::from(market.symbol.clone()));
                 m.insert("token".to_string(), token);
             m
         });
@@ -1486,7 +1486,7 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut name: String = "ohlc".to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbolValue.clone()]).map(Value::from).unwrap_or(Value::Null);
@@ -1538,7 +1538,7 @@ impl Kraken {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[interval, symbolValue.clone()]).map(Value::from).unwrap_or(Value::Null));
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({

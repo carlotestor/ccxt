@@ -1829,26 +1829,26 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).swap {
+        if market.swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m
             });
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); }; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_v1_public_get_depth(&[__ws_arg_0]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
                 response = self.dapi_v1_public_get_depth(&[__ws_arg_1]).await;
             }
-        }  else if (market).spot {
+        }  else if market.spot {
             let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m
             };
             if (limit != Value::Null) {
@@ -1997,24 +1997,24 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).swap {
+        if market.swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m
             });
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_v1_public_get_ticker(&[__ws_arg_3]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.dapi_v1_public_get_ticker(&[__ws_arg_4]).await;
             }
             data = response.clone();
-        }  else if (market).spot {
+        }  else if market.spot {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m
             });
             let __ws_arg_5 = self.extend(request, &[params]);
@@ -2026,7 +2026,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker only support spot & swap markets".into()))));
         }
-        return self.parse_ticker(data, &[(market).raw.clone()]);
+        return self.parse_ticker(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2069,36 +2069,36 @@ impl Bitrue {
 })]);
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
-        if (market).swap {
+        if market.swap {
             let mut timeframesFuture: Value = self.safe_dict_k(timeframes.clone(), "future", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from(market.id.clone()));
                     m.insert("interval".to_string(), self.safe_string(timeframesFuture, timeframe.clone(), &[Value::Str("1min".into())]));
                 m
             });
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
             }
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_v1_public_get_klines(&[__ws_arg_6]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
                 response = self.dapi_v1_public_get_klines(&[__ws_arg_7]).await;
             }
             data = response.clone();
-        }  else if (market).spot {
+        }  else if market.spot {
             let mut timeframesSpot: Value = self.safe_dict_k(timeframes, "spot", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                     m.insert("scale".to_string(), self.safe_string(timeframesSpot, timeframe.clone(), &[Value::Str("1m".into())]));
                 m
             };
@@ -2116,7 +2116,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV only support spot & swap markets".into()))));
         }
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2186,23 +2186,23 @@ impl Bitrue {
         let mut first: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(0), &[]);
         let mut market: crate::types::Market = (match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
-        if (market).swap {
+        if market.swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m
             });
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_v1_public_get_ticker(&[__ws_arg_9]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
                 response = self.dapi_v1_public_get_ticker(&[__ws_arg_10]).await;
             }
-        }  else if (market).spot {
+        }  else if market.spot {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m
             });
             let __ws_arg_11 = self.extend(request, &[params]);
@@ -2238,7 +2238,7 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        data.insert(crate::runtime::stringify_param(&(Value::from((market).id.clone()))), response);
+        data.insert(crate::runtime::stringify_param(&(Value::from(market.id.clone()))), response);
         return self.parse_tickers(Value::Map(data), &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -2497,10 +2497,10 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::from(vec![]);
-        if (market).spot {
+        if market.spot {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.id.clone()));
                 m
             });
             if (limit != Value::Null) {
@@ -2511,7 +2511,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades only support spot markets".into()))));
         }
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2682,7 +2682,7 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports swap orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -2752,7 +2752,7 @@ impl Bitrue {
             }
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if (market).swap {
+        if market.swap {
             let mut isMarket: bool = uppercaseType.as_str() == Some("MARKET");
             let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
@@ -2763,7 +2763,7 @@ impl Bitrue {
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 request.insert("type".into(), Value::Str("IOC".into()));
             }
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from(market.id.clone()));
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2799,10 +2799,10 @@ impl Bitrue {
             let mut leverage: String = self.safe_string_k(paramsNoCost.clone(), "leverage", &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             request.insert("leverage".into(), self.parse_to_numeric(Value::from(leverage)));
             let mut paramsSwap: Value = self.omit(paramsNoCost, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into())]), &[]);
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsSwap.clone()]);
                 response = self.fapi_v2_private_post_order(&[__ws_arg_15]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[paramsSwap]);
                 response = self.dapi_v2_private_post_order(&[__ws_arg_16]).await;
             }
@@ -2810,10 +2810,10 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+        }  else if market.spot {
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
-            let mut validOrderTypes: Value = self.safe_list((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
+            let mut validOrderTypes: Value = self.safe_list(market.raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
             if !(self.in_array(uppercaseType, validOrderTypes).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type in market ".into())).into()), symbol)));
             }
@@ -2833,7 +2833,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support spot & swap markets".into()))));
         }
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2882,18 +2882,18 @@ impl Bitrue {
         if (origClientOrderId.is_none()) {
             request.insert("orderId".into(), id.clone());
         }  else {
-            if (market).swap {
+            if market.swap {
                 request.insert("clientOrderId".into(), origClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("origClientOrderId".into(), origClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
-            if ((market).linear == Some(true)) {
+        if market.swap {
+            request.insert("contractName".into(), Value::from(market.id.clone()));
+            if (market.linear == Some(true)) {
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.fapi_v2_private_get_order(&[__ws_arg_18]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.dapi_v2_private_get_order(&[__ws_arg_19]).await;
             }
@@ -2901,16 +2901,16 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        }  else if (market).spot {
+        }  else if market.spot {
             request.insert("orderId".into(), id.clone()); // spot market id is mandatory
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.spot_v1_private_get_order(&[__ws_arg_20]).await;
             data = response;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder only support spot & swap markets".into()))));
         }
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2946,12 +2946,12 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).spot {
+        if !market.spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders only support spot markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -2962,7 +2962,7 @@ impl Bitrue {
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await;
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(response, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3005,25 +3005,25 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
-            if ((market).linear == Some(true)) {
+        if market.swap {
+            request.insert("contractName".into(), Value::from(market.id.clone()));
+            if (market.linear == Some(true)) {
                 let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_v2_private_get_open_orders(&[__ws_arg_22]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.dapi_v2_private_get_open_orders(&[__ws_arg_23]).await;
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+        }  else if market.spot {
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
             response = self.spot_v1_private_get_open_orders(&[__ws_arg_24]).await;
             data = response;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders only support spot & swap markets".into()))));
         }
-        return self.parse_orders(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3073,18 +3073,18 @@ impl Bitrue {
         if (origClientOrderId.is_none()) {
             request.insert("orderId".into(), id.clone());
         }  else {
-            if (market).swap {
+            if market.swap {
                 request.insert("clientOrderId".into(), origClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("origClientOrderId".into(), origClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
-            if ((market).linear == Some(true)) {
+        if market.swap {
+            request.insert("contractName".into(), Value::from(market.id.clone()));
+            if (market.linear == Some(true)) {
                 let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.fapi_v2_private_post_cancel(&[__ws_arg_25]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.dapi_v2_private_post_cancel(&[__ws_arg_26]).await;
             }
@@ -3092,15 +3092,15 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+        }  else if market.spot {
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await;
             data = response;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder only support spot & swap markets".into()))));
         }
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3133,16 +3133,16 @@ impl Bitrue {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
-        if (market).swap {
+        if market.swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m
             });
-            if ((market).linear == Some(true)) {
+            if (market.linear == Some(true)) {
                 let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_v2_private_post_all_open_orders(&[__ws_arg_28]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
                 response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await;
             }
@@ -3150,7 +3150,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders only support future markets".into()))));
         }
-        return self.parse_orders(data, &[(market).raw.clone()]);
+        return self.parse_orders(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3201,25 +3201,25 @@ impl Bitrue {
             limitResolved = (if (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) { Value::Int(1000) } else { limit });
             request.insert("limit".into(), limitResolved.clone());
         }
-        if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
-            if ((market).linear == Some(true)) {
+        if market.swap {
+            request.insert("contractName".into(), Value::from(market.id.clone()));
+            if (market.linear == Some(true)) {
                 let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_v2_private_get_my_trades(&[__ws_arg_30]).await;
-            }  else if ((market).inverse == Some(true)) {
+            }  else if (market.inverse == Some(true)) {
                 let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.dapi_v2_private_get_my_trades(&[__ws_arg_31]).await;
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-        }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+        }  else if market.spot {
+            request.insert("symbol".into(), Value::from(market.id.clone()));
             let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
             response = self.spot_v2_private_get_my_trades(&[__ws_arg_32]).await;
             data = response;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades only support spot & swap markets".into()))));
         }
-        return self.parse_trades(data, &[(market).raw.clone(), since, limitResolved]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3956,17 +3956,17 @@ impl Bitrue {
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setLeverage only support swap markets".into()))));
         }
-        if ((market).linear == Some(true)) {
+        if (market.linear == Some(true)) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_v2_private_post_level_edit(&[__ws_arg_38]).await;
-        }  else if ((market).inverse == Some(true)) {
+        }  else if (market.inverse == Some(true)) {
             let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
             response = self.dapi_v2_private_post_level_edit(&[__ws_arg_39]).await;
         }
@@ -4022,24 +4022,24 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin only support swap markets".into()))));
         }
         let mut response: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                m.insert("contractName".to_string(), Value::from(market.id.clone()));
                 m.insert("amount".to_string(), self.parse_to_numeric(amount));
             m
         });
-        if ((market).linear == Some(true)) {
+        if (market.linear == Some(true)) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await;
-        }  else if ((market).inverse == Some(true)) {
+        }  else if (market.inverse == Some(true)) {
             let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
             response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await;
         }
-        return self.parse_margin_modification(response, &[(market).raw.clone()]);
+        return self.parse_margin_modification(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

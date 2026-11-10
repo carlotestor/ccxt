@@ -1672,11 +1672,11 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut marketInfo: Value = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_dict_k(market.raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1734,7 +1734,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut candles: Value = self.convert_trading_view_to_ohlcv(result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1808,7 +1808,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("start_timestamp".to_string(), sinceResolved.clone());
                 m.insert("end_timestamp".to_string(), now);
             m
@@ -1846,7 +1846,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut rawRates: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(rawRates, &[(market).raw.clone(), since, limit]);
+        return self.parse_funding_rate_histories(rawRates, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1986,7 +1986,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsResolved]);
@@ -2027,7 +2027,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2130,7 +2130,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2205,7 +2205,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut timestamp: Option<i64> = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return self.parse_order_book(result, Value::from(market.symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -2750,7 +2750,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         self.authenticate_v2(&[]).await;
@@ -2787,7 +2787,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_position(position, &[(market).raw.clone()]);
+        return self.parse_position(position, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3307,8 +3307,8 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
-                m.insert("amount".to_string(), self.get_order_amount((market).raw.clone(), amount).map(Value::from).unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
+                m.insert("amount".to_string(), self.get_order_amount(market.raw.clone(), amount).map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -3449,7 +3449,7 @@ impl Coinbaseinternational {
 })]).as_map().cloned().unwrap_or_default();
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         order.insert("trades".into(), trades);
-        return self.parse_order(Value::Map(order), &[(market).raw.clone()]);
+        return self.parse_order(Value::Map(order), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3762,7 +3762,7 @@ impl Coinbaseinternational {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                    m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(request), &[paramsResolved.clone()]);
@@ -4041,7 +4041,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) && (limit != Value::Null) {
@@ -4080,7 +4080,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut rawOrders: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
-        return self.parse_orders(rawOrders, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(rawOrders, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4135,7 +4135,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
@@ -4221,7 +4221,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4365,7 +4365,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
             m
         });
         self.authenticate_v2(&[]).await;
@@ -4386,7 +4386,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(result, &[(market).raw.clone()]);
+        return self.parse_leverage(result, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4449,7 +4449,7 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_name".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), self.number_to_string(leverage));
             m
         });

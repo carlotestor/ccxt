@@ -847,12 +847,12 @@ impl Coincheck {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_order_books(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[]);
         Value::Null
         }).await?))
     }
@@ -930,12 +930,12 @@ impl Coincheck {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut ticker: Value = self.public_get_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1127,7 +1127,7 @@ impl Coincheck {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1146,7 +1146,7 @@ impl Coincheck {
         //      }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1210,7 +1210,7 @@ impl Coincheck {
             while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: Value = self.safe_dict(fees.clone(), Value::from((market).id.clone()), &[Value::Map({
+            let mut fee: Value = self.safe_dict(fees.clone(), Value::from(market.id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1265,7 +1265,7 @@ impl Coincheck {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (type_var.as_str() == Some("market")) {
@@ -1292,7 +1292,7 @@ impl Coincheck {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response);
     m
-}), &[(market).raw.clone()]);
+}), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

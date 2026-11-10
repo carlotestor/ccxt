@@ -450,7 +450,7 @@ impl Krakenfutures {
         let mut length: f64 = ((symbolsValue.len() as i64) as f64);
         if (length == 1.0) {
             let mut market: crate::types::Market = (match self.market((marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())).into())).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from(market.symbol.clone())).into())).into());
         }
         subscribe.insert("product_ids".into(), marketIds);
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
@@ -914,7 +914,7 @@ impl Krakenfutures {
         }
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())).into())).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from(market.symbol.clone())).into())).into());
         }
         let mut orders: Value = self.subscribe_private(name.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[paramsVerbose]).await;
         let mut limitResolved: Value = limit.clone();
@@ -957,7 +957,7 @@ impl Krakenfutures {
         let mut messageHash: String = "myTrades".to_string();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), Value::from(market.symbol.clone()));
         }
         let mut trades: Value = self.subscribe_private(Value::from(name), Value::from(messageHash), &[params]).await;
         let mut limitResolved: Value = limit.clone();
@@ -1050,7 +1050,7 @@ impl Krakenfutures {
         let mut marketId: Option<String> = match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         if (marketId.is_some()) {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbol: Value = Value::from((market).symbol.clone());
+            let mut symbol: Value = Value::from(market.symbol.clone());
             let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone()]).map(Value::from).unwrap_or(Value::Null);
             // safeValue, not safeList: the values are ArrayCache instances, and
             // the typed accessor casts them to a plain list in c#, which throws
@@ -2357,7 +2357,7 @@ impl Krakenfutures {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
-                rawSubs.push(Value::from((market).id.clone()));
+                rawSubs.push(Value::from(market.id.clone()));
             }
         }
         }

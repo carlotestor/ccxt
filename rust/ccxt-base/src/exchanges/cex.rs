@@ -1120,7 +1120,7 @@ impl Cex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1157,7 +1157,7 @@ impl Cex {
     m
 })]);
         let mut trades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1227,7 +1227,7 @@ impl Cex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -1255,7 +1255,7 @@ impl Cex {
     m
 })]);
         let mut timestamp: Option<i64> = self.safe_integer_k(orderBook.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return self.parse_order_book(orderBook, Value::from(market.symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -1299,7 +1299,7 @@ impl Cex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
                 m.insert("resolution".to_string(), (if let (Some(__m), Some(__k)) = (self.timeframes.as_map(), timeframe.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m.insert("dataType".to_string(), dataType);
             m
@@ -1344,7 +1344,7 @@ impl Cex {
         //            ...
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2016,8 +2016,8 @@ impl Cex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderId".to_string(), self.uuid(&[]));
-                m.insert("currency1".to_string(), Value::from((market).base_id.clone()));
-                m.insert("currency2".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency1".to_string(), Value::from(market.base_id.clone()));
+                m.insert("currency2".to_string(), Value::from(market.quote_id.clone()));
                 m.insert("accountId".to_string(), accountId);
                 m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -2093,7 +2093,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

@@ -1677,7 +1677,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1706,7 +1706,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_trading_fee(first, &[(market).raw.clone()]);
+        return self.parse_trading_fee(first, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1806,7 +1806,7 @@ impl Paradex {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
@@ -1856,7 +1856,7 @@ impl Paradex {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1952,7 +1952,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -1983,7 +1983,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        return self.parse_ticker(ticker, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2116,8 +2116,8 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(rates), Value::from((market).symbol.clone()), &[]);
+        let mut rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(market.symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut rate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(rates), Value::from(market.symbol.clone()), &[]);
         if (rate == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() could not find a funding rate for ".into())).into()), symbol)));
         }
@@ -2219,7 +2219,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params]);
@@ -2247,7 +2247,7 @@ impl Paradex {
             request.insert("depth".into(), limit);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "last_updated_at", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), Value::from(market.symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(response, "seq_no", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -2292,7 +2292,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2331,7 +2331,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2435,12 +2435,12 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).contract {
+        if !market.contract {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -2471,7 +2471,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_open_interest(interest, &[(market).raw.clone()]);
+        return self.parse_open_interest(interest, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2912,7 +2912,7 @@ impl Paradex {
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("type".to_string(), orderType.clone());
             m
@@ -3497,7 +3497,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
@@ -3934,12 +3934,12 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1063: bool = true;
             while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (data.len() as i64) } {
-            if (self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]).as_str() == Value::from((market).id.clone()).as_str()) {
+            if (self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]).as_str() == Value::from(market.id.clone()).as_str()) {
                 matching.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
-        let mut positions: Value = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from((market).symbol.clone())])]);
+        let mut positions: Value = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from(market.symbol.clone())])]);
         return self.safe_dict(positions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4649,7 +4649,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
@@ -4667,7 +4667,7 @@ impl Paradex {
         // }
         //
         let mut configs: Value = self.safe_list_k(response, "configs", &[]);
-        return self.parse_margin_mode(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        return self.parse_margin_mode(self.safe_dict(configs, Value::Int(0), &[]), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4726,12 +4726,12 @@ impl Paradex {
             let mut currentLeverage: crate::types::Leverage = (match self.fetch_leverage(symbol.as_str().unwrap_or_default(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             leverage = self.safe_integer(crate::types::IntoRaw::into_raw(currentLeverage), Value::Str("longLeverage".into()), &[]);
             if (leverage == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a params.leverage argument, the current leverage of ".into())).into()), Value::from((market).symbol.clone())).into()), Value::Str(" could not be fetched".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a params.leverage argument, the current leverage of ".into())).into()), Value::from(market.symbol.clone())).into()), Value::Str(" could not be fetched".into()))));
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), leverage);
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
@@ -4769,7 +4769,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
@@ -4787,7 +4787,7 @@ impl Paradex {
         // }
         //
         let mut configs: Value = self.safe_list_k(response, "configs", &[]);
-        return self.parse_leverage(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        return self.parse_leverage(self.safe_dict(configs, Value::Int(0), &[]), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4854,7 +4854,7 @@ impl Paradex {
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("leverage".to_string(), leverage);
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
@@ -4891,7 +4891,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
@@ -4935,7 +4935,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_greeks(greeks, &[(market).raw.clone()]);
+        return self.parse_greeks(greeks, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5123,7 +5123,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -5166,7 +5166,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut results, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_incomes(results, &[(market).raw.clone(), since, limit]);
+        return self.parse_incomes(results, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -5236,7 +5236,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -5286,7 +5286,7 @@ impl Paradex {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
-                    m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
+                    m.insert("symbol".to_string(), Value::from(market.symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(rate, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5295,7 +5295,7 @@ impl Paradex {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[Value::from(market.symbol.clone()), since, limit]);
         Value::Null
         }).await?))
     }

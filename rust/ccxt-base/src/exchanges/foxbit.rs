@@ -959,7 +959,7 @@ impl Foxbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1000,7 +1000,7 @@ impl Foxbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(result, &[(market).raw.clone()]);
+        return self.parse_ticker(result, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1136,7 +1136,7 @@ impl Foxbit {
         let mut defaultLimit: i64 = 20;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("depth".to_string(), (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit }));
             m
         });
@@ -1202,7 +1202,7 @@ impl Foxbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1223,7 +1223,7 @@ impl Foxbit {
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_trades_history(&[__ws_arg_2]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1261,7 +1261,7 @@ impl Foxbit {
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("interval".to_string(), interval.clone());
             m
         });
@@ -1276,7 +1276,7 @@ impl Foxbit {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), interval, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(response), &[market.raw.clone(), interval, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1506,7 +1506,7 @@ impl Foxbit {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("market_symbol".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("type".to_string(), typeValue.clone());
             m
@@ -1544,7 +1544,7 @@ impl Foxbit {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]);
         let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.v3_private_post_orders(&[__ws_arg_5]).await;
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1593,7 +1593,7 @@ impl Foxbit {
             let mut triggerPrice: Option<f64> = self.safe_number_k(orderParams.clone(), "triggerPrice", &[]).as_f64();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("market_symbol".to_string(), Value::from(market.id.clone()));
                     m.insert("side".to_string(), self.safe_string_upper_k(order.clone(), "side", &[]));
                     m.insert("type".to_string(), Value::from(type_var.clone()));
                 m
@@ -1740,7 +1740,7 @@ impl Foxbit {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("type".into(), Value::Str("MARKET".into()));
-            request.insert("market_symbol".into(), Value::from((market).id.clone()));
+            request.insert("market_symbol".into(), Value::from(market.id.clone()));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v3_private_put_orders_cancel(&[__ws_arg_8]).await;
@@ -1901,7 +1901,7 @@ impl Foxbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("market_symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1930,7 +1930,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2268,7 +2268,7 @@ impl Foxbit {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), typeValue.clone());
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("market_symbol".to_string(), Value::from(market.id.clone()));
             m
         });
         if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("MARKET")) {
@@ -2311,7 +2311,7 @@ impl Foxbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(created, &[(market).raw.clone()]);
+        return self.parse_order(created, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

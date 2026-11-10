@@ -1306,7 +1306,7 @@ impl Bithumb {
         let mut data: Value = Value::Null;
         let mut timestamp: Option<i64> = None;
         if (generation.as_f64() == Some(2.0)) {
-            request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("markets".into(), self.get_gen2_market_id(market.raw.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
             response = self.public_get_v1_orderbook(&[__ws_arg_3]).await;
             //
@@ -1361,8 +1361,8 @@ impl Bithumb {
                 m
             });
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from(market.base_id.clone()));
+            request.insert("quoteId".into(), Value::from(market.quote_id.clone()));
             if (limit != Value::Null) {
                 request.insert("count".into(), limit); // default 30, max 30
             }
@@ -1814,7 +1814,7 @@ impl Bithumb {
             m
         });
         if (generation.as_f64() == Some(2.0)) {
-            request.insert("markets".into(), self.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("markets".into(), self.get_gen2_market_id(market.raw.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
             response = self.public_get_v1_ticker(&[__ws_arg_7]).await;
             //
@@ -1854,8 +1854,8 @@ impl Bithumb {
     m
 })]);
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from(market.base_id.clone()));
+            request.insert("quoteId".into(), Value::from(market.quote_id.clone()));
             let __ws_arg_8 = self.extend(Value::Map(request), &[paramsGeneration]);
             response = self.public_get_public_ticker_base_id_quote_id(&[__ws_arg_8]).await;
             //
@@ -1882,7 +1882,7 @@ impl Bithumb {
     m
 })]);
         }
-        return self.parse_ticker(data, &[(market).raw.clone()]);
+        return self.parse_ticker(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1974,7 +1974,7 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
         if (generation.as_f64() == Some(2.0)) {
-            request.insert("market".into(), self.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("market".into(), self.get_gen2_market_id(market.raw.clone()).map(Value::from).unwrap_or(Value::Null));
             if (limit != Value::Null) {
                 request.insert("count".into(), limit.clone());
             }
@@ -2031,8 +2031,8 @@ impl Bithumb {
                 m
             });
             request.insert("interval".into(), self.safe_string(Value::Map(legacyTimeframes), timeframe.clone(), &[timeframe.clone()]));
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from(market.base_id.clone()));
+            request.insert("quoteId".into(), Value::from(market.quote_id.clone()));
             let __ws_arg_13 = self.extend(Value::Map(request), &[paramsGeneration]);
             response = self.public_get_public_candlestick_base_id_quote_id_interval(&[__ws_arg_13]).await;
             //
@@ -2060,7 +2060,7 @@ impl Bithumb {
             //
             data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2245,7 +2245,7 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
         if (generation.as_f64() == Some(2.0)) {
-            request.insert("market".into(), self.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("market".into(), self.get_gen2_market_id(market.raw.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
             response = self.public_get_v1_trades_ticks(&[__ws_arg_14]).await;
             //
@@ -2266,8 +2266,8 @@ impl Bithumb {
             //
             data = response.clone();
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from(market.base_id.clone()));
+            request.insert("quoteId".into(), Value::from(market.quote_id.clone()));
             let __ws_arg_15 = self.extend(Value::Map(request), &[paramsGeneration]);
             response = self.public_get_public_transaction_history_base_id_quote_id(&[__ws_arg_15]).await;
             //
@@ -2286,7 +2286,7 @@ impl Bithumb {
             //
             data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2531,8 +2531,8 @@ impl Bithumb {
             request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsGeneration.clone()]).as_map().cloned().unwrap_or_default();
             response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
         }  else {
-            request.insert("order_currency".into(), Value::from((market).base.clone()));
-            request.insert("payment_currency".into(), Value::from((market).quote.clone()));
+            request.insert("order_currency".into(), Value::from(market.base.clone()));
+            request.insert("payment_currency".into(), Value::from(market.quote.clone()));
             request.insert("units".into(), self.amount_to_precision(symbol.clone(), amount));
             if (type_var.as_str() == Some("limit")) {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
@@ -2557,7 +2557,7 @@ impl Bithumb {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".into()))));
         }
-        let __ws_arg_20 = self.parse_order(response.clone(), &[(market).raw.clone()]);
+        let __ws_arg_20 = self.parse_order(response.clone(), &[market.raw.clone()]);
         return self.extend(__ws_arg_20, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

@@ -949,7 +949,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
@@ -1015,7 +1015,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
@@ -1530,7 +1530,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
@@ -1555,7 +1555,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
     m
 }));
             m
@@ -1595,7 +1595,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1621,7 +1621,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
     m
 }));
             m
@@ -1802,7 +1802,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut parsedTf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut urlKey: String = "api".to_string();
@@ -1827,7 +1827,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
         m.insert("interval".to_string(), parsedTf.clone());
     m
 }));
@@ -1871,7 +1871,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
         if isTestnet.as_bool() == Some(true) {
@@ -1895,7 +1895,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from(market.id.clone()));
         m.insert("interval".to_string(), timeframe.clone());
     m
 }));

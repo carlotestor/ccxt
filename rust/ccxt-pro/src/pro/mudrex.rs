@@ -326,12 +326,12 @@ impl Mudrex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
-        let mut baseIdString: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
-        let mut quoteIdString: Value = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]);
+        let mut baseIdString: Value = self.safe_string_k(market.raw.clone(), "baseId", &[Value::Str("".into())]);
+        let mut quoteIdString: Value = self.safe_string_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]);
         let mut assetId: Value = (if let Some(__s) = baseIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -371,9 +371,9 @@ impl Mudrex {
                 let mut __for_first_501: bool = true;
                 while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
-                let mut baseIdString: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
-                let mut quoteIdString: Value = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]);
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from(market.symbol.clone())).into())); }
+                let mut baseIdString: Value = self.safe_string_k(market.raw.clone(), "baseId", &[Value::Str("".into())]);
+                let mut quoteIdString: Value = self.safe_string_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]);
                 let mut assetId: Value = (if let Some(__s) = baseIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                 assetId = Value::Str(format!("{}{}", assetId, (if let Some(__s) = quoteIdString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
                 assets.push(assetId);
@@ -426,7 +426,7 @@ impl Mudrex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("price".into()), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -437,8 +437,8 @@ impl Mudrex {
         if (priceType.as_deref() == Some("mark")) {
             prefix = "markKline".to_string();
         }
-        let mut streamBaseId: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
-        let mut streamQuoteId: Value = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]);
+        let mut streamBaseId: Value = self.safe_string_k(market.raw.clone(), "baseId", &[Value::Str("".into())]);
+        let mut streamQuoteId: Value = self.safe_string_k(market.raw.clone(), "quoteId", &[Value::Str("".into())]);
         let mut stream: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval).into()), Value::Str("@".into())).into()),
             (if let Some(__s) = streamBaseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into()), (if let Some(__s) = streamQuoteId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         let mut messageHash: String = stream.clone();

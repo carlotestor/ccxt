@@ -819,11 +819,11 @@ impl Blofin {
             let mut __for_first_167: bool = true;
             while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (symbolsList.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from(market.symbol.clone())).into())); }
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::from(channel.clone()));
-                    m.insert("instId".to_string(), Value::from((market).id.clone()));
+                    m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m
             }));
         }
@@ -1391,14 +1391,14 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchFundingRate".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchFundingRate".into()), &[market.raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from(market.symbol.clone()));
         let mut requestParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("funding-rate".into()));
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut request: Value = self.get_subscription_request(Value::from(vec![requestParams]));
@@ -1574,11 +1574,11 @@ impl Blofin {
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channel.clone());
-                    m.insert("instId".to_string(), Value::from((market).id.clone()));
+                    m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m
             });
             topics.push(topic);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from(market.symbol.clone())).into())); }
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

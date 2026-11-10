@@ -1205,7 +1205,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
@@ -1217,7 +1217,7 @@ impl Luno {
             response = self.public_get_orderbook(&[__ws_arg_3]).await;
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
         Value::Null
         }).await?))
     }
@@ -1585,12 +1585,12 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_6]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1722,7 +1722,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1744,7 +1744,7 @@ impl Luno {
         //      }
         //
         let mut trades: Value = self.safe_list_k(response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1782,7 +1782,7 @@ impl Luno {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("duration".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1811,7 +1811,7 @@ impl Luno {
         //     }
         //
         let mut ohlcvs: Value = self.safe_list_k(response, "candles", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(ohlcvs, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1856,7 +1856,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1889,7 +1889,7 @@ impl Luno {
         //      }
         //
         let mut trades: Value = self.safe_list_k(response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1920,7 +1920,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -1974,7 +1974,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from(market.id.clone()));
             m
         });
         let mut response: Value = Value::Null;
@@ -1983,15 +1983,15 @@ impl Luno {
             request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
-                request.insert("counter_volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+                request.insert("counter_volume".into(), self.amount_to_precision(Value::from(market.symbol.clone()), amount.clone()));
             }  else {
-                request.insert("base_volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+                request.insert("base_volume".into(), self.amount_to_precision(Value::from(market.symbol.clone()), amount.clone()));
             }
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_marketorder(&[__ws_arg_11]).await;
         }  else {
-            request.insert("volume".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
-            request.insert("price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price));
+            request.insert("volume".into(), self.amount_to_precision(Value::from(market.symbol.clone()), amount));
+            request.insert("price".into(), self.price_to_precision(Value::from(market.symbol.clone()), price));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_postorder(&[__ws_arg_12]).await;
@@ -2005,7 +2005,7 @@ impl Luno {
         m.insert("info".to_string(), response);
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-}), &[(market).raw.clone()]);
+}), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

@@ -976,11 +976,11 @@ impl Apex {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: String = self.safe_string_k((market).raw.clone(), "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketId: String = self.safe_string_k(market.raw.clone(), "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candle.".into()), timeframeId).into()), Value::Str(".".into())).into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from(market.symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
         }
         }
         let mut symboltimeframestoredVariable = self.watch_topics(url, Value::from(messageHashes), Value::from(rawHashes), &[params]).await;

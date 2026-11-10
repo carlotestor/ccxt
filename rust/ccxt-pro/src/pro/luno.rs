@@ -309,8 +309,8 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -365,7 +365,7 @@ impl Luno {
         }
         let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut stored: Value = self.safe_value(self.trades.clone(), symbolValue.clone(), &[]);
         if (stored == Value::Null) {
@@ -378,7 +378,7 @@ impl Luno {
             let mut __for_first_480: bool = true;
             while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (rawTrades.len() as i64) } {
             let mut rawTrade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut trade: Value = self.parse_trade(rawTrade, &[(market).raw.clone()]);
+            let mut trade: Value = self.parse_trade(rawTrade, &[market.raw.clone()]);
             stored.append(trade);
         }
         }
@@ -454,8 +454,8 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

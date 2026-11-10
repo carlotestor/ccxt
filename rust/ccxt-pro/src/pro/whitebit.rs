@@ -369,9 +369,9 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut interval: Option<i64> = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null), timeframe, &[]).as_i64();
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut marketId: Value = Value::from(market.id.clone());
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -469,12 +469,12 @@ impl Whitebit {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(10) } else { limit.clone() });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), Value::from(market.symbol.clone()));
         let mut method: String = "depth_subscribe".to_string();
         let mut defaultPriceInterval: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchOrderBook")).cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceInterval: Value = self.safe_string_k(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("priceInterval".into()), &[]);
-        let mut reqParams: Value = Value::from(vec![Value::from((market).id.clone()), limitValue, priceInterval, Value::Bool(true)]);
+        let mut reqParams: Value = Value::from(vec![Value::from(market.id.clone()), limitValue, priceInterval, Value::Bool(true)]);
         let mut orderbook: Value = self.watch_public(Value::from(messageHash), Value::from(method), &[reqParams, paramsOmitted]).await;
         return orderbook.limit();
         Value::Null
@@ -590,7 +590,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut method: String = "market_subscribe".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         return self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue, &[Value::Bool(false), params]).await;
@@ -632,8 +632,8 @@ impl Whitebit {
             let mut __for_first_692: bool = true;
             while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
-            args.push(Value::from((market).id.clone()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from(market.symbol.clone())).into())); }
+            args.push(Value::from(market.id.clone()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -740,7 +740,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades".into()), Value::Str(":".into())).into()), symbolValue);
         let mut method: String = "trades_subscribe".to_string();
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -836,7 +836,7 @@ impl Whitebit {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
         let mut method: String = "deals_subscribe".to_string();
         let mut trades: Value = self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue.clone(), &[Value::Bool(true), params]).await;
@@ -993,7 +993,7 @@ impl Whitebit {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         let mut method: String = "ordersPending_subscribe".to_string();
         let mut trades: Value = self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue.clone(), &[Value::Bool(false), params]).await;

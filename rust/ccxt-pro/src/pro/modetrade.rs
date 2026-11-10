@@ -844,7 +844,7 @@ impl Modetrade {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: String = "kline".to_string();
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), name).into()), Value::Str("_".into())).into()), interval);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -856,7 +856,7 @@ impl Modetrade {
         let mut ohlcv: Value = self.watch_public(Value::from(topic), message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = ohlcv.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -941,7 +941,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", marketId, Value::Str("@trade".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -953,9 +953,9 @@ impl Modetrade {
         let mut trades: Value = self.watch_public(Value::from(topic), message).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = trades.get_limit(Value::from(market.symbol.clone()), limit);
         }
-        return self.filter_by_symbol_since_limit(trades, &[Value::from((market).symbol.clone()), since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[Value::from(market.symbol.clone()), since, limitResolved, Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1268,8 +1268,8 @@ impl Modetrade {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+            symbolResolved = Value::from(market.symbol.clone());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1327,8 +1327,8 @@ impl Modetrade {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+            symbolResolved = Value::from(market.symbol.clone());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

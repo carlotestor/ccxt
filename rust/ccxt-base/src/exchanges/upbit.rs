@@ -879,7 +879,7 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.fetch_market_by_id(Value::from((market).id.clone()), &[params]).await;
+        return self.fetch_market_by_id(Value::from(market.id.clone()), &[params]).await;
 
     Value::Null
 }
@@ -1420,7 +1420,7 @@ impl Upbit {
                 let mut __for_first_1139: bool = true;
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut quoteId: Value = Value::from((market).quote_id.clone());
+                let mut quoteId: Value = Value::from(market.quote_id.clone());
                 if !(self.in_array(quoteId.clone(), quoteIds.clone()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut quoteIds { std::sync::Arc::make_mut(__a).push(quoteId); }
                 }
@@ -1633,13 +1633,13 @@ impl Upbit {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("count".to_string(), limitResolved.clone());
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limitResolved]);
+        return self.parse_trades(response, &[market.raw.clone(), since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1671,7 +1671,7 @@ impl Upbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -1824,7 +1824,7 @@ impl Upbit {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("timeframe".to_string(), timeframeValue.clone());
                 m.insert("count".to_string(), limitResolved.clone());
             m
@@ -1875,7 +1875,7 @@ impl Upbit {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[market.raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1974,7 +1974,7 @@ impl Upbit {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), orderSide.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });

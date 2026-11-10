@@ -880,9 +880,9 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut isSwap: bool = market.swap;
+        let mut settleIsUSDT: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
         if (isSwap) {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
@@ -933,8 +933,8 @@ impl Phemex {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut first: Value = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(first.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
+        let mut isSwap: bool = market.swap;
+        let mut settleIsUSDT: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
         if (isSwap) {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
@@ -1005,11 +1005,11 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
+        let mut isSwap: bool = market.swap;
+        let mut settleIsUSDT: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
         let mut name: String = "trade".to_string();
         if isUsdtSwap {
@@ -1021,7 +1021,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(market.id.clone())]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
@@ -1064,11 +1064,11 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
+        let mut isSwap: bool = market.swap;
+        let mut settleIsUSDT: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
         let mut name: String = "orderbook".to_string();
         if isUsdtSwap {
@@ -1080,7 +1080,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(market.id.clone())]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
@@ -1122,11 +1122,11 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
+        let mut isSwap: bool = market.swap;
+        let mut settleIsUSDT: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
         let mut name: String = "kline".to_string();
         if isUsdtSwap {
@@ -1138,7 +1138,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone()), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(market.id.clone()), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
@@ -1205,8 +1205,8 @@ impl Phemex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut isUsdtSwap: bool = ((market).swap) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut isUsdtSwap: bool = (market.swap) && (Value::from(market.settle.as_deref()).as_str() == Some("USDT"));
         let mut name: String = "trade".to_string();
         if isUsdtSwap {
             name = "trade_p".to_string();
@@ -1217,7 +1217,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![Value::from((market).id.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![Value::from(market.id.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1248,8 +1248,8 @@ impl Phemex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut isUsdtSwap: bool = ((market).swap) && (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut isUsdtSwap: bool = (market.swap) && (Value::from(market.settle.as_deref()).as_str() == Some("USDT"));
         let mut name: String = "kline".to_string();
         if isUsdtSwap {
             name = "kline_p".to_string();
@@ -1261,7 +1261,7 @@ impl Phemex {
             m
         });
         // phemex drops only the given interval when it is sent along with the symbol
-        let mut marketParams: Value = Value::from(vec![Value::from((market).id.clone()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
+        let mut marketParams: Value = Value::from(vec![Value::from(market.id.clone()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
         return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
@@ -1922,8 +1922,8 @@ impl Phemex {
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (type_var == Value::Null) {
-                let mut isUsdt: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-                type_var = (if isUsdt { Value::Str("perpetual".into()) } else { Value::from((market).market_type.clone()) });
+                let mut isUsdt: bool = Value::from(market.settle.as_deref()).as_str() == Some("USDT");
+                type_var = (if isUsdt { Value::Str("perpetual".into()) } else { Value::from(market.market_type.clone()) });
             }
             marketIds.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
         }

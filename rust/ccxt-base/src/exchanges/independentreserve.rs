@@ -877,14 +877,14 @@ impl Independentreserve {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("primaryCurrencyCode".to_string(), Value::from((market).base_id.clone()));
-                m.insert("secondaryCurrencyCode".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("primaryCurrencyCode".to_string(), Value::from(market.base_id.clone()));
+                m.insert("secondaryCurrencyCode".to_string(), Value::from(market.quote_id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_order_book(&[__ws_arg_0]).await;
         let mut timestamp: Value = self.parse8601(self.safe_string_k(response.clone(), "CreatedTimestampUtc", &[]));
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp, Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
+        return self.parse_order_book(response, Value::from(market.symbol.clone()), &[timestamp, Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
         Value::Null
         }).await?))
     }
@@ -967,13 +967,13 @@ impl Independentreserve {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("primaryCurrencyCode".to_string(), Value::from((market).base_id.clone()));
-                m.insert("secondaryCurrencyCode".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("primaryCurrencyCode".to_string(), Value::from(market.base_id.clone()));
+                m.insert("secondaryCurrencyCode".to_string(), Value::from(market.quote_id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_market_summary(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        return self.parse_ticker(response, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1386,15 +1386,15 @@ impl Independentreserve {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("primaryCurrencyCode".to_string(), Value::from((market).base_id.clone()));
-                m.insert("secondaryCurrencyCode".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("primaryCurrencyCode".to_string(), Value::from(market.base_id.clone()));
+                m.insert("secondaryCurrencyCode".to_string(), Value::from(market.quote_id.clone()));
                 m.insert("numberOfRecentTradesToRetrieve".to_string(), Value::Int(50));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
         let mut trades: Value = self.safe_list_k(response, "Trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(trades, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1463,7 +1463,7 @@ impl Independentreserve {
             while { if !__for_first_835 { i += 1; } __for_first_835 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: Value = self.safe_dict(Value::Map(fees.clone()), Value::from((market).base.clone()), &[Value::Map({
+            let mut fee: Value = self.safe_dict(Value::Map(fees.clone()), Value::from(market.base.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1519,8 +1519,8 @@ impl Independentreserve {
         orderType = Value::Str(format!("{}{}", orderType, (if (side.as_str() == Some("sell")) { Value::Str("Offer".into()) } else { Value::Str("Bid".into()) })).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("primaryCurrencyCode".to_string(), Value::from((market).base_id.clone()));
-                m.insert("secondaryCurrencyCode".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("primaryCurrencyCode".to_string(), Value::from(market.base_id.clone()));
+                m.insert("secondaryCurrencyCode".to_string(), Value::from(market.quote_id.clone()));
                 m.insert("orderType".to_string(), orderType);
             m
         });
@@ -1539,7 +1539,7 @@ impl Independentreserve {
         m.insert("info".to_string(), response.clone());
         m.insert("id".to_string(), self.safe_string_k(response, "OrderGuid", &[]));
     m
-}), &[(market).raw.clone()]);
+}), &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

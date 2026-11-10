@@ -566,15 +566,15 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_place".into()));
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".into(), Value::Bool(true)); }
         let mut request: Value = self.parent.create_order_request(symbolValue, type_var, side, amount, &[price, params]);
         self.authenticate(url.clone(), messageType).await;
         let mut rawOrder: Value = self.request_private(url, request, Value::from(channel), &[]).await;
-        let mut order: Value = self.parse_order(rawOrder, &[(market).raw.clone()]);
+        let mut order: Value = self.parse_order(rawOrder, &[market.raw.clone()]);
         return order;
         Value::Null
         }).await?))
@@ -606,16 +606,16 @@ impl Gate {
         let mut request: Value = self.parent.create_orders_request(orders.clone(), &[params]);
         let mut firstOrder: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market((firstOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrdersWs is not supported for swap markets".into()))));
         }
         // todo add swap support
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_batch_place".into()));
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
         self.authenticate(url.clone(), messageType).await;
         let mut rawOrders: Value = self.request_private(url, request, Value::from(channel), &[]).await;
-        return self.parse_orders(rawOrders, &[(market).raw.clone()]);
+        return self.parse_orders(rawOrders, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -970,11 +970,11 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
         let mut isEuUrl: bool = url.as_str().unwrap_or("").contains("gateeu");
-        let mut isNonEuSpot: bool = ((market).spot) && !isEuUrl;
+        let mut isNonEuSpot: bool = (market.spot) && !isEuUrl;
         let mut intervalDefault: String = "100ms".to_string();
         if isNonEuSpot {
             intervalDefault = "50".to_string();
@@ -982,15 +982,15 @@ impl Gate {
         let intervalqueryVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(intervalDefault)]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = intervalqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
         // max 100 atm, max 50 for options
         let mut defaultLimit: i64 = 100;
-        if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_str() == Some("options")) {
+        if matches!((self.safe_bool_k(market.raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_str() == Some("options")) {
             defaultLimit = 50;
         }
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
-        if (market).spot {
+        if market.spot {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             let mut maxSpotLimit: Value = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
             limitResolved = crate::runtime::Math::min(&limitResolved, &maxSpotLimit);
@@ -1000,7 +1000,7 @@ impl Gate {
         if isEuUrl {
             channel = "spot.order_book_update".to_string();
             payload = Value::from(vec![Value::from(marketId.clone()), interval.clone()]);
-        }  else if (market).spot {
+        }  else if market.spot {
             channel = "spot.obu".to_string();
             let mut finalInterval: Value = interval.clone();
             if (limitResolved.as_f64() == Some(400.0)) {
@@ -1048,11 +1048,11 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
-        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
+        let mut symbolValue: String = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(market.raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut isEuUrl: bool = url.as_str().unwrap_or("").contains("gateeu");
-        let mut isNonEuSpot: bool = ((market).spot) && !isEuUrl;
+        let mut isNonEuSpot: bool = (market.spot) && !isEuUrl;
         let mut intervalDefault: String = "100ms".to_string();
         if isNonEuSpot {
             intervalDefault = "50".to_string();
@@ -1061,10 +1061,10 @@ impl Gate {
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(interval)]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut limit: Value = self.safe_integer_k(paramsInterval.clone(), "limit", &[]);
         if (limit == Value::Null) {
-            limit = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
+            limit = (if matches!((self.safe_bool_k(market.raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
             if (messageType.as_str() == Some("options")) {
                 limit = Value::Int(50); // max 50 for options
             }
@@ -1074,7 +1074,7 @@ impl Gate {
         if isEuUrl {
             channel = "spot.order_book_update".to_string();
             payload = Value::from(vec![Value::from(marketId.clone()), intervalOption.clone()]);
-        }  else if (market).spot {
+        }  else if market.spot {
             channel = "spot.obu".to_string();
             let mut finalInterval: Value = intervalOption.clone();
             if (limit.as_f64() == Some(400.0)) {
@@ -1835,13 +1835,13 @@ impl Gate {
         }
         // todo add options support
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut symbolValue: Value = self.safe_string_k(market.raw.clone(), "symbol", &[Value::Str("".into())]);
+        let mut marketId: Value = Value::from(market.id.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".candlesticks".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), Value::from(market.symbol.clone()));
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
         let mut payload: Value = Value::from(vec![interval, marketId]);
         let mut ohlcv: Value = self.subscribe_public(url, Value::from(messageHash), payload, Value::from(channel), &[params]).await;
         let mut limitResolved: Value = limit.clone();
@@ -1881,14 +1881,14 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut symbolValue: Value = Value::from(market.symbol.clone());
+        let mut marketId: Value = Value::from(market.id.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Value = self.get_type_by_market(market.raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".candlesticks".into()));
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
-        let mut url: Value = self.get_url_by_market((market).raw.clone());
+        let mut url: Value = self.get_url_by_market(market.raw.clone());
         let mut requestId: Value = self.request_id();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2699,8 +2699,8 @@ impl Gate {
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (Value::from((market).id.clone()) != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&(Value::from((market).id.clone()))), Value::Bool(true));
+            if (Value::from(market.id.clone()) != Value::Null) {
+                marketIds.insert(crate::runtime::stringify_param(&(Value::from(market.id.clone()))), Value::Bool(true));
             }
         }
         }

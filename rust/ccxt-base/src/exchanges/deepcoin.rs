@@ -1253,7 +1253,7 @@ impl Deepcoin {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(400) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("sz".to_string(), limitResolved);
             m
         });
@@ -1324,7 +1324,7 @@ impl Deepcoin {
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k(paramsPaginate.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut maxLimit: Value = Value::Int(300);
-        if (market).swap && (price.is_none()) {
+        if market.swap && (price.is_none()) {
             maxLimit = Value::Int(1000);
         }
         if paginate {
@@ -1338,7 +1338,7 @@ impl Deepcoin {
         let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("bar".to_string(), bar);
             m
         });
@@ -1406,7 +1406,7 @@ impl Deepcoin {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[market.raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1549,18 +1549,18 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
+        let mut productGroup: Value = self.get_product_group_from_market(market.raw.clone());
         request.insert("productGroup".into(), productGroup);
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(data, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2504,7 +2504,7 @@ impl Deepcoin {
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) {
-            if !(market).spot || (triggerPrice.is_some()) {
+            if !market.spot || (triggerPrice.is_some()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() accepts a cost parameter for spot non-trigger market orders only".into()))));
             }
         }
@@ -2556,7 +2556,7 @@ impl Deepcoin {
         let mut paramsOrderType: Value = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("side".to_string(), side.clone());
                 m.insert("ordType".to_string(), orderType);
             m
@@ -2595,7 +2595,7 @@ impl Deepcoin {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
         }
         let mut paramsRequest: Value = Value::Null;
-        if (market).spot {
+        if market.spot {
             let mut cost: Option<String> = self.safe_string_k(paramsOrderType.clone(), "cost", &[]).as_str().map(str::to_owned);
             if (cost.is_some()) {
                 if !isMarketOrder {
@@ -2674,8 +2674,8 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
-                m.insert("productGroup".to_string(), self.capitalize(Value::from((market).market_type.clone())));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
+                m.insert("productGroup".to_string(), self.capitalize(Value::from(market.market_type.clone())));
                 m.insert("sz".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("side".to_string(), side.clone());
                 m.insert("orderType".to_string(), type_var.clone());
@@ -2711,7 +2711,7 @@ impl Deepcoin {
         let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::Str("reduceOnly".into()), &[]);
         request.insert("isCrossMargin".into(), Value::from(isCrossMargin));
         request.insert("tdMode".into(), marginModeOption);
-        if (market).swap {
+        if market.swap {
             if reduceOnly {
                 if (side.as_str() == Some("buy")) {
                     request.insert("posSide".into(), Value::Str("short".into()));
@@ -2881,7 +2881,7 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("ordId".to_string(), id);
             m
         });
@@ -2938,7 +2938,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(entry, &[(market).raw.clone()]);
+        return self.parse_order(entry, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2974,7 +2974,7 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("ordId".to_string(), id.clone());
             m
         });
@@ -2989,7 +2989,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(entry, &[(market).raw.clone()]);
+        return self.parse_order(entry, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3267,7 +3267,7 @@ impl Deepcoin {
         let mut index: i64 = self.safe_integer_k(params.clone(), "index", &[Value::Int(1)]).as_i64().unwrap_or(1); // todo add pagination handling
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -3277,7 +3277,7 @@ impl Deepcoin {
         let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("trigger".into()), &[]);
         let mut response: Value = Value::Null;
         if trigger {
-            request.insert("instType".into(), self.convert_to_instrument_type(Value::from((market).market_type.clone())).map(Value::from).unwrap_or(Value::Null));
+            request.insert("instType".into(), self.convert_to_instrument_type(Value::from(market.market_type.clone())).map(Value::from).unwrap_or(Value::Null));
             //
             //     {
             //         "code": "0",
@@ -3363,7 +3363,7 @@ impl Deepcoin {
             response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[(market).raw.clone(), since, limit, Value::Map({
+        return self.parse_orders(data, &[market.raw.clone(), since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
     m
@@ -3404,7 +3404,7 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("ordId".to_string(), id);
             m
         });
@@ -3422,7 +3422,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3456,10 +3456,10 @@ impl Deepcoin {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (market).spot {
+        if market.spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() is not supported for spot markets".into()))));
         }
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
+        let mut productGroup: Value = self.get_product_group_from_market(market.raw.clone());
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut encodedMarginMode: Value = (if (marginMode.as_deref() == Some("isolated")) { Value::Int(0) } else { Value::Int(1) });
         let mut paramsOmitted: Value = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params });
@@ -3469,7 +3469,7 @@ impl Deepcoin {
         let mut isMergedMode: Value = (if merged { Value::Int(1) } else { Value::Int(0) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("InstrumentID".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentID".to_string(), Value::from(market.id.clone()));
                 m.insert("ProductGroup".to_string(), productGroup);
                 m.insert("IsCrossMargin".to_string(), encodedMarginMode);
                 m.insert("IsMergeMode".to_string(), isMergedMode);
@@ -3478,7 +3478,7 @@ impl Deepcoin {
         let __ws_arg_27 = self.extend(Value::Map(request), &[paramsMerged]);
         let mut response: Value = self.private_post_deepcoin_trade_swap_cancel_all(&[__ws_arg_27]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[(market).raw.clone()]);
+        return self.parse_orders(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3808,17 +3808,17 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut instrumentType: Value = self.convert_to_instrument_type(Value::from((market).market_type.clone())).map(Value::from).unwrap_or(Value::Null);
+        let mut instrumentType: Value = self.convert_to_instrument_type(Value::from(market.market_type.clone())).map(Value::from).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instrumentType);
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_deepcoin_account_positions(&[__ws_arg_31]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_positions(data, &[Value::from(vec![Value::from((market).symbol.clone())])]);
+        return self.parse_positions(data, &[Value::from(vec![Value::from(market.symbol.clone())])]);
         Value::Null
         }).await?))
     }
@@ -4015,7 +4015,7 @@ impl Deepcoin {
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), leverage);
                 m.insert("mgnMode".to_string(), marginModeOption);
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("mrgPosition".to_string(), mrgPositionOption);
             m
         });
@@ -4125,13 +4125,13 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if !(market).swap {
+        if !market.swap {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() is only valid for swap markets".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
-                m.insert("instType".to_string(), self.get_product_group_from_market((market).raw.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
+                m.insert("instType".to_string(), self.get_product_group_from_market(market.raw.clone()));
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
@@ -4159,7 +4159,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(entry, &[(market).raw.clone()]);
+        return self.parse_funding_rate(entry, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4234,7 +4234,7 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -4269,7 +4269,7 @@ impl Deepcoin {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(rows, &[(market).raw.clone(), since, limit]);
+        return self.parse_funding_rate_histories(rows, &[market.raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4468,12 +4468,12 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
+        let mut productGroup: Value = self.get_product_group_from_market(market.raw.clone());
         let mut positionId: Option<String> = self.safe_string_k(params.clone(), "positionId", &[]).as_str().map(str::to_owned);
         let mut positionIds: Value = self.safe_list_k(params.clone(), "positionIds", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from(market.id.clone()));
                 m.insert("productGroup".to_string(), productGroup);
             m
         });
@@ -4490,7 +4490,7 @@ impl Deepcoin {
             response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        return self.parse_order(data, &[market.raw.clone()]);
         Value::Null
         }).await?))
     }

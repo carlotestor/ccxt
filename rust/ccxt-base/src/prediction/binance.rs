@@ -1610,7 +1610,7 @@ impl Binance {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
             let mut market: crate::types::Market = (match self.market((outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("marketId".into(), Value::from((market).id.clone()));
+            request.insert("marketId".into(), Value::from(market.id.clone()));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());

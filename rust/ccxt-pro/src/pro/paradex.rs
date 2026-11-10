@@ -695,7 +695,7 @@ impl Paradex {
         let mut messageHash: String = "trades.ALL".to_string();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone()));
+            messageHash = format!("{}{}", Value::Str("trades.".into()), Value::from(market.id.clone()));
         }
         let mut url: Value = self.get_ws_url();
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(messageHash.clone())).as_map().cloned().unwrap_or_default();
@@ -754,7 +754,7 @@ impl Paradex {
             let mut __for_first_585: bool = true;
             while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone())).into())); }
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from(market.id.clone())).into())); }
         }
         }
         let mut url: Value = self.get_ws_url();
@@ -799,13 +799,13 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut channel: String = format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone()));
-        let mut messageHash: String = format!("{}{}", Value::Str("liquidations:".into()), Value::from((market).symbol.clone()));
+        let mut channel: String = format!("{}{}", Value::Str("trades.".into()), Value::from(market.id.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("liquidations:".into()), Value::from(market.symbol.clone()));
         let mut url: Value = self.get_ws_url();
         let mut liquidations: Value = self.subscribe_channels(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = liquidations.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = liquidations.get_limit(Value::from(market.symbol.clone()), limit);
         }
         return self.filter_by_since_limit(liquidations, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -988,8 +988,8 @@ impl Paradex {
             let mut __for_first_586: bool = true;
             while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut deltasChannel: Value = self.get_order_book_channel(Value::from((market).id.clone()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
-            let mut snapshotChannel: Value = self.get_order_book_channel(Value::from((market).id.clone()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
+            let mut deltasChannel: Value = self.get_order_book_channel(Value::from(market.id.clone()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
+            let mut snapshotChannel: Value = self.get_order_book_channel(Value::from(market.id.clone()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -1008,7 +1008,7 @@ impl Paradex {
             }
             let mut channel: Value = (if (isDeltas) { deltasChannel } else { snapshotChannel });
             channels.push(channel);
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone())).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from(market.symbol.clone())).into()));
         }
         }
         let mut orderbook: Value = self.subscribe_channels(url, Value::from(messageHashes), Value::from(channels), &[paramsDeltas]).await;
@@ -1236,8 +1236,8 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("markets_summary.".into()), Value::from((market).symbol.clone()));
-        return self.subscribe_markets_summary(Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[params]).await;
+        let mut messageHash: String = format!("{}{}", Value::Str("markets_summary.".into()), Value::from(market.symbol.clone()));
+        return self.subscribe_markets_summary(Value::from(vec![Value::from(market.symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1502,8 +1502,8 @@ impl Paradex {
                 let mut __for_first_593: bool = true;
                 while { if !__for_first_593 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                channels.push(Value::Str(format!("{}{}", Value::Str("bbo.".into()), Value::from((market).id.clone())).into()));
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into()));
+                channels.push(Value::Str(format!("{}{}", Value::Str("bbo.".into()), Value::from(market.id.clone())).into()));
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from(market.symbol.clone())).into()));
             }
             }
         }  else {
@@ -1615,7 +1615,7 @@ impl Paradex {
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            channel = format!("{}{}", Value::Str("orders.".into()), Value::from((market).id.clone()));
+            channel = format!("{}{}", Value::Str("orders.".into()), Value::from(market.id.clone()));
             messageHash = format!("{}{}", Value::Str("orders:".into()), symbolResolved);
         }
         let mut url: Value = self.get_ws_url();
@@ -1723,7 +1723,7 @@ impl Paradex {
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            channel = format!("{}{}", Value::Str("fills.".into()), Value::from((market).id.clone()));
+            channel = format!("{}{}", Value::Str("fills.".into()), Value::from(market.id.clone()));
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved);
         }
         let mut url: Value = self.get_ws_url();
@@ -2136,9 +2136,9 @@ impl Paradex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // the per-market channel, the all-markets one sends every perpetual's funding
-        let mut channel: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from((market).id.clone()));
+        let mut channel: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from(market.id.clone()));
         let mut url: Value = self.get_ws_url();
-        let mut messageHash: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from(market.symbol.clone()));
         return self.subscribe_channels(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
         Value::Null
         }).await?))
