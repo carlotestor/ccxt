@@ -5415,10 +5415,11 @@ function strLocalReassign(content: string): string {
         safe_string_k: 'safe_string_k_opt',
         safe_string_lower_k: 'safe_string_lower_k_opt',
         safe_string_upper_k: 'safe_string_upper_k_opt',
+        safe_string2: 'safe_string2_opt',
     };
     const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
     const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    const strLitRe = /^Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/;
+    const strLitRe = /^Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/;
     const maskText = (src: string): string => {
         let out = ''; let i = 0;
         while (i < src.length) {
@@ -5504,14 +5505,16 @@ function strLocalReassign(content: string): string {
             if (twin === undefined) return null;
             const base = open + 1;
             const spans = argSpans(masked.slice(base, close - 1));
-            if (spans.length !== 3) return null;
+            const arity = famName === 'safe_string2' ? 4 : 3;
+            if (spans.length !== arity) return null;
             const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
             if (famName.endsWith('_k') && !strKeyRe.test(keyRaw)) return null;
             if (keyRaw.length === 0) return null;
-            const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-            const defMasked = masked.slice(base + spans[2][0], base + spans[2][1]).trim();
+            const defRaw = content.slice(base + spans[arity - 1][0], base + spans[arity - 1][1]).trim();
+            const defMasked = masked.slice(base + spans[arity - 1][0], base + spans[arity - 1][1]).trim();
+            // `_opt` twins return `Some(lit)` for a Str-literal default and `None` for no default.
             if (!(defMasked === '&[]'
-                || /^&\[Value::Str\("\s*"\.into\(\)\)\]$/.test(defMasked))) return null;
+                || /^&\[Value::Str\("[^"\n]*"\.(?:into|to_string)\(\)\)\]$/.test(defMasked))) return null;
             if (defRaw.length === 0) return null;
             const nameAt = open - famName.length;
             return { start: nameAt, end: open, text: twin };
@@ -5541,6 +5544,12 @@ function strLocalReassign(content: string): string {
                     edits.push({ start: rhsStart, end: rhsStart + 'Value::Null'.length, text: 'None' });
                 } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
                     edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
+                } else if (rhsMasked.startsWith('Value::Str(format!(') && rhsMasked.endsWith('.into())')
+                    && closeParen(masked, rhsStart + 'Value::Str(format!'.length) === rhsStart + rhsMasked.length - '.into())'.length) {
+                    // `format!` already builds the `String` the box held.
+                    const fmtEnd = rhsStart + rhsMasked.length - '.into())'.length;
+                    edits.push({ start: rhsStart, end: rhsStart + 'Value::Str('.length, text: 'Some(' });
+                    edits.push({ start: fmtEnd, end: rhsStart + rhsMasked.length, text: ')' });
                 } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
                     const open = rhsStart + call[0].length - 1;
                     const close = closeParen(masked, open);
