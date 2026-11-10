@@ -4092,9 +4092,9 @@ impl Backpack {
             omitKeys.push(Value::Str("clientOrderId".into()));
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[self.omit(query, Value::from(omitKeys), &[])]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             add_element_to_object(&mut paramsPostOnly, &Value::Str("postOnly".into()), Value::Bool(true));
         }
         let mut bracketKeys: Vec<Value> = Vec::new();
@@ -4123,14 +4123,14 @@ impl Backpack {
             bracketKeys.push(Value::Str("stopLoss".into()));
         }
         let selfTradePreventionparamsSelfTradePreventionVariable: Vec<Value> = self.handle_option_string_and_params(self.omit(paramsPostOnly, Value::from(bracketKeys), &[]), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut selfTradePrevention: Value = selfTradePreventionparamsSelfTradePreventionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut selfTradePrevention: Option<String> = selfTradePreventionparamsSelfTradePreventionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSelfTradePrevention: Value = selfTradePreventionparamsSelfTradePreventionVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (selfTradePrevention != Value::Null) {
-            if (selfTradePrevention.as_str() == Some("EXPIRE_MAKER")) {
+        if (selfTradePrevention.is_some()) {
+            if (selfTradePrevention.as_deref() == Some("EXPIRE_MAKER")) {
                 request.insert("selfTradePrevention".into(), Value::Str("RejectMaker".into()));
-            }  else if (selfTradePrevention.as_str() == Some("EXPIRE_TAKER")) {
+            }  else if (selfTradePrevention.as_deref() == Some("EXPIRE_TAKER")) {
                 request.insert("selfTradePrevention".into(), Value::Str("RejectTaker".into()));
-            }  else if (selfTradePrevention.as_str() == Some("EXPIRE_BOTH")) {
+            }  else if (selfTradePrevention.as_deref() == Some("EXPIRE_BOTH")) {
                 request.insert("selfTradePrevention".into(), Value::Str("RejectBoth".into()));
             }
         }

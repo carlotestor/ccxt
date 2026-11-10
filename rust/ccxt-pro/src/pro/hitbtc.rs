@@ -1991,15 +1991,15 @@ impl Hitbtc {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrderWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrderWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         request = self.extend(request.clone(), &[query]);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_order".into()), &[request.clone()]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             return self.trade_request(Value::Str("margin_cancel_order".into()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_cancel_order".into()), &[request]).await;
@@ -2039,14 +2039,14 @@ impl Hitbtc {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelAllOrdersWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_orders".into()), &[paramsMarginMode.clone()]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".into()))));
         }  else {
             return self.trade_request(Value::Str("spot_cancel_orders".into()), &[paramsMarginMode]).await;
@@ -2096,13 +2096,13 @@ impl Hitbtc {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrdersWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrdersWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("swap")) {
+        let mut marginMode: Option<String> = marginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_get_orders".into()), &[Value::Map(request.clone())]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             return self.trade_request(Value::Str("margin_get_orders".into()), &[Value::Map(request.clone())]).await;
         }  else {
             return self.trade_request(Value::Str("spot_get_orders".into()), &[Value::Map(request)]).await;

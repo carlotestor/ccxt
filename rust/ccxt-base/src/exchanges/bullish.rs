@@ -1569,9 +1569,9 @@ impl Bullish {
         }
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             let mut paramsPagination: Value = self.handle_pagination_params(Value::Str("fetchTrades".into()), &[since.clone(), paramsPaginate.clone()]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, maxLimit]).await;
         }
@@ -1639,9 +1639,9 @@ impl Bullish {
             response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await;
         }  else {
             let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 let mut paramsPagination: Value = self.handle_pagination_params(Value::Str("fetchMyTrades".into()), &[since.clone(), paramsPaginate.clone()]);
                 return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
             }
@@ -2004,9 +2004,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2086,9 +2086,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             let mut paramsPagination: Value = self.handle_pagination_params(Value::Str("fetchFundingRateHistory".into()), &[since.clone(), paramsPaginate.clone()]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, maxLimit]).await;
         }
@@ -2196,10 +2196,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("_pageSize".into(), self.get_closest_limit(limit.clone()));
         }
         let methodResolvedparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSinceAndUntil, Value::Str("fetchOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetV2HistoryOrders".into())]).as_array().cloned().unwrap_or_default();
-        let mut methodResolved: Value = methodResolvedparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodResolved: Option<String> = methodResolvedparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodResolvedparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
-        if (methodResolved.as_str() == Some("privateGetV2Orders")) {
+        if (methodResolved.as_deref() == Some("privateGetV2Orders")) {
             //
             //     [
             //         {
@@ -2231,7 +2231,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsMethod.clone()]);
             response = self.private_get_v2_orders(&[__ws_arg_7]).await;
-        }  else if (methodResolved.as_str() == Some("privateGetV2HistoryOrders")) {
+        }  else if (methodResolved.as_deref() == Some("privateGetV2HistoryOrders")) {
             let __ws_arg_8 = self.extend(Value::Map(request), &[paramsMethod]);
             response = self.private_get_v2_history_orders(&[__ws_arg_8]).await;
         }  else {
@@ -2571,10 +2571,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut isMarketOrder: Value = (Value::Bool((type_var.as_str() == Some("market")) || (type_var.as_str() == Some("MARKET"))));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("POST_ONLY")), &[params]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut orderType: Value = type_var;
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             orderType = Value::Str("POST_ONLY".into());
         }
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
@@ -3553,9 +3553,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             let mut paramsPagination: Value = self.handle_pagination_params(Value::Str("fetchTransfers".into()), &[since.clone(), paramsPaginate.clone()]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsPagination, maxLimit]).await;
         }

@@ -1788,11 +1788,11 @@ impl Bingx {
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), type_var.clone(), subType, subscriptionHash.clone(), paramsSubType.clone());
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsFetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let awaitBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut awaitBalanceSnapshot: Value = awaitBalanceSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
-        if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
+        let mut awaitBalanceSnapshot: bool = awaitBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
+        if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1812,8 +1812,8 @@ impl Bingx {
             return;
         }
         let fetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchBalanceSnapshot: Value = fetchBalanceSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
-        if fetchBalanceSnapshot.as_bool() == Some(true) {
+        let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
+        if fetchBalanceSnapshot {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1908,10 +1908,10 @@ impl Bingx {
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), type_var.clone(), &[symbolsNormalized.clone()]);
         let fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchPositionsSnapshot: Value = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchPositionsSnapshot: bool = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsFetchPositionsSnapshot: Value = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let awaitPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut awaitPositionsSnapshot: Value = awaitPositionsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut awaitPositionsSnapshot: bool = awaitPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut uuid: Value = self.uuid(&[]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1919,7 +1919,7 @@ impl Bingx {
                 m.insert("id".to_string(), uuid);
             m
         });
-        if fetchPositionsSnapshot.as_bool() == Some(true) && awaitPositionsSnapshot.as_bool() == Some(true) && (self.positions.clone() == Value::Null) {
+        if fetchPositionsSnapshot && awaitPositionsSnapshot && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }

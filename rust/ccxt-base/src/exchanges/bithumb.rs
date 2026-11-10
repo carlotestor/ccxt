@@ -2450,12 +2450,12 @@ impl Bithumb {
                 // for market buy it requires the amount of quote currency to spend
                 let mut costParam: Value = self.safe_string_k(paramsOrder.clone(), "cost", &[]);
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(self.omit(paramsOrder.clone(), Value::Str("cost".into()), &[]), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-                let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+                let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
                 paramsOrder = paramsRequiresPrice;
                 let mut amountString: Value = self.number_to_string(amount.clone());
                 let mut cost: Value = (if (costParam == Value::Null) { amountString.clone() } else { costParam.clone() });
-                if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+                if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) && (costParam == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }

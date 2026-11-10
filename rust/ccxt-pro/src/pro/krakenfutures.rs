@@ -896,11 +896,11 @@ impl Krakenfutures {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let verboseparamsVerboseVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut verbose: Value = verboseparamsVerboseVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut verbose: bool = verboseparamsVerboseVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsVerbose: Value = verboseparamsVerboseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut name: Value = Value::Str("open_orders".into());
         let mut messageHash: Value = Value::Str("orders".into());
-        if verbose.as_bool() == Some(true) {
+        if verbose {
             name = Value::Str("open_orders_verbose".into());
             messageHash = Value::Str("orders:verbose".into());
         }

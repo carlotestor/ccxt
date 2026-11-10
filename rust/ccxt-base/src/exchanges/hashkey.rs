@@ -2225,9 +2225,9 @@ impl Hashkey {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::from(methodName.clone()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(1000)]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -3533,9 +3533,9 @@ impl Hashkey {
         }
         let mut isMarketOrder: Value = Value::Bool(typeValue.as_str() == Some("MARKET"));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder, Value::Bool(typeValue.as_str() == Some("LIMIT_MAKER")), &[paramsCost]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        if postOnly.as_bool() == Some(true) && (typeValue.as_str() == Some("LIMIT")) {
+        if postOnly && (typeValue.as_str() == Some("LIMIT")) {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }
         let mut clientOrderId: Value = Value::Null;
@@ -3604,10 +3604,10 @@ impl Hashkey {
         let mut timeInForceParam: Value = timeInForceParamparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut timeInForce: Value = timeInForceParam;
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             timeInForce = Value::Str("LIMIT_MAKER".into());
         }
         if (timeInForce != Value::Null) {
@@ -3805,9 +3805,9 @@ impl Hashkey {
             response = self.private_delete_api_v1_spot_order(&[__ws_arg_20]).await;
         }  else if (marketType.as_str() == Some("swap")) {
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if isTrigger.as_bool() == Some(true) {
+            if isTrigger {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }  else {
                 request.insert("type".into(), Value::Str("LIMIT".into()));
@@ -3998,9 +3998,9 @@ impl Hashkey {
             response = self.private_get_api_v1_spot_order(&[__ws_arg_24]).await;
         }  else if (marketType.as_str() == Some("swap")) {
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if isTrigger.as_bool() == Some(true) {
+            if isTrigger {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }
             let __ws_arg_25 = self.extend(Value::Map(request), &[paramsTrigger]);
@@ -4174,9 +4174,9 @@ impl Hashkey {
         });
         let mut isTrigger: Value = Value::Bool(false);
         let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();
-        let mut isTriggerTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isTriggerTrigger: bool = isTriggerTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-        if isTriggerTrigger.as_bool() == Some(true) {
+        if isTriggerTrigger {
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else {
             request.insert("type".into(), Value::Str("LIMIT".into()));
@@ -4282,9 +4282,9 @@ impl Hashkey {
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-            if isTrigger.as_bool() == Some(true) {
+            if isTrigger {
                 request.insert("type".into(), Value::Str("STOP".into()));
             }  else {
                 request.insert("type".into(), Value::Str("LIMIT".into()));

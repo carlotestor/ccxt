@@ -1736,16 +1736,16 @@ impl Hyperliquid {
     m
 })]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsPublicAddress]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled(Value::Str("fetchBalance".into()), &[userAddress.clone().map(Value::from).unwrap_or(Value::Null), shouldRefresh, paramsMarginMode]).await.as_array().cloned().unwrap_or_default();
         let mut isUnifiedEnabled: Value = isUnifiedEnabledparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut dex: Option<String> = self.safe_string_k(paramsValue.clone(), "dex", &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
+        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), (if (isSpot) { Value::Str("spotClearinghouseState".into()) } else { Value::Str("clearinghouseState".into()) }));
@@ -1824,7 +1824,7 @@ impl Hyperliquid {
                 m.insert("total".to_string(), self.safe_number_k(data.clone(), "accountValue", &[]));
             m
         });
-        if (marginMode != Value::Null) && (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.is_some()) && (marginMode.as_deref() == Some("isolated")) {
             usdcBalance.insert("free".into(), self.safe_number_k(response.clone(), "withdrawable", &[]));
         }  else {
             usdcBalance.insert("used".into(), self.safe_number_k(data, "totalMarginUsed", &[]));

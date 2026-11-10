@@ -2182,11 +2182,11 @@ impl Coinbaseinternational {
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isPrivate: Value = Value::Bool(interval.as_str() == Some("raw"));
         let useDepthEndpointparamsDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useDepthEndpoint: bool = useDepthEndpointparamsDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = Value::Str(format!("{}{}", Value::Str(".".into()), interval).into());
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2270,11 +2270,11 @@ impl Coinbaseinternational {
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let useDepthEndpointparamsDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useDepthEndpoint: bool = useDepthEndpointparamsDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = Value::Str(format!("{}{}", Value::Str(".".into()), interval).into());
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);

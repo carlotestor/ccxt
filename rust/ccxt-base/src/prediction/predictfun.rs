@@ -2648,11 +2648,11 @@ impl Predictfun {
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
         let warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("warnOnMarketOrderWithoutPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut warnOnMarketOrderWithoutPrice: Value = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut warnOnMarketOrderWithoutPrice: bool = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsWarnOnMarketOrderWithoutPrice: Value = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(1).cloned().unwrap_or(Value::Null);
         if (price == Value::Null) {
             // a priceless limit order already threw above, so this is a market order
-            if warnOnMarketOrderWithoutPrice.as_bool() == Some(true) {
+            if warnOnMarketOrderWithoutPrice {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options".into()))));
             }
             // it still has to name a price, so it takes the aggressive end of the range the venue

@@ -529,9 +529,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut privateAccess: bool = access.as_str() == Some("private");
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodName, &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: bool = type_var.as_str() != Some("spot");
+        let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name).into()); // call back ID
         let mut subscribe: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
@@ -612,9 +612,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut privateAccess: bool = access.as_str() == Some("private");
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodName, &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: bool = type_var.as_str() != Some("spot");
+        let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name).into()); // call back ID
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

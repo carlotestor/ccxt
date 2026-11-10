@@ -447,9 +447,9 @@ impl Kraken {
         }
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[params]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             orderParams.insert("post_only".into(), Value::Bool(true));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsPostOnly.clone(), "clientOrderId", &[]);

@@ -9274,7 +9274,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
         let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_string_and_params(paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
-        let mut paginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginationDirection: Option<String> = paginationDirectionparamsPaginationDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paginationTimestamp: Value = Value::Null;
         let mut result: Value = Value::from(vec![]);
@@ -9283,7 +9283,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationDirection]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (paginationDirection.as_str() == Some("forward")) {
+        if (paginationDirection.as_deref() == Some("forward")) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" pagination requires a since argument when paginationDirection set to forward".into()))));
             }
@@ -9295,7 +9295,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) } {
             {
-                if (paginationDirection.as_str() == Some("backward")) {
+                if (paginationDirection.as_deref() == Some("backward")) {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (paginationTimestamp != Value::Null) {

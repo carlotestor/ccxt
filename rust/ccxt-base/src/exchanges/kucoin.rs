@@ -3333,10 +3333,10 @@ impl Kucoin {
     m
 }));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("margin")) {
+        if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("margin")) {
             //
             //    {
             //        "code": "200000",
@@ -3384,13 +3384,13 @@ impl Kucoin {
 }));
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchStatus".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchStatus".into()), &[Value::Null, paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]).as_str().map(str::to_owned);
             let mut defaultTradeType: String = "FUTURES".to_string();
             if (defaultType.as_deref() == Some("spot")) {
@@ -3404,7 +3404,7 @@ impl Kucoin {
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
             response = self.uta_get_server_status(&[__ws_arg_0]).await;
-        }  else if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("margin")) {
+        }  else if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("margin")) {
             response = self.futures_public_get_status(&[paramsMarketType.clone()]).await;
         }  else {
             response = self.public_get_status(&[paramsMarketType]).await;
@@ -4164,10 +4164,10 @@ impl Kucoin {
             uta = self.is_uta_enabled(&[]).await;
         }
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCurrencies".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             response = self.uta_get_asset_currencies(&[paramsUta.clone()]).await;
         }  else {
             //
@@ -4311,11 +4311,11 @@ impl Kucoin {
 }));
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchAccounts".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             let __ws_arg_3 = self.extend(paramsUta.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("accountMode".to_string(), Value::Str("unified".into()));
@@ -4987,7 +4987,7 @@ impl Kucoin {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTickers".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut tradeType: Option<String> = self.safe_string_k(paramsUta.clone(), "tradeType", &[]).as_str().map(str::to_owned);
         let mut firstMarket: Value = Value::Null;
@@ -5001,7 +5001,7 @@ impl Kucoin {
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (tradeType.is_some()) || utaOption.as_bool() == Some(true) {
+        if (tradeType.is_some()) || utaOption {
             if (tradeType.is_none()) {
                 request.insert("tradeType".into(), self.type_to_trade_type(type_var.clone()).map(Value::from).unwrap_or(Value::Null));
             }
@@ -5051,10 +5051,10 @@ impl Kucoin {
     m
 }));
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[Value::Str("futuresPublicGetContractsActive".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("futuresPublicGetAllTickers")) {
+        if (method.as_deref() == Some("futuresPublicGetAllTickers")) {
             response = self.futures_public_get_all_tickers(&[paramsMethod.clone()]).await;
         }  else {
             response = self.futures_public_get_contracts_active(&[paramsMethod]).await;
@@ -5193,14 +5193,14 @@ impl Kucoin {
         });
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTicker".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         let mut result: Value = Value::Null;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), &[market.clone(), paramsUta]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             request.insert("tradeType".into(), self.type_to_trade_type(type_var).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.uta_get_market_ticker(&[__ws_arg_7]).await;
@@ -5457,9 +5457,9 @@ impl Kucoin {
         }
         let mut maxLimit: Value = Value::Int(1500);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchUTAOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -5492,9 +5492,9 @@ impl Kucoin {
         }
         request.insert("endAt".into(), self.parse_to_int(((match ((endAt).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOHLCV".into()), &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             request.insert("tradeType".into(), Value::Str("SPOT".into()));
         }  else {
             request.insert("tradeType".into(), Value::Str("FUTURES".into()));
@@ -5575,9 +5575,9 @@ impl Kucoin {
         }
         let mut maxLimit: Value = Value::Int(1500);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchSpotOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -5659,9 +5659,9 @@ impl Kucoin {
         }
         let mut maxLimit: Value = Value::Int(200);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchContractOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -6088,13 +6088,13 @@ impl Kucoin {
         let mut isAuthenticated: Value = self.check_required_credentials(&[Value::Bool(false)]);
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[market.clone(), paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
             if (limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) {
                 request.insert("limit".into(), Value::Str("FULL".into()));
@@ -6102,14 +6102,14 @@ impl Kucoin {
                 request.insert("limit".into(), limit.clone());
             }
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+            if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
                 request.insert("tradeType".into(), Value::Str("SPOT".into()));
             }  else {
                 request.insert("tradeType".into(), Value::Str("FUTURES".into()));
             }
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.uta_v2_get_market_orderbook(&[__ws_arg_21]).await;
-        }  else if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("margin")) {
+        }  else if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("margin")) {
             if (level.as_f64() != Some(2.0)) && (level != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() can only return level 2".into()))));
             }
@@ -6272,9 +6272,9 @@ impl Kucoin {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             return self.create_uta_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsUta.clone()]).await;
         }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.create_spot_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsUta.clone()]).await;
@@ -6347,7 +6347,7 @@ impl Kucoin {
         let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(paramsHf, Value::Str("createOrder".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useSync: Value = useSyncparamsSyncVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSync: Value = useSyncparamsSyncVariable.get(1).cloned().unwrap_or(Value::Null);
         self.check_trigger_prices(paramsSync.clone());
         let mut triggerPrice: Option<f64> = self.safe_number2_opt(paramsSync.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -6377,7 +6377,7 @@ impl Kucoin {
             }
         }  else if isMarginOrder {
             response = self.private_post_hf_margin_order(&[orderRequest.clone()]).await;
-        }  else if useSync.as_bool() == Some(true) {
+        }  else if useSync {
             response = self.private_post_hf_orders_sync(&[orderRequest.clone()]).await;
         }  else if (hf.as_bool() == Some(true)) {
             response = self.private_post_hf_orders(&[orderRequest.clone()]).await;
@@ -7196,10 +7196,10 @@ impl Kucoin {
         let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(paramsHf, Value::Str("createOrders".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useSync: Value = useSyncparamsSyncVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSync: Value = useSyncparamsSyncVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if useSync.as_bool() == Some(true) {
+        if useSync {
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsSync.clone()]);
             response = self.private_post_hf_orders_multi_sync(&[__ws_arg_28]).await;
         }  else if (hf.as_bool() == Some(true)) {
@@ -7440,9 +7440,9 @@ impl Kucoin {
         }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelOrder".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             return self.cancel_uta_order(id.clone(), &[symbol.clone(), paramsUta.clone()]).await;
         }
         let mut market: Value = Value::Null;
@@ -7450,9 +7450,9 @@ impl Kucoin {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market, paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
+        if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             return crate::types::IntoRaw::into_raw(self.cancel_spot_order(id.as_str().unwrap_or_default(), symbol.as_str(), paramsMarketType.clone()).await);
         }  else {
             return crate::types::IntoRaw::into_raw(self.cancel_contract_order(id.as_str().unwrap_or_default(), symbol.as_str(), paramsMarketType).await);
@@ -7509,14 +7509,14 @@ impl Kucoin {
         let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(paramsHf, Value::Str("cancelOrder".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useSync: Value = useSyncparamsSyncVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSync: Value = useSyncparamsSyncVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[paramsSync]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut tradeType: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
-        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
-        if (hf.as_bool() == Some(true)) || useSync.as_bool() == Some(true) || isMarginOrder {
+        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
+        if (hf.as_bool() == Some(true)) || useSync || isMarginOrder {
             if !(trigger) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol parameter for hf orders".into()))));
@@ -7558,7 +7558,7 @@ impl Kucoin {
             }  else if isMarginOrder {
                 let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_delete_hf_margin_orders_client_order_client_oid(&[__ws_arg_34]).await;
-            }  else if useSync.as_bool() == Some(true) {
+            }  else if useSync {
                 let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_delete_hf_orders_sync_client_order_client_oid(&[__ws_arg_35]).await;
             }  else if (hf.as_bool() == Some(true)) {
@@ -7589,7 +7589,7 @@ impl Kucoin {
             }  else if isMarginOrder {
                 let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_delete_hf_margin_orders_order_id(&[__ws_arg_40]).await;
-            }  else if useSync.as_bool() == Some(true) {
+            }  else if useSync {
                 let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_delete_hf_orders_sync_order_id(&[__ws_arg_41]).await;
             }  else if (hf.as_bool() == Some(true)) {
@@ -7794,9 +7794,9 @@ impl Kucoin {
         }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelAllOrders".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             return self.cancel_all_uta_orders(&[symbol.clone(), paramsUta.clone()]).await;
         }
         let mut market: Value = Value::Null;
@@ -7804,9 +7804,9 @@ impl Kucoin {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market, paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
+        if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             return crate::types::IntoRaw::into_raw(self.cancel_all_spot_orders(symbol.as_str(), paramsMarketType.clone()).await);
         }  else {
             return crate::types::IntoRaw::into_raw(self.cancel_all_contract_orders(symbol.as_str(), paramsMarketType).await);
@@ -8277,9 +8277,9 @@ impl Kucoin {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut trigger: Option<bool> = self.safe_bool2_opt(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
@@ -8412,9 +8412,9 @@ impl Kucoin {
         }
         let mut maxLimit: Value = Value::Int(200);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), maxLimit]).await;
         }
         let mut accountMode: String = "unified".to_string();
@@ -8568,9 +8568,9 @@ impl Kucoin {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         return self.fetch_orders_by_status(Value::Str("done".into()), &[symbol, since, limit, paramsPaginate]).await;
@@ -8622,9 +8622,9 @@ impl Kucoin {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         return self.fetch_orders_by_status(Value::Str("active".into()), &[symbol, since, limit, paramsPaginate]).await;
@@ -8740,9 +8740,9 @@ impl Kucoin {
         let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[paramsHf]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isMarginOrder: bool = marginMode != Value::Null;
+        let mut isMarginOrder: bool = marginMode.is_some();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -9813,9 +9813,9 @@ impl Kucoin {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -9913,9 +9913,9 @@ impl Kucoin {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsRequestVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsRequestVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsRequest: Value = paginateparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }
         let mut marketType: Option<String> = self.safe_string_k(paramsRequest.clone(), "marketType", &[]).as_str().map(str::to_owned);
@@ -10038,15 +10038,15 @@ impl Kucoin {
         // }
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         let mut trades: Value = Value::Null;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTrades".into()), &[market.clone(), paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
-            if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        if utaOption {
+            if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
                 request.insert("tradeType".into(), Value::Str("SPOT".into()));
             }  else {
                 request.insert("tradeType".into(), Value::Str("FUTURES".into()));
@@ -10076,7 +10076,7 @@ impl Kucoin {
     m
 })]);
             trades = self.safe_list_k(data, "list", &[Value::from(vec![])]);
-        }  else if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        }  else if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             let __ws_arg_88 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.public_get_market_histories(&[__ws_arg_88]).await;
             //
@@ -10511,7 +10511,7 @@ impl Kucoin {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTradingFee".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -10519,7 +10519,7 @@ impl Kucoin {
         });
         let mut response: Value = Value::Null;
         let mut entry: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("tradeType".into(), Value::Str("SPOT".into()));
             }  else {
@@ -10656,9 +10656,9 @@ impl Kucoin {
             request.insert("amount".into(), (match &amountString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         let includeFeeparamsIncludeFeeVariable: Vec<Value> = self.handle_option_bool_and_params(paramsNetworkCode, Value::Str("withdraw".into()), Value::Str("includeFee".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut includeFee: Value = includeFeeparamsIncludeFeeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut includeFee: bool = includeFeeparamsIncludeFeeVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsIncludeFee: Value = includeFeeparamsIncludeFeeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if includeFee.as_bool() == Some(true) {
+        if includeFee {
             request.insert("feeDeductType".into(), Value::Str("INTERNAL".into()));
         }
         let __ws_arg_93 = self.extend(Value::Map(request), &[paramsIncludeFee]);
@@ -11296,9 +11296,9 @@ impl Kucoin {
         }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             return self.fetch_uta_balance(&[paramsUta.clone()]).await;
         }
         let mut response: Value = Value::Null;
@@ -11330,10 +11330,10 @@ impl Kucoin {
             type_var = Value::Str("trade_hf".into());
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsHf]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isolated: bool = (marginMode.as_str() == Some("isolated")) || (type_var.as_str() == Some("isolated"));
-        let mut cross: bool = (marginMode.as_str() == Some("cross")) || (type_var.as_str() == Some("margin"));
+        let mut isolated: bool = (marginMode.as_deref() == Some("isolated")) || (type_var.as_str() == Some("isolated"));
+        let mut cross: bool = (marginMode.as_deref() == Some("cross")) || (type_var.as_str() == Some("margin"));
         if isolated {
             if (currency != Value::Null) {
                 request.insert("balanceCurrency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -11791,9 +11791,9 @@ impl Kucoin {
         }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("transfer".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             return self.transfer_uta(code.clone(), amount.clone(), fromAccount.clone(), toAccount.clone(), &[paramsUta.clone()]).await;
         }
         return self.transfer_classic(code, amount, fromAccount, toAccount, &[paramsUta]).await;
@@ -12676,7 +12676,7 @@ if _try_result.is_err() {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBorrowInterest".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -12685,7 +12685,7 @@ if _try_result.is_err() {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 request.insert("balanceCurrency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }  else {
                 request.insert("quoteCurrency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -12696,7 +12696,7 @@ if _try_result.is_err() {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let mut response: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             let __ws_arg_115 = self.extend(Value::Map(request.clone()), &[paramsMarginMode.clone()]);
             response = self.private_get_isolated_accounts(&[__ws_arg_115]).await;
         }  else {
@@ -12772,7 +12772,7 @@ if _try_result.is_err() {
     m
 })]);
         let mut assets: Value = Value::Null;
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             assets = self.safe_list_k(data.clone(), "assets", &[Value::from(vec![])]);
         }  else {
             assets = self.safe_list_k(data, "accounts", &[Value::from(vec![])]);
@@ -13636,9 +13636,9 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marginMode != Value::Null) && (marginMode.as_str() != Some("cross")) {
+        if (marginMode.is_some()) && (marginMode.as_deref() != Some("cross")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -13653,10 +13653,10 @@ if _try_result.is_err() {
         });
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarginMode, Value::Str("setLeverage".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             request.insert("accountMode".into(), Value::Str("unified".into()));
             let __ws_arg_128 = self.extend(Value::Map(request.clone()), &[paramsUta.clone()]);
             response = self.uta_private_post_account_mode_account_modify_leverage(&[__ws_arg_128]).await;
@@ -13748,10 +13748,10 @@ if _try_result.is_err() {
         });
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRate".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             //
             //     {
             //         "code": "200000",
@@ -13975,7 +13975,7 @@ if _try_result.is_err() {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsOmitted: Value = self.omit(paramsUta, Value::Str("until".into()), &[]);
         let mut start: Value = since.clone();
@@ -13988,7 +13988,7 @@ if _try_result.is_err() {
         }
         let mut response: Value = Value::Null;
         let mut resultKey: String = "data".to_string();
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             request.insert("startAt".into(), start.clone());
             request.insert("endAt".into(), end.clone());
             //
@@ -14240,11 +14240,11 @@ if _try_result.is_err() {
         });
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPosition".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         let mut position: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             request.insert("accountMode".into(), Value::Str("unified".into()));
             let __ws_arg_136 = self.extend(Value::Map(request.clone()), &[paramsUta.clone()]);
             response = self.uta_private_get_account_mode_position_open_list(&[__ws_arg_136]).await;
@@ -14363,10 +14363,10 @@ if _try_result.is_err() {
         }
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositions".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             let __ws_arg_138 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("accountMode".to_string(), Value::Str("unified".into()));
@@ -15391,9 +15391,9 @@ if _try_result.is_err() {
         }
         let mut uta: Value = Value::Bool(false);
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMarketLeverageTiers".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
-        let mut utaOption: Value = utaOptionparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        if utaOption.as_bool() == Some(true) {
+        if utaOption {
             let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_leverage_tiers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), paramsUta.clone()).await);
             let mut tiers: Value = self.safe_list(result, symbol, &[Value::from(vec![])]);
             return tiers;
@@ -15726,9 +15726,9 @@ if _try_result.is_err() {
         let mut maxLimit: Value = Value::Int(200);
         let mut paginate: Value = Value::Bool(false);
         let paginateOptionparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[paginate]).as_array().cloned().unwrap_or_default();
-        let mut paginateOption: Value = paginateOptionparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginateOption: bool = paginateOptionparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateOptionparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginateOption.as_bool() == Some(true) {
+        if paginateOption {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol, since.clone(), limit.clone(), timeframe, paramsPaginate.clone(), maxLimit]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -15996,9 +15996,9 @@ if _try_result.is_err() {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsRequestVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsRequestVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsRequest: Value = paginateparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }
         let mut request: Value = Value::Map({

@@ -1381,9 +1381,9 @@ impl Binance {
         let mut paramsRate: Value = watchOrderBookRateOptionparamsRateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut watchOrderBookRate: Value = watchOrderBookRateOption;
         let rpiparamsRpiVariable: Vec<Value> = self.handle_option_bool_and_params(paramsRate, Value::Str("watchOrderBookForSymbols".into()), Value::Str("rpi".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut rpi: Value = rpiparamsRpiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut rpi: bool = rpiparamsRpiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsRpi: Value = rpiparamsRpiVariable.get(1).cloned().unwrap_or(Value::Null);
-        if rpi.as_bool() == Some(true) && (type_var.as_str() == Some("linear")) {
+        if rpi && (type_var.as_str() == Some("linear")) {
             name = Value::Str("rpiDepth".into());
             watchOrderBookRate = Value::Str("500".into());
         }
@@ -2584,9 +2584,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCVForSymbols".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        if stock.as_bool() == Some(true) {
+        if stock {
             let mut stockStreams: Vec<Value> = Vec::new();
             let mut stockMessageHashes: Vec<Value> = Vec::new();
             {
@@ -3283,10 +3283,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     m
 }));
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchTickers".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut symbolsNormalized: Value = symbols.clone();
-        if stock.as_bool() == Some(true) {
+        if stock {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() with stock stream requires symbols".into()))));
             }
@@ -3495,9 +3495,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        if stock.as_bool() == Some(true) {
+        if stock {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks() with stock stream requires symbols".into()))));
             }
@@ -4379,7 +4379,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = resolvedAuth.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAuth: Value = resolvedAuth.get(2).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsAuth, Value::Str("authenticate".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null);
         // For spot use WebSocket API signature subscription
         if (type_var.as_str() == Some("spot")) {
@@ -4387,9 +4387,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("authenticate".into()), &[paramsPortfolioMargin]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isIsolatedMargin: bool = marginMode.as_str() == Some("isolated");
+        let mut isIsolatedMargin: bool = marginMode.as_deref() == Some("isolated");
         let mut symbol: Option<String> = self.safe_string_k_opt(paramsMarginMode.clone(), "symbol", &[]);
         // For margin use WebSocket API listenToken subscription
         if (type_var.as_str() == Some("margin")) || isIsolatedMargin {
@@ -4445,7 +4445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if isStock {
                     let mut requestParams: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]);
                     response = self.parent.sapi_post_equity_listen_key(&[requestParams]).await;
-                }  else if isPortfolioMargin.as_bool() == Some(true) {
+                }  else if isPortfolioMargin {
                     response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await;
                 }  else if (type_var.as_str() == Some("linear")) {
                     response = self.parent.fapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
@@ -4476,7 +4476,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("defaultType".to_string(), Value::Str("stock".into()));
                         m
                     })]);
-                }  else if isPortfolioMargin.as_bool() == Some(true) {
+                }  else if isPortfolioMargin {
                     delayParams = self.extend(paramsOmitted, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("portfolioMargin".to_string(), Value::Bool(true));
@@ -4509,7 +4509,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("authenticate".into()), &[Value::Str("spot".into())]);
         type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("keepAliveListenKey".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subType: Value = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), &[Value::Null, paramsPortfolioMargin.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
@@ -4551,7 +4551,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // POST extends the validity of that same key
                 let mut requestParams: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("subType".into()), Value::Str("timeframe".into())]), &[]);
                 self.parent.sapi_post_equity_listen_key(&[requestParams]).await;
-            }  else if isPortfolioMargin.as_bool() == Some(true) {
+            }  else if isPortfolioMargin {
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 self.parent.papi_put_listen_key(&[__ws_arg_15]).await;
             }  else if (type_var.as_str() == Some("linear")) {
@@ -4577,7 +4577,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 url = self.get_stock_ws_url(&[Value::Str("user".into())]);
             }  else {
                 let mut urlType: Value = type_var.clone();
-                if isPortfolioMargin.as_bool() == Some(true) {
+                if isPortfolioMargin {
                     urlType = Value::Str("papi".into());
                 }
                 if (type_var.as_str() == Some("option")) {
@@ -4629,7 +4629,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("type".to_string(), Value::Str("stock".into()));
                 m
             })]);
-        }  else if isPortfolioMargin.as_bool() == Some(true) {
+        }  else if isPortfolioMargin {
             delayParams = self.extend(paramsOmitted, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("portfolioMargin".to_string(), Value::Bool(true));
@@ -6239,9 +6239,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        if stock.as_bool() == Some(true) {
+        if stock {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely
             let __ws_arg_32 = self.extend(paramsStock.clone(), &[Value::Map({
@@ -6306,10 +6306,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         })]); // needed inside authenticate for isolated margin
         self.authenticate(&[paramsExtended.clone()]).await;
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsExtended]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut urlType: Value = type_var.clone();
-        if (type_var.as_str() == Some("margin")) || ((type_var.as_str() == Some("spot")) && (marginMode != Value::Null)) {
+        if (type_var.as_str() == Some("margin")) || ((type_var.as_str() == Some("spot")) && (marginMode.is_some())) {
             urlType = Value::Str("spot".into()); // spot-margin shares the same stream as regular spot
         }
         let mut isPortfolioMargin: Value = self.handle_option_bool_and_params2(paramsMarginMode, Value::Str("watchOrders".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

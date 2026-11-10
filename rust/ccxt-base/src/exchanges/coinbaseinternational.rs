@@ -1664,9 +1664,9 @@ impl Coinbaseinternational {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(10000)]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -1782,9 +1782,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until".into()))));
             }
             paramsPaginate = paramsFinal;
@@ -4025,9 +4025,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support pagination".into()))));
             }
             paramsPaginate = paramsFinal;
@@ -4119,9 +4119,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters".into()))));
             }
             paramsPaginate = paramsFinal;

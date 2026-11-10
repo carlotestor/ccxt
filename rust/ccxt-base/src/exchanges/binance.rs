@@ -9153,9 +9153,9 @@ impl Binance {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(1000)]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -9598,9 +9598,9 @@ impl Binance {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -10042,12 +10042,12 @@ impl Binance {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("editContractOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.edit_contract_order_request(id.clone(), symbol, type_var, side, amount, &[price, paramsPapi.clone()]);
         let mut response: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_50 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.papi_put_um_order(&[__ws_arg_50]).await;
             }  else {
@@ -10055,7 +10055,7 @@ impl Binance {
                 response = self.fapi_private_put_order(&[__ws_arg_51]).await;
             }
         }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_52 = self.extend(request.clone(), &[paramsPapi.clone()]);
                 response = self.papi_put_cm_order(&[__ws_arg_52]).await;
             }  else {
@@ -11429,14 +11429,14 @@ impl Binance {
         let mut isPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsPapiVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsPortfolioMargin]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsPapiVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPapi: Value = marginModeparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         // keys dropped from the request params, extended below as the order shape is resolved
         let mut omitKeys: Vec<Value> = vec![Value::Str("type".into()), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("trailingTriggerPrice".into()),
             Value::Str("activationPrice".into()), Value::Str("trailingPercent".into()), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), Value::Str("test".into()), Value::Str("hedged".into()), Value::Str("icebergAmount".into())];
         let mut reduceOnly: bool = self.safe_bool_k_opt(paramsPapi.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         if reduceOnly {
-            if (marketType.as_deref() == Some("margin")) || ((!matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true))) && (marginMode != Value::Null)) {
+            if (marketType.as_deref() == Some("margin")) || ((!matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true))) && (marginMode.is_some())) {
                 omitKeys.push(Value::Str("reduceOnly".into()));
                 request.insert("sideEffectType".into(), Value::Str("AUTO_REPAY".into()));
             }
@@ -11558,7 +11558,7 @@ impl Binance {
                 if postOnly.as_bool() == Some(true) {
                     uppercaseType = Value::Str("LIMIT_MAKER".into());
                 }
-                if (marginMode.as_str() == Some("isolated")) {
+                if (marginMode.as_deref() == Some("isolated")) {
                     request.insert("isIsolated".into(), Value::Bool(true));
                 }
             }
@@ -13971,9 +13971,9 @@ impl Binance {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchDeposits".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut currency: Value = Value::Null;
@@ -15184,7 +15184,7 @@ impl Binance {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchTradingFee".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isLinear: Value = self.is_linear(type_var.clone(), &[subType.clone()]);
         let mut isInverse: Value = self.is_inverse(type_var, &[subType]);
@@ -15195,7 +15195,7 @@ impl Binance {
         });
         let mut response: Value = Value::Null;
         if isLinear.as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_149 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_get_um_commission_rate(&[__ws_arg_149]).await;
             }  else {
@@ -15203,7 +15203,7 @@ impl Binance {
                 response = self.fapi_private_get_commission_rate(&[__ws_arg_150]).await;
             }
         }  else if isInverse.as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_151 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_get_cm_commission_rate(&[__ws_arg_151]).await;
             }  else {
@@ -15607,9 +15607,9 @@ impl Binance {
             m
         });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
         }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]);
@@ -16475,17 +16475,17 @@ impl Binance {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchLeverageTiers".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_get_um_leverage_bracket(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.fapi_private_get_leverage_bracket(&[paramsPapi.clone()]).await;
             }
         }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_get_cm_leverage_bracket(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.dapi_private_v2_get_leverage_bracket(&[paramsPapi]).await;
@@ -16826,24 +16826,24 @@ impl Binance {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchAccountPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_v2_get_um_account(&[paramsPapi.clone()]).await;
             }  else {
                 let useV2paramsUseV2Variable: Vec<Value> = self.handle_option_bool_and_params(paramsPapi.clone(), Value::Str("fetchAccountPositions".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-                let mut useV2: Value = useV2paramsUseV2Variable.get(0).cloned().unwrap_or(Value::Null);
+                let mut useV2: bool = useV2paramsUseV2Variable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsUseV2: Value = useV2paramsUseV2Variable.get(1).cloned().unwrap_or(Value::Null);
-                if !(useV2.as_bool() == Some(true)) {
+                if !useV2 {
                     response = self.fapi_private_v3_get_account(&[paramsUseV2.clone()]).await;
                 }  else {
                     response = self.fapi_private_v2_get_account(&[paramsUseV2]).await;
                 }
             }
         }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_get_cm_account(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.dapi_private_get_account(&[paramsPapi.clone()]).await;
@@ -17090,7 +17090,7 @@ impl Binance {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchFundingHistory".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPapi, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -17106,7 +17106,7 @@ impl Binance {
         let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("type".into()), &[]);
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_165 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.papi_get_um_income(&[__ws_arg_165]).await;
             }  else {
@@ -17114,7 +17114,7 @@ impl Binance {
                 response = self.fapi_private_get_income(&[__ws_arg_166]).await;
             }
         }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_167 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
                 response = self.papi_get_cm_income(&[__ws_arg_167]).await;
             }  else {
@@ -17174,11 +17174,11 @@ impl Binance {
             m
         });
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("setLeverage".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_169 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_um_leverage(&[__ws_arg_169]).await;
             }  else {
@@ -17186,7 +17186,7 @@ impl Binance {
                 response = self.fapi_private_post_leverage(&[__ws_arg_170]).await;
             }
         }  else if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_171 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_cm_leverage(&[__ws_arg_171]).await;
             }  else {
@@ -17328,7 +17328,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("setPositionMode".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut dualSidePosition: Value = Value::Null;
         if hedged.as_bool() == Some(true) {
@@ -17343,7 +17343,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut response: Value = Value::Null;
         if self.is_inverse(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_175 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_cm_position_side_dual(&[__ws_arg_175]).await;
             }  else {
@@ -17351,7 +17351,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = self.dapi_private_post_position_side_dual(&[__ws_arg_176]).await;
             }
         }  else if self.is_linear(type_var, &[subType]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 let __ws_arg_177 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
                 response = self.papi_post_um_position_side_dual(&[__ws_arg_177]).await;
             }  else {
@@ -17410,17 +17410,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchLeverages".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_get_um_account(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.fapi_private_get_symbol_config(&[paramsPapi.clone()]).await;
             }
         }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin {
                 response = self.papi_get_cm_account(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.dapi_private_get_account(&[paramsPapi]).await;
@@ -17498,9 +17498,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())) });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchSettlementHistory".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var.as_str() != Some("option")) {
+        if (type_var.as_deref() != Some("option")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchSettlementHistory() supports option markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -17561,9 +17561,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())) });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMySettlementHistory".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var.as_str() != Some("option")) {
+        if (type_var.as_deref() != Some("option")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMySettlementHistory() supports option markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -17729,9 +17729,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedgerEntry".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var.as_str() != Some("option")) {
+        if (type_var.as_deref() != Some("option")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLedgerEntry() can only be used for type option".into()))));
         }
         self.check_required_argument(Value::Str("fetchLedgerEntry".into()), code.clone(), Value::Str("code".into()), &[]);
@@ -18880,7 +18880,7 @@ if _try_result.is_err() {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("fetchBorrowInterest".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -18901,7 +18901,7 @@ if _try_result.is_err() {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if isPortfolioMargin.as_bool() == Some(true) {
+        if isPortfolioMargin {
             let __ws_arg_198 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.papi_get_margin_margin_interest_history(&[__ws_arg_198]).await;
         }  else {
@@ -19123,9 +19123,9 @@ if _try_result.is_err() {
         });
         let mut response: Value = Value::Null;
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("borrowCrossMargin".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
-        if isPortfolioMargin.as_bool() == Some(true) {
+        if isPortfolioMargin {
             let __ws_arg_204 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
             response = self.papi_post_margin_loan(&[__ws_arg_204]).await;
         }  else {
@@ -19255,9 +19255,9 @@ if _try_result.is_err() {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(500)]).await;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -19471,9 +19471,9 @@ if _try_result.is_err() {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyLiquidations".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_incremental(Value::Str("fetchMyLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("current".into()), Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
@@ -19481,19 +19481,19 @@ if _try_result.is_err() {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyLiquidations".into()), &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMyLiquidations".into()), &[market.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchMyLiquidations".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (type_var.as_str() != Some("spot")) {
+        if (type_var.as_deref() != Some("spot")) {
             request.insert("autoCloseType".into(), Value::Str("LIQUIDATION".into()));
         }
         if (market != Value::Null) {
@@ -19501,7 +19501,7 @@ if _try_result.is_err() {
             if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 symbolKey = "isolatedSymbol".to_string();
             }
-            if !(isPortfolioMargin.as_bool() == Some(true)) {
+            if !isPortfolioMargin {
                 request.insert(symbolKey.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
@@ -19509,7 +19509,7 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 request.insert("size".into(), limit.clone());
             }  else {
                 request.insert("limit".into(), limit.clone());
@@ -19519,24 +19519,24 @@ if _try_result.is_err() {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("spot")) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+        if (type_var.as_deref() == Some("spot")) {
+            if isPortfolioMargin {
                 let __ws_arg_212 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
                 response = self.papi_get_margin_force_orders(&[__ws_arg_212]).await;
             }  else {
                 let __ws_arg_213 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
                 response = self.sapi_get_margin_force_liquidation_rec(&[__ws_arg_213]).await;
             }
-        }  else if (subType.as_str() == Some("linear")) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+        }  else if (subType.as_deref() == Some("linear")) {
+            if isPortfolioMargin {
                 let __ws_arg_214 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
                 response = self.papi_get_um_force_orders(&[__ws_arg_214]).await;
             }  else {
                 let __ws_arg_215 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
                 response = self.fapi_private_get_force_orders(&[__ws_arg_215]).await;
             }
-        }  else if (subType.as_str() == Some("inverse")) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+        }  else if (subType.as_deref() == Some("inverse")) {
+            if isPortfolioMargin {
                 let __ws_arg_216 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
                 response = self.papi_get_cm_force_orders(&[__ws_arg_216]).await;
             }  else {
@@ -19914,12 +19914,12 @@ if _try_result.is_err() {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionMode".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         // we still have two working endpoints but positionMode is common for linear and inverse markets
         // thus we do not throw an error if the subType is not specified and default to linear for now
-        if (subType.as_str() == Some("inverse")) {
+        if (subType.as_deref() == Some("inverse")) {
             response = self.dapi_private_get_position_side_dual(&[paramsSubType.clone()]).await;
         }  else {
             response = self.fapi_private_get_position_side_dual(&[paramsSubType]).await;
@@ -19971,12 +19971,12 @@ if _try_result.is_err() {
             market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMarginMode".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             response = self.fapi_private_get_symbol_config(&[paramsSubType.clone()]).await;
-        }  else if (subType.as_str() == Some("inverse")) {
+        }  else if (subType.as_deref() == Some("inverse")) {
             response = self.dapi_private_get_account(&[paramsSubType]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginModes () supports linear and inverse subTypes only".into()))));
@@ -20017,10 +20017,10 @@ if _try_result.is_err() {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMarginMode".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -20028,7 +20028,7 @@ if _try_result.is_err() {
             });
             let __ws_arg_220 = self.extend(Value::Map(request), &[paramsSubType.clone()]);
             response = self.fapi_private_get_symbol_config(&[__ws_arg_220]).await;
-        }  else if (subType.as_str() == Some("inverse")) {
+        }  else if (subType.as_deref() == Some("inverse")) {
             let mut fetchMarginModesResponse: Value = crate::types::IntoRaw::into_raw(self.fetch_margin_modes((Value::from(vec![symbol.clone()])).to_opt_str_vec(), paramsSubType).await);
             let mut marginMode: Value = self.safe_dict(fetchMarginModesResponse, symbol, &[]);
             return marginMode;
@@ -20818,14 +20818,14 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchLongShortRatioHistory".into()), &[market.clone(), paramsUntil]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_231 = self.extend(requestUntil.clone(), &[paramsSubType.clone()]);
             response = self.fapi_data_get_global_long_short_account_ratio(&[__ws_arg_231]).await;
-        }  else if (subType.as_str() == Some("inverse")) {
+        }  else if (subType.as_deref() == Some("inverse")) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "pair")); }
             let __ws_arg_232 = self.extend(requestUntil, &[paramsSubType]);
             response = self.dapi_data_get_global_long_short_account_ratio(&[__ws_arg_232]).await;
@@ -20906,10 +20906,10 @@ if _try_result.is_err() {
             m
         });
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchADLRank".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             let __ws_arg_233 = self.extend(Value::Map(request), &[paramsSubType]);
             response = self.fapi_public_get_symbol_adl_risk(&[__ws_arg_233]).await;
         }  else {
@@ -20953,20 +20953,20 @@ if _try_result.is_err() {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsADLRank".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType, Value::Str("fetchPositionsADLRank".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: Value = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (subType.as_str() == Some("linear")) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+        if (subType.as_deref() == Some("linear")) {
+            if isPortfolioMargin {
                 response = self.papi_get_um_adl_quantile(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.fapi_private_get_adl_quantile(&[paramsPapi.clone()]).await;
             }
-        }  else if (subType.as_str() == Some("inverse")) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+        }  else if (subType.as_deref() == Some("inverse")) {
+            if isPortfolioMargin {
                 response = self.papi_get_cm_adl_quantile(&[paramsPapi.clone()]).await;
             }  else {
                 response = self.dapi_private_get_adl_quantile(&[paramsPapi]).await;

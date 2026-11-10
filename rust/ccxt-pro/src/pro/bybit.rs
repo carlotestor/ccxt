@@ -2140,9 +2140,9 @@ impl Bybit {
         });
         let mut topic: Value = self.safe_string(Value::Map(topicByMarket), self.get_private_type(url.clone()), &[]);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut executionFast: Value = executionFastparamsExecutionFastVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: Value = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null);
-        if executionFast.as_bool() == Some(true) {
+        if executionFast {
             topic = Value::Str("execution.fast".into());
         }
         let mut trades: Value = self.watch_topics(url, Value::from(vec![messageHash]), Value::from(vec![topic]), &[paramsExecutionFast]).await;
@@ -2198,9 +2198,9 @@ impl Bybit {
         });
         let mut topic: Value = self.safe_string(Value::Map(topicByMarket), self.get_private_type(url.clone()), &[]);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut executionFast: Value = executionFastparamsExecutionFastVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: Value = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null);
-        if executionFast.as_bool() == Some(true) {
+        if executionFast {
             topic = Value::Str("execution.fast".into());
         }
         return self.un_watch_topics(url, Value::Str("myTrades".into()), Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(vec![topic]), &[paramsExecutionFast]).await;
@@ -3076,10 +3076,10 @@ impl Bybit {
         let mut method: String = "watchBalance".to_string();
         let mut messageHash: Value = Value::Str("balances".into());
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
         let mut isUnifiedMargin: bool = self.safe_bool_opt(unified.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
@@ -3094,7 +3094,7 @@ impl Bybit {
         });
         if isUnifiedAccount {
             // unified account
-            if (subType.as_str() == Some("inverse")) {
+            if (subType.as_deref() == Some("inverse")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":contract".into())).into());
             }  else {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":unified".into())).into());
@@ -3102,7 +3102,7 @@ impl Bybit {
         }
         if (!(isUnifiedMargin)) && (!(isUnifiedAccount)) {
             // normal account using v5
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":spot".into())).into());
             }  else {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":contract".into())).into());
@@ -3110,10 +3110,10 @@ impl Bybit {
         }
         if isUnifiedMargin {
             // unified margin account using v5
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":spot".into())).into());
             }  else {
-                if (subType.as_str() == Some("linear")) {
+                if (subType.as_deref() == Some("linear")) {
                     messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":unified".into())).into());
                 }  else {
                     messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":contract".into())).into());

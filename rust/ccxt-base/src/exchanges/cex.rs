@@ -1542,10 +1542,10 @@ impl Cex {
         let mut accountName: Value = accountNameparamsAccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccount: Value = accountNameparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null); // default is empty string
         let methodparamsMethodVariable: Vec<Value> = self.handle_param_string(paramsAccount, Value::Str("method".into()), &[Value::Str("privatePostGetMyWalletBalance".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut accountBalance: Value = Value::Null;
-        if (method.as_str() == Some("privatePostGetMyAccountStatusV3")) {
+        if (method.as_deref() == Some("privatePostGetMyAccountStatusV3")) {
             let mut response: Value = self.private_post_get_my_account_status_v3(&[paramsMethod.clone()]).await;
             //
             //    {

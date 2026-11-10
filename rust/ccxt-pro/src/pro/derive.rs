@@ -1445,7 +1445,7 @@ impl Derive {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1462,7 +1462,7 @@ impl Derive {
         if (subaccountIdKey == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() could not resolve the subaccount id".into()))));
         }
-        if fetchSnapshot.as_bool() == Some(true) && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if fetchSnapshot && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
@@ -1532,7 +1532,7 @@ impl Derive {
         }
         let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1558,7 +1558,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if fetchSnapshot.as_bool() == Some(true) && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if fetchSnapshot && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());

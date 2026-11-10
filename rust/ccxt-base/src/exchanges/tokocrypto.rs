@@ -2363,16 +2363,16 @@ impl Tokocrypto {
         // GTX is the venue spelling of post only, on top of the two unified spellings
         let mut isPostOnlyTimeInForce: Value = (Value::Bool(requestedTimeInForce.as_deref() == Some("GTX")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), isPostOnlyTimeInForce, &[params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         // only supported for spot/margin api
         let mut typeResolved: Value = type_var.clone();
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             typeResolved = Value::Str("LIMIT_MAKER".into());
         }
         // post only is expressed by the order type here, not by a time force
         let mut timeInForceResolved: Value = requestedTimeInForce.map(Value::from).unwrap_or(Value::Null);
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             timeInForceResolved = Value::Null;
         }
         let mut initialUppercaseType: Value = (if let Some(__s) = typeResolved.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
@@ -2381,7 +2381,7 @@ impl Tokocrypto {
         let mut paramsRequest: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
         if (triggerPrice != Value::Null) {
             paramsRequest = self.omit(paramsRequest.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
-            if postOnly.as_bool() == Some(true) {
+            if postOnly {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post only trigger orders, the venue has no post only trigger order type".into()))));
             }
             if (uppercaseType.as_str() == Some("MARKET")) {

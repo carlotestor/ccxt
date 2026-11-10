@@ -1368,7 +1368,7 @@ impl Bitget {
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let privateChannelparamsPrivateChannelVariable: Vec<Value> = self.handle_option_bool_and_params(paramsUta, methodName.clone(), Value::Str("privateChannel".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut privateChannel: Value = privateChannelparamsPrivateChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut privateChannel: bool = privateChannelparamsPrivateChannelVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPrivateChannel: Value = privateChannelparamsPrivateChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(methodName, market.clone(), &[uta.clone(), paramsPrivateChannel]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1397,7 +1397,7 @@ impl Bitget {
             args.insert("channel".into(), channel);
             args.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if privateChannel.as_bool() == Some(true) {
+        if privateChannel {
             return self.un_watch_private(uta.clone(), messageHash.clone(), Value::Map(args.clone()), &[paramsRequest.clone()]).await;
         }
         return self.un_watch_public(uta, messageHash, Value::Map(args), &[paramsRequest]).await;
@@ -2442,15 +2442,15 @@ impl Bitget {
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut productType: Option<String> = self.safe_string_k(paramsUta.clone(), "productType", &[]).as_str().map(str::to_owned);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"))) && (symbolResolved == Value::Null) {
+        if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved == Value::Null) {
             marketId = Value::Str("default".into());
         }
-        if (productType.is_none()) && (type_var.as_str() != Some("spot")) && (symbolResolved == Value::Null) {
+        if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved == Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType).into());
         }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":linear".into())).into());
@@ -2459,13 +2459,13 @@ impl Bitget {
         }  else if (productType.as_deref() == Some("USDC-FUTURES")) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":usdcfutures".into())).into()); // non unified channel
         }
-        let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_str() == Some("spot"));
+        let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Value = Value::Str("SPOT".into());
         let mut paramsInstType: Value = paramsSubType.clone();
         if !useSpotInstType {
             { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market, &[uta.clone(), paramsSubType]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
-        if (type_var.as_str() == Some("spot")) && (symbolResolved != Value::Null) {
+        if (type_var.as_deref() == Some("spot")) && (symbolResolved != Value::Null) {
             subscriptionHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), symbolResolved).into());
         }
         if (isTrigger.as_bool() == Some(true)) {
@@ -2473,7 +2473,7 @@ impl Bitget {
         }
         // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let mut instId: Value = Value::Str("default".into());
-        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             instId = marketId;
         }
         let mut channel: String = "orders".to_string();
@@ -3025,12 +3025,12 @@ impl Bitget {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("watchMyTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_str() == Some("spot"));
+        let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Value = Value::Str("SPOT".into());
         let mut paramsInstType: Value = paramsUta.clone();
         if !useSpotInstType {
@@ -3259,19 +3259,19 @@ impl Bitget {
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isStockOrUta: bool = stock.as_bool() == Some(true) || uta.as_bool() == Some(true);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsStock]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchBalance".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut instTypeDefault: Value = Value::Null;
         let mut channel: String = "account".to_string();
-        if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
+        if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             instTypeDefault = Value::Str("USDT-FUTURES".into());
-        }  else if (marginMode != Value::Null) {
+        }  else if (marginMode.is_some()) {
             instTypeDefault = Value::Str("MARGIN".into());
             if !(isStockOrUta) {
-                if (marginMode.as_str() == Some("isolated")) {
+                if (marginMode.as_deref() == Some("isolated")) {
                     channel = "account-isolated".to_string();
                 }  else {
                     channel = "account-crossed".to_string();

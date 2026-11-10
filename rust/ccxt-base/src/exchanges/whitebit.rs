@@ -2655,7 +2655,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             onlyContractSymbols = false;
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2663,7 +2663,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut method: Value = methodOption;
         if (method == Value::Null) {
             // if the user did not specify a method, choose it based on market type and symbols
-            if onlyContractSymbols || (marketType.as_str() == Some("swap")) {
+            if onlyContractSymbols || (marketType.as_deref() == Some("swap")) {
                 method = Value::Str("v4PublicGetFutures".into());
             }  else {
                 method = Value::Str("v4PublicGetTicker".into());
@@ -3341,7 +3341,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() timeInForce IOC is only supported for limit orders".into()))));
         }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         if postOnly.as_bool() == Some(true) {
             request.insert("postOnly".into(), Value::Bool(true));
@@ -3349,11 +3349,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if ioc {
             request.insert("ioc".into(), Value::Bool(true));
         }
-        if (marginMode != Value::Null) && (marginMode.as_str() != Some("cross")) {
+        if (marginMode.is_some()) && (marginMode.as_deref() != Some("cross")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() is only available for cross margin".into()))));
         }
         let mut orderParams: Value = self.omit(query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into())]), &[]);
-        let mut useCollateralEndpoint: bool = (marginMode != Value::Null) || (marketType.as_deref() == Some("swap"));
+        let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
         let mut response: Value = Value::Null;
         if isStopOrder {
             request.insert("activation_price".into(), self.price_to_precision(symbol.clone(), triggerPrice));
@@ -3573,10 +3573,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestParams: Value = paramsMarketType.clone();
         if (marketType.as_str() == Some("spot")) {
             let isMarginparamsIsMarginVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut isMargin: Value = isMarginparamsIsMarginVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut isMargin: bool = isMarginparamsIsMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsIsMargin: Value = isMarginparamsIsMarginVariable.get(1).cloned().unwrap_or(Value::Null);
             requestParams = paramsIsMargin;
-            if isMargin.as_bool() == Some(true) {
+            if isMargin {
                 requestType.push(Value::Str("margin".into()));
             }  else {
                 requestType.push(Value::Str("spot".into()));
@@ -3742,10 +3742,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             response = self.v4_private_post_collateral_account_balance(&[paramsMarketType.clone()]).await;
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("fetchBalance")).cloned().unwrap_or(Value::Null), Value::Str("account".into()), &[]);
@@ -5953,9 +5953,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone(), maxLimit]).await;
         }
         if (self.markets.clone() == Value::Null) {
