@@ -10101,37 +10101,37 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // parse 240119 to 19JAN24
         let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut monthRaw: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut month: Value = Value::Null;
+        let mut month: Option<String> = None;
         let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         if (monthRaw.as_str() == Some("01")) {
-            month = Value::Str("JAN".into());
+            month = Some("JAN".to_string());
         }  else if (monthRaw.as_str() == Some("02")) {
-            month = Value::Str("FEB".into());
+            month = Some("FEB".to_string());
         }  else if (monthRaw.as_str() == Some("03")) {
-            month = Value::Str("MAR".into());
+            month = Some("MAR".to_string());
         }  else if (monthRaw.as_str() == Some("04")) {
-            month = Value::Str("APR".into());
+            month = Some("APR".to_string());
         }  else if (monthRaw.as_str() == Some("05")) {
-            month = Value::Str("MAY".into());
+            month = Some("MAY".to_string());
         }  else if (monthRaw.as_str() == Some("06")) {
-            month = Value::Str("JUN".into());
+            month = Some("JUN".to_string());
         }  else if (monthRaw.as_str() == Some("07")) {
-            month = Value::Str("JUL".into());
+            month = Some("JUL".to_string());
         }  else if (monthRaw.as_str() == Some("08")) {
-            month = Value::Str("AUG".into());
+            month = Some("AUG".to_string());
         }  else if (monthRaw.as_str() == Some("09")) {
-            month = Value::Str("SEP".into());
+            month = Some("SEP".to_string());
         }  else if (monthRaw.as_str() == Some("10")) {
-            month = Value::Str("OCT".into());
+            month = Some("OCT".to_string());
         }  else if (monthRaw.as_str() == Some("11")) {
-            month = Value::Str("NOV".into());
+            month = Some("NOV".to_string());
         }  else if (monthRaw.as_str() == Some("12")) {
-            month = Value::Str("DEC".into());
+            month = Some("DEC".to_string());
         }
-        if (month == Value::Null) {
+        if (month.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid expiry date ".into())).into()), date)));
         }
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month).into()), year);
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month.clone().map(Value::from).unwrap_or(Value::Null)).into()), year);
         return Value::from(reconstructedDate);
 
     Value::Null

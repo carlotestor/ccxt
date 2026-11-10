@@ -1581,15 +1581,15 @@ impl Bingx {
             }
         }
         let mut uuid: Value = self.uuid(&[]);
-        let mut baseUrl: Value = Value::Null;
+        let mut baseUrl: Option<String> = None;
         let mut request: Value = Value::Null;
         if (type_var.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrders is not supported for inverse swap markets yet".into()))));
             }
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]).as_str().map(str::to_owned);
         }  else {
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), uuid.clone());
@@ -1599,10 +1599,10 @@ impl Bingx {
             });
         }
         let mut userStreamKey: Option<String> = self.safe_string_k(self.options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
-        if (baseUrl == Value::Null) || (userStreamKey.is_none()) {
+        if (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a websocket URL and a listen key".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1680,15 +1680,15 @@ impl Bingx {
             }
         }
         let mut uuid: Value = self.uuid(&[]);
-        let mut baseUrl: Value = Value::Null;
+        let mut baseUrl: Option<String> = None;
         let mut request: Value = Value::Null;
         if (type_var.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades is not supported for inverse swap markets yet".into()))));
             }
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]).as_str().map(str::to_owned);
         }  else {
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), uuid.clone());
@@ -1698,10 +1698,10 @@ impl Bingx {
             });
         }
         let mut userStreamKey: Option<String> = self.safe_string_k(self.options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
-        if (baseUrl == Value::Null) || (userStreamKey.is_none()) {
+        if (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a websocket URL and a listen key".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1762,7 +1762,7 @@ impl Bingx {
             subscriptionHash = Value::from(spotSubHash);
         }
         let mut request: Value = Value::Null;
-        let mut baseUrl: Value = Value::Null;
+        let mut baseUrl: Option<String> = None;
         let mut uuid: Value = self.uuid(&[]);
         if (type_var.as_str() == Some("swap")) {
             if (subType.as_str() == Some("inverse")) {
@@ -1770,9 +1770,9 @@ impl Bingx {
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.clone(), &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.clone(), &[]).as_str().map(str::to_owned);
         }  else {
-            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
+            baseUrl = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]).as_str().map(str::to_owned);
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), uuid.clone());
@@ -1781,10 +1781,10 @@ impl Bingx {
             });
         }
         let mut userStreamKey: Option<String> = self.safe_string_k(self.options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
-        if (type_var == Value::Null) || (baseUrl == Value::Null) || (userStreamKey.is_none()) {
+        if (type_var == Value::Null) || (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a websocket URL and a listen key".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
         let mut client: Value = self.client(&[Value::from(url.clone())]);
         self.set_balance_cache(client.clone(), type_var.clone(), subType, subscriptionHash.clone(), paramsSubType.clone());
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();

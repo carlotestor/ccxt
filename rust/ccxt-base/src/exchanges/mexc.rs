@@ -6606,24 +6606,24 @@ impl Mexc {
 }));
         let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut key: Value = Value::Null;
+        let mut key: Option<String> = None;
         if (network.is_some()) {
-            key = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            key = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
         }  else {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
             let mut defaultNetworkForCurrency: Option<String> = self.safe_string(options, code.clone(), &[]).as_str().map(str::to_owned);
             if (defaultNetworkForCurrency.is_some()) {
-                key = defaultNetworkForCurrency.clone().map(Value::from).unwrap_or(Value::Null);
+                key = defaultNetworkForCurrency;
             }  else {
                 let mut keys: Value = Value::Array((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-                key = self.safe_string(keys, Value::Int(0), &[]);
+                key = self.safe_string(keys, Value::Int(0), &[]).as_str().map(str::to_owned);
             }
         }
-        if (key == Value::Null) || (self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), key.clone(), &[]) == Value::Null) {
+        if (key.is_none()) || (self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), key.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() cannot find a deposit address for ".into())).into()), code).into()), Value::Str(", and network".into())).into()),
                 network.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("consider creating one using .createDepositAddress() method or in MEXC website".into()))));
         }
-        return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures), key, &[]);
+        return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures), key.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
     }
@@ -6660,9 +6660,9 @@ impl Mexc {
             m
         });
         let mut currency: Value = Value::Null;
-        let mut rawNetwork: Value = Value::Null;
+        let mut rawNetwork: Option<String> = None;
         if (code != Value::Null) {
-            rawNetwork = self.safe_string_k(params.clone(), "network", &[]);
+            rawNetwork = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         }
         if (code != Value::Null) {
             currency = self.currency(code);
@@ -6670,8 +6670,8 @@ impl Mexc {
             request.insert("coin".into(), currencyId.clone());
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
-            if (rawNetwork != Value::Null) {
-                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, Value::Str("-".into())).into()), rawNetwork).into()));
+            if (rawNetwork.is_some()) {
+                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, Value::Str("-".into())).into()), rawNetwork.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             }
         }
         if (since != Value::Null) {
@@ -6683,7 +6683,7 @@ impl Mexc {
             }
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: Value = (if (rawNetwork != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (rawNetwork.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         let __ws_arg_51 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
         return self.parse_transactions(response, &[currency, since, limit]);

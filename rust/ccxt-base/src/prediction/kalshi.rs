@@ -761,7 +761,7 @@ impl Kalshi {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut cursor: Value = Value::Null;
+        let mut cursor: Option<String> = None;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(1000)]);
         let mut limit: Value = pageLimit.clone();
@@ -779,8 +779,8 @@ impl Kalshi {
                     m.insert("status".to_string(), Value::from(status.clone()));
                 m
             });
-            if (cursor != Value::Null) {
-                request.insert("cursor".into(), cursor.clone());
+            if (cursor.is_some()) {
+                request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
             let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_0]).await;
@@ -825,9 +825,9 @@ impl Kalshi {
                 }
             }
             }
-            cursor = self.safe_string_k(response, "cursor", &[]);
+            cursor = self.safe_string_k(response, "cursor", &[]).as_str().map(str::to_owned);
             let mut collectedLength: f64 = ((flatMarkets.len() as i64) as f64);
-            if ((cursor == Value::Null) || (cursor.as_str() == Some(""))) || rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collectedLength >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
+            if ((cursor.is_none()) || (cursor.as_deref() == Some(""))) || rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collectedLength >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
         }
@@ -3615,7 +3615,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if hasLimit && (collectedLength >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
-            let mut cursor: Value = Value::Null;
+            let mut cursor: Option<String> = None;
             {
                                 let mut page: Value = Value::Int(0);
                 let mut __for_first_1296: bool = true;
@@ -3639,8 +3639,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("limit".to_string(), reqLimit.clone());
                     m
                 });
-                if (cursor != Value::Null) {
-                    request.insert("cursor".into(), cursor.clone());
+                if (cursor.is_some()) {
+                    request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 let __ws_arg_17 = self.extend(Value::Map(request), &[rest.clone()]);
                 let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_17]).await;
@@ -3653,12 +3653,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     rawEvents.push(pageEvents.get(ei.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                cursor = self.safe_string_k(response, "cursor", &[]);
+                cursor = self.safe_string_k(response, "cursor", &[]).as_str().map(str::to_owned);
                 let mut collectedAfterPage: f64 = ((rawEvents.len() as i64) as f64);
                 if hasLimit && (collectedAfterPage >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                     break;
                 }
-                if (cursor == Value::Null) || (cursor.as_str() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {
+                if (cursor.is_none()) || (cursor.as_deref() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {
                     break;
                 }
             }

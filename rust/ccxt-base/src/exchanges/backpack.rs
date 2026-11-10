@@ -1622,35 +1622,35 @@ impl Backpack {
             if matches!(&rfq, Value::Bool(true)) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(".RFQ/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut sessions: Vec<Value> = self.safe_list_k(security.clone(), "sessions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut stepSize: Value = Value::Null;
-                let mut minimum: Value = Value::Null;
-                let mut maximum: Value = Value::Null;
+                let mut stepSize: Option<String> = None;
+                let mut minimum: Option<String> = None;
+                let mut maximum: Option<String> = None;
                 let mut unbounded: bool = false;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_249: bool = true;
                     while { if !__for_first_249 { i += 1; } __for_first_249 = false; i < (sessions.len() as i64) } {
                     let mut sessionStep: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "stepSize", &[]).as_str().map(str::to_owned);
-                    if (sessionStep.is_some()) && ((stepSize == Value::Null) || crate::precise::Precise::stringLt(&sessionStep.clone().map(Value::from).unwrap_or(Value::Null), &stepSize).as_bool() == Some(true)) {
-                        stepSize = sessionStep.clone().map(Value::from).unwrap_or(Value::Null);
+                    if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep.clone().map(Value::from).unwrap_or(Value::Null), &stepSize.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                        stepSize = sessionStep.clone();
                     }
                     let mut sessionMin: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "minQuantity", &[]).as_str().map(str::to_owned);
                     let mut sessionMax: Option<String> = self.safe_string_k(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "maxQuantity", &[]).as_str().map(str::to_owned);
-                    if (sessionMin.is_some()) && ((minimum == Value::Null) || crate::precise::Precise::stringLt(&sessionMin.clone().map(Value::from).unwrap_or(Value::Null), &minimum).as_bool() == Some(true)) {
-                        minimum = sessionMin.clone().map(Value::from).unwrap_or(Value::Null);
+                    if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin.clone().map(Value::from).unwrap_or(Value::Null), &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                        minimum = sessionMin.clone();
                     }
                     if (sessionMax.is_none()) {
                         unbounded = true;
-                    }  else if (maximum == Value::Null) || crate::precise::Precise::stringGt(&sessionMax.clone().map(Value::from).unwrap_or(Value::Null), &maximum).as_bool() == Some(true) {
-                        maximum = sessionMax.clone().map(Value::from).unwrap_or(Value::Null);
+                    }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax.clone().map(Value::from).unwrap_or(Value::Null), &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                        maximum = sessionMax.clone();
                     }
                 }
                 }
                 let mut sessionsLength: f64 = ((sessions.len() as i64) as f64);
                 if sessionsLength > ((0i64) as f64) {
-                    amountPrecision = self.parse_number(stepSize, &[]);
-                    minQuantity = self.parse_number(minimum, &[]);
-                    maxQuantity = (if unbounded { Value::Null } else { self.parse_number(maximum, &[]) });
+                    amountPrecision = self.parse_number(stepSize.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                    minQuantity = self.parse_number(minimum.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                    maxQuantity = (if unbounded { Value::Null } else { self.parse_number(maximum.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
                 }
             }
         }  else if (typeOfMarket.as_deref() == Some("swap")) {

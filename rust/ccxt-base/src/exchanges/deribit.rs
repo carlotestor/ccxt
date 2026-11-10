@@ -1360,16 +1360,16 @@ impl Deribit {
         let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
         let mut hasUsdc: bool = symbol.as_str().unwrap_or("").contains("USDC");
-        let mut base: Value = Value::Null;
+        let mut base: Option<String> = None;
         let mut expiry: Value = Value::Null;
         if hasSlash {
-            base = self.safe_string(symbolBase, Value::Int(0), &[Value::Str("".into())]);
+            base = self.safe_string(symbolBase, Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
         }  else {
-            base = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
+            base = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
         }
-        if (base == Value::Null) {
+        if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing base".into()))));
         }
         // the slash form of a usdc instrument carries its settlement currency in the base
@@ -1377,7 +1377,7 @@ impl Deribit {
         if hasSlash && hasUsdc {
             baseSuffix = "_USDC".to_string();
         }
-        let mut baseResolved: Value = Value::Str(format!("{}{}", base, baseSuffix).into());
+        let mut baseResolved: Value = Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), baseSuffix).into());
         if hasUsdc {
             quote = "USDC".to_string();
             settle = Value::Str("USDC".into());

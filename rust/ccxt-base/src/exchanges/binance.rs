@@ -8477,15 +8477,15 @@ impl Binance {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer2(ticker.clone(), Value::Str("closeTime".into()), Value::Str("time".into()), &[]).as_i64();
-        let mut marketType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
         if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("time"))) {
-            marketType = Value::Str("contract".into());
+            marketType = Some("contract".to_string());
         }
-        if (marketType == Value::Null) {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("bidQty"))) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        if (marketType.is_none()) {
+            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("bidQty"))) { Some("spot".to_string()) } else { Some("contract".to_string()) });
         }
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, marketType]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
         let mut wAvg: Option<String> = self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]).as_str().map(str::to_owned);
         let mut isCoinm: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseVolume"));

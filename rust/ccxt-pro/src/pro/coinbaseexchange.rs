@@ -981,16 +981,16 @@ impl Coinbaseexchange {
         //     "order_type": "limit"
         // }
         let mut parsed: Value = self.parent.parse_trade(trade.clone(), &[]);
-        let mut feeRate: Value = Value::Null;
+        let mut feeRate: Option<String> = None;
         let mut isMaker: bool = false;
         let mut makerFeeRate: Option<String> = self.safe_string_k(trade.clone(), "maker_fee_rate", &[]).as_str().map(str::to_owned);
         if (makerFeeRate.is_some()) {
             isMaker = true;
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("maker".into()));
-            feeRate = makerFeeRate.clone().map(Value::from).unwrap_or(Value::Null);
+            feeRate = makerFeeRate;
         }  else {
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("taker".into()));
-            feeRate = self.safe_string_k(trade.clone(), "taker_fee_rate", &[]);
+            feeRate = self.safe_string_k(trade.clone(), "taker_fee_rate", &[]).as_str().map(str::to_owned);
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             let mut currentSide: Option<String> = self.safe_string_k(parsed.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -1011,12 +1011,12 @@ impl Coinbaseexchange {
         let mut feeCurrency: Value = Value::from((marketResolved).quote.clone());
         let mut feeCost: Option<String> = None;
         let mut cost: Option<String> = self.safe_string_k(parsed.clone(), "cost", &[]).as_str().map(str::to_owned);
-        if (cost.is_some()) && (feeRate != Value::Null) {
-            feeCost = crate::precise::Precise::stringMul(&cost.clone().map(Value::from).unwrap_or(Value::Null), &feeRate).as_str().map(str::to_owned);
+        if (cost.is_some()) && (feeRate.is_some()) {
+            feeCost = crate::precise::Precise::stringMul(&cost.clone().map(Value::from).unwrap_or(Value::Null), &feeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         add_element_to_object(&mut parsed, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rate".to_string(), self.parse_number(feeRate, &[]));
+        m.insert("rate".to_string(), self.parse_number(feeRate.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), feeCurrency);
     m

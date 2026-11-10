@@ -515,7 +515,7 @@ impl Sxbet {
                 m.insert("limit".to_string(), userLimit);
             m
         }), Value::Str("limit".into()), &[]);
-        let mut paginationKey: Value = Value::Null;
+        let mut paginationKey: Option<String> = None;
         let mut page: Value = self.parse_to_int(Value::Int(0));
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -523,8 +523,8 @@ impl Sxbet {
                     m.insert("pageSize".to_string(), pageSize.clone());
                 m
             });
-            if (paginationKey != Value::Null) {
-                request.insert("paginationKey".into(), paginationKey.clone());
+            if (paginationKey.is_some()) {
+                request.insert("paginationKey".into(), paginationKey.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[extra.clone()]);
             let mut response: Value = self.sxbet_public_get_markets_active(&[__ws_arg_0]).await;
@@ -541,10 +541,10 @@ impl Sxbet {
                 rawMarkets.push(pageMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            paginationKey = self.safe_string_k(result, "nextKey", &[]);
+            paginationKey = self.safe_string_k(result, "nextKey", &[]).as_str().map(str::to_owned);
             page = self.parse_to_int((match (&(page), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             let mut collectedLength: Value = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
-            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || (paginationKey == Value::Null) || ((collectCap != Value::Null) && (collectedLength.as_f64().unwrap_or(f64::NAN) >= collectCap.as_f64().unwrap_or(f64::NAN))) {
+            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || (paginationKey.is_none()) || ((collectCap != Value::Null) && (collectedLength.as_f64().unwrap_or(f64::NAN) >= collectCap.as_f64().unwrap_or(f64::NAN))) {
                 break;
             }
         }
@@ -981,8 +981,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         }), Value::Str("gameTime".into()), &[]);
-        let mut teamOneName: Value = Value::Null;
-        let mut teamTwoName: Value = Value::Null;
+        let mut teamOneName: Option<String> = None;
+        let mut teamTwoName: Option<String> = None;
         let mut leagueLabel: Option<String> = None;
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
@@ -998,9 +998,9 @@ impl Sxbet {
             if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = true;
             }
-            if (teamOneName == Value::Null) {
-                teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]);
-                teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]);
+            if (teamOneName.is_none()) {
+                teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]).as_str().map(str::to_owned);
+                teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]).as_str().map(str::to_owned);
                 leagueLabel = self.safe_string_k(raw.clone(), "leagueLabel", &[]).as_str().map(str::to_owned);
             }
             let mut gameTime: Value = self.safe_integer_k(raw, "gameTime", &[]);
@@ -1019,9 +1019,9 @@ impl Sxbet {
         // so the unified event handle is never empty or built from stringified nulls
         let mut title: Option<String> = None;
         let mut eventSlug: Value = Value::Null;
-        if (teamOneName != Value::Null) && (teamTwoName != Value::Null) {
-            title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" vs ".into())).into()), teamTwoName));
-            eventSlug = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" ".into())).into()), teamTwoName).into()));
+        if (teamOneName.is_some()) && (teamTwoName.is_some()) {
+            title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" vs ".into())).into()), teamTwoName.clone().map(Value::from).unwrap_or(Value::Null)));
+            eventSlug = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), teamTwoName.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         }  else {
             eventSlug = self.shorten_slug(fixtureId.clone());
         }

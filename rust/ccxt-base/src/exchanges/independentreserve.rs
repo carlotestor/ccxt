@@ -1033,17 +1033,17 @@ impl Independentreserve {
         let mut baseId: Option<String> = self.safe_string_k(order.clone(), "PrimaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(order.clone(), "SecondaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut base: Value = Value::Null;
-        let mut quote: Value = Value::Null;
+        let mut quote: Option<String> = None;
         if (baseId.is_some()) && (quoteId.is_some()) {
             base = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            quote = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (base != Value::Null) && (quote != Value::Null) {
-                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
+            quote = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (base != Value::Null) && (quote.is_some()) {
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
             }
         }  else if (market != Value::Null) {
             symbol = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
             base = self.safe_string_k(market.clone(), "base", &[]);
-            quote = self.safe_string_k(market.clone(), "quote", &[]);
+            quote = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         }
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".into()), Value::Str("OrderType".into()), &[]);
         let mut side: Option<String> = None;

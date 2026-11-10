@@ -4107,7 +4107,7 @@ impl Xt {
                 m.insert("type".to_string(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let mut timeInForce: Value = Value::Null;
+        let mut timeInForce: Option<String> = None;
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -4117,7 +4117,7 @@ impl Xt {
         }
         request.insert("bizType".into(), Value::from(marginOrSpotRequest));
         if (type_var.as_str() == Some("market")) {
-            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("FOK".into())]);
+            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("FOK".into())]).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
                 let mut cost: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "cost", &[]).as_str().map(str::to_owned);
                 let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -4142,7 +4142,7 @@ impl Xt {
                 }
             }
         }  else {
-            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("GTC".into())]);
+            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
@@ -4150,17 +4150,17 @@ impl Xt {
         if isMarketBuy {
             paramsWithoutCost = self.omit(paramsMarginMode, Value::Str("cost".into()), &[]);
         }
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_str() == Some("GTX")), &[paramsWithoutCost]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[paramsWithoutCost]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         if postOnly {
-            timeInForce = Value::Str("GTX".into());
+            timeInForce = Some("GTX".to_string());
         }
         let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         if (side.as_str() == Some("sell")) || (type_var.as_str() == Some("limit")) {
             request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
         }
-        request.insert("timeInForce".into(), timeInForce);
+        request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_spot_post_order(&[__ws_arg_21]).await;
         //

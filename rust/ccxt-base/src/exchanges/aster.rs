@@ -5644,20 +5644,20 @@ impl Aster {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut fromId: Value = (if let Some(__s) = (self.convert_type_to_account(fromAccount)).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut toId: Value = (if let Some(__s) = (self.convert_type_to_account(toAccount)).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (fromId.as_str() == Some("SPOT")) && (toId.as_str() == Some("FUTURE")) {
-            type_var = Value::Str("SPOT_FUTURE".into());
+            type_var = Some("SPOT_FUTURE".to_string());
         }  else if (fromId.as_str() == Some("FUTURE")) && (toId.as_str() == Some("SPOT")) {
-            type_var = Value::Str("FUTURE_SPOT".into());
+            type_var = Some("FUTURE_SPOT".to_string());
         }
-        if (type_var == Value::Null) {
+        if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE".into()))));
         }
         let mut defaultClientTranId: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
         let mut clientTranId: Value = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        request.insert("kindType".into(), type_var);
+        request.insert("kindType".into(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         request.insert("clientTranId".into(), clientTranId);
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;

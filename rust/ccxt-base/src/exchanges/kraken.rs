@@ -2932,7 +2932,7 @@ impl Kraken {
         let mut orderDescriptionObj: Value = self.safe_dict_k(orderOmitted.clone(), "descr", &[]); // can be null
         let mut orderDescription: Value = (if (orderDescriptionObj != Value::Null) { self.safe_string_k(orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
         let mut side: Value = Value::Null;
-        let mut descriptionType: Value = Value::Null;
+        let mut descriptionType: Option<String> = None;
         let mut marketId: Value = Value::Null;
         let mut price: Value = self.safe_string_k(description.clone(), "price", &[]);
         let mut amount: Value = Value::Null;
@@ -2950,14 +2950,14 @@ impl Kraken {
             let mut part4: Option<String> = self.safe_string(parts.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
             let mut part5: Option<String> = self.safe_string(parts.clone(), Value::Int(5), &[]).as_str().map(str::to_owned);
             if (part4.as_deref() == Some("limit")) || (part4.as_deref() == Some("market")) {
-                descriptionType = part4.clone().map(Value::from).unwrap_or(Value::Null); // eg, limit, market
+                descriptionType = part4.clone(); // eg, limit, market
             }  else {
-                descriptionType = Value::Str(format!("{}{}", Value::Str(format!("{}{}", part4.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), part5.clone().map(Value::from).unwrap_or(Value::Null)).into()); // eg. stop loss, take profit, trailing stop
+                descriptionType = Some(format!("{}{}", Value::Str(format!("{}{}", part4.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), part5.clone().map(Value::from).unwrap_or(Value::Null))); // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType.as_str() == Some("stop loss")) || (descriptionType.as_str() == Some("take profit")) {
+            if (descriptionType.as_deref() == Some("stop loss")) || (descriptionType.as_deref() == Some("take profit")) {
                 triggerPrice = self.safe_string(parts.clone(), Value::Int(6), &[]);
                 price = self.safe_string(parts.clone(), Value::Int(9), &[]);
-            }  else if (descriptionType.as_str() == Some("limit")) {
+            }  else if (descriptionType.as_deref() == Some("limit")) {
                 price = self.safe_string(parts, Value::Int(5), &[]);
             }
         }
@@ -2965,7 +2965,7 @@ impl Kraken {
         if (descriptionSide.is_some()) {
             side = descriptionSide.clone().map(Value::from).unwrap_or(Value::Null);
         }
-        let mut rawType: Value = self.safe_string_k(description.clone(), "ordertype", &[descriptionType]); // orderType has dash, e.g. trailing-stop
+        let mut rawType: Value = self.safe_string_k(description.clone(), "ordertype", &[descriptionType.clone().map(Value::from).unwrap_or(Value::Null)]); // orderType has dash, e.g. trailing-stop
         marketId = self.safe_string_k(description.clone(), "pair", &[marketId.clone()]);
         let mut marketResolved: Value = self.resolve_market_by_altname_or_id(marketId, &[market]);
         let mut symbol: Option<String> = None;
