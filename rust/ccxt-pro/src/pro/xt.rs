@@ -900,11 +900,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut name: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(",".into())).into()), timeframe).into());
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut name: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline@".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(",".into())).into()), timeframe).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), name).into());
-        let mut symbolsAndTimeframes: Value = Value::from(vec![Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe])]);
-        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchOHLCV".into()), Value::Str("ohlcv".into()), &[market, Value::from(vec![symbol]), params, Value::Map({
+        let mut symbolsAndTimeframes: Value = Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]);
+        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchOHLCV".into()), Value::Str("ohlcv".into()), &[(market).raw.clone(), Value::from(vec![symbol]), params, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes);
     m
@@ -1261,11 +1261,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRate() supports swap contracts only".into()))));
         }
-        return self.subscribe(Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("public".into()), Value::Str("watchFundingRate".into()), &[market, Value::Null, params]).await;
+        return self.subscribe(Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("public".into()), Value::Str("watchFundingRate".into()), &[(market).raw.clone(), Value::Null, params]).await;
         Value::Null
         }).await?))
     }
@@ -1293,13 +1293,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchFundingRate() supports swap contracts only".into()))));
         }
-        let mut name: Value = Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
+        let mut name: Value = Value::Str(format!("{}{}", Value::Str("fund_rate@".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), name).into());
-        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchFundingRate".into()), Value::Str("fund_rate".into()), &[market, Value::Null, params]).await;
+        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchFundingRate".into()), Value::Str("fund_rate".into()), &[(market).raw.clone(), Value::Null, params]).await;
         Value::Null
         }).await?))
     }
@@ -2266,10 +2266,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (tradeSymbol == Value::Null) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(tradeSymbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(tradeSymbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         stored.append(parsedTrade);
         let mut tradeType: String = "spot".to_string();
-        if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).contract {
             tradeType = "contract".to_string();
         }
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), tradeType).into())]);

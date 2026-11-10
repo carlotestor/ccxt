@@ -2525,14 +2525,14 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
         if (generation.as_f64() == Some(2.0)) {
             request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsGeneration.clone()]).as_map().cloned().unwrap_or_default();
             response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
         }  else {
-            request.insert("order_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
-            request.insert("payment_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+            request.insert("order_currency".into(), Value::from((market).base.clone()));
+            request.insert("payment_currency".into(), Value::from((market).quote.clone()));
             request.insert("units".into(), self.amount_to_precision(symbol.clone(), amount));
             if (type_var.as_str() == Some("limit")) {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
@@ -2557,7 +2557,7 @@ impl Bithumb {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".into()))));
         }
-        let __ws_arg_20 = self.parse_order(response.clone(), &[market]);
+        let __ws_arg_20 = self.parse_order(response.clone(), &[(market).raw.clone()]);
         return self.extend(__ws_arg_20, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

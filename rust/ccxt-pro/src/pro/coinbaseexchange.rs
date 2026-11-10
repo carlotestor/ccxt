@@ -837,14 +837,14 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("product_ids".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+                m.insert("product_ids".to_string(), Value::from(vec![Value::from((market).id.clone())]));
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name)]));
             m
         });
@@ -853,7 +853,7 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), messageHash.clone());
                 m.insert("symbol".to_string(), symbolValue);
-                m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("marketId".to_string(), Value::from((market).id.clone()));
                 m.insert("limit".to_string(), limit.clone());
             m
         });
@@ -1007,8 +1007,8 @@ impl Coinbaseexchange {
         }
         add_element_to_object(&mut parsed, &Value::Str("order".into()), self.safe_string(trade, Value::from(idKey), &[]));
         let mut parsedSymbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut marketResolved: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(parsedSymbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        let mut feeCurrency: Value = marketResolved.get("quote").cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = (match self.market(parsedSymbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut feeCurrency: Value = Value::from((marketResolved).quote.clone());
         let mut feeCost: Value = Value::Null;
         let mut cost: Option<String> = self.safe_string_k_opt(parsed.clone(), "cost", &[]);
         if (cost.is_some()) && (feeRate != Value::Null) {
