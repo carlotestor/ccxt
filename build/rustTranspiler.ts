@@ -10219,7 +10219,7 @@ export class RustTranspilerBuilder {
             if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
             if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
             const uses = this.nativeScalarUses(masked, name, 'i64');
-            if (uses === undefined || uses.every((u) => u.text === `Some(${name} as f64)`)) continue;
+            if (uses === undefined || uses.every((u) => u.text === `Some((${name} as f64))` || u.text === `(${name} as f64)`)) continue;
             rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: i64 = ${m[3]};` });
             for (const u of uses) rewrites.push({ start: stmtEnd + u.start, end: stmtEnd + u.end, text: u.text });
         }
@@ -10246,7 +10246,12 @@ export class RustTranspilerBuilder {
             if ((g = /^\)?\.as_(f64|i64)\(\)/.exec(after)) !== null && (g[0][0] !== ')' || before.endsWith('('))
                 && (acc === 'i64' || g[1] === 'f64')) {
                 const paren = g[0][0] === ')' ? 1 : 0;
-                out.push({ start: at - paren, end: end + g[0].length, text: acc === 'i64' && g[1] === 'f64' ? `Some(${name} as f64)` : `Some(${name})` });
+                // `.unwrap_or(..)` on the never-`None` accessor is the payload itself.
+                const unwrap = /^\.unwrap_or\((?:f64::NAN|-1)\)/.exec(after.slice(g[0].length));
+                const bare = acc === 'i64' && g[1] === 'f64' ? `(${name} as f64)` : name;
+                out.push(unwrap !== null
+                    ? { start: at - paren, end: end + g[0].length + unwrap[0].length, text: bare }
+                    : { start: at - paren, end: end + g[0].length, text: `Some(${bare})` });
             } else if (acc === 'i64' && (inc = /if let Value::Int\((\w+)\) = &mut $/.exec(before)) !== null
                 && (g = new RegExp(`^\\s*\\{\\s*\\*${inc[1]} \\+= 1;\\s*\\}`).exec(after)) !== null) {
                 // The `for` incrementor: the guarded in-place `+= 1` on the Int box is `+= 1` on the i64.
