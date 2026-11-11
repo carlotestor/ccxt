@@ -134,7 +134,7 @@ impl Value {
     /// count of new updates since the last call (clamped by `limit`
     /// when supplied) and arms the per-symbol / global reset flag so
     /// the next `append` zeroes the counter.
-    pub fn get_limit(&mut self, symbol: Value, limit: Value) -> Value {
+    pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
         if matches!(self, Value::Dict(d) if d.contains_key("__cacheKind")) {
             cache_get_limit(self, symbol, limit)
         } else {
@@ -1668,8 +1668,9 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
 }
 
 
-pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
+pub(crate) fn cache_get_limit(target: &mut Value, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
     let kind = cache_kind(target).unwrap_or_default();
+    let symbol: Option<String> = symbol.map(String::from);
     if let Some(id) = cache_id_of(target) {
         return with_cache_cell(id, move |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
@@ -1685,40 +1686,33 @@ pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -
 // symbol scope and arms its clear; `undefined` (Null) polls the global scope.
 // The count is `undefined` only when the key was never seen — then the caller's
 // `limit` passes through unclamped.
-fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Value, limit: Value) -> Value {
-    {
-        // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
-        // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
-        // `this.newUpdates` and arm a single global `clearUpdates` flag.
-        if kind == "ArrayCacheByTimestamp" {
-            let v = cache_int_field(m, "_newUpdates");
-            cache_set_bool(m, "_clearUpdates", true);
-            return match limit {
-                Value::Int(l) => Value::Int(v.min(l)),
-                _             => Value::Int(v),
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Option<String>, limit: Option<i64>) -> Option<i64> {
+    // `ArrayCacheByTimestamp` doesn't track per-symbol updates: both scopes
+    // return `this.newUpdates` and arm a single global `clearUpdates` flag.
+    if kind == "ArrayCacheByTimestamp" {
+        let v = cache_int_field(m, "_newUpdates");
+        cache_set_bool(m, "_clearUpdates", true);
+        return Some(match limit { Some(l) => v.min(l), None => v });
+    }
+    let new_updates_value: Option<i64> = match &symbol {
+        None => {
+            cache_set_bool(m, "_clearAllUpdates", true);
+            Some(cache_int_field(m, "_allNewUpdates"))
+        }
+        Some(sym) => {
+            let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_str()) {
+                Some(Value::Int(n)) => Some(*n),
+                _ => None,
             };
+            cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+                .insert(sym.clone(), Value::Bool(true));
+            v
         }
-        let new_updates_value: Option<i64> = match &symbol {
-            Value::Null => {
-                cache_set_bool(m, "_clearAllUpdates", true);
-                Some(cache_int_field(m, "_allNewUpdates"))
-            }
-            Value::Str(sym) => {
-                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_ref()) {
-                    Some(Value::Int(n)) => Some(*n),
-                    _ => None,
-                };
-                cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-                    .insert(sym.to_string(), Value::Bool(true));
-                v
-            }
-            _ => None,
-        };
-        match (new_updates_value, &limit) {
-            (None,    _)              => limit.clone(),
-            (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
-            (Some(v), _)              => Value::Int(v),
-        }
+    };
+    match (new_updates_value, limit) {
+        (None,    _)       => limit,
+        (Some(v), Some(l)) => Some(v.min(l)),
+        (Some(v), None)    => Some(v),
     }
 }
 
