@@ -699,13 +699,13 @@ impl Myriad {
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
         let mut collected: i64 = 0;
-        let mut page: Value = Value::Int(1);
+        let mut page: i64 = 1;
         loop {
             let __ws_arg_1 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("state".to_string(), state.clone());
                     m.insert("limit".to_string(), limit.clone());
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::from(page));
                     m.insert("trading_model".to_string(), tradingModel.clone());
                 m
             }), &[&rest]);
@@ -726,7 +726,7 @@ impl Myriad {
                 }
             }
             }
-            page = self.sum(&[page.clone(), Value::Int(1)]);
+            page = (page + 1);
             if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || (collected as f64) >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
@@ -947,12 +947,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut collected: i64 = 0;
-        let mut page: Value = Value::Int(1);
+        let mut page: i64 = 1;
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), limit.clone());
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::from(page));
                 m
             });
             if (state != Value::Null) {
@@ -984,7 +984,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            page = self.sum(&[page.clone(), Value::Int(1)]);
+            page = (page + 1);
             if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || ((collected as f64) >= maxQuestions.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
@@ -4418,7 +4418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut options: Value = self.options.as_map().and_then(|__m| __m.get("requestId")).cloned().unwrap_or(Value::Null);
         let mut previousValue: i64 = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
+        let mut newValue: Value = Value::Int((previousValue + 1));
         if (url != Value::Null) {
             if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         }

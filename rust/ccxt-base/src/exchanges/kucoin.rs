@@ -3530,20 +3530,20 @@ impl Kucoin {
         }
         let mut crossIndex: Value = Value::Int(0);
         let mut isolatedIndex: Value = Value::Int(0);
-        let mut tickersIndex: Value = Value::Int(0);
-        let mut contractIndex: Value = Value::Int(0);
-        let mut nextIndex: Value = Value::Int(0);
+        let mut tickersIndex: i64 = 0;
+        let mut contractIndex: i64 = 0;
+        let mut nextIndex: i64 = 0;
         if fetchSpotMarkets.as_bool() == Some(true) {
-            nextIndex = Value::Int(1);
+            nextIndex = 1;
         }
         if requestMarginables {
-            crossIndex = nextIndex.clone();
-            nextIndex = self.sum(&[nextIndex.clone(), Value::Int(2)]);
+            crossIndex = Value::from(nextIndex);
+            nextIndex = (nextIndex + 2);
             isolatedIndex = self.sum(&[crossIndex.clone(), Value::Int(1)]);
         }
         if fetchTickersFees.as_bool() == Some(true) {
             tickersIndex = nextIndex.clone();
-            nextIndex = self.sum(&[nextIndex.clone(), Value::Int(1)]);
+            nextIndex = (nextIndex + 1);
         }
         if fetchContractMarkets {
             contractIndex = nextIndex;
@@ -3563,7 +3563,7 @@ impl Kucoin {
 }) });
         let mut isolatedItems: Value = self.safe_list_k(isolatedData, "data", &[Value::from(vec![])]);
         let mut isolatedById: Value = self.index_by(isolatedItems, Value::Str("symbol".into()));
-        let mut tickersResponse: Value = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(responses.clone(), tickersIndex, &[Value::Map({
+        let mut tickersResponse: Value = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(responses.clone(), Value::from(tickersIndex), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3679,7 +3679,7 @@ impl Kucoin {
         }
         }
         if fetchContractMarkets {
-            result = self.array_concat(Value::Arr(result), self.safe_list(responses, contractIndex, &[Value::from(vec![])])).into_list();
+            result = self.array_concat(Value::Arr(result), self.safe_list(responses, Value::from(contractIndex), &[Value::from(vec![])])).into_list();
         }
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;

@@ -2249,15 +2249,14 @@ impl Extended {
         if !(self.in_array(interval.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() supports 1h and 1d timeframes only".into()))));
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]).as_i64();
         let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
         if (endTime != Value::Null) && (since == Value::Null) {
-            sinceResolved = (match (&(endTime), &(((match (&((match (&(limitResolved), &(self.parse_timeframe(timeframe))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            sinceResolved = (match (&(endTime), &((Value::Int((((limitResolved * (self.parse_timeframe(timeframe).as_i64().unwrap_or_default()))) * 1000))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
+                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2265,7 +2264,7 @@ impl Extended {
                 m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
                 m.insert("startTime".to_string(), sinceResolved.clone());
                 m.insert("endTime".to_string(), endTime);
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2283,7 +2282,7 @@ impl Extended {
         //     }
         //
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_open_interests_history(data, &[(market).raw.clone(), sinceResolved, limitResolved]);
+        return self.parse_open_interests_history(data, &[(market).raw.clone(), sinceResolved, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

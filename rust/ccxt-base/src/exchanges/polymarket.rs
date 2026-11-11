@@ -1512,7 +1512,7 @@ impl Polymarket {
             paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: i64 = ((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000);
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
         }  else {
@@ -1521,8 +1521,7 @@ impl Polymarket {
             // current one, so the newest candle never falls off the range
             let mut end: Value = (if (until.is_some()) { Value::from(until) } else { self.milliseconds() });
             let mut requestedLimit: i64 = limit.as_i64().unwrap_or(100);
-            request.insert("start_timestamp".into(), (match (&(end), &((match (&((Value::Int((requestedLimit - 1)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("start_timestamp".into(), (match (&(end), &(Value::Int((((requestedLimit - 1)) * duration)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_klines(&[__ws_arg_2]).await.into_dict();

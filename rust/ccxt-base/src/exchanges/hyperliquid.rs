@@ -1078,11 +1078,11 @@ impl Hyperliquid {
             // python transpiler collapses every for-loop bound to an exclusive
             // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
             // too few (build/transpile.ts treats <, <=, > and >= identically)
-            let mut maxIteration: Value = self.sum(&[Value::from(maxLimit), Value::Int(1)]);
+            let mut maxIteration: i64 = (maxLimit + 1);
             {
                                 let mut i: Value = Value::Int(1);
                 let mut __for_first_800: bool = true;
-                while { if !__for_first_800 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < maxIteration.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_800 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < (maxIteration as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) >= fetchDexesLength.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
@@ -2422,8 +2422,8 @@ impl Hyperliquid {
         let mut priceStr: Value = self.number_to_string(price.clone());
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Option<String> = priceStrParts.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &Value::Int((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
-        let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), significantDigits, &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
+        let mut significantDigits: i64 = i64::max(5, ((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
+        let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(significantDigits), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
         let mut maxDecimals: Value = Value::Int(6);
         if (market).spot {
             maxDecimals = Value::Int(8);

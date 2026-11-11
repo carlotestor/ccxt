@@ -1760,18 +1760,15 @@ impl Coinsph {
             if (until != Value::Null) {
                 request.insert("endTime".into(), until.clone());
             }  else {
-                let mut endTimeByLimit: Value = self.sum(&[since.clone(), (match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &((Value::Int((limitResolved - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))]);
                 let mut now: Value = self.milliseconds();
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }
         }  else if (until != Value::Null) {
             request.insert("endTime".into(), until.clone());
             // since work properly only when it is "younger" than last "limit" candle
-            request.insert("startTime".into(), (match (&(until), &(((match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &((Value::Int((limitResolved - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();

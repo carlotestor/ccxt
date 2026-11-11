@@ -2061,10 +2061,10 @@ if _try_result.is_err() {
         if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::from(defaultMaxLimit)]).await;
         }
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::from(defaultMaxLimit) } else { limit.clone() });
+        let mut limitValue: i64 = limit.as_i64().unwrap_or(defaultMaxLimit);
         let mut tf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut nowMs: Value = self.milliseconds();
-        let mut duration: Value = (match (&(self.parse_timeframe(tf.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: i64 = ((self.parse_timeframe(tf.clone()).as_i64().unwrap_or_default()) * 1000);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
@@ -2077,18 +2077,16 @@ if _try_result.is_err() {
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.safe_integer_k(requestUntil.clone(), "end_time", &[]) == Value::Null) {
             if (sinceValue == Value::Null) {
-                sinceValue = (match (&(nowMs), &((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                sinceValue = (match (&(nowMs), &(Value::Int((limitValue * duration)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             }
             let mut windowEnd: Value = self.parse_to_int(self.sum(&[(match (&(sinceValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                _ => Value::Null }), (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                _ => Value::Null }), Value::Int((limitValue * duration))]));
             let mut until: Value = (if (windowEnd.as_f64().unwrap_or(f64::NAN) > nowMs.as_f64().unwrap_or(f64::NAN)) { nowMs } else { windowEnd });
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_time".into(), until); }
         }  else {
             if (sinceValue == Value::Null) {
-                sinceValue = (match (&(requestUntil.as_map().and_then(|__m| __m.get("end_time")).cloned().unwrap_or(Value::Null)), &((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
-                    Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
+                sinceValue = (match (&(requestUntil.as_map().and_then(|__m| __m.get("end_time")).cloned().unwrap_or(Value::Null)), &(Value::Int((limitValue * duration)))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
+                    Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
             }
         }
         if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), sinceValue); }

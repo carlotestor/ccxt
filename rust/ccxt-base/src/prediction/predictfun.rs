@@ -4435,7 +4435,7 @@ impl Predictfun {
     pub fn request_id(&self) -> Value {
         self.lock_id(&[]);
         let mut previous: i64 = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut next: Value = self.sum(&[Value::from(previous), Value::Int(1)]);
+        let mut next: Value = Value::Int((previous + 1));
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), next.clone()); }
         self.unlock_id(&[]);
         return next;
