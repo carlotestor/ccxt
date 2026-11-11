@@ -2586,10 +2586,7 @@ export default class delta extends Exchange {
         type = this.parseLedgerEntryType (type);
         const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
-        let currencyValue: Currency = this.safeValue (currenciesByNumericId, currencyId);
-        if (currencyValue === undefined) {
-            currencyValue = currency;
-        }
+        const currencyValue: Currency = this.safeValue (currenciesByNumericId, currencyId, currency);
         const code = this.safeString (currencyValue, 'code');
         const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
