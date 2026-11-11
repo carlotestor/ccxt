@@ -2954,13 +2954,13 @@ export default class poloniex extends Exchange {
         return this.parseDepositAddressSpecial (response, currency, networkEntry);
     }
 
-    prepareRequestForDepositAddress (code: string, params: Dict = {}): [Dict, Dict, Currency, NullableDict] {
+    prepareRequestForDepositAddress (code: string, params: Dict = {}): any {
         if (!(code in this.currencies)) {
             throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
         const currency = this.currency (code);
         let networkCode: Str = undefined;
-        let query: Dict = {};
+        let query: NullableDict = undefined;
         [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction
@@ -2980,7 +2980,7 @@ export default class poloniex extends Exchange {
         return [ request, query, currency, networkEntry ];
     }
 
-    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: NullableDict): DepositAddress {
+    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: Dict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, this.safeString (networkEntry, 'id'));

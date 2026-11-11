@@ -1920,7 +1920,7 @@ export default class hibachi extends Exchange {
         }
         return this.safeLedgerEntry ({
             'id': this.safeString (item, 'id'),
-            'currency': this.currency ('USDT')['code'],
+            'currency': this.currency ('USDT'),
             'account': this.numberToString (this.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,
