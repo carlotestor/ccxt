@@ -2653,11 +2653,8 @@ impl Nado {
         //     }
         //
         let mut timestamp: Option<i64> = (match message.get("time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut bbos: Value = (match message.get("bbos") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketIds: Vec<Value> = object_keys(&bbos).as_array().cloned().unwrap_or_default();
+        let mut bbos: crate::value::Dict = message.get("bbos").cloned().unwrap_or_default().into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(bbos.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2668,7 +2665,7 @@ impl Nado {
             while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut bbo: Value = self.safe_dict(bbos.clone(), marketId, &[Value::Map({
+            let mut bbo: Value = self.safe_dict(&bbos, marketId, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

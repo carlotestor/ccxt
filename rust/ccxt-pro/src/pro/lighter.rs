@@ -1344,11 +1344,8 @@ impl Lighter {
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: Value = Value::Array(channel.split(":").map(Value::from).collect());
         let mut accountIndex: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut data: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketIds: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = message.get("trades").cloned().unwrap_or_default().into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut idsLength: f64 = ((marketIds.len() as i64) as f64);
         if (idsLength == 0.0) {
             return Value::Bool(false);
@@ -1365,7 +1362,7 @@ impl Lighter {
             while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut trades: crate::value::List = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).into_list();
+            let mut trades: crate::value::List = self.safe_list(&data, marketId, &[Value::from(vec![])]).into_list();
             let mut tradesLength: Value = Value::Int(trades.len() as i64);
             {
                                 let mut j: Value = Value::Int(0);
@@ -1373,7 +1370,7 @@ impl Lighter {
                 while { if !__for_first_472 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_472 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut jReversed: Value = (match (&((match (&(tradesLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
                     _ => Value::Null })), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                let mut tradeRaw: Value = self.safe_dict(Value::Arr(trades.clone()), jReversed, &[Value::Map({
+                let mut tradeRaw: Value = self.safe_dict(&trades, jReversed, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1770,17 +1767,14 @@ impl Lighter {
             m
         })]).as_map().cloned().unwrap_or_default();
         if (Some(type_var.as_str()) == Some("spot")) {
-            let mut assets: Value = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            let mut assetIds: Vec<Value> = object_keys(&assets).as_array().cloned().unwrap_or_default();
+            let mut assets: crate::value::Dict = __pro_message.get("assets").cloned().unwrap_or_default().into_dict();
+            let mut assetIds: Vec<Value> = Value::Array(assets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_475: bool = true;
                 while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (assetIds.len() as i64) } {
                 let mut assetId: Value = assetIds.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut asset: crate::value::Dict = self.safe_dict(assets.clone(), assetId, &[]).into_dict();
+                let mut asset: crate::value::Dict = self.safe_dict(&assets, assetId, &[]).into_dict();
                 let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
@@ -2129,11 +2123,8 @@ impl Lighter {
         //        "type": "update/account_all_orders"
         //    }
         //
-        let mut data: Value = (match message.get("orders") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketIds: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = message.get("orders").cloned().unwrap_or_default().into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut idsLength: f64 = ((marketIds.len() as i64) as f64);
         if (idsLength == 0.0) {
             return Value::Bool(false);
@@ -2150,7 +2141,7 @@ impl Lighter {
             while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut orders: crate::value::List = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).into_list();
+            let mut orders: crate::value::List = self.safe_list(&data, marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_476: bool = true;

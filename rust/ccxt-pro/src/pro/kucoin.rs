@@ -515,8 +515,8 @@ impl Kucoin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut instanceServers: Value = self.safe_list_k(&data, "instanceServers", &[Value::from(vec![])]);
-            let mut firstInstanceServer: crate::value::Dict = self.safe_dict(instanceServers, Value::Int(0), &[]).into_dict();
+            let mut instanceServers: crate::value::List = self.safe_list_k(&data, "instanceServers", &[Value::from(vec![])]).into_list();
+            let mut firstInstanceServer: crate::value::Dict = self.safe_dict(&instanceServers, Value::Int(0), &[]).into_dict();
             let mut pingInterval: Value = self.safe_integer_k(&firstInstanceServer, "pingInterval", &[]);
             let mut endpoint: Option<String> = self.safe_string_k(&firstInstanceServer, "endpoint", &[]).as_str().map(str::to_owned);
             if (endpoint.is_none()) {
@@ -1424,18 +1424,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut ask: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
-            let mut bid: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+            let mut ask: crate::value::List = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]).into_list();
+            let mut bid: crate::value::List = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).into_list();
             let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
             return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("ask".to_string(), self.safe_number(ask.clone(), Value::Int(0), &[]));
-        m.insert("askVolume".to_string(), self.safe_number(ask, Value::Int(1), &[]));
-        m.insert("bid".to_string(), self.safe_number(bid.clone(), Value::Int(0), &[]));
-        m.insert("bidVolume".to_string(), self.safe_number(bid, Value::Int(1), &[]));
+        m.insert("ask".to_string(), self.safe_number(&ask, Value::Int(0), &[]));
+        m.insert("askVolume".to_string(), self.safe_number(&ask, Value::Int(1), &[]));
+        m.insert("bid".to_string(), self.safe_number(&bid, Value::Int(0), &[]));
+        m.insert("bidVolume".to_string(), self.safe_number(&bid, Value::Int(1), &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[marketResolved.clone()]);
@@ -1657,7 +1657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
-        let mut candles: Value = self.safe_list_k(&data, "candles", &[Value::from(vec![])]);
+        let mut candles: crate::value::List = self.safe_list_k(&data, "candles", &[Value::from(vec![])]).into_list();
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut interval: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1681,7 +1681,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isContractMarket {
             baseVolumeIndex = 6; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         }
-        let mut parsed: Value = Value::from(vec![self.safe_timestamp(candles.clone(), Value::Int(0), &[]), self.safe_number(candles.clone(), Value::Int(1), &[]), self.safe_number(candles.clone(), Value::Int(3), &[]), self.safe_number(candles.clone(), Value::Int(4), &[]), self.safe_number(candles.clone(), Value::Int(2), &[]), self.safe_number(candles, Value::from(baseVolumeIndex), &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_timestamp(&candles, Value::Int(0), &[]), self.safe_number(&candles, Value::Int(1), &[]), self.safe_number(&candles, Value::Int(3), &[]), self.safe_number(&candles, Value::Int(4), &[]), self.safe_number(&candles, Value::Int(2), &[]), self.safe_number(&candles, Value::from(baseVolumeIndex), &[])]);
         stored.append(parsed);
         client.resolve(stored, messageHash.as_str());
 }
@@ -3175,11 +3175,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.triggerOrders = ArrayCacheBySymbolById::new(limit);
         }
         let mut cachedOrders: Value = (if isTriggerOrder { self.triggerOrders.clone() } else { self.orders.clone() });
-        let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut order: Option<crate::value::Dict> = self.safe_dict(orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        })]).into_dict();
+        let mut order: Option<crate::value::Dict> = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
         if (order.is_some()) {
             if (self.safe_string_k(&order, "status", &[]).as_str() == Some("closed")) {
                 if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("closed".into())); }
@@ -3664,7 +3664,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into()));
             if !(__ch.has_future(messageHash.as_str())) {
@@ -4002,8 +4002,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut values: Value = Value::Array(symbolCache.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
-        return self.safe_dict(values, Value::Int(0), &[]);
+        let mut values: crate::value::List = Value::Array(symbolCache.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        return self.safe_dict(&values, Value::Int(0), &[]);
 
     Value::Null
 }

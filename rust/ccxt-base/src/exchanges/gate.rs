@@ -4331,11 +4331,11 @@ if _try_result.is_err() {
 }
 
     pub fn get_settlement_currencies(&self, mut type_var: Value, mut method: Value) -> Value {
-        let mut options: Value = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); // [ 'BTC', 'USDT' ] unified codes
-        let mut fetchMarketsContractOptions: crate::value::Dict = self.safe_dict(options, method, &[Value::Map({
+})]).into_dict(); // [ 'BTC', 'USDT' ] unified codes
+        let mut fetchMarketsContractOptions: crate::value::Dict = self.safe_dict(&options, method, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -7179,7 +7179,7 @@ if _try_result.is_err() {
     m
 }) });
         let mut isSwap: Value = (match market.get("swap") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
-        let mut enableDecimal: Value = self.safe_bool_k(info, "enable_decimal", &[Value::Bool(false)]);
+        let mut enableDecimal: Value = self.safe_bool_k(&info, "enable_decimal", &[Value::Bool(false)]);
         return Value::Bool(is_true(&isSwap) && enableDecimal.as_bool() == Some(true));
 
     Value::Null

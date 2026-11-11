@@ -808,7 +808,7 @@ impl Independentreserve {
                         let mut i: i64 = 0;
             let mut __for_first_833: bool = true;
             while { if !__for_first_833 { i += 1; } __for_first_833 = false; i < (accounts.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(accounts.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "CurrencyCode", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

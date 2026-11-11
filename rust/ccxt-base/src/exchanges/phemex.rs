@@ -2206,17 +2206,17 @@ impl Phemex {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut book: Value = self.safe_dict2(result.clone(), Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
+        })]).into_dict();
+        let mut book: Value = self.safe_dict2(&result, Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product_k(result.clone(), "timestamp", Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(&result, "timestamp", Value::Float(0.000001), &[]);
         let mut orderbook: Value = self.custom_parse_order_book(book, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), (market).raw.clone()]);
-        let mut nonce: Option<i64> = self.safe_integer_k(result, "sequence", &[]).as_i64();
+        let mut nonce: Option<i64> = self.safe_integer_k(&result, "sequence", &[]).as_i64();
         return self.extend(orderbook, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("nonce".to_string(), Value::from(nonce));
@@ -2742,11 +2742,11 @@ impl Phemex {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut trades: Value = self.safe_list2(result, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut trades: Value = self.safe_list2(&result, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -3095,7 +3095,7 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_1078: bool = true;
             while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
@@ -3826,10 +3826,10 @@ impl Phemex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         if (clientOrderId.is_none()) {
@@ -3942,7 +3942,7 @@ impl Phemex {
             }
             if hasStopLoss || hasTakeProfit {
                 if hasStopLoss {
-                    let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+                    let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     if (stopLossTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order".into()))));
                     }
@@ -3951,17 +3951,17 @@ impl Phemex {
                     }  else {
                         request.insert("stopLossEp".into(), self.to_ep(Value::from(stopLossTriggerPrice), &[(market).raw.clone()]));
                     }
-                    let mut stopLossTriggerPriceType: Option<String> = self.safe_string2(stopLoss.clone(), Value::Str("triggerPriceType".into()), Value::Str("slTrigger".into()), &[]).as_str().map(str::to_owned);
+                    let mut stopLossTriggerPriceType: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPriceType".into()), Value::Str("slTrigger".into()), &[]).as_str().map(str::to_owned);
                     if (stopLossTriggerPriceType.is_some()) {
                         request.insert("slTrigger".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("triggerPriceTypesMap")).cloned().unwrap_or(Value::Null), stopLossTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[stopLossTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null)]));
                     }
-                    let mut slLimitPrice: Option<String> = self.safe_string_k(stopLoss, "price", &[]).as_str().map(str::to_owned);
+                    let mut slLimitPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
                     if (slLimitPrice.is_some()) {
                         request.insert("slPxRp".into(), self.price_to_precision(symbol.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null)));
                     }
                 }
                 if hasTakeProfit {
-                    let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+                    let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     if (takeProfitTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order".into()))));
                     }
@@ -3970,11 +3970,11 @@ impl Phemex {
                     }  else {
                         request.insert("takeProfitEp".into(), self.to_ep(Value::from(takeProfitTriggerPrice), &[(market).raw.clone()]));
                     }
-                    let mut takeProfitTriggerPriceType: Option<String> = self.safe_string2(takeProfit.clone(), Value::Str("triggerPriceType".into()), Value::Str("tpTrigger".into()), &[]).as_str().map(str::to_owned);
+                    let mut takeProfitTriggerPriceType: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPriceType".into()), Value::Str("tpTrigger".into()), &[]).as_str().map(str::to_owned);
                     if (takeProfitTriggerPriceType.is_some()) {
                         request.insert("tpTrigger".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("triggerPriceTypesMap")).cloned().unwrap_or(Value::Null), takeProfitTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[takeProfitTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null)]));
                     }
-                    let mut tpLimitPrice: Option<String> = self.safe_string_k(takeProfit, "price", &[]).as_str().map(str::to_owned);
+                    let mut tpLimitPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
                     if (tpLimitPrice.is_some()) {
                         request.insert("tpPxRp".into(), self.price_to_precision(symbol.clone(), tpLimitPrice.map(Value::from).unwrap_or(Value::Null)));
                     }
@@ -4412,7 +4412,7 @@ impl Phemex {
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() ".into())).into()), symbol).into()), Value::Str(" order with id ".into())).into()), id).into()), Value::Str(" not found".into()))));
                 }
             }
-            order = self.safe_dict(Value::Arr(rows), Value::Int(0), &[Value::Map({
+            order = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6232,7 +6232,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1081: bool = true;
             while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (riskLimits.len() as i64) } {
-            let mut tier: Value = self.safe_dict(Value::Arr(riskLimits.clone()), Value::Int(i), &[]);
+            let mut tier: Value = self.safe_dict(&riskLimits, Value::Int(i), &[]);
             let mut maxNotional: Option<i64> = self.safe_integer_k(tier.clone(), "limit", &[]).as_i64();
             let mut minNotionalResponse: Value = Value::from(minNotional); // java req
             tiers.push(Value::Map({

@@ -2766,7 +2766,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_392: bool = true;
                     while { if !__for_first_392 { i += 1; } __for_first_392 = false; (i as f64) < detailsLength } {
-                    let mut detail: crate::value::Dict = self.safe_dict(Value::Arr(details.clone()), Value::Int(i), &[]).into_dict();
+                    let mut detail: crate::value::Dict = self.safe_dict(&details, Value::Int(i), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&detail, "currency", &[]).as_str().map(str::to_owned);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     if (code.is_none()) {
@@ -2786,7 +2786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (dataLength == 0.0) {
                 return;
             }
-            let mut first: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[Value::Map({
+            let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -2851,7 +2851,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                                 let mut i: i64 = 0;
                         let mut __for_first_393: bool = true;
                         while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (data.len() as i64) } {
-                        let mut isolatedBalance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+                        let mut isolatedBalance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
                         let mut account: Value = self.account();
                         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&isolatedBalance, "margin_balance", &[Value::Str("margin_available".into())])); }
                         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&isolatedBalance, "margin_frozen", &[])); }
@@ -2869,7 +2869,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_394: bool = true;
                     while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (data.len() as i64) } {
-                    let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+                    let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     let mut account: Value = self.account();
@@ -3634,18 +3634,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut typeUrlsByApi: Value = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+        })]).into_dict();
+        let mut typeUrlsByApi: crate::value::Dict = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut hostnameURL: Value = Value::Null;
         let mut url: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            let mut spotUrls: indexmap::IndexMap<String, Value> = self.safe_dict_k(typeUrlsByApi.clone(), "spot", &[Value::Map({
+            let mut spotUrls: indexmap::IndexMap<String, Value> = self.safe_dict_k(&typeUrlsByApi, "spot", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).as_map().cloned().unwrap_or_default();
@@ -3660,7 +3660,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             url = self.implode_params(hostnameURL, Value::Map(hostname));
         }  else {
-            let mut typeUrls: crate::value::Dict = self.safe_dict(typeUrlsByApi, type_var, &[Value::Map({
+            let mut typeUrls: crate::value::Dict = self.safe_dict(&typeUrlsByApi, type_var, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

@@ -822,9 +822,9 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_136: bool = true;
             while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (bidsAsks.len() as i64) } {
-            let mut level: Value = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]);
-            let mut price: Option<f64> = self.safe_number(level.clone(), Value::Int(0), &[]).as_f64();
-            let mut rawAmount: Option<f64> = self.safe_number(level, Value::Int(1), &[]).as_f64();
+            let mut level: crate::value::List = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]).into_list();
+            let mut price: Option<f64> = self.safe_number(&level, Value::Int(0), &[]).as_f64();
+            let mut rawAmount: Option<f64> = self.safe_number(&level, Value::Int(1), &[]).as_f64();
             let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), Value::from(rawAmount));
             result.push(Value::from(vec![Value::from(price), amount]));
         }

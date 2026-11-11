@@ -597,7 +597,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_522: bool = true;
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (payload.len() as i64) } {
-            let mut ohlcv: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(i), &[]).into_list();
+            let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -796,7 +796,7 @@ impl Ndax {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut firstBidAsk: crate::value::List = self.safe_list(&payload, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string(&firstBidAsk, Value::Int(7), &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             return;
@@ -814,7 +814,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
             while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (payload.len() as i64) } {
-            let mut bidask: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(i), &[]).into_list();
+            let mut bidask: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(&bidask, Value::Int(2), &[]);
             }  else {

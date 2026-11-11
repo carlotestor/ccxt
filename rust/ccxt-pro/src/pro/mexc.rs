@@ -867,7 +867,7 @@ impl Mexc {
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut data: Value = self.safe_dict_n(ticker.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]);
+        let mut data: crate::value::Dict = self.safe_dict_n(ticker.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string2(ticker.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -877,10 +877,10 @@ impl Mexc {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("ask".to_string(), self.safe_number2(data.clone(), Value::Str("a".into()), Value::Str("askPrice".into()), &[]));
-        m.insert("askVolume".to_string(), self.safe_number2(data.clone(), Value::Str("A".into()), Value::Str("askQuantity".into()), &[]));
-        m.insert("bid".to_string(), self.safe_number2(data.clone(), Value::Str("b".into()), Value::Str("bidPrice".into()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_number2(data, Value::Str("B".into()), Value::Str("bidQuantity".into()), &[]));
+        m.insert("ask".to_string(), self.safe_number2(&data, Value::Str("a".into()), Value::Str("askPrice".into()), &[]));
+        m.insert("askVolume".to_string(), self.safe_number2(&data, Value::Str("A".into()), Value::Str("askQuantity".into()), &[]));
+        m.insert("bid".to_string(), self.safe_number2(&data, Value::Str("b".into()), Value::Str("bidPrice".into()), &[]));
+        m.insert("bidVolume".to_string(), self.safe_number2(&data, Value::Str("B".into()), Value::Str("bidQuantity".into()), &[]));
         m.insert("info".to_string(), ticker);
     m
 }), &[marketResolved]);

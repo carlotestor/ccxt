@@ -2239,7 +2239,7 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_52: bool = true;
                 while { if !__for_first_52 { i += 1; } __for_first_52 = false; i < (securities.len() as i64) } {
-                let mut security: crate::value::Dict = self.safe_dict(Value::Arr(securities.clone()), Value::Int(i), &[Value::Map({
+                let mut security: crate::value::Dict = self.safe_dict(&securities, Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();

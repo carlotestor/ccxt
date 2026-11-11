@@ -1734,10 +1734,7 @@ impl Woofipro {
         let mut currencyId: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
         let mut networks: crate::value::List = self.safe_list_k(&token, "chain_details", &[Value::from(vec![])]).into_list();
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut indexedChains: Value = (match rawCurrency.get("_indexedChains") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut indexedChains: crate::value::Dict = rawCurrency.get("_indexedChains").cloned().unwrap_or_default().into_dict();
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1748,7 +1745,7 @@ impl Woofipro {
             while { if !__for_first_1177 { j += 1; } __for_first_1177 = false; j < (networks.len() as i64) } {
             let mut networkEntry: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "chain_id", &[]).as_str().map(str::to_owned);
-            let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut networkRow: Value = self.safe_dict(&indexedChains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut networkName: Option<String> = self.safe_string_k(networkRow.clone(), "name", &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkName.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -3039,12 +3036,12 @@ impl Woofipro {
         let mut stopLossPrice: Value = Value::Null;
         let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
         if (childOrders.is_some()) {
-            let mut first: crate::value::Dict = self.safe_dict(childOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
+            let mut first: crate::value::Dict = self.safe_dict(&childOrders, Value::Int(0), &[]).into_dict();
             let mut innerChildOrders: crate::value::List = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).into_list();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders.clone()), Value::Int(0), &[]).into_dict();
-                let mut stopLossOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders), Value::Int(1), &[]).into_dict();
+                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(0), &[]).into_dict();
+                let mut stopLossOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(1), &[]).into_dict();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]);
             }
@@ -4209,7 +4206,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1183: bool = true;
             while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -4665,11 +4662,11 @@ impl Woofipro {
         let mut currency: Value = self.currency(codeUpper.clone());
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
-        let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut coinNetwork: crate::value::Dict = self.safe_dict(currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+})]).into_dict();
+        let mut coinNetwork: crate::value::Dict = self.safe_dict(&currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

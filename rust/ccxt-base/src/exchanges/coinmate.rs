@@ -912,23 +912,23 @@ impl Coinmate {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
         });
-        let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), currencyId, &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId, &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved", &[]));

@@ -2891,12 +2891,12 @@ impl Modetrade {
         let mut stopLossPrice: Value = Value::Null;
         let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
         if (childOrders.is_some()) {
-            let mut first: crate::value::Dict = self.safe_dict(childOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
+            let mut first: crate::value::Dict = self.safe_dict(&childOrders, Value::Int(0), &[]).into_dict();
             let mut innerChildOrders: crate::value::List = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).into_list();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders.clone()), Value::Int(0), &[]).into_dict();
-                let mut stopLossOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders), Value::Int(1), &[]).into_dict();
+                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(0), &[]).into_dict();
+                let mut stopLossOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(1), &[]).into_dict();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]);
             }
@@ -4085,7 +4085,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_967: bool = true;
             while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -4584,14 +4584,14 @@ impl Modetrade {
         let mut currency: Value = self.currency(codeUpper.clone());
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
-        let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut coinNetwork: Value = (if (chainId.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+}) } else { self.safe_dict(&currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -5069,7 +5069,7 @@ impl Modetrade {
                                                         let mut i: i64 = 0;
                             let mut __for_first_968: bool = true;
                             while { if !__for_first_968 { i += 1; } __for_first_968 = false; i < (ordersList.len() as i64) } {
-                            let __ws_arg_36 = self.safe_dict(Value::Arr(ordersList.clone()), Value::Int(i), &[Value::Map({
+                            let __ws_arg_36 = self.safe_dict(&ordersList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

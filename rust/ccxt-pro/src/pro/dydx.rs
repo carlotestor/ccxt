@@ -742,9 +742,9 @@ impl Dydx {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut candles: Value = self.safe_list_k(content.clone(), "candles", &[]);
+        let mut candles: crate::value::List = self.safe_list_k(content.clone(), "candles", &[]).into_list();
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
-        let mut ohlcv: Value = self.safe_dict(candles, Value::Int(0), &[content]);
+        let mut ohlcv: Value = self.safe_dict(&candles, Value::Int(0), &[content]);
         let mut parsed: Value = self.parse_ohlcv(ohlcv, &[market]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

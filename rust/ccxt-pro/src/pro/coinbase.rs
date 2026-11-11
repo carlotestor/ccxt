@@ -826,7 +826,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
-            let mut tickersObj: crate::value::Dict = self.safe_dict(Value::Arr(events.clone()), Value::Int(i), &[]).into_dict();
+            let mut tickersObj: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut tickers: crate::value::List = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
@@ -1342,9 +1342,9 @@ impl Coinbase {
         if (events.is_none()) {
             return;
         }
-        let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
-        let mut trades: Value = self.safe_list_k(&event, "trades", &[]);
-        let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(0), &[]).into_dict();
+        let mut trades: crate::value::List = self.safe_list_k(&event, "trades", &[]).into_list();
+        let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&trade, "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("market_trades::".into()), symbol);
@@ -1358,7 +1358,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_230: bool = true;
             while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut currentEvent: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut currentEvent: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut currentTrades: Value = self.safe_list_k(&currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
                 continue;
@@ -1424,7 +1424,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_232: bool = true;
             while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut responseOrders: Option<crate::value::List> = self.safe_list_k(&event, "orders", &[]).into_opt_list();
             if (responseOrders.is_none()) {
                 continue;
@@ -1576,7 +1576,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_235: bool = true;
             while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut updates: Value = self.safe_list_k(&event, "updates", &[Value::from(vec![])]);
             let mut marketId: Option<String> = self.safe_string_k(&event, "product_id", &[]).as_str().map(str::to_owned);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1646,8 +1646,8 @@ impl Coinbase {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstEvent: crate::value::Dict = self.safe_dict(events, Value::Int(0), &[Value::Map({
+        let mut events: crate::value::List = __pro_message.get("events").cloned().unwrap_or_default().into_list();
+        let mut firstEvent: crate::value::Dict = self.safe_dict(&events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();

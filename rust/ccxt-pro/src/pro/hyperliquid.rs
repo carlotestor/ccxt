@@ -557,8 +557,8 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut statuses: Value = self.safe_list_k(&dataObject, "statuses", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(statuses, Value::Int(0), &[Value::Map({
+        let mut statuses: crate::value::List = self.safe_list_k(&dataObject, "statuses", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&statuses, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -792,11 +792,11 @@ impl Hyperliquid {
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: Value = Value::from((market).symbol.clone());
-        let mut rawData: Value = self.safe_list_k(&entry, "levels", &[Value::from(vec![])]);
+        let mut rawData: crate::value::List = self.safe_list_k(&entry, "levels", &[Value::from(vec![])]).into_list();
         let mut data: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), self.safe_list(rawData.clone(), Value::Int(0), &[Value::from(vec![])]));
-                m.insert("asks".to_string(), self.safe_list(rawData, Value::Int(1), &[Value::from(vec![])]));
+                m.insert("bids".to_string(), self.safe_list(&rawData, Value::Int(0), &[Value::from(vec![])]));
+                m.insert("asks".to_string(), self.safe_list(&rawData, Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();
@@ -1420,13 +1420,13 @@ impl Hyperliquid {
     m
 }) });
         // every subscription starts with a snapshot, a resubscribe replays it
-        let mut isSnapshot: bool = self.safe_bool_k(entry.clone(), "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSnapshot: bool = self.safe_bool_k(&entry, "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isSnapshot || (self.myLiquidations.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myLiquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myLiquidations = ArrayCache::new(limit);
         }
         let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
-        let mut fills: crate::value::List = self.safe_list_k(entry, "fills", &[Value::from(vec![])]).into_list();
+        let mut fills: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
         let mut newLiquidations: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1597,7 +1597,7 @@ impl Hyperliquid {
         if (entryLength == 0.0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(entry.clone()), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&entry, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1615,7 +1615,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(Value::Arr(entry.clone()), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(&entry, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

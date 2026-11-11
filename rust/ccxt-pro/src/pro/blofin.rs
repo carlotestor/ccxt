@@ -914,11 +914,11 @@ impl Blofin {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolResult: Value = self.safe_dict(crate::types::IntoRaw::into_raw(result), symbol, &[Value::Map({
+        let mut symbolResult: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(result), symbol, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.safe_list(symbolResult, timeframe, &[Value::from(vec![])]);
+        })]).into_dict();
+        return self.safe_list(&symbolResult, timeframe, &[Value::from(vec![])]);
         Value::Null
         }).await?))
     }
@@ -1432,8 +1432,8 @@ impl Blofin {
         //         ]
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

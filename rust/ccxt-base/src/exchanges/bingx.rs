@@ -3302,8 +3302,8 @@ impl Bingx {
         //
         let mut data: Value = Value::Null;
         if ((market).inverse == Some(true)) {
-            let mut dataList: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-            data = self.safe_dict(dataList, Value::Int(0), &[Value::Map({
+            let mut dataList: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            data = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3700,8 +3700,8 @@ impl Bingx {
             m
         });
         if ((market).inverse == Some(true)) {
-            let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-            result = self.safe_dict(data, Value::Int(0), &[Value::Map({
+            let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3833,7 +3833,7 @@ impl Bingx {
         //
         let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
         if (data.is_some()) {
-            let mut first: Value = self.safe_dict(data.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
+            let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4393,19 +4393,19 @@ impl Bingx {
             m
         });
         let mut contractBalances: Vec<Value> = self.safe_list_k(response.clone(), "data", &[]).as_array().cloned().unwrap_or_default();
-        let mut firstContractBalances: Option<crate::value::Dict> = self.safe_dict(contractBalances.clone().into(), Value::Int(0), &[]).into_opt_dict();
+        let mut firstContractBalances: Option<crate::value::Dict> = self.safe_dict(&contractBalances, Value::Int(0), &[]).into_opt_dict();
         let mut isContract: bool = firstContractBalances.is_some();
-        let mut spotData: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut spotData: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut spotBalances: crate::value::List = self.safe_list2(spotData, Value::Str("balances".into()), Value::Str("assets".into()), &[Value::from(vec![])]).into_list();
+})]).into_dict();
+        let mut spotBalances: crate::value::List = self.safe_list2(&spotData, Value::Str("balances".into()), Value::Str("assets".into()), &[Value::from(vec![])]).into_list();
         if isContract {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_319: bool = true;
                 while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (contractBalances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(contractBalances.clone().into(), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(&contractBalances, Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset", &[]).as_str().map(str::to_owned);
                 if (currencyId.is_none()) {
                     break;
@@ -4425,7 +4425,7 @@ impl Bingx {
                                 let mut i: i64 = 0;
                 let mut __for_first_320: bool = true;
                 while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (spotBalances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(&spotBalances, Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
@@ -4628,8 +4628,8 @@ impl Bingx {
             let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
             response = self.swap_v2_private_get_user_positions(&[__ws_arg_24]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6165,11 +6165,11 @@ impl Bingx {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders is only supported for spot and swap markets.".into()))));
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orders: Value = self.safe_list2(data, Value::Str("success".into()), Value::Str("orders".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut orders: Value = self.safe_list2(&data, Value::Str("success".into()), Value::Str("orders".into()), &[Value::from(vec![])]);
         return self.parse_orders(orders, &[]);
         Value::Null
         }).await?))
@@ -6249,11 +6249,11 @@ impl Bingx {
             let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.swap_v2_private_delete_trade_batch_orders(&[__ws_arg_33]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut success: Value = self.safe_list2(data, Value::Str("success".into()), Value::Str("orders".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut success: Value = self.safe_list2(&data, Value::Str("success".into()), Value::Str("orders".into()), &[Value::from(vec![])]);
         return self.parse_orders(success, &[]);
         Value::Null
         }).await?))
@@ -6728,11 +6728,11 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orders: Value = self.safe_list2(data, Value::Str("orders".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut orders: Value = self.safe_list2(&data, Value::Str("orders".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -6904,11 +6904,11 @@ impl Bingx {
                 response = self.swap_v2_private_get_trade_all_orders(&[__ws_arg_49]).await.into_opt_dict();
             }
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orders: Value = self.safe_list2(data, Value::Str("orders".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut orders: Value = self.safe_list2(&data, Value::Str("orders".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -7509,7 +7509,7 @@ impl Bingx {
 }));
             m
         });
-        let mut directional: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut directional: crate::value::Dict = self.safe_dict(&statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -8017,15 +8017,12 @@ impl Bingx {
         //
         // currencie structure
         //
-        let mut networks: Value = (match fee.get("networks") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut networkCodes: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networks: crate::value::Dict = fee.get("networks").cloned().unwrap_or_default().into_dict();
+        let mut networkCodes: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut networksLength: f64 = ((networkCodes.len() as i64) as f64);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), networks.clone());
+                m.insert("info".to_string(), Value::from(&networks));
                 m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
@@ -8050,7 +8047,7 @@ impl Bingx {
                 let mut __for_first_323: bool = true;
                 while { if !__for_first_323 { i += 1; } __for_first_323 = false; (i as f64) < networksLength } {
                 let mut networkCode: Value = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]);
-                let mut network: crate::value::Dict = self.safe_dict(networks.clone(), networkCode.clone(), &[]).into_dict();
+                let mut network: crate::value::Dict = self.safe_dict(&networks, networkCode.clone(), &[]).into_dict();
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({

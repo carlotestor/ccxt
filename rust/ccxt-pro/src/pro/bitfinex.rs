@@ -869,7 +869,7 @@ impl Bitfinex {
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut parsed: Value = self.parse_ws_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("result".to_string(), self.safe_list(Value::Arr(trades.clone()), index, &[]));
+        m.insert("result".to_string(), self.safe_list(&trades, index, &[]));
     m
 }), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -1209,7 +1209,7 @@ impl Bitfinex {
                                         let mut i: i64 = 0;
                     let mut __for_first_104: bool = true;
                     while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = self.safe_list(Value::Arr(deltas.clone()), Value::Int(i), &[]);
+                    let mut delta: Value = self.safe_list(&deltas, Value::Int(i), &[]);
                     let mut deltaAmount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     if (deltaAmount == Value::Null) {
                         continue;
@@ -1279,12 +1279,12 @@ impl Bitfinex {
             let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), Value::Int(i), &[]).into_opt_list();
             let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), Value::Int(i), &[]).into_opt_list();
             if (bid.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::from(idToCheck), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::Int(1), &[])));
             }
             if (ask.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
-                let mut aski1: Value = self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
+                stringArray.push(self.number_to_string(self.safe_number(&ask, Value::from(idToCheck), &[])));
+                let mut aski1: Value = self.safe_number(&ask, Value::Int(1), &[]);
                 if (aski1 != Value::Null) {
                     stringArray.push(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })));
                 }

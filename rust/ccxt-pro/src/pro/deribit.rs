@@ -1166,7 +1166,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_293: bool = true;
             while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (bids.len() as i64) } {
-            let mut bid: crate::value::List = self.safe_list(Value::Arr(bids.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
+            let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
@@ -1175,7 +1175,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_294: bool = true;
             while { if !__for_first_294 { i += 1; } __for_first_294 = false; i < (asks.len() as i64) } {
-            let mut ask: crate::value::List = self.safe_list(Value::Arr(asks.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
+            let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }

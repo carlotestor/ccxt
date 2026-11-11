@@ -5939,7 +5939,7 @@ if _try_result.is_err() {
             }
             let mut res: crate::value::Dict = self.safe_dict(results.clone(), i.clone(), &[]).into_dict();
             let mut data: crate::value::List = self.safe_list_k(&res, "data", &[Value::from(vec![])]).into_list();
-            let mut firstData: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[Value::Map({
+            let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5955,18 +5955,18 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_367: bool = true;
                     while { if !__for_first_367 { j += 1; } __for_first_367 = false; j < (data.len() as i64) } {
-                    let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(j), &[Value::Map({
+                    let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-                    let mut entryBorrowable: bool = self.safe_bool_k(entry.clone(), "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isCrossBorrowable: bool = self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+})]).into_dict();
+                    let mut entrySymbol: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
+                    let mut entryBorrowable: bool = self.safe_bool_k(&entry, "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isCrossBorrowable: bool = self.safe_bool_k(&entry, "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && isCrossBorrowable {
                         if let Value::Arr(__a) = &mut crossKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null)); }
                     }
-                    let mut isolatedBase: bool = self.safe_bool_k(entry.clone(), "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isolatedQuote: bool = self.safe_bool2(entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isolatedBase: bool = self.safe_bool_k(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isolatedQuote: bool = self.safe_bool2(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && (isolatedBase || isolatedQuote) {
                         if let Value::Arr(__a) = &mut isolatedKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.map(Value::from).unwrap_or(Value::Null)); }
                     }
@@ -6658,7 +6658,7 @@ if _try_result.is_err() {
                         let mut j: i64 = 0;
             let mut __for_first_373: bool = true;
             while { if !__for_first_373 { j += 1; } __for_first_373 = false; (j as f64) < chainsLength } {
-            let mut chain: Value = self.safe_dict(Value::Arr(chains.clone()), Value::Int(j), &[]);
+            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (network == Value::Null) {
@@ -10184,10 +10184,10 @@ if _try_result.is_err() {
         }
         let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsProductType.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsProductType.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Value = self.safe_dict_k(paramsProductType.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsProductType.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsProductType.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsProductType.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut isStopLossTrigger: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTrigger: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTrigger || isTakeProfitTrigger;
@@ -10216,8 +10216,8 @@ if _try_result.is_err() {
             paramsProductType = self.omit(paramsProductType.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         }  else {
             if hasStopLoss {
-                let mut slTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                let mut slLimitPrice: Option<f64> = self.safe_number_k(stopLoss, "price", &[]).as_f64();
+                let mut slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+                let mut slLimitPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                 request.insert("stopLoss".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice)));
                 if (slLimitPrice.is_some()) {
                     request.insert("slLimitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slLimitPrice)));
@@ -10227,8 +10227,8 @@ if _try_result.is_err() {
                 }
             }
             if hasTakeProfit {
-                let mut tpTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                let mut tpLimitPrice: Option<f64> = self.safe_number_k(takeProfit, "price", &[]).as_f64();
+                let mut tpTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+                let mut tpLimitPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                 request.insert("takeProfit".into(), self.price_to_precision(symbol.clone(), Value::from(tpTriggerPrice)));
                 if (tpLimitPrice.is_some()) {
                     request.insert("tpLimitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpLimitPrice)));
@@ -10324,13 +10324,13 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsMarketType.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Value = self.safe_dict_k(paramsMarketType.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsMarketType.clone(), "takeProfit", &[]);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "takeProfit", &[]).into_opt_dict();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let mut isStopLossOrTakeProfit: bool = hasStopLoss || hasTakeProfit;
         let mut trailingTriggerPrice: Option<String> = self.safe_string_k(paramsMarketType.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]).as_str().map(str::to_owned);
@@ -10400,19 +10400,19 @@ if _try_result.is_err() {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), self.price_to_precision(symbol.clone(), price.clone())); }
                 }
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<String> = self.safe_string2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), slTriggerPrice.map(Value::from).unwrap_or(Value::Null))); }
-                    let mut slPrice: Option<String> = self.safe_string_k(stopLoss.clone(), "price", &[]).as_str().map(str::to_owned);
+                    let mut slPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossExecutePrice".into(), self.price_to_precision(symbol.clone(), slPrice.map(Value::from).unwrap_or(Value::Null))); }
-                    let mut slType: String = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
+                    let mut slType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerType".into(), Value::from(slType)); }
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<String> = self.safe_string2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerPrice".into(), self.price_to_precision(symbol.clone(), tpTriggerPrice.map(Value::from).unwrap_or(Value::Null))); }
-                    let mut tpPrice: Option<String> = self.safe_string_k(takeProfit.clone(), "price", &[]).as_str().map(str::to_owned);
+                    let mut tpPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusExecutePrice".into(), self.price_to_precision(symbol.clone(), tpPrice.map(Value::from).unwrap_or(Value::Null))); }
-                    let mut tpType: String = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
+                    let mut tpType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerType".into(), Value::from(tpType)); }
                 }
             }  else if isStopLossOrTakeProfitTrigger {
@@ -10436,12 +10436,12 @@ if _try_result.is_err() {
                 }
             }  else {
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     if (slTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter".into()))));
                     }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice))); }
-                    let mut slLimitPrice: Option<f64> = self.safe_number_k(stopLoss, "price", &[]).as_f64();
+                    let mut slLimitPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                     if (slLimitPrice.is_some()) {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
@@ -10449,12 +10449,12 @@ if _try_result.is_err() {
                     }
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     if (tpTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter".into()))));
                     }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpTriggerPrice))); }
-                    let mut tpLimitPrice: Option<f64> = self.safe_number_k(takeProfit, "price", &[]).as_f64();
+                    let mut tpLimitPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                     if (tpLimitPrice.is_some()) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusExecutePrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpLimitPrice))); }
                     }
@@ -10822,10 +10822,10 @@ if _try_result.is_err() {
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
         let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
-        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut trailingTriggerPrice: Option<String> = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]).as_str().map(str::to_owned);
         let mut trailingPercent: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingPercent".into()), Value::Str("newCallbackRatio".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
@@ -10959,19 +10959,19 @@ if _try_result.is_err() {
             }  else if isTriggerOrder {
                 request.insert("newTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     request.insert("newStopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice)));
-                    let mut slPrice: Option<f64> = self.safe_number_k(stopLoss.clone(), "price", &[]).as_f64();
+                    let mut slPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                     request.insert("newStopLossExecutePrice".into(), self.price_to_precision(symbol.clone(), Value::from(slPrice)));
-                    let mut slType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("mark_price".into())]);
+                    let mut slType: Value = self.safe_string_k(&stopLoss, "type", &[Value::Str("mark_price".into())]);
                     request.insert("newStopLossTriggerType".into(), slType);
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     request.insert("newSurplusTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpTriggerPrice)));
-                    let mut tpPrice: Option<f64> = self.safe_number_k(takeProfit.clone(), "price", &[]).as_f64();
+                    let mut tpPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                     request.insert("newStopSurplusExecutePrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpPrice)));
-                    let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".into())]);
+                    let mut tpType: Value = self.safe_string_k(&takeProfit, "type", &[Value::Str("mark_price".into())]);
                     request.insert("newStopSurplusTriggerType".into(), tpType);
                 }
                 let __ws_arg_54 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
@@ -10982,11 +10982,11 @@ if _try_result.is_err() {
                 paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("newClientOrderId".into()), &[]);
                 request.insert("newClientOid".into(), newClientOrderId);
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     request.insert("newPresetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice)));
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                     request.insert("newPresetStopSurplusPrice".into(), self.price_to_precision(symbol, Value::from(tpTriggerPrice)));
                 }
                 let __ws_arg_55 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -11215,8 +11215,8 @@ if _try_result.is_err() {
             m
         });
         if isContractTriggerEndpoint {
-            let mut orderInfo: Value = self.safe_list_k(data.clone(), "successList", &[Value::from(vec![])]);
-            order = self.safe_dict(orderInfo, Value::Int(0), &[Value::Map({
+            let mut orderInfo: crate::value::List = self.safe_list_k(data.clone(), "successList", &[Value::from(vec![])]).into_list();
+            order = self.safe_dict(&orderInfo, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -11512,9 +11512,9 @@ if _try_result.is_err() {
                 response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_75]).await;
             }
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
-        let mut resultList: Value = self.safe_list_n(data.clone(), Value::from(vec![Value::Str("resultList".into()), Value::Str("successList".into()), Value::Str("list".into())]), &[]);
-        let mut failureList: Option<crate::value::List> = self.safe_list2(data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]).into_opt_list();
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
+        let mut resultList: Value = self.safe_list_n(&data, Value::from(vec![Value::Str("resultList".into()), Value::Str("successList".into()), Value::Str("list".into())]), &[]);
+        let mut failureList: Option<crate::value::List> = self.safe_list2(&data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]).into_opt_list();
         let mut responseList: Value = Value::Null;
         if (resultList != Value::Null) && (failureList.is_some()) {
             responseList = self.array_concat(resultList.clone(), failureList.clone().map_or(Value::Null, Value::Arr));
@@ -11716,7 +11716,7 @@ if _try_result.is_err() {
         if (dataListLength == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id).into()), Value::Str(" in ".into())).into()), json_stringify(&response))));
         }
-        let mut first: Value = self.safe_dict(Value::Arr(dataList), Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -13531,7 +13531,7 @@ if _try_result.is_err() {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut result: Value = Value::Null;
+        let mut result: Option<crate::value::List> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Value::Str("fetchPosition".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -13581,7 +13581,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            result = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+            result = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_opt_list();
         }  else {
             request.insert("marginCoin".into(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
             request.insert("productType".into(), productType);
@@ -13617,9 +13617,9 @@ if _try_result.is_err() {
             //         ]
             //     }
             //
-            result = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            result = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
         }
-        let mut first: Value = self.safe_dict(result, Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -14617,11 +14617,11 @@ if _try_result.is_err() {
             let __ws_arg_121 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_121]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut bills: Value = self.safe_list2(data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut bills: Value = self.safe_list2(&data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         if (uta.as_bool() == Some(true)) {
             bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), &[Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), Value::Bool(false)]);
         }
@@ -15522,7 +15522,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_388: bool = true;
             while { if !__for_first_388 { i += 1; } __for_first_388 = false; (i as f64) < chainsLength } {
-            let mut chain: crate::value::Dict = self.safe_dict(Value::Arr(chains.clone()), Value::Int(i), &[]).into_dict();
+            let mut chain: crate::value::Dict = self.safe_dict(&chains, Value::Int(i), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -16174,8 +16174,8 @@ if _try_result.is_err() {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -16330,8 +16330,8 @@ if _try_result.is_err() {
             //         ]
             //     }
             //
-            let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-            result = self.safe_dict(data, Value::Int(0), &[Value::Map({
+            let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -16634,11 +16634,11 @@ if _try_result.is_err() {
             let __ws_arg_147 = self.extend(Value::Map(request), &[paramsUTA]);
             response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_147]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut order: crate::value::List = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]).into_list();
+        })]).into_dict();
+        let mut order: crate::value::List = self.safe_list2(&data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]).into_list();
         return self.parse_order(order.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -16688,11 +16688,11 @@ if _try_result.is_err() {
             let __ws_arg_149 = self.extend(Value::Map(request), &[paramsUTA.clone()]);
             response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_149]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orderInfo: Value = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut orderInfo: Value = self.safe_list2(&data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_positions(orderInfo, &[Value::Null, paramsUTA]);
         Value::Null
         }).await?))
@@ -17292,8 +17292,8 @@ if _try_result.is_err() {
             let __ws_arg_157 = self.extend(Value::Map(request), &[paramsUTA]);
             response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_157]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

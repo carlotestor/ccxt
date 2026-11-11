@@ -488,9 +488,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
             while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (obBids.len() as i64) } {
-            let mut bid: Value = self.safe_list(Value::Arr(obBids.clone()), Value::Int(i), &[]);
-            let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
-            let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
+            let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
+            let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
+            let mut quantity: Value = self.safe_number(&bid, Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
         }
         }
@@ -498,9 +498,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_717: bool = true;
             while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (obAsks.len() as i64) } {
-            let mut ask: Value = self.safe_list(Value::Arr(obAsks.clone()), Value::Int(i), &[]);
-            let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
-            let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
+            let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
+            let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
+            let mut quantity: Value = self.safe_number(&ask, Value::Int(1), &[]);
             asks.store(price, quantity);
         }
         }
@@ -1605,7 +1605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut firstTicker: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[]).into_dict();
+        let mut firstTicker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
         let mut spotTest: Option<String> = self.safe_string2(&firstTicker, Value::Str("cv".into()), Value::Str("aq".into()), &[]).as_str().map(str::to_owned);
         let mut tradeType: String = "contract".to_string();
         if (spotTest.is_some()) {
@@ -1893,9 +1893,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_722: bool = true;
                     while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut ask: Value = self.safe_list(obAsks.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                    let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
-                    let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
+                    let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
+                    let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
+                    let mut quantity: Value = self.safe_number(&ask, Value::Int(1), &[]);
                     asks.store(price.clone(), quantity.clone());
                 }
                 }
@@ -1906,9 +1906,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_723: bool = true;
                     while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut bid: Value = self.safe_list(obBids.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                    let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
-                    let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
+                    let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
+                    let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
+                    let mut quantity: Value = self.safe_number(&bid, Value::Int(1), &[]);
                     bids.store(price, quantity);
                 }
                 }

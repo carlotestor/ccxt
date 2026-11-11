@@ -1540,11 +1540,11 @@ impl Modetrade {
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut cachedOrders: Value = self.orders.clone();
-            let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+            })]).into_dict();
+            let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
             if (order != Value::Null) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
@@ -1774,7 +1774,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_499: bool = true;
             while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(Value::Arr(rawPositions.clone()), Value::Int(i), &[]);
+            let mut rawPosition: Value = self.safe_dict(&rawPositions, Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(rawPosition.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[market.clone()]);
@@ -1935,11 +1935,11 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut balances: Value = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), ts.clone()); }
@@ -1949,7 +1949,7 @@ impl Modetrade {
             let mut __for_first_500: bool = true;
             while { if !__for_first_500 { i += 1; } __for_first_500 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: crate::value::Dict = self.safe_dict(balances.clone(), key.clone(), &[]).into_dict();
+            let mut value: crate::value::Dict = self.safe_dict(&balances, key.clone(), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(key, &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut total: Option<String> = self.safe_string_k(&value, "holding", &[]).as_str().map(str::to_owned);

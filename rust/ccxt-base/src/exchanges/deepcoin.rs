@@ -1727,7 +1727,7 @@ impl Deepcoin {
                         let mut i: i64 = 0;
             let mut __for_first_610: bool = true;
             while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2934,8 +2934,8 @@ impl Deepcoin {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut entry: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut entry: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2986,7 +2986,7 @@ impl Deepcoin {
         if (length == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() could not find order id ".into())).into()), id)));
         }
-        let mut entry: Value = self.safe_dict(Value::Arr(data), Value::Int(0), &[Value::Map({
+        let mut entry: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4155,8 +4155,8 @@ impl Deepcoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rates: Value = self.safe_list_k(&data, "current_fund_rates", &[Value::from(vec![])]);
-        let mut entry: Value = self.safe_dict(rates, Value::Int(0), &[Value::Map({
+        let mut rates: crate::value::List = self.safe_list_k(&data, "current_fund_rates", &[Value::from(vec![])]).into_list();
+        let mut entry: Value = self.safe_dict(&rates, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4579,7 +4579,7 @@ impl Deepcoin {
                                 let mut i: i64 = 0;
                 let mut __for_first_612: bool = true;
                 while { if !__for_first_612 { i += 1; } __for_first_612 = false; i < (errorList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut entry: crate::value::Dict = self.safe_dict(errorList.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[Value::Map({
+                let mut entry: crate::value::Dict = self.safe_dict(&errorList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

@@ -1500,7 +1500,7 @@ impl Polymarket {
             let mut marketResolved: Value = Value::Bool(closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved")));
             let mut resolvedOutcome: Value = Value::Null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
-            let mut tickSize: Value = self.safe_number2(Value::from(&market), Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
+            let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
             let mut priceMax: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &self.number_to_string(tickSize.clone())), &[]);
@@ -2287,7 +2287,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1433: bool = true;
             while { if !__for_first_1433 { i += 1; } __for_first_1433 = false; i < (history.len() as i64) } {
-            let mut item: crate::value::Dict = self.safe_dict(Value::Arr(history.clone()), Value::Int(i), &[]).into_dict();
+            let mut item: crate::value::Dict = self.safe_dict(&history, Value::Int(i), &[]).into_dict();
             let mut t: Value = self.safe_integer_k(&item, "t", &[]);
             let mut price: Value = self.safe_number_k(&item, "p", &[]);
             if (t == Value::Null) || (price == Value::Null) {
@@ -2696,7 +2696,7 @@ impl Polymarket {
                                 let mut j: i64 = 0;
                 let mut __for_first_1436: bool = true;
                 while { if !__for_first_1436 { j += 1; } __for_first_1436 = false; j < (makerOrders.len() as i64) } {
-                let mut makerOrder: crate::value::Dict = self.safe_dict(Value::Arr(makerOrders.clone()), Value::Int(j), &[]).into_dict();
+                let mut makerOrder: crate::value::Dict = self.safe_dict(&makerOrders, Value::Int(j), &[]).into_dict();
                 if (self.safe_string_k(&makerOrder, "order_id", &[]).as_str() == id.as_str()) {
                     belongs = true;
                 }
@@ -3591,7 +3591,7 @@ impl Polymarket {
 }));
             m
         });
-        let mut cfg: crate::value::Dict = self.safe_dict(Value::Map(configs.clone()), tickSize, &[self.safe_dict_k(Value::Map(configs), "0.01", &[])]).into_dict();
+        let mut cfg: crate::value::Dict = self.safe_dict(&configs, tickSize, &[self.safe_dict_k(&configs, "0.01", &[])]).into_dict();
         let mut priceDecimals: Option<i64> = self.safe_integer_k(&cfg, "price", &[]).as_i64();
         let mut sizeDecimals: Option<i64> = self.safe_integer_k(&cfg, "size", &[]).as_i64();
         let mut amountDecimals: Option<i64> = self.safe_integer_k(&cfg, "amount", &[]).as_i64();
@@ -4778,7 +4778,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1452: bool = true;
             while { if !__for_first_1452 { i += 1; } __for_first_1452 = false; i < (rawBids.len() as i64) } {
-            let mut b: crate::value::Dict = self.safe_dict(Value::Arr(rawBids.clone()), Value::Int(i), &[]).into_dict();
+            let mut b: crate::value::Dict = self.safe_dict(&rawBids, Value::Int(i), &[]).into_dict();
             bids.push(Value::from(vec![self.safe_number_k(&b, "price", &[]), self.safe_number_k(&b, "size", &[])]));
         }
         }
@@ -4787,7 +4787,7 @@ if _try_result.is_err() {
                         let mut j: i64 = 0;
             let mut __for_first_1453: bool = true;
             while { if !__for_first_1453 { j += 1; } __for_first_1453 = false; j < (rawAsks.len() as i64) } {
-            let mut a: crate::value::Dict = self.safe_dict(Value::Arr(rawAsks.clone()), Value::Int(j), &[]).into_dict();
+            let mut a: crate::value::Dict = self.safe_dict(&rawAsks, Value::Int(j), &[]).into_dict();
             asks.push(Value::from(vec![self.safe_number_k(&a, "price", &[]), self.safe_number_k(&a, "size", &[])]));
         }
         }
@@ -4820,7 +4820,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1454: bool = true;
             while { if !__for_first_1454 { i += 1; } __for_first_1454 = false; i < (changes.len() as i64) } {
-            let mut change: crate::value::Dict = self.safe_dict(Value::Arr(changes.clone()), Value::Int(i), &[]).into_dict();
+            let mut change: crate::value::Dict = self.safe_dict(&changes, Value::Int(i), &[]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k(&change, "asset_id", &[]).as_str().map(str::to_owned);
             let mut outcome: Value = self.token_id_to_symbol(tokenId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             if (outcome == Value::Null) || !(matches!((&self.orderbooks, &outcome), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

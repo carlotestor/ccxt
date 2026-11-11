@@ -1516,7 +1516,7 @@ impl Weex {
                         let mut j: i64 = 0;
             let mut __for_first_1145: bool = true;
             while { if !__for_first_1145 { j += 1; } __for_first_1145 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(Value::Arr(chains.clone()), Value::Int(j), &[]);
+            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -3008,12 +3008,12 @@ impl Weex {
             m
         });
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
+        let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1147: bool = true;
             while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (balances.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {
                 currencyId = Some("USDT".to_string()); // demo trading balances are denominated in the demo asset SUSDT
@@ -3370,15 +3370,15 @@ impl Weex {
             positionSide = "SHORT".to_string();
         }
         request.insert("positionSide".into(), Value::from(positionSide));
-        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
-        if hasTakeProfit && (self.safe_number_k(takeProfit.clone(), "price", &[]) != Value::Null) {
+        if hasTakeProfit && (self.safe_number_k(&takeProfit, "price", &[]) != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price".into()))));
         }
-        if hasStopLoss && (self.safe_number_k(stopLoss.clone(), "price", &[]) != Value::Null) {
+        if hasStopLoss && (self.safe_number_k(&stopLoss, "price", &[]) != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -3405,17 +3405,17 @@ impl Weex {
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 request.insert("presetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(stopLoss.clone(), "triggerPriceType", &[]);
+                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
                 if (stopLossPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("SlWorkingType".into(), self.encode_trigger_price_type(stopLossPriceType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)); }
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 request.insert("presetTakeProfitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
-                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(takeProfit.clone(), "triggerPriceType", &[]);
+                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
                 if (takeProfitPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("TpWorkingType".into(), self.encode_trigger_price_type(takeProfitPriceType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -3465,17 +3465,17 @@ impl Weex {
             }
             request.insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
-                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(stopLoss, "triggerPriceType", &[]);
+                let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
                 if (stopLossPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("SlWorkingType".into(), self.encode_trigger_price_type(stopLossPriceType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)); }
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol, Value::from(takeProfitTriggerPrice)));
-                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(takeProfit, "triggerPriceType", &[]);
+                let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
                 if (takeProfitPriceType.is_some()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("TpWorkingType".into(), self.encode_trigger_price_type(takeProfitPriceType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)); }
                 }

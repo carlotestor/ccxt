@@ -1143,7 +1143,7 @@ impl Gate {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut full: bool = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut full: bool = self.safe_bool_k(&result, "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketIdWithPrefix: Option<String> = self.safe_string_k(&result, "s", &[]).as_str().map(str::to_owned);
         if (marketIdWithPrefix.is_none()) {
             return;

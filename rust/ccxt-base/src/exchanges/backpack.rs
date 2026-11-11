@@ -4987,11 +4987,11 @@ impl Backpack {
             self.check_required_credentials(&[]);
             let mut ts: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
             let mut recvWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
-            let mut optionInstructions: Value = self.safe_dict_k(self.options.clone(), "instructions", &[Value::Map({
+            let mut optionInstructions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "instructions", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut optionPathInstructions: crate::value::Dict = self.safe_dict(optionInstructions, path.clone(), &[Value::Map({
+})]).into_dict();
+            let mut optionPathInstructions: crate::value::Dict = self.safe_dict(&optionInstructions, path.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

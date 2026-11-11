@@ -2221,7 +2221,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into()));
             if !(__ch.has_future(messageHash.as_str())) {
@@ -2750,11 +2750,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
                 let mut cachedOrders: Value = self.orders.clone();
                 if (cachedOrders != Value::Null) {
-                    let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                    let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
-                    })]);
-                    let mut order: Value = self.safe_dict(orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
+                    })]).into_dict();
+                    let mut order: Value = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
                     if (order != Value::Null) {
                         // accumulate order fees
                         let mut fees: crate::value::List = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]).into_list();

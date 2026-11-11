@@ -1888,7 +1888,7 @@ impl Polymarket {
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
-        let mut fallback: Value = self.safe_dict(Value::Arr(schedule), Value::Int(0), &[Value::Map({
+        let mut fallback: Value = self.safe_dict(&schedule, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2154,7 +2154,7 @@ impl Polymarket {
     m
 })]);
             let mut marketInner: Value = ordersMarkets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut echo: Value = self.safe_dict(Value::Arr(ordersEntries.clone()), i.clone(), &[Value::Map({
+            let mut echo: Value = self.safe_dict(&ordersEntries, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

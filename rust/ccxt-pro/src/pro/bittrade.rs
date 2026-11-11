@@ -334,11 +334,11 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+        })]).into_dict();
+        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -449,11 +449,11 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+        })]).into_dict();
+        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -580,11 +580,11 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+        })]).into_dict();
+        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -704,11 +704,11 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+        })]).into_dict();
+        let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -804,11 +804,11 @@ impl Bittrade {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
+            let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, Value::from(api), &[Value::Map({
+            })]).into_dict();
+            let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).as_map().cloned().unwrap_or_default();

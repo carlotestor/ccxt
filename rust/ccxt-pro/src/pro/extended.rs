@@ -620,7 +620,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (spotBalances.len() as i64) } {
-            let mut spotBalance: crate::value::Dict = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[Value::Map({
+            let mut spotBalance: crate::value::Dict = self.safe_dict(&spotBalances, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -731,7 +731,7 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Option<crate::value::Dict> = self.safe_dict(Value::Arr(rawTrades.clone()), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&rawTrades, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
             return;
         }
@@ -739,7 +739,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_309: bool = true;
             while { if !__for_first_309 { i += 1; } __for_first_309 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: Value = self.parse_trade(self.safe_dict(Value::Arr(rawTrades.clone()), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.parse_trade(self.safe_dict(&rawTrades, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -851,7 +851,7 @@ impl Extended {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(Value::Arr(rawPositions.clone()), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&rawPositions, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
             return;
         }
@@ -932,7 +932,7 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Option<crate::value::Dict> = self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&rawOrders, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
             return;
         }
@@ -940,7 +940,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_314: bool = true;
             while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (rawOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut order: Value = self.parse_order(self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -1225,7 +1225,7 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut first: Option<crate::value::Dict> = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
             return;
         }
@@ -1444,10 +1444,10 @@ impl Extended {
             return;
         }
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut dataList: Option<crate::value::List> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let mut dataList: Option<crate::value::List> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_list();
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (dataList.is_some()) {
-            let mut first: crate::value::Dict = self.safe_dict(dataList.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
+            let mut first: crate::value::Dict = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

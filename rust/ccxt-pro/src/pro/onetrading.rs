@@ -1461,7 +1461,7 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (balanceKeys.len() as i64) } {
-            let mut newBalance: Value = self.safe_dict(Value::from(&update), balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut newBalance: Value = self.safe_dict(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance);
             }
@@ -1543,11 +1543,11 @@ impl Onetrading {
         let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut marketId: Value = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(timeframes.clone(), timeframe.clone(), &[]).into_opt_dict();
+        })]).into_dict();
+        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(&timeframes, timeframe.clone(), &[]).into_opt_dict();
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" this interval is not supported, please provide one of the supported timeframes".into()))));
         }
@@ -1563,11 +1563,11 @@ impl Onetrading {
         if (client != Value::Null) {
             subscription = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
             if (subscription != Value::Null) {
-                let mut ohlcvMarket: Value = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
+                let mut ohlcvMarket: crate::value::Dict = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut marketSubscribed: bool = self.safe_bool(ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                })]).into_dict();
+                let mut marketSubscribed: bool = self.safe_bool(&ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if !marketSubscribed {
                     type_var = "UPDATE_SUBSCRIPTION".to_string();
                     __ch.add_subscription(&subscriptionHash, Value::Null);
@@ -1606,7 +1606,7 @@ impl Onetrading {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_564: bool = true;
                 while { if !__for_first_564 { if let Value::Int(n) = &mut ii { *n += 1; } } __for_first_564 = false; ii.as_f64().unwrap_or(f64::NAN) < ((marketIdtimeframes.len() as i64) as f64) } {
-                let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(timeframes.clone(), timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
+                let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframes, timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
                 let mut property: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instrument_code".to_string(), marketIds.get(i as usize).cloned().unwrap_or(Value::Null));

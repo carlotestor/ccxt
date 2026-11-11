@@ -1246,7 +1246,7 @@ impl Cex {
         let mut remains: Value = self.safe_string_k(&data, "remains", &[]);
         let mut baseId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(&data, "symbol2", &[]).as_str().map(str::to_owned);
-        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "pair", &[]).into_opt_dict();
+        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(&data, "pair", &[]).into_opt_dict();
         if (pair.is_some()) {
             baseId = self.safe_string_k(&pair, "symbol1", &[]).as_str().map(str::to_owned);
             quoteId = self.safe_string_k(&pair, "symbol2", &[]).as_str().map(str::to_owned);
@@ -1273,14 +1273,14 @@ impl Cex {
             order = self.parse_ws_order_update(data.clone(), &[market]);
         }
         add_element_to_object(&mut order, &Value::Str("remaining".into()), remains);
-        let mut canceled: bool = self.safe_bool_k(data.clone(), "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut canceled: bool = self.safe_bool_k(&data, "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if canceled {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
         }
         if isTransaction {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("closed".into()));
         }
-        let mut fee: Option<f64> = self.safe_number_k(data.clone(), "fee", &[]).as_f64();
+        let mut fee: Option<f64> = self.safe_number_k(&data, "fee", &[]).as_f64();
         if (fee.is_some()) {
             add_element_to_object(&mut order, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();

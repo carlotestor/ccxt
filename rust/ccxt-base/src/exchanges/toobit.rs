@@ -1660,7 +1660,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1131: bool = true;
             while { if !__for_first_1131 { i += 1; } __for_first_1131 = false; i < (all.len() as i64) } {
-            let mut market: Value = self.safe_dict(Value::Arr(all.clone()), Value::Int(i), &[Value::Map({
+            let mut market: Value = self.safe_dict(&all, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2555,12 +2555,12 @@ impl Toobit {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
+        let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1134: bool = true;
             while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(&balance, Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
@@ -3890,7 +3890,7 @@ impl Toobit {
         if (status == Value::Null) {
             return None;
         }
-        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(&statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

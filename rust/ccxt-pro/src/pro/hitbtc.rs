@@ -1496,11 +1496,11 @@ impl Hitbtc {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketIds: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut channel: String = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut splitChannel: Value = Value::Array(channel.split("/").map(Value::from).collect());
         let mut period: Option<String> = self.safe_string(splitChannel, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1526,7 +1526,7 @@ impl Hitbtc {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
-            let mut rawOhlcvs: crate::value::List = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).into_list();
+            let mut rawOhlcvs: crate::value::List = self.safe_list(&data, marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_370: bool = true;

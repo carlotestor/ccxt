@@ -521,12 +521,12 @@ impl Whitebit {
         //     "id":null
         //  }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut isSnapshot: bool = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut isSnapshot: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut data: Value = self.safe_dict(params, Value::Int(1), &[]);
+        let mut data: Value = self.safe_dict(&params, Value::Int(1), &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(data.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[]);
@@ -677,7 +677,7 @@ impl Whitebit {
         let mut marketId: Option<String> = self.safe_string(&tickers, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut rawTicker: Value = self.safe_dict(Value::Arr(tickers), Value::Int(1), &[Value::Map({
+        let mut rawTicker: Value = self.safe_dict(&tickers, Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -791,7 +791,7 @@ impl Whitebit {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut data: Value = self.safe_list(Value::Arr(params), Value::Int(1), &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list(&params, Value::Int(1), &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data, &[market]);
         {
                         let mut j: i64 = 0;
@@ -1037,7 +1037,7 @@ impl Whitebit {
         // }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut data: Value = self.safe_dict(Value::Arr(params.clone()), Value::Int(1), &[]);
+        let mut data: Value = self.safe_dict(&params, Value::Int(1), &[]);
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
@@ -1311,32 +1311,32 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_696: bool = true;
             while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (data.len() as i64) } {
-            let mut balanceDict: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
+            let mut balanceDict: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            { let __be_tmp = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
+            })]).into_dict();
+            { let __be_tmp = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), __be_tmp); } }
             if isMargin {
-                let mut currencyId: Option<String> = self.safe_string_k(balanceDict.clone(), "a", &[]).as_str().map(str::to_owned);
+                let mut currencyId: Option<String> = self.safe_string_k(&balanceDict, "a", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceDict.clone(), "av", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balanceDict.clone(), "B", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".into(), self.safe_string_k(balanceDict.clone(), "b", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&balanceDict, "av", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balanceDict, "B", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".into(), self.safe_string_k(&balanceDict, "b", &[])); }
                 if (code.is_some()) {
                     if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account.clone()); }
                 }
             }  else {
-                let mut keys: Vec<Value> = Value::Array(balanceDict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut keys: Vec<Value> = Value::Array(balanceDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_695: bool = true;
                     while { if !__for_first_695 { j += 1; } __for_first_695 = false; j < (keys.len() as i64) } {
                     let mut currencyId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut rawBalance: crate::value::Dict = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
+                    let mut rawBalance: crate::value::Dict = self.safe_dict(&balanceDict, currencyId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]).into_dict();

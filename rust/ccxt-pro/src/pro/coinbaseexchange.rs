@@ -1133,13 +1133,13 @@ impl Coinbaseexchange {
                 return;
             }
             let mut orders: Value = self.orders.clone();
-            let mut previousOrders: Value = self.safe_dict(orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut previousOrders: crate::value::Dict = self.safe_dict(orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut previousOrder: Value = self.safe_dict(previousOrders.clone(), orderId.map(Value::from).unwrap_or(Value::Null), &[]);
+            })]).into_dict();
+            let mut previousOrder: Value = self.safe_dict(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (previousOrder == Value::Null) {
-                previousOrder = self.safe_dict_n(previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);
+                previousOrder = self.safe_dict_n(&previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);
             }
             if (previousOrder == Value::Null) {
                 let mut parsed: Value = self.parse_ws_order(message.clone(), &[]);
@@ -1469,11 +1469,11 @@ impl Coinbaseexchange {
                                 let mut i: i64 = 0;
                 let mut __for_first_242: bool = true;
                 while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < (changes.len() as i64) } {
-                let mut change: Option<crate::value::List> = self.safe_list(Value::Arr(changes.clone()), Value::Int(i), &[]).into_opt_list();
+                let mut change: crate::value::List = self.safe_list(&changes, Value::Int(i), &[]).into_list();
                 let mut key: Option<String> = self.safe_string(&change, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string(&sides, key.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-                let mut price: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
-                let mut amount: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(2), &[]);
+                let mut price: Value = self.safe_number(&change, Value::Int(1), &[]);
+                let mut amount: Value = self.safe_number(&change, Value::Int(2), &[]);
                 let mut bookside: Value = self.safe_value(orderbook.clone(), side.map(Value::from).unwrap_or(Value::Null), &[]);
                 bookside.store(price, amount);
             }

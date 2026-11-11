@@ -1261,11 +1261,11 @@ impl Sxbet {
         if (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
-        let mut chains: Value = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
+        let mut chains: crate::value::Dict = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut chainConfig: crate::value::Dict = self.safe_dict(chains, self.number_to_string(Value::from(chainId)), &[Value::Map({
+})]).into_dict();
+        let mut chainConfig: crate::value::Dict = self.safe_dict(&chains, self.number_to_string(Value::from(chainId)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1567,8 +1567,8 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut results: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        let mut first: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[Value::Map({
+        let mut results: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1649,14 +1649,14 @@ impl Sxbet {
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub fn parse_sxbet_cancel_response(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: Vec<Value> = Vec::new();
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
         // report 'cancelledSubmitted' instead - treat both like cancelled
-        let mut cancelled: crate::value::List = self.safe_list2(data.clone(), Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]).into_list();
+        let mut cancelled: crate::value::List = self.safe_list2(&data, Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]).into_list();
         let mut cancelledLength: f64 = ((cancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1671,7 +1671,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut notCancelled: crate::value::List = self.safe_list_k(data.clone(), "notCancelled", &[Value::from(vec![])]).into_list();
+        let mut notCancelled: crate::value::List = self.safe_list_k(&data, "notCancelled", &[Value::from(vec![])]).into_list();
         let mut notCancelledLength: f64 = ((notCancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1687,7 +1687,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut unconfirmed: crate::value::List = self.safe_list_k(data, "unconfirmed", &[Value::from(vec![])]).into_list();
+        let mut unconfirmed: crate::value::List = self.safe_list_k(&data, "unconfirmed", &[Value::from(vec![])]).into_list();
         let mut unconfirmedLength: f64 = ((unconfirmed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -2389,7 +2389,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { i += 1; } __for_first_1512 = false; (i as f64) < balancesLength } {
-            let mut row: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut tokenAddress: String = self.safe_string_lower_k(&row, "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -2810,13 +2810,13 @@ impl Sxbet {
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-        let mut oneLevels: Value = (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut twoLevels: Value = (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut bestOne: crate::value::Dict = self.safe_dict(oneLevels, Value::Int(0), &[Value::Map({
+        let mut oneLevels: crate::value::List = snapshot.get("outcomeOne").cloned().unwrap_or_default().into_list();
+        let mut twoLevels: crate::value::List = snapshot.get("outcomeTwo").cloned().unwrap_or_default().into_list();
+        let mut bestOne: crate::value::Dict = self.safe_dict(&oneLevels, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut bestTwo: crate::value::Dict = self.safe_dict(twoLevels, Value::Int(0), &[Value::Map({
+        let mut bestTwo: crate::value::Dict = self.safe_dict(&twoLevels, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

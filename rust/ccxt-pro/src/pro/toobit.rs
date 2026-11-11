@@ -971,7 +971,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut ticker: Value = self.safe_dict(data.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[Value::Map({
+            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1120,7 +1120,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into()));
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]);
@@ -1185,7 +1185,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_658: bool = true;
             while { if !__for_first_658 { i += 1; } __for_first_658 = false; (i as f64) < length } {
-            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel);

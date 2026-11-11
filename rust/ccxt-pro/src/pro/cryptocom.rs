@@ -1292,8 +1292,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1444,7 +1444,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_277: bool = true;
             while { if !__for_first_277 { i += 1; } __for_first_277 = false; i < (data.len() as i64) } {
-            let mut tick: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
+            let mut tick: Value = self.safe_dict(&data, Value::Int(i), &[]);
             let mut parsed: Value = self.parse_ohlcv(tick, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1697,8 +1697,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut firstData: crate::value::Dict = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1816,7 +1816,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_282: bool = true;
             while { if !__for_first_282 { i += 1; } __for_first_282 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(positionBalances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&positionBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

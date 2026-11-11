@@ -1140,7 +1140,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_701: bool = true;
             while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
+            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[]);
             if (ticker == Value::Null) {
                 continue;
             }
@@ -1921,11 +1921,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut cachedOrders: Value = self.orders.clone();
-            let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut order: Option<crate::value::Dict> = self.safe_dict(orders.clone(), orderId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            })]).into_dict();
+            let mut order: Option<crate::value::Dict> = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             if (order.is_some()) {
                 let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
@@ -2230,11 +2230,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //    }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut balances: Value = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), ts.clone()); }
@@ -2244,7 +2244,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut __for_first_706: bool = true;
             while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: crate::value::Dict = self.safe_dict(balances.clone(), key.clone(), &[]).into_dict();
+            let mut value: crate::value::Dict = self.safe_dict(&balances, key.clone(), &[]).into_dict();
             let mut code: Value = self.safe_currency_code(key, &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut total: Option<String> = self.safe_string_k(&value, "holding", &[]).as_str().map(str::to_owned);

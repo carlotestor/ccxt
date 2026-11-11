@@ -2044,7 +2044,7 @@ impl Poloniex {
                         let mut j: i64 = 0;
             let mut __for_first_1084: bool = true;
             while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
-            let mut chain: Value = self.safe_dict(Value::Arr(chains.clone()), Value::Int(j), &[]);
+            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -3684,7 +3684,7 @@ impl Poloniex {
                                 let mut i: i64 = 0;
                 let mut __for_first_1088: bool = true;
                 while { if !__for_first_1088 { i += 1; } __for_first_1088 = false; i < (details.len() as i64) } {
-                let mut balance: Value = self.safe_dict(Value::Arr(details.clone()), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(&details, Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "ccy", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
@@ -3710,7 +3710,7 @@ impl Poloniex {
                                 let mut j: i64 = 0;
                 let mut __for_first_1089: bool = true;
                 while { if !__for_first_1089 { j += 1; } __for_first_1089 = false; j < (balances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(Value::Arr(balances.clone()), Value::Int(j), &[]);
+                let mut balance: Value = self.safe_dict(&balances, Value::Int(j), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut newAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3942,8 +3942,8 @@ impl Poloniex {
             let mut __for_first_1092: bool = true;
             while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Value = self.safe_number(Value::Arr(asks.clone()), i.clone(), &[]);
-                let mut amount: Value = self.safe_number(Value::Arr(asks.clone()), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                let mut price: Value = self.safe_number(&asks, i.clone(), &[]);
+                let mut amount: Value = self.safe_number(&asks, self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 asksResult.push(Value::from(vec![price.clone(), amount.clone()]));
             }
         }
@@ -3953,8 +3953,8 @@ impl Poloniex {
             let mut __for_first_1093: bool = true;
             while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Value = self.safe_number(Value::Arr(bids.clone()), i.clone(), &[]);
-                let mut amount: Value = self.safe_number(Value::Arr(bids.clone()), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                let mut price: Value = self.safe_number(&bids, i.clone(), &[]);
+                let mut amount: Value = self.safe_number(&bids, self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 bidsResult.push(Value::from(vec![price, amount]));
             }
         }
@@ -4955,7 +4955,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1097: bool = true;
             while { if !__for_first_1097 { i += 1; } __for_first_1097 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             marketId = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
