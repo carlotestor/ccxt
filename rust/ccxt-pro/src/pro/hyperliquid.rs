@@ -957,7 +957,7 @@ impl Hyperliquid {
                 defaultDex = dexName.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let mut paramsOmitted: Value = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params }).into_dict();
         if (defaultDex != Value::Null) {
             messageHash = format!("{}{}", Value::Str("tickers:".into()), defaultDex);
             if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("allMids".into())); }
@@ -965,7 +965,7 @@ impl Hyperliquid {
         }
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("tickers".into())).await;
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut tickers: Value = self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

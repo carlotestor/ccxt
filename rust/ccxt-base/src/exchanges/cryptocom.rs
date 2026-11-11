@@ -2861,13 +2861,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("orig_client_oid".into(), originalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = (if (id == Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("orig_client_oid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (id == Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("orig_client_oid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         if (amount == Value::Null) || (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values".into()))));
         }
         request.insert("new_quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         request.insert("new_price".into(), self.price_to_precision(symbol, price));
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }

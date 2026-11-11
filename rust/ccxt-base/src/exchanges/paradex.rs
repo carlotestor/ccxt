@@ -5248,11 +5248,11 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             request.insert("end_at".into(), Value::from(until));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_funding_data(&[__ws_arg_30]).await.into_dict();
         //
         // {

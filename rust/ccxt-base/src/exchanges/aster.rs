@@ -4761,11 +4761,11 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_42 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_42]).await;
         return self.parse_ledger(response, &[currency, since, limit]);
         Value::Null

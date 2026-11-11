@@ -5355,10 +5355,10 @@ impl Okx {
         if (until.is_some()) {
             request.insert("after".into(), Value::from(until));
         }
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsPrice.clone(), Value::Str("until".into()), &[]) } else { paramsPrice });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(paramsPrice.clone(), Value::Str("until".into()), &[]) } else { paramsPrice }).into_dict();
         defaultType = self.safe_string_k(&options, "type", &[defaultType.clone()]); // Candles or HistoryCandles
-        let mut type_var: Option<String> = self.safe_string_k(paramsUntil.clone(), "type", &[defaultType]).as_str().map(str::to_owned);
-        let mut paramsType: crate::value::Dict = self.omit(paramsUntil, Value::Str("type".into()), &[]).into_dict();
+        let mut type_var: Option<String> = self.safe_string_k(&paramsUntil, "type", &[defaultType]).as_str().map(str::to_owned);
+        let mut paramsType: crate::value::Dict = self.omit(&paramsUntil, Value::Str("type".into()), &[]).into_dict();
         let mut isHistoryCandles: bool = type_var.as_deref() == Some("HistoryCandles");
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {

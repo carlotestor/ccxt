@@ -13370,7 +13370,7 @@ impl Binance {
             m
         });
         let mut origClientOrderIdList: Value = self.safe_list2(params.clone(), Value::Str("origClientOrderIdList".into()), Value::Str("clientOrderIds".into()), &[]);
-        let mut paramsOmitted: Value = (if (origClientOrderIdList != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (origClientOrderIdList != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { params }).into_dict();
         if (origClientOrderIdList != Value::Null) {
             request.insert("origClientOrderIdList".into(), origClientOrderIdList);
         }  else {
@@ -13378,10 +13378,10 @@ impl Binance {
         }
         let mut response: Value = Value::Null;
         if ((market).linear == Some(true)) {
-            let __ws_arg_127 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_127 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.fapi_private_delete_batch_orders(&[__ws_arg_127]).await;
         }  else if ((market).inverse == Some(true)) {
-            let __ws_arg_128 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_128 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.dapi_private_delete_batch_orders(&[__ws_arg_128]).await;
         }
         return self.parse_orders(response, &[(market).raw.clone()]);

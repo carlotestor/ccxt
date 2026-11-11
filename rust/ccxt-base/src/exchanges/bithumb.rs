@@ -2766,13 +2766,13 @@ impl Bithumb {
 })]);
             }  else {
                 let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
-                let mut paramsClientOrderId: Value = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { paramsOmitted.clone() });
+                let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { paramsOmitted.clone() }).into_dict();
                 if (clientOrderId.is_some()) {
                     request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 }  else {
                     request.insert("uuid".into(), id.clone());
                 }
-                let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsClientOrderId]);
+                let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsClientOrderId]);
                 response = self.private_get_v1_order(&[__ws_arg_24]).await;
                 //
                 //     {
@@ -3219,7 +3219,7 @@ impl Bithumb {
         }  else {
             clientOrderIds = self.safe_list2(paramsOmitted.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
         }
-        let mut paramsRequest: Value = (if (clientOrderIds != Value::Null) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { paramsOmitted });
+        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { paramsOmitted }).into_dict();
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), clientOrderIds);
         }
@@ -3234,7 +3234,7 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Null;
         if twap {
-            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
+            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
             response = self.private_get_v1_twap(&[__ws_arg_28]).await;
             //
             //     {
@@ -3262,7 +3262,7 @@ impl Bithumb {
             //
             data = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         }  else {
-            let __ws_arg_29 = self.extend(Value::Map(request), &[paramsRequest]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.private_get_v1_orders(&[__ws_arg_29]).await;
             //
             //     [

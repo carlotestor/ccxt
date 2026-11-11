@@ -1189,15 +1189,15 @@ impl Cryptomus {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut sideBuy: bool = side.as_str() == Some("buy");
         let mut amountToString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
         let mut priceToString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-        let mut paramsCost: Value = self.omit(paramsOmitted.clone(), Value::Str("cost".into()), &[]);
-        let mut costParam: Option<String> = self.safe_string_k(paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
+        let mut paramsCost: Value = self.omit(&paramsOmitted, Value::Str("cost".into()), &[]);
+        let mut costParam: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = costParam.clone();
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("market")) {

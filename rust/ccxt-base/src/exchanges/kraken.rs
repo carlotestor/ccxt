@@ -2067,12 +2067,12 @@ impl Kraken {
             request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()));
             request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))));
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_ledgers(&[__ws_arg_5]).await.into_dict();
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -3652,12 +3652,12 @@ impl Kraken {
             request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()));
             request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into()))));
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_trades_history(&[__ws_arg_14]).await.into_dict();
         //
         //     {
@@ -3749,13 +3749,13 @@ impl Kraken {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(paramsUserref.clone(), Value::Str("clientOrderId".into()), Value::Str("cl_ord_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(paramsUserref.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("cl_ord_id".into())]), &[]) } else { paramsUserref });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsUserref.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("cl_ord_id".into())]), &[]) } else { paramsUserref }).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("cl_ord_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             request = self.omit(Value::Map(request.clone()), Value::Str("txid".into()), &[]).as_map().cloned().unwrap_or_default();
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_cancel_order(&[__ws_arg_15]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -4328,12 +4328,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()));
             request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_deposit_status(&[__ws_arg_21]).await.into_dict();
         //
         //     {  error: [],

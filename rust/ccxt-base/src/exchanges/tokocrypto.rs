@@ -2918,14 +2918,14 @@ impl Tokocrypto {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut paramsOmitted: Value = (if (endTime.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (endTime.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[__ws_arg_15]).await.into_dict();
         //
         //     {
@@ -2997,13 +2997,13 @@ impl Tokocrypto {
 })]).into_dict();
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(&networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("network".into(), network);
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await;
         //
         //     {

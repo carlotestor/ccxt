@@ -2532,7 +2532,7 @@ impl Coinbaseexchange {
         }  else {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]) } else { params }).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -2540,10 +2540,10 @@ impl Coinbaseexchange {
         }
         let mut response: Value = Value::Null;
         if (clientOrderId.is_none()) {
-            let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_orders_id(&[__ws_arg_19]).await;
         }  else {
-            let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders_client_client_oid(&[__ws_arg_20]).await;
         }
         return self.safe_order(Value::Map({
@@ -2819,8 +2819,8 @@ impl Coinbaseexchange {
         if (until != Value::Null) {
             request.insert("end_date".into(), self.iso8601(until.clone()));
         }
-        let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: Value = self.private_get_accounts_id_ledger(&[__ws_arg_25]).await;
         let mut entries: Value = self.to_array(response);
         {

@@ -2858,8 +2858,8 @@ impl Delta {
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted2: Value = (if (reduceOnly == Some(true)) { self.omit(paramsOmitted.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted2]);
+        let mut paramsOmitted2: crate::value::Dict = (if (reduceOnly == Some(true)) { self.omit(paramsOmitted.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted }).into_dict();
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_5]).await.into_dict();
         //
         //     {
@@ -3570,8 +3570,8 @@ impl Delta {
         if (networkCode.is_some()) {
             request.insert("network".into(), self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code]));
         }
-        let mut paramsOmitted: Value = (if (networkCode.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (networkCode.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_deposits_address(&[__ws_arg_15]).await.into_dict();
         //
         //    {

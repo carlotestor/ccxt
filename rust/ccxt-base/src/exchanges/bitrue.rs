@@ -2109,8 +2109,8 @@ impl Bitrue {
             if (until.is_some()) {
                 request.insert("fromIdx".into(), Value::from(until));
             }
-            let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
             data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }  else {
@@ -3833,8 +3833,8 @@ impl Bitrue {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.fapi_v2_private_get_futures_transfer_history(&[__ws_arg_36]).await.into_dict();
         //
         //     {

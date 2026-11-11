@@ -2000,8 +2000,8 @@ impl Alpaca {
         }  else {
             request.insert("qty".into(), self.amount_to_precision(symbol, amount));
         }
-        let mut paramsCost: Value = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params });
-        let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params }).into_dict();
+        let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut defaultTIF: Value = defaultTIFparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
@@ -2168,10 +2168,10 @@ impl Alpaca {
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
-            let mut direction: Option<String> = self.safe_string_k(paramsOmitted.clone(), "direction", &[]).as_str().map(str::to_owned);
+            let mut direction: Option<String> = self.safe_string_k(&paramsOmitted, "direction", &[]).as_str().map(str::to_owned);
             if (direction.is_none()) {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
                 request.insert("direction".into(), Value::Str("asc".into()));
@@ -2180,7 +2180,7 @@ impl Alpaca {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.trader_private_get_v2_orders(&[__ws_arg_14]).await;
         return self.parse_orders(response, &[market, since, limit]);
         Value::Null
@@ -2313,11 +2313,11 @@ impl Alpaca {
         if (triggerPrice.is_some()) {
             request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut paramsTrigger: Value = (if (triggerPrice.is_some()) { self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]) } else { params });
+        let mut paramsTrigger: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]) } else { params }).into_dict();
         if (price != Value::Null) {
             request.insert("limit_price".into(), self.price_to_precision(symbol, price));
         }
-        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         if (timeInForce != Value::Null) {
@@ -2505,14 +2505,14 @@ impl Alpaca {
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);

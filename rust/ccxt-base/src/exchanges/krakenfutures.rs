@@ -3581,8 +3581,8 @@ impl Krakenfutures {
         if (until.is_some()) {
             request.insert("before".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.history_get_account_log(&[__ws_arg_16]).await.into_dict();
         //
         //    {
@@ -3680,8 +3680,8 @@ impl Krakenfutures {
         if (until.is_some()) {
             request.insert("before".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.history_get_account_log(&[__ws_arg_17]).await.into_dict();
         //
         //    {
@@ -4440,8 +4440,8 @@ impl Krakenfutures {
         if (until.is_some()) {
             request.insert("before".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.history_get_positions(&[__ws_arg_19]).await.into_dict();
         //
         //    {

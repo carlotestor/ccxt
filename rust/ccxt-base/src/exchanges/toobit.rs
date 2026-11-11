@@ -2033,8 +2033,8 @@ impl Toobit {
             m
         });
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut endpoint: Option<String> = endpointparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPrice: crate::value::Dict = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isPriceKlines: bool = (endpoint.as_deref() == Some("index")) || (endpoint.as_deref() == Some("mark"));

@@ -3290,11 +3290,11 @@ impl Lbank {
             m
         });
         let mut network: Value = self.get_network_code_for_currency(code.clone(), params.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("netWork".into(), network); // ... yes, really lol
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await;
         //
         //      {
@@ -3346,11 +3346,11 @@ impl Lbank {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
         network = self.safe_string(&networks, network.clone(), &[network.clone()]);
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("networkName".into(), network);
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_post_supplement_get_deposit_address(&[__ws_arg_22]).await;
         //
         //      {
