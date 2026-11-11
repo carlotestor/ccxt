@@ -2652,7 +2652,7 @@ impl Predictfun {
         // along into the request body
         let warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("warnOnMarketOrderWithoutPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut warnOnMarketOrderWithoutPrice: bool = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsWarnOnMarketOrderWithoutPrice: Value = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWarnOnMarketOrderWithoutPrice: crate::value::Dict = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (price == Value::Null) {
             // a priceless limit order already threw above, so this is a market order
             if warnOnMarketOrderWithoutPrice {
@@ -2676,7 +2676,7 @@ impl Predictfun {
             makerAmount = costWei.clone().map(Value::from).unwrap_or(Value::Null);
             takerAmount = quantityWei.clone();
         }
-        let mut slippageBps: String = self.safe_string_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "slippageBps", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+        let mut slippageBps: String = self.safe_string_k(&paramsWarnOnMarketOrderWithoutPrice, "slippageBps", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         if crate::precise::Precise::stringGt(&Value::from(slippageBps.clone()), &Value::Str("0".into())).as_bool() == Some(true) {
             if isBuy {
                 // widen what the taker is willing to pay, capped at one unit of collateral a share
@@ -2698,14 +2698,14 @@ impl Predictfun {
             m
         })]).into_dict();
         let mut marketFeeRateBps: String = self.safe_string_k(&marketRow, "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string(); // should be at least 200
-        let mut feeRateBps: Value = self.safe_string_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "feeRateBps", &[Value::from(marketFeeRateBps)]);
+        let mut feeRateBps: Value = self.safe_string_k(&paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", &[Value::from(marketFeeRateBps)]);
         let mut marketIsNegRisk: bool = self.safe_bool_k(&marketRow, "isNegRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isNegRisk: bool = self.safe_bool_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "isNegRisk", &[Value::Bool(marketIsNegRisk)]).as_bool() == Some(true);
+        let mut isNegRisk: bool = self.safe_bool_k(&paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", &[Value::Bool(marketIsNegRisk)]).as_bool() == Some(true);
         let mut marketIsYieldBearing: bool = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isYieldBearing: bool = self.safe_bool_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "isYieldBearing", &[Value::Bool(marketIsYieldBearing)]).as_bool() == Some(true);
+        let mut isYieldBearing: bool = self.safe_bool_k(&paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", &[Value::Bool(marketIsYieldBearing)]).as_bool() == Some(true);
         let mut defaultExpiration: i64 = self.safe_integer_k(self.options.clone(), "defaultExpiration", &[Value::Int(3600)]).as_i64().unwrap_or(3600); // 1 hour
         let mut expirationDelta: Value = Value::from(defaultExpiration);
-        let mut expiration: Value = self.safe_integer_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "expiration", &[]);
+        let mut expiration: Value = self.safe_integer_k(&paramsWarnOnMarketOrderWithoutPrice, "expiration", &[]);
         if (expiration == Value::Null) {
             if isMarket {
                 expirationDelta = self.safe_integer_k(self.options.clone(), "marketOrderExpiration", &[Value::from(defaultExpiration)]);
@@ -2714,9 +2714,9 @@ impl Predictfun {
             expiration = self.sum(&[Value::from(now), expirationDelta]);
         }
         let mut nonce: Value = self.incrementing_nonce();
-        let mut salt: Value = self.safe_string_k(paramsWarnOnMarketOrderWithoutPrice.clone(), "salt", &[self.number_to_string(nonce)]);
+        let mut salt: Value = self.safe_string_k(&paramsWarnOnMarketOrderWithoutPrice, "salt", &[self.number_to_string(nonce)]);
         let mut taker: String = "0x0000000000000000000000000000000000000000".to_string();
-        let takerOptionparamsTakerVariable: Vec<Value> = self.handle_option_and_params(paramsWarnOnMarketOrderWithoutPrice, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(taker)]).as_array().cloned().unwrap_or_default();
+        let takerOptionparamsTakerVariable: Vec<Value> = self.handle_option_and_params(&paramsWarnOnMarketOrderWithoutPrice, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(taker)]).as_array().cloned().unwrap_or_default();
         let mut takerOption: Value = takerOptionparamsTakerVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTaker: Value = takerOptionparamsTakerVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut contractOrder: indexmap::IndexMap<String, Value> = ({
@@ -2754,22 +2754,22 @@ impl Predictfun {
         let mut postOnly: bool = self.safe_bool_k(paramsTaker.clone(), "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[paramsTaker]).as_array().cloned().unwrap_or_default();
         let mut postOnlyOption: Value = postOnlyOptionparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPostOnly: Value = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnlyOption.as_bool() == Some(true) {
             data.insert("isPostOnly".into(), postOnlyOption);
         }
-        let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsPostOnly.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.as_deref() == Some("FOK")) {
             data.insert("isFillOrKill".into(), Value::Bool(true));
         }
         // documented, and the venue takes it inside data rather than as a top level key
-        let mut selfTradePrevention: Option<String> = self.safe_string_upper_k(paramsPostOnly.clone(), "selfTradePrevention", &[]).as_str().map(str::to_owned);
+        let mut selfTradePrevention: Option<String> = self.safe_string_upper_k(&paramsPostOnly, "selfTradePrevention", &[]).as_str().map(str::to_owned);
         if (selfTradePrevention.is_some()) {
             data.insert("selfTradePrevention".into(), selfTradePrevention.clone().map(Value::from).unwrap_or(Value::Null));
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()),
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()),
             Value::Str("nonce".into()), Value::Str("expiration".into()), Value::Str("selfTradePrevention".into()), Value::Str("taker".into())]), &[]).into_dict();
         // the JWT authorises the order, the api key only authorises the request
         let mut request: indexmap::IndexMap<String, Value> = ({

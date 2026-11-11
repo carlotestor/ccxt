@@ -4007,11 +4007,11 @@ impl Mexc {
             request.insert("externalOid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsReduceOnly.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut paramsOmitted: Value = self.omit(paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
             request.insert("triggerPrice".into(), self.price_to_precision(Value::from(symbol), Value::from(triggerPrice)));
-            let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(paramsOmitted.clone(), &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+            let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(&paramsOmitted, &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut triggerDirection: Option<String> = triggerDirectionparamsTriggerDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsTriggerDirection: crate::value::Dict = triggerDirectionparamsTriggerDirectionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut triggerType: i64 = self.safe_integer_k(&paramsTriggerDirection, "triggerType", &[Value::Int(1)]).as_i64().unwrap_or(1);
@@ -4023,17 +4023,17 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() triggerDirection must be either \"ascending\" or \"descending\"".into()))));
             }
             request.insert("triggerType".into(), Value::from(triggerType));
-            request.insert("executeCycle".into(), self.safe_integer_k(paramsOmitted.clone(), "executeCycle", &[Value::Int(1)]));
-            request.insert("trend".into(), self.safe_integer_k(paramsOmitted.clone(), "trend", &[Value::Int(1)]));
+            request.insert("executeCycle".into(), self.safe_integer_k(&paramsOmitted, "executeCycle", &[Value::Int(1)]));
+            request.insert("trend".into(), self.safe_integer_k(&paramsOmitted, "trend", &[Value::Int(1)]));
             let mut planOrderType: Value = orderType.clone();
             if (orderType.as_f64() == Some(6.0)) {
                 planOrderType = Value::Int(5); // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
-            request.insert("orderType".into(), self.safe_integer_k(paramsOmitted.clone(), "orderType", &[planOrderType]));
+            request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[planOrderType]));
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsTriggerDirection]);
             response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await;
         }  else {
-            let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.contract_private_post_order_create(&[__ws_arg_17]).await;
         }
         //
@@ -7239,7 +7239,7 @@ impl Mexc {
 }));
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTransfers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7251,9 +7251,9 @@ impl Mexc {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let fromAccountTypeparamsFromAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("fetchTransfers".into()), Value::Str("fromAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let fromAccountTypeparamsFromAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchTransfers".into()), Value::Str("fromAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut fromAccountType: Value = fromAccountTypeparamsFromAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsFromAccountType: Value = fromAccountTypeparamsFromAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsFromAccountType: crate::value::Dict = fromAccountTypeparamsFromAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".into()));
@@ -7268,7 +7268,7 @@ impl Mexc {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"".into()))));
         }
-        let toAccountTypeparamsToAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsFromAccountType, Value::Str("fetchTransfers".into()), Value::Str("toAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let toAccountTypeparamsToAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsFromAccountType, Value::Str("fetchTransfers".into()), Value::Str("toAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut toAccountType: Value = toAccountTypeparamsToAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsToAccountType: crate::value::Dict = toAccountTypeparamsToAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (toAccountType != Value::Null) {

@@ -4653,8 +4653,8 @@ impl Okx {
         });
         let rpiparamsRpiVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("rpi".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut rpi: bool = rpiparamsRpiVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsRpi: Value = rpiparamsRpiVariable.get(1).cloned().unwrap_or(Value::Null);
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsRpi, Value::Str("fetchOrderBook".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketBooks".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsRpi: crate::value::Dict = rpiparamsRpiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsRpi, Value::Str("fetchOrderBook".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketBooks".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultLimit: Value = (if (method.as_deref() == Some("publicGetMarketBooksFull")) { Value::Int(5000) } else { Value::Int(100) });
@@ -5910,8 +5910,8 @@ impl Okx {
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderParams: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("currency".into()), Value::Str("ccy".into()), Value::Str("marginMode".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into()), Value::Str("stopLossPrice".into()),
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut orderParams: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("currency".into()), Value::Str("ccy".into()), Value::Str("marginMode".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into()), Value::Str("stopLossPrice".into()),
             Value::Str("takeProfitPrice".into()), Value::Str("slOrdPx".into()), Value::Str("tpOrdPx".into()), Value::Str("margin".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPrice".into())]), &[]);
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut fok: bool = (timeInForce.as_deref() == Some("FOK")) || (type_var.as_str() == Some("fok"));
@@ -8668,7 +8668,7 @@ impl Okx {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -8687,7 +8687,7 @@ impl Okx {
                 m.insert("amt".to_string(), self.number_to_string(amount));
             m
         });
-        let mut network: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.safe_string_k(&paramsWithdrawTag, "network", &[]); // this line allows the user to specify either ERC20 or ETH
         if (network != Value::Null) {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8702,7 +8702,7 @@ impl Okx {
         if (network != Value::Null) {
             omitKeys.push(Value::Str("network".into()));
         }
-        let mut fee: Option<String> = self.safe_string_k(paramsWithdrawTag.clone(), "fee", &[]).as_str().map(str::to_owned);
+        let mut fee: Option<String> = self.safe_string_k(&paramsWithdrawTag, "fee", &[]).as_str().map(str::to_owned);
         if (fee.is_none()) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
             let mut networkCodeResolved: Option<String> = self.network_id_to_code(&[network, self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
@@ -8721,7 +8721,7 @@ impl Okx {
         if (fee.is_some()) {
             request.insert("fee".into(), self.number_to_string(fee.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut query: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(omitKeys), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(omitKeys), &[]).into_dict();
         let __ws_arg_53 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.private_post_asset_withdrawal(&[__ws_arg_53]).await.into_dict();
         //
@@ -11806,8 +11806,8 @@ impl Okx {
             });
             let instrumentRequestWindowparamsWindowVariable: Vec<Value> = self.handle_trading_statistics_window(Value::Map(instrumentRequest), timeframeValue, &[since.clone(), limit.clone(), paramsMarketType.clone()]).as_array().cloned().unwrap_or_default();
             let mut instrumentRequestWindow: Value = instrumentRequestWindowparamsWindowVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsWindow: Value = instrumentRequestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_82 = self.extend(instrumentRequestWindow, &[paramsWindow]);
+            let mut paramsWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_82 = self.extend(instrumentRequestWindow, &[&paramsWindow]);
             response = self.public_get_rubik_stat_contracts_open_interest_history(&[__ws_arg_82]).await;
             //
             //    {
@@ -13250,14 +13250,14 @@ impl Okx {
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("before".into(), since.clone()); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_99 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_99 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_convert_history(&[__ws_arg_99]).await.into_dict();
         //
         //     {
@@ -13773,8 +13773,8 @@ impl Okx {
         }
         let requestWindowparamsWindowVariable: Vec<Value> = self.handle_trading_statistics_window(Value::Map(request), period, &[since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut requestWindow: Value = requestWindowparamsWindowVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWindow: Value = requestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_103 = self.extend(requestWindow, &[paramsWindow]);
+        let mut paramsWindow: crate::value::Dict = requestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_103 = self.extend(requestWindow, &[&paramsWindow]);
         let mut response: crate::value::Dict = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[__ws_arg_103]).await.into_dict();
         //
         //     {

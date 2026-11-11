@@ -1250,7 +1250,7 @@ impl Derive {
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("unWatchOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
@@ -1269,7 +1269,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         return self.un_watch_public(Value::from(messageHash), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
@@ -1396,7 +1396,7 @@ impl Derive {
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("unWatchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
@@ -1415,7 +1415,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         return self.un_watch_public(Value::from(messageHash), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))

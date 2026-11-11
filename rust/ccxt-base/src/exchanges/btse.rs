@@ -3863,7 +3863,7 @@ impl Btse {
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
         request.insert("historyTypes".into(), json_stringify(&typesList.clone().into()));
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("walletType".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("walletType".into()), &[]).into_dict();
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
@@ -3877,7 +3877,7 @@ impl Btse {
         if (limit != Value::Null) {
             request.insert("pageSize".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsOmitted, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
@@ -4162,7 +4162,7 @@ impl Btse {
         });
         let mut walletType: String = self.safe_string_k(params.clone(), "walletType", &[Value::Str("SPOT".into())]).as_str().unwrap_or("SPOT").to_string();
         request.insert("walletType".into(), Value::from(walletType.clone()));
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("walletType".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("walletType".into()), &[]).into_dict();
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
@@ -4176,7 +4176,7 @@ impl Btse {
         if (limit != Value::Null) {
             request.insert("pageSize".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("fetchLedger".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsOmitted, Value::Str("fetchLedger".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
