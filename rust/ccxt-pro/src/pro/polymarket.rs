@@ -1863,7 +1863,7 @@ impl Polymarket {
                 m.insert("portfolio".to_string(), Value::Str("handle_portfolio".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(Value::Map(methods), Value::from(family), &[]);
+        let mut method: Value = self.safe_value(&methods, Value::from(family), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

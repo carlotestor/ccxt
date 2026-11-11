@@ -1867,7 +1867,7 @@ impl Phemex {
         if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
             let mut closed: Value = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]);
             let mut open: Value = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]);
-            let mut orders: Value = self.array_concat(open, closed);
+            let mut orders: crate::value::List = self.array_concat(open, closed).into_list();
             let mut ordersLength: f64 = ((orders.len() as i64) as f64);
             if (ordersLength == 0.0) {
                 return;
@@ -1877,7 +1877,7 @@ impl Phemex {
                                 let mut i: i64 = 0;
                 let mut __for_first_616: bool = true;
                 while { if !__for_first_616 { i += 1; } __for_first_616 = false; i < (orders.len() as i64) } {
-                let mut rawOrder: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
                 parsedOrders.push(parsedOrder.clone());
             }

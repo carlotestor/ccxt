@@ -1033,7 +1033,7 @@ impl Coinbaseexchange {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status, &[Value::Str("open".into())]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status, &[Value::Str("open".into())]).as_str().map(str::to_owned);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -1471,7 +1471,7 @@ impl Coinbaseexchange {
                 while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < (changes.len() as i64) } {
                 let mut change: Option<crate::value::List> = self.safe_list(changes.clone().into(), Value::Int(i), &[]).into_opt_list();
                 let mut key: Option<String> = self.safe_string(&change, Value::Int(0), &[]).as_str().map(str::to_owned);
-                let mut side: Option<String> = self.safe_string(Value::Map(sides.clone()), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut side: Option<String> = self.safe_string(&sides, key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut price: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
                 let mut amount: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(2), &[]);
                 let mut bookside: Value = self.safe_value(orderbook.clone(), side.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1544,7 +1544,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut authenticated: bool = __ch.url.as_str().unwrap_or("").ends_with("?");
-        let mut method: Value = self.safe_value(Value::Map(methods), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut method: Value = self.safe_value(&methods, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method == Value::Null) {
             if (type_var.as_deref() == Some("match")) {
                 if authenticated {

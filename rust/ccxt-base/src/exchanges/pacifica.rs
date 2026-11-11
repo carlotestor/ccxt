@@ -3753,7 +3753,7 @@ if _try_result.is_err() {
                 m.insert("rejected".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn map_time_in_force(&self, mut tifRaw: Value) -> Option<String> {
@@ -3772,7 +3772,7 @@ if _try_result.is_err() {
             return Value::Str("GTC".into()).as_str().map(str::to_owned);
         }
         let mut tif: String = tifRaw.as_str().map(str::to_uppercase).unwrap_or_default();
-        return self.safe_string(Value::Map(tifMap), Value::from(tif), &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
+        return self.safe_string(&tifMap, Value::from(tif), &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
 }
 
     pub fn map_side(&self, mut sideRaw: Value) -> Option<String> {
@@ -3782,7 +3782,7 @@ if _try_result.is_err() {
                 m.insert("buy".to_string(), Value::Str("bid".into()));
             m
         });
-        return self.safe_string(Value::Map(sideMap), sideRaw.clone(), &[sideRaw.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&sideMap, sideRaw.clone(), &[sideRaw.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
@@ -3796,7 +3796,7 @@ if _try_result.is_err() {
                 m.insert("stop_loss_market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -4636,7 +4636,7 @@ if _try_result.is_err() {
                 m.insert("payout".to_string(), Value::Str("payout".into()));
             m
         });
-        return self.safe_string(Value::Map(ledgerType), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&ledgerType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4765,7 +4765,7 @@ if _try_result.is_err() {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string(Value::Map(types), eventType.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("type".to_string(), self.safe_string(&types, eventType.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Str("USDC".into()), &[currency]));
         m.insert("status".to_string(), Value::Null);

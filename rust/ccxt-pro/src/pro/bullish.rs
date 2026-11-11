@@ -512,12 +512,12 @@ impl Bullish {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArrayCache); }
         }
         let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut tradesList: Value = self.to_array(trades.clone());
+        let mut tradesList: crate::value::List = self.to_array(trades.clone()).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_175: bool = true;
             while { if !__for_first_175 { i += 1; } __for_first_175 = false; i < (tradesList.len() as i64) } {
-            tradesArray.append(tradesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            tradesArray.append(tradesList.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
@@ -734,7 +734,7 @@ impl Bullish {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        let mut entries: Value = self.to_array(entry);
+        let mut entries: crate::value::List = self.to_array(entry).into_list();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_176: bool = true;
@@ -742,9 +742,9 @@ impl Bullish {
             if ((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() != Some(0.0)) {
                 continue;
             }
-            let mut price: Option<String> = self.safe_string(entries.clone(), i.clone(), &[]).as_str().map(str::to_owned);
-            result.push(Value::from(vec![price.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string(entries.clone(), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[])]));
+            let mut price: Option<String> = self.safe_string(&entries, i.clone(), &[]).as_str().map(str::to_owned);
+            result.push(Value::from(vec![price.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string(&entries, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[])]));
         }
         }
         return Value::from(result);

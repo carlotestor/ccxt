@@ -892,7 +892,7 @@ impl P2b {
                 m.insert("deals.update".to_string(), Value::Str("handle_trade".into()).clone());
             m
         });
-        let mut endpoint: Value = self.safe_value(Value::Map(methods), method.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut endpoint: Value = self.safe_value(&methods, method.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (endpoint != Value::Null) {
             self.dispatch_ws_handler(&endpoint, &[client, message]);
         }

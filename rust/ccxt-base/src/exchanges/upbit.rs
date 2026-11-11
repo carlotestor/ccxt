@@ -1262,12 +1262,12 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut orderbooks: Value = self.to_array(response);
+        let mut orderbooks: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1138: bool = true;
             while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (orderbooks.len() as i64) } {
-            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(orderbooks.clone(), Value::Int(i), &[Value::Map({
+            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Arr(orderbooks.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -2421,7 +2421,7 @@ impl Upbit {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2507,7 +2507,7 @@ impl Upbit {
                 m.insert("cancel".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

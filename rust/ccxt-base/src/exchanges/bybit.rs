@@ -6515,7 +6515,7 @@ impl Bybit {
                 m.insert("Active".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
@@ -6527,7 +6527,7 @@ impl Bybit {
                 m.insert("PostOnly".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(Value::Map(timeInForces), timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -7823,7 +7823,7 @@ impl Bybit {
                 m.insert("option".to_string(), Value::Str("OPTIONS".into()));
             m
         });
-        let mut product: Value = self.safe_string(Value::Map(productMap), type_var.clone(), &[type_var.clone()]);
+        let mut product: Value = self.safe_string(&productMap, type_var.clone(), &[type_var.clone()]);
         request.insert("product".into(), product);
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: Value = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await;
@@ -9324,7 +9324,7 @@ impl Bybit {
     }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("unknown".into()));
                 m.insert("1".to_string(), Value::Str("pending".into()));
@@ -9340,7 +9340,7 @@ impl Bybit {
                 m.insert("BlockchainConfirmed".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -9737,7 +9737,7 @@ impl Bybit {
                 m.insert("CURRENCY_SELL".to_string(), Value::Str("trade".into()));
             m
         });
-        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -10422,7 +10422,7 @@ impl Bybit {
             m
         });
         if isUnifiedAccount {
-            let mut unifiedMarginMode: Option<String> = self.safe_string(Value::Map(marginModes.clone()), marginMode.clone(), &[]).as_str().map(str::to_owned);
+            let mut unifiedMarginMode: Option<String> = self.safe_string(&marginModes, marginMode.clone(), &[]).as_str().map(str::to_owned);
             if (unifiedMarginMode.is_none()) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either [isolated, cross, portfolio]".into()))));
             }
@@ -10446,7 +10446,7 @@ impl Bybit {
                 }
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("setMarginMode".to_string(), self.safe_string(Value::Map(marginModes), marginMode.clone(), &[]));
+                        m.insert("setMarginMode".to_string(), self.safe_string(&marginModes, marginMode.clone(), &[]));
                     m
                 });
                 let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
@@ -11465,14 +11465,14 @@ impl Bybit {
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("ok".into()));
                 m.insert("OK".to_string(), Value::Str("ok".into()));
                 m.insert("SUCCESS".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
@@ -14152,7 +14152,7 @@ impl Bybit {
                 m.insert("PORTFOLIO_MARGIN".to_string(), Value::Str("portfolio".into()));
             m
         });
-        return self.safe_string(Value::Map(marginModes), marginMode.clone(), &[marginMode.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&marginModes, marginMode.clone(), &[marginMode.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

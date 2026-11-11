@@ -2379,7 +2379,7 @@ impl Polymarket {
                 m.insert("serverTime".to_string(), response);
             m
         });
-        return self.safe_timestamp_k(Value::Map(result), "serverTime", &[]);
+        return self.safe_timestamp_k(&result, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -3185,7 +3185,7 @@ impl Polymarket {
         m.insert("status".to_string(), status);
     m
 }), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
-        return self.safe_string(Value::Map(statuses), normalized.clone().map(Value::from).unwrap_or(Value::Null), &[normalized.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, normalized.clone().map(Value::from).unwrap_or(Value::Null), &[normalized.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
 }
 
 /*

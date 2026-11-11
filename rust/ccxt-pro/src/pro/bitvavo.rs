@@ -2692,7 +2692,7 @@ impl Bitvavo {
                 m.insert("privateGetTrades".to_string(), Value::Str("action_and_market_message_hash".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(Value::Map(methods), action.clone(), &[]);
+        let mut method: Value = self.safe_value(&methods, action.clone(), &[]);
         let mut messageHash: Value = action.clone();
         if (method != Value::Null) {
             messageHash = self.dispatch_ws_handler(&method, &[action, params]);
@@ -2819,7 +2819,7 @@ impl Bitvavo {
             let mut __for_first_161: bool = true;
             while { if !__for_first_161 { i += 1; } __for_first_161 = false; i < (names.len() as i64) } {
             let mut name: Value = names.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut method: Value = self.safe_value(Value::Map(methods.clone()), name.clone(), &[]);
+            let mut method: Value = self.safe_value(&methods, name.clone(), &[]);
             if (method != Value::Null) {
                 let mut subscription: Value = self.safe_value(subscriptions.clone(), name, &[]);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
@@ -3019,10 +3019,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut method: Value = self.safe_value(Value::Map(methods.clone()), event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut method: Value = self.safe_value(&methods, event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method == Value::Null) {
             let mut action: Option<String> = (match __pro_message.get("action").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            method = self.safe_value(Value::Map(methods), action.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            method = self.safe_value(&methods, action.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
