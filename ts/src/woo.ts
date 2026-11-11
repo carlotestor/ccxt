@@ -2895,7 +2895,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: Dict, params: Dict): [Str, Dict] {
+    getDedicatedNetworkId (currency: Currency, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const networks = this.safeDict (currency, 'networks', {});
         const currencyCode = this.safeString (currency, 'code', '');
@@ -2922,7 +2922,7 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Currency, Dict[]]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2999,9 +2999,7 @@ export default class woo extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
-        const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -3132,9 +3130,7 @@ export default class woo extends Exchange {
         const request: Dict = {
             'type': 'BALANCE',
         };
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
-        const currency = this.safeValue (currencyRows, 0);
-        const rows: Dict[] = this.safeList (currencyRows, 1, []);
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         return this.parseTransactions (rows, currency, since, limit, this.omit (params, 'tokenSide'));
     }
 
