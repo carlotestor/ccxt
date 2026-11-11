@@ -1011,8 +1011,8 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_v1_time(&[params]).await;
-        return self.safe_integer_k(response, "timestamp", &[]);
+        let mut response: crate::value::Dict = self.public_get_v1_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
     }
@@ -2942,7 +2942,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("createdAtDatetime[gte]".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsUntil]);
-        let mut response: Value = self.private_get_v1_wallets_transactions(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_get_v1_wallets_transactions(&[__ws_arg_18]).await.into_dict();
         //
         //     {
         //         "data": [
@@ -2977,7 +2977,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "totalCount": 1
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
@@ -3077,19 +3077,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "createdAtDateTime", &[]));
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "updatedAtDateTime", &[]));
         let mut network: Option<String> = self.safe_string_k(transaction.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut transactionDetails: Value = self.safe_dict_k(transaction.clone(), "transactionDetails", &[]);
-        let mut txid: Option<String> = self.safe_string_k(transactionDetails.clone(), "blockchainTxId", &[]).as_str().map(str::to_owned);
-        let mut address: Option<String> = self.safe_string_k(transactionDetails.clone(), "address", &[]).as_str().map(str::to_owned);
+        let mut transactionDetails: crate::value::Dict = self.safe_dict_k(transaction.clone(), "transactionDetails", &[]).into_dict();
+        let mut txid: Option<String> = self.safe_string_k(&transactionDetails, "blockchainTxId", &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string_k(&transactionDetails, "address", &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "quantity", &[]).as_f64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut sources: Value = self.safe_list_k(transactionDetails, "sources", &[Value::from(vec![])]);
-        let mut source: Value = self.safe_dict(sources, Value::Int(0), &[Value::Map({
+        let mut sources: Value = self.safe_list_k(&transactionDetails, "sources", &[Value::from(vec![])]);
+        let mut source: crate::value::Dict = self.safe_dict(sources, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut sourceAddress: Option<String> = self.safe_string_k(source, "address", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut sourceAddress: Option<String> = self.safe_string_k(&source, "address", &[]).as_str().map(str::to_owned);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), Value::Null);
@@ -3168,10 +3168,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_494: bool = true;
                 while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (accounts.len() as i64) } {
-                let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
-                let mut name: Option<String> = self.safe_string_k(account.clone(), "tradingAccountName", &[]).as_str().map(str::to_owned);
+                let mut account: crate::value::Dict = self.safe_dict(accounts.clone(), Value::Int(i), &[]).into_dict();
+                let mut name: Option<String> = self.safe_string_k(&account, "tradingAccountName", &[]).as_str().map(str::to_owned);
                 if (name.as_deref() == Some("Primary Account")) {
-                    tradingAccountId = self.safe_string_k(account, "tradingAccountId", &[]);
+                    tradingAccountId = self.safe_string_k(&account, "tradingAccountId", &[]);
                     break;
                 }
             }
@@ -3400,12 +3400,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_496: bool = true;
             while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (rows.len() as i64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut symbol: Option<String> = self.safe_string_k(balance.clone(), "assetSymbol", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&balance, "assetSymbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(balance.clone(), "availableQuantity", &[]));
-            account.insert("used".into(), self.safe_string_k(balance, "lockedQuantity", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "availableQuantity", &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "lockedQuantity", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -3638,11 +3638,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "requestId": "633909659774222336"
         //     }
         //
-        let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
+        let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+})]).into_dict();
+        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         let mut transfer: Value = self.parse_transfer(response, &[currency]);
         if fillResponseFromRequest {
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
@@ -3991,7 +3991,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.private_get_v1_users_hmac_login(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_v1_users_hmac_login(&[params]).await.into_dict();
         //
         //     {
         //         "authorizer": "113363EFA2CA00007368524E02000000",
@@ -3999,8 +3999,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "token": "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJiMXgtYXV0aC1zZXJ2aWNlIiwic3ViIjoiNDY0OTc4MzAiLCJleHAiOjE3NDczMzgzNDMsIlNUQUdFIjoiQVVUSEVOVElDQVRFRF9XSVRIX0JMT0NLQ0hBSU4ifQ.5FSyrihzc1wsJqAY8pVX36Y4ZXg3HopLJypPEbHg5bBK8FbL_oLxkj6zM_iOYL2a1x6-ICG0pQjr8hF_k8Yg-w"
         //     }
         //
-        let mut token: Value = self.safe_string_k(response.clone(), "token", &[]);
-        { let __be_tmp = self.safe_string_k(response, "authorizer", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authorizer".into(), __be_tmp); } }
+        let mut token: Value = self.safe_string_k(&response, "token", &[]);
+        { let __be_tmp = self.safe_string_k(&response, "authorizer", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authorizer".into(), __be_tmp); } }
         self.token = token.clone();
         { let __be_tmp = self.sum(&[self.milliseconds(), (match (&((match (&((match (&(Value::Int(1000)), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),

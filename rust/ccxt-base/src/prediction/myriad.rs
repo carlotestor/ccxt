@@ -839,8 +839,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let __ws_arg_4 = self.extend(Value::Map(keywordRequest), &[params]);
-            let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_4]).await;
-            let mut questions: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.myriad_public_get_questions(&[__ws_arg_4]).await.into_dict();
+            let mut questions: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut questionsLength: f64 = ((questions.len() as i64) as f64);
             let mut idLower: Value = (if let Some(__s) = id.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             {
@@ -1028,7 +1028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("address".to_string(), address);
             m
         }), &[rest]);
-        let mut response: Value = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "data": [
@@ -1072,7 +1072,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1156,13 +1156,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: Option<String> = self.safe_string_k(info.clone(), "networkId", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(info.clone(), "marketId", &[]).as_str().map(str::to_owned);
-        let mut outcomeId: Option<i64> = self.safe_integer_k(info, "outcomeId", &[]).as_i64();
+})]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&info, "networkId", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&info, "marketId", &[]).as_str().map(str::to_owned);
+        let mut outcomeId: Option<i64> = self.safe_integer_k(&info, "outcomeId", &[]).as_i64();
         let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1349,11 +1349,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultModel: String = self.safe_string_k(info, "tradingModel", &[Value::Str("amm".into())]).as_str().unwrap_or("amm").to_string();
+})]).into_dict();
+        let mut defaultModel: String = self.safe_string_k(&info, "tradingModel", &[Value::Str("amm".into())]).as_str().unwrap_or("amm").to_string();
         let mut tradingModel: Option<String> = self.safe_string_lower_k(params.clone(), "tradingModel", &[Value::from(defaultModel)]).as_str().map(str::to_owned);
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]);
         if (tradingModel.as_deref() == Some("ob")) {
@@ -1469,13 +1469,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a privateKey to sign the order".into()))));
         }
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[self.safe_string(self.options.clone(), Value::Str("defaultNetworkId".into()), &[Value::Str("56".into())])]);
-        let mut marketId: Option<String> = self.safe_string_k(info.clone(), "marketId", &[]).as_str().map(str::to_owned);
-        let mut outcomeId: i64 = self.safe_integer_k(info, "outcomeId", &[Value::Int(0)]).as_i64().unwrap_or(0);
+})]).into_dict();
+        let mut networkId: Value = self.safe_string_k(&info, "networkId", &[self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())])]);
+        let mut marketId: Option<String> = self.safe_string_k(&info, "marketId", &[]).as_str().map(str::to_owned);
+        let mut outcomeId: i64 = self.safe_integer_k(&info, "outcomeId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut trader: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let mut typeStr: Value = (if (type_var == Value::Null) { Value::Str("limit".into()) } else { (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
         let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
@@ -1572,16 +1572,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1350: bool = true;
             while { if !__for_first_1350 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1350 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut o: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut outcome: Option<String> = self.safe_string_k(o.clone(), "outcome", &[]).as_str().map(str::to_owned);
-            let mut type_var: Option<String> = self.safe_string_k(o.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut side: Option<String> = self.safe_string_k(o.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut amount: Option<f64> = self.safe_number_k(o.clone(), "amount", &[]).as_f64();
-            let mut price: Option<f64> = self.safe_number_k(o.clone(), "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(o, "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut o: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
+            let mut outcome: Option<String> = self.safe_string_k(&o, "outcome", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k(&o, "type", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_k(&o, "side", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<f64> = self.safe_number_k(&o, "amount", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&o, "price", &[]).as_f64();
+            let mut orderParams: Value = self.safe_dict_k(&o, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let __ws_arg_11 = self.extend(orderParams, &[params.clone()]);
             let mut placed: Value = self.create_orderbook_order(outcome.clone().map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), __ws_arg_11]).await;
             result.push(placed);
@@ -1670,11 +1670,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: Option<String> = self.safe_string_k(info.clone(), "networkId", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&info, "networkId", &[]).as_str().map(str::to_owned);
         let mut chains: Value = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1685,7 +1685,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(chainConfig.clone(), "rpcUrl", &[])]);
         let mut predictionMarket: Option<String> = self.safe_string_k(chainConfig, "predictionMarket", &[]).as_str().map(str::to_owned);
-        let mut tokenAddress: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(info, "tokenAddress", &[])]);
+        let mut tokenAddress: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(&info, "tokenAddress", &[])]);
         let mut gasLimit: String = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0xaae60".into())]).as_str().unwrap_or("0xaae60").to_string();
         let mut sideStr: Value = sideLower;
         let mut quoteParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("rpcUrl".into()), Value::Str("rpc".into()), Value::Str("token".into()), Value::Str("tokenAddress".into()), Value::Str("gasLimit".into()), Value::Str("costDenominated".into()), Value::Str("quote".into()), Value::Str("transactionHash".into()),
@@ -1769,11 +1769,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainConfig: Value = self.safe_dict(chains, networkId.clone(), &[Value::Map({
+        let mut chainConfig: crate::value::Dict = self.safe_dict(chains, networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut exchangeAddress: Option<String> = self.safe_string_k(chainConfig, "obExchangeAddress", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut exchangeAddress: Option<String> = self.safe_string_k(&chainConfig, "obExchangeAddress", &[]).as_str().map(str::to_owned);
         if (exchangeAddress.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order book trading is not configured for network ".into())).into()), networkId)));
         }
@@ -2023,18 +2023,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut inner: Value = self.safe_dict_k(order.clone(), "order", &[Value::Map({
+        let mut inner: crate::value::Dict = self.safe_dict_k(order.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut orderHash: Option<String> = self.safe_string2(order.clone(), Value::Str("orderHash".into()), Value::Str("hash".into()), &[]).as_str().map(str::to_owned);
-        let mut sideInt: Option<i64> = self.safe_integer_k(inner.clone(), "side", &[]).as_i64();
+        let mut sideInt: Option<i64> = self.safe_integer_k(&inner, "side", &[]).as_i64();
         let mut side: String = "buy".to_string();
         if (sideInt == Some(1)) {
             side = "sell".to_string();
         }
-        let mut amountWei: Option<String> = self.safe_string_k(inner.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut priceWei: Option<String> = self.safe_string_k(inner.clone(), "price", &[]).as_str().map(str::to_owned);
+        let mut amountWei: Option<String> = self.safe_string_k(&inner, "amount", &[]).as_str().map(str::to_owned);
+        let mut priceWei: Option<String> = self.safe_string_k(&inner, "price", &[]).as_str().map(str::to_owned);
         let mut filledWei: Option<String> = self.safe_string_k(order.clone(), "filledAmount", &[]).as_str().map(str::to_owned);
         let mut amount: Value = (if (amountWei.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&amountWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]) });
         let mut price: Value = (if (priceWei.is_none()) { Value::Null } else { self.parse_number(crate::precise::Precise::stringDiv(&priceWei.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]) });
@@ -2055,8 +2055,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (outcome.is_none()) {
             // the REST order has no top-level networkId; order book lives on the default network
             let mut networkId: Value = self.safe_string2(order.clone(), Value::Str("networkId".into()), Value::Str("network_id".into()), &[self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())])]);
-            let mut marketId: Option<String> = self.safe_string_k(inner.clone(), "marketId", &[]).as_str().map(str::to_owned);
-            let mut outcomeId: Option<String> = self.safe_string_k(inner, "outcomeId", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k(&inner, "marketId", &[]).as_str().map(str::to_owned);
+            let mut outcomeId: Option<String> = self.safe_string_k(&inner, "outcomeId", &[]).as_str().map(str::to_owned);
             let mut composite: Option<String> = None;
             if (networkId != Value::Null) && (marketId.is_some()) && (outcomeId.is_some()) {
                 composite = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), outcomeId.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -2206,13 +2206,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             outcomeSymbol = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]);
-            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            request.insert("market_id".into(), self.safe_string_k(info.clone(), "marketId", &[]));
-            request.insert("network_id".into(), self.safe_string_k(info.clone(), "networkId", &[]));
-            rowOutcomeId = self.safe_string_k(info, "outcomeId", &[]);
+})]).into_dict();
+            request.insert("market_id".into(), self.safe_string_k(&info, "marketId", &[]));
+            request.insert("network_id".into(), self.safe_string_k(&info, "networkId", &[]));
+            rowOutcomeId = self.safe_string_k(&info, "outcomeId", &[]);
         }
         if (since != Value::Null) {
             request.insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
@@ -2222,7 +2222,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trader".into()), Value::Str("address".into()), Value::Str("status".into())]), &[]);
         let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.myriad_public_get_users_address_events(&[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_users_address_events(&[__ws_arg_13]).await.into_dict();
         //
         //     {
         //         "data": [
@@ -2254,7 +2254,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
@@ -2355,14 +2355,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.myriad_public_delete_orders_hash(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.myriad_public_delete_orders_hash(&[__ws_arg_15]).await.into_dict();
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
         //         "status": "cancelled"
         //     }
         //
-        let mut status: String = self.safe_string_k(response, "status", &[Value::Str("canceled".into())]).as_str().unwrap_or("canceled").to_string();
+        let mut status: String = self.safe_string_k(&response, "status", &[Value::Str("canceled".into())]).as_str().unwrap_or("canceled").to_string();
         let mut wrapper: Value = self.extend(fetched, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::from(status));
@@ -2406,12 +2406,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(params.clone(), "network_id", &[self.safe_string(self.options.clone(), Value::Str("defaultNetworkId".into()), &[Value::Str("56".into())])]);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-            let mut info: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            marketId = self.safe_string_k(info.clone(), "marketId", &[marketId.clone()]);
-            networkId = self.safe_string_k(info, "networkId", &[networkId.clone()]);
+})]).into_dict();
+            marketId = self.safe_string_k(&info, "marketId", &[marketId.clone()]);
+            networkId = self.safe_string_k(&info, "networkId", &[networkId.clone()]);
         }
         // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
         let mut timestamp: Value = self.safe_string_k(params, "timestamp", &[self.number_to_string(self.seconds())]);
@@ -2656,18 +2656,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             outcomeSymbol = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
             if (requestedTradingModel.is_none()) {
-                let mut info: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+                let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                requestedTradingModel = self.safe_string_lower_k(info, "tradingModel", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                requestedTradingModel = self.safe_string_lower_k(&info, "tradingModel", &[]).as_str().map(str::to_owned);
             }
         }
         if (requestedTradingModel.as_deref() == Some("amm")) {
             return self.fetch_amm_orders(&[outcome, since.clone(), limit.clone(), paramsOmitted.clone()]).await;
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.myriad_public_get_orders(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_orders(&[__ws_arg_18]).await.into_dict();
         //
         //     {
         //         "data": [
@@ -2703,7 +2703,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
@@ -2929,17 +2929,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainConfig: Value = self.safe_dict(chains, networkId.clone(), &[Value::Map({
+        let mut chainConfig: crate::value::Dict = self.safe_dict(chains, networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(chainConfig.clone(), "rpcUrl", &[])]);
-        let mut token: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(chainConfig.clone(), "collateralToken", &[])]);
+})]).into_dict();
+        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
+        let mut token: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(&chainConfig, "collateralToken", &[])]);
         if (token == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() has no collateral token configured for network ".into())).into()), networkId)));
         }
-        let mut currency: Value = self.safe_string_k(params.clone(), "currency", &[self.safe_string(chainConfig.clone(), Value::Str("collateralCurrency".into()), &[Value::Str("USD1".into())])]);
-        let mut decimals: Value = self.safe_integer_k(params, "decimals", &[self.safe_integer(chainConfig, Value::Str("collateralDecimals".into()), &[Value::Int(18)])]);
+        let mut currency: Value = self.safe_string_k(params.clone(), "currency", &[self.safe_string_k(&chainConfig, "collateralCurrency", &[Value::Str("USD1".into())])]);
+        let mut decimals: Value = self.safe_integer_k(params, "decimals", &[self.safe_integer_k(&chainConfig, "collateralDecimals", &[Value::Int(18)])]);
         let mut owner: Value = self.wallet_address_from_keys().map(Value::from).unwrap_or(Value::Null);
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         let mut callData: String = format!("{}{}", Value::Str("0x70a08231".into()), self.pad_hex_address(owner));
@@ -3125,40 +3125,40 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         let mut marketSymbol: Value = self.slug_to_market_symbol(eventSlug.clone(), slug.clone());
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
-        let mut tokenObj: Value = self.safe_dict_k(raw.clone(), "token", &[Value::Map({
+        let mut tokenObj: crate::value::Dict = self.safe_dict_k(raw.clone(), "token", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut tokenAddress: Option<String> = self.safe_string_k(tokenObj.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut tokenDecimals: i64 = self.safe_integer_k(tokenObj.clone(), "decimals", &[Value::Int(18)]).as_i64().unwrap_or(18);
-        let mut quoteCurrency: String = self.safe_string_k(tokenObj, "symbol", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
+})]).into_dict();
+        let mut tokenAddress: Option<String> = self.safe_string_k(&tokenObj, "address", &[]).as_str().map(str::to_owned);
+        let mut tokenDecimals: i64 = self.safe_integer_k(&tokenObj, "decimals", &[Value::Int(18)]).as_i64().unwrap_or(18);
+        let mut quoteCurrency: String = self.safe_string_k(&tokenObj, "symbol", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
         // per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
-        let mut feesObj: Value = self.safe_dict_k(raw.clone(), "fees", &[Value::Map({
+        let mut feesObj: crate::value::Dict = self.safe_dict_k(raw.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut buyFees: Value = self.safe_dict_k(feesObj.clone(), "buy", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut sellFees: Value = self.safe_dict_k(feesObj, "sell", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut takerFee: Value = self.safe_number_k(buyFees, "fee", &[Value::Float(0.01)]);
-        let mut makerFee: Value = self.safe_number_k(sellFees, "fee", &[Value::Int(0)]);
+})]).into_dict();
+        let mut buyFees: crate::value::Dict = self.safe_dict_k(&feesObj, "buy", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut sellFees: crate::value::Dict = self.safe_dict_k(&feesObj, "sell", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut takerFee: Value = self.safe_number_k(&buyFees, "fee", &[Value::Float(0.01)]);
+        let mut makerFee: Value = self.safe_number_k(&sellFees, "fee", &[Value::Int(0)]);
         let mut outcomes: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1357: bool = true;
             while { if !__for_first_1357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1357 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOutcomes.len() as i64) as f64) } {
-            let mut outcome: Value = self.safe_dict(rawOutcomes.clone().into(), i.clone(), &[Value::Map({
+            let mut outcome: crate::value::Dict = self.safe_dict(rawOutcomes.clone().into(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut outcomeId: Value = self.safe_string_k(outcome.clone(), "outcomeId", &[self.safe_string(outcome.clone(), Value::Str("id".into()), &[Value::Str(format!("{}", i).into())])]);
-            let mut outcomeLabel: Value = self.safe_string_k(outcome.clone(), "label", &[self.safe_string(outcome.clone(), Value::Str("title".into()), &[outcomeId.clone()])]);
-            let mut price: Option<f64> = self.safe_number_k(outcome, "price", &[]).as_f64();
+})]).into_dict();
+            let mut outcomeId: Value = self.safe_string_k(&outcome, "outcomeId", &[self.safe_string_k(&outcome, "id", &[Value::Str(format!("{}", i).into())])]);
+            let mut outcomeLabel: Value = self.safe_string_k(&outcome, "label", &[self.safe_string_k(&outcome, "title", &[outcomeId.clone()])]);
+            let mut price: Option<f64> = self.safe_number_k(&outcome, "price", &[]).as_f64();
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), slug.clone(), outcomeLabel.clone());
             let mut outcomeCompositeId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("/".into())).into()), outcomeId);
             let mut winnerRaw: Value = Value::Null;
@@ -3362,14 +3362,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
-                m.insert("network_id".to_string(), self.safe_string_k(info, "networkId", &[]));
+                m.insert("id".to_string(), self.safe_string_k(&info, "marketId", &[]));
+                m.insert("network_id".to_string(), self.safe_string_k(&info, "networkId", &[]));
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
@@ -3382,25 +3382,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(response.clone(), "fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(response.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut buy: Value = self.safe_dict_k(fees.clone(), "buy", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut sell: Value = self.safe_dict_k(fees, "sell", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut buy: crate::value::Dict = self.safe_dict_k(&fees, "buy", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut sell: crate::value::Dict = self.safe_dict_k(&fees, "sell", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj, "outcomeId", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(sell, "fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(buy, "fee", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&sell, "fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&buy, "fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -3504,10 +3504,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1358: bool = true;
             while { if !__for_first_1358 { i += 1; } __for_first_1358 = false; i < (outcomes.len() as i64) } {
-            let mut o: Value = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]);
-            if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_str()) {
-                let mut priceValue: Value = self.safe_number_k(o.clone(), "price", &[]);
-                let mut changeValue: Value = self.safe_number_k(o, "priceChange24h", &[]);
+            let mut o: crate::value::Dict = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]).into_dict();
+            if (self.safe_string_k(&o, "outcomeId", &[self.safe_string_k(&o, "id", &[])]).as_str() == outcomeId.as_str()) {
+                let mut priceValue: Value = self.safe_number_k(&o, "price", &[]);
+                let mut changeValue: Value = self.safe_number_k(&o, "priceChange24h", &[]);
                 price = priceValue.clone();
                 change = changeValue.clone();
                 if (priceValue != Value::Null) && (changeValue != Value::Null) {
@@ -3599,7 +3599,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_26]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_26]).await.into_dict();
         //
         //     {
         //         "id": "756",
@@ -3673,7 +3673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "externalSources": []
         //     }
         //
-        let mut outcomes: Vec<Value> = self.safe_list_k(response, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut outcomes: Vec<Value> = self.safe_list_k(&response, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let mut bid: Value = Value::Null;
         let mut ask: Value = Value::Null;
@@ -3681,9 +3681,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1359: bool = true;
             while { if !__for_first_1359 { i += 1; } __for_first_1359 = false; i < (outcomes.len() as i64) } {
-            let mut o: Value = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]);
-            if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_deref()) {
-                let mut price: Value = self.safe_number_k(o, "price", &[]);
+            let mut o: crate::value::Dict = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]).into_dict();
+            if (self.safe_string_k(&o, "outcomeId", &[self.safe_string_k(&o, "id", &[])]).as_str() == outcomeId.as_deref()) {
+                let mut price: Value = self.safe_number_k(&o, "price", &[]);
                 if (price != Value::Null) {
                     if price.as_f64().unwrap_or(f64::NAN) > (0.001) {
                         bid = self.parse_number(crate::precise::Precise::stringSub(&self.number_to_string(price.clone()), &Value::Str("0.001".into())), &[]);
@@ -3798,14 +3798,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut outcomeInfo: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: Option<String> = self.safe_string_k(outcomeInfo.clone(), "networkId", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(outcomeInfo.clone(), "marketId", &[]).as_str().map(str::to_owned);
-        let mut outcomeId: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeId", &[self.safe_string(outcomeInfo.clone(), Value::Str("id".into()), &[])]);
-        let mut outcomeTitle: Value = self.safe_string_k(outcomeInfo.clone(), "outcomeLabel", &[self.safe_string(outcomeInfo.clone(), Value::Str("label".into()), &[self.safe_string(outcomeInfo, Value::Str("title".into()), &[])])]);
+})]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&outcomeInfo, "networkId", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&outcomeInfo, "marketId", &[]).as_str().map(str::to_owned);
+        let mut outcomeId: Value = self.safe_string_k(&outcomeInfo, "outcomeId", &[self.safe_string_k(&outcomeInfo, "id", &[])]);
+        let mut outcomeTitle: Value = self.safe_string_k(&outcomeInfo, "outcomeLabel", &[self.safe_string_k(&outcomeInfo, "label", &[self.safe_string_k(&outcomeInfo, "title", &[])])]);
         let mut bucketKey: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("30d".into())]);
         let __ws_arg_27 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3813,7 +3813,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
             m
         }), &[params]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_27]).await.into_dict();
         //
         //     {
         //         "id": "164",
@@ -3851,7 +3851,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut outcomes: Vec<Value> = self.safe_list_k(response.clone(), "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut outcomes: Vec<Value> = self.safe_list_k(&response, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut selectedOutcome: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -3895,10 +3895,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut points: Value = (if (pointsList != Value::Null) { pointsList } else { Value::from(vec![]) });
         let mut pointsLength: f64 = ((points.len() as i64) as f64);
         if (pointsLength == 0.0) {
-            let mut priceCharts: Value = self.safe_dict_k(response, "price_charts", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut priceCharts: Value = self.safe_dict_k(&response, "price_charts", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut bucket: Value = self.safe_dict(priceCharts, bucketKey, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4020,11 +4020,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1366 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1366 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
             let mut key: Value = marketKeys.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut firstOutcome: Value = self.safe_dict(grouped.clone(), Value::Int(0), &[]);
-            let mut info: Value = self.safe_dict_k(firstOutcome, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut firstOutcome: crate::value::Dict = self.safe_dict(grouped.clone(), Value::Int(0), &[]).into_dict();
+            let mut info: Value = self.safe_dict_k(&firstOutcome, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let __ws_arg_28 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
@@ -4086,13 +4086,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: Option<String> = self.safe_string_k(info.clone(), "networkId", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(info.clone(), "marketId", &[]).as_str().map(str::to_owned);
-        let mut outcomeId: Value = self.safe_string_k(info, "outcomeId", &[]);
+})]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&info, "networkId", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&info, "marketId", &[]).as_str().map(str::to_owned);
+        let mut outcomeId: Value = self.safe_string_k(&info, "outcomeId", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4446,8 +4446,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return None;
         }
         let mut ocId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".into())).into()), marketId).into()), Value::Str("/".into())).into()), outcomeId);
-        let mut outcomeObj: Value = self.safe_dict(self.exchange.outcomes_by_id.clone(), Value::from(ocId), &[]);
-        return self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: crate::value::Dict = self.safe_dict(self.exchange.outcomes_by_id.clone(), Value::from(ocId), &[]).into_dict();
+        return self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
 }
 
     pub async fn connect_centrifugo(&mut self, mut url: Value) -> Value {
@@ -4559,14 +4559,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (channel.is_none()) {
             return;
         }
-        let mut pub_val: Value = self.safe_dict_k(push, "pub", &[Value::Map({
+        let mut pub_val: crate::value::Dict = self.safe_dict_k(push, "pub", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut data: Value = self.safe_dict_k(pub_val, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut data: Value = self.safe_dict_k(&pub_val, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut channelType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook")) {
@@ -4605,12 +4605,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: String = self.safe_string_k(info.clone(), "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k(info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+        let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj]);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), networkId).into()), Value::Str(":".into())).into()), marketId).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
@@ -4677,8 +4677,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1376: bool = true;
             while { if !__for_first_1376 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1376 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength } {
-            let mut change: Value = self.safe_dict(changes.clone().into(), i.clone(), &[]);
-            let mut outcomeId: Option<String> = self.safe_string_k(change.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut change: crate::value::Dict = self.safe_dict(changes.clone().into(), i.clone(), &[]).into_dict();
+            let mut outcomeId: Option<String> = self.safe_string_k(&change, "outcome", &[]).as_str().map(str::to_owned);
             let mut sym: Value = self.market_outcome_to_symbol(networkId.clone().map(Value::from).unwrap_or(Value::Null), marketId.clone().map(Value::from).unwrap_or(Value::Null), outcomeId.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             if (sym == Value::Null) {
                 continue;
@@ -4687,9 +4687,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 continue;
             }
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut price: Value = self.from_wei(self.safe_string_k(change.clone(), "price", &[]));
-            let mut amount: Value = self.from_wei(self.safe_string_k(change.clone(), "amount", &[]));
-            let mut sideStr: Option<String> = self.safe_string_k(change, "side", &[]).as_str().map(str::to_owned);
+            let mut price: Value = self.from_wei(self.safe_string_k(&change, "price", &[]));
+            let mut amount: Value = self.from_wei(self.safe_string_k(&change, "amount", &[]));
+            let mut sideStr: Option<String> = self.safe_string_k(&change, "side", &[]).as_str().map(str::to_owned);
             let mut bookSide: Value = (if (sideStr.as_deref() == Some("bid")) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
             bookSide.store_array(Value::from(vec![price, amount]));
             orderbook.set_book_meta("timestamp", Value::from(ts));
@@ -4734,12 +4734,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: String = self.safe_string_k(info.clone(), "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k(info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+        let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
@@ -4778,12 +4778,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a outcome (the trades channel is per-market)".into()))));
         }
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: String = self.safe_string_k(info.clone(), "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k(info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+        let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
         let mut messageHash: String = "myTrades".to_string();
@@ -4812,11 +4812,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ts: Option<i64> = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64),
             _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut txHash: Option<String> = (match __pro_message.get("txHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut taker: Value = (match __pro_message.get("taker").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut taker: crate::value::Dict = (match __pro_message.get("taker").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut outcomeId: Option<String> = self.safe_string_k(taker.clone(), "outcome", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut outcomeId: Option<String> = self.safe_string_k(&taker, "outcome", &[]).as_str().map(str::to_owned);
         let mut sym: Value = self.market_outcome_to_symbol(networkId.clone().map(Value::from).unwrap_or(Value::Null), marketId.clone().map(Value::from).unwrap_or(Value::Null), outcomeId.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         if (sym == Value::Null) {
             return;
@@ -4825,10 +4825,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.safe_outcome(sym.clone(), &[]);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
-        let mut fees: Value = self.safe_dict_k(taker.clone(), "totalFees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut fees: crate::value::Dict = self.safe_dict_k(&taker, "totalFees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut trade: Value = self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), txHash.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4839,16 +4839,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
-        m.insert("order".to_string(), self.safe_string_k(taker.clone(), "orderHash", &[]));
+        m.insert("order".to_string(), self.safe_string_k(&taker, "orderHash", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower_k(taker.clone(), "side", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(&taker, "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
-        m.insert("price".to_string(), self.safe_number_k(taker.clone(), "averagePrice", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(taker.clone(), "totalAmount", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&taker, "averagePrice", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&taker, "totalAmount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(fees, "total", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&fees, "total", &[]));
         m.insert("currency".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
     m
 }));
@@ -4868,7 +4868,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut myWallet: Value = self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null);
         if (myWallet != Value::Null) {
             let mut myLegs: Vec<Value> = Vec::new();
-            let mut takerTrader: Value = self.safe_string_lower_k(taker, "trader", &[]);
+            let mut takerTrader: Value = self.safe_string_lower_k(&taker, "trader", &[]);
             if (takerTrader == myWallet) {
                 myLegs.push(trade);
             }
@@ -4884,10 +4884,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.clone().map(Value::from).unwrap_or(Value::Null), marketId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(maker.clone(), "outcome", &[])).map(Value::from).unwrap_or(Value::Null);
                     let mut makerMarket: Value = self.safe_market(&[makerSym.clone()]);
                     let mut makerOutcomeObj: Value = self.safe_outcome(makerSym.clone(), &[]);
-                    let mut makerFees: Value = self.safe_dict_k(maker.clone(), "fees", &[Value::Map({
+                    let mut makerFees: crate::value::Dict = self.safe_dict_k(maker.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                     let mut makerTrade: Value = self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), txHash.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4907,7 +4907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(makerFees, "total", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&makerFees, "total", &[]));
         m.insert("currency".to_string(), self.safe_string_k(makerMarket.clone(), "quote", &[]));
     m
 }));
@@ -4957,12 +4957,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut networkId: String = self.safe_string_k(info.clone(), "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: String = self.safe_string_k(info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+        let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("prices:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym);
@@ -5009,12 +5009,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1380: bool = true;
             while { if !__for_first_1380 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1380 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut networkId: String = self.safe_string_k(info.clone(), "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut marketId: String = self.safe_string_k(info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+            let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("prices:".into()), networkId).into()), Value::Str(":".into())).into()), marketId).into());
             resolvedSymbols.push(self.safe_outcome_symbol(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[outcomeObj]));
             if !(matches!((&seenChannels, &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -5174,11 +5174,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeResolved: Value = outcome;
         if (outcomeResolved != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
-            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            networkId = self.safe_string_k(info, "networkId", &[networkId.clone()]);
+})]).into_dict();
+            networkId = self.safe_string_k(&info, "networkId", &[networkId.clone()]);
             outcomeResolved = self.safe_outcome_symbol(outcomeResolved.clone(), &[outcomeObj]);
         }
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders:".into()), networkId).into()), Value::Str(":".into())).into()), trader);
@@ -5317,10 +5317,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1383: bool = true;
             while { if !__for_first_1383 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1383 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength } {
-            let mut p: Value = self.safe_dict(positions.clone(), i.clone(), &[]);
-            let mut id: Option<String> = self.safe_string_k_opt(p.clone(), "id", &[]);
+            let mut p: crate::value::Dict = self.safe_dict(positions.clone(), i.clone(), &[]).into_dict();
+            let mut id: Option<String> = self.safe_string_k_opt(&p, "id", &[]);
             if (id.is_some()) {
-                balances.insert(id.as_deref().unwrap_or("null").to_string(), self.number_to_string(self.safe_number_k(p, "contracts", &[Value::Int(0)])));
+                balances.insert(id.as_deref().unwrap_or("null").to_string(), self.number_to_string(self.safe_number_k(&p, "contracts", &[Value::Int(0)])));
             }
         }
         }

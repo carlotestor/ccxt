@@ -657,8 +657,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), topic.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::from(defaultLimit)]);
+                let mut subscription: crate::value::Dict = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), topic.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+                let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -743,9 +743,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     pub fn handle_order_book_message(&self, mut client: Value, mut message: Value, mut orderbook: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(data, "bids", &[Value::from(vec![])]));
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
+        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -1296,14 +1296,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut interval: Option<String> = self.safe_string_k(data.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut interval: Option<String> = self.safe_string_k(&data, "type", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(data.clone(), "startTime", &[]), self.safe_float_k(data.clone(), "open", &[]), self.safe_float_k(data.clone(), "high", &[]), self.safe_float_k(data.clone(), "low", &[]), self.safe_float_k(data.clone(), "close", &[]), self.safe_float_k(data, "volume", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_integer_k(&data, "startTime", &[]), self.safe_float_k(&data, "open", &[]), self.safe_float_k(&data, "high", &[]), self.safe_float_k(&data, "low", &[]), self.safe_float_k(&data, "close", &[]), self.safe_float_k(&data, "volume", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2138,11 +2138,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //        }
         //    }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut rawPositions: indexmap::IndexMap<String, Value> = self.safe_dict_k(data, "positions", &[Value::Map({
+}) }).into_dict();
+        let mut rawPositions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "positions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -2251,11 +2251,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut __for_first_706: bool = true;
             while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = self.safe_dict(balances.clone(), key.clone(), &[]);
+            let mut value: crate::value::Dict = self.safe_dict(balances.clone(), key.clone(), &[]).into_dict();
             let mut code: Value = self.safe_currency_code(key, &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut total: Option<String> = self.safe_string_k(value.clone(), "holding", &[]).as_str().map(str::to_owned);
-            let mut used: Option<String> = self.safe_string_k(value, "frozen", &[]).as_str().map(str::to_owned);
+            let mut total: Option<String> = self.safe_string_k(&value, "holding", &[]).as_str().map(str::to_owned);
+            let mut used: Option<String> = self.safe_string_k(&value, "frozen", &[]).as_str().map(str::to_owned);
             account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("free".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &used.clone().map(Value::from).unwrap_or(Value::Null)));

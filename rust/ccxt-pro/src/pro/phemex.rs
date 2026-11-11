@@ -707,11 +707,11 @@ impl Phemex {
             let mut balance: Value = self.safe_dict(message.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut currency: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
+            let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut scale: i64 = self.safe_integer_k(currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
+            })]).into_dict();
+            let mut scale: i64 = self.safe_integer_k(&currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut used: Value = self.safe_string_k(balance.clone(), "totalUsedBalanceRv", &[]);
             if (used == Value::Null) {
@@ -1407,12 +1407,12 @@ impl Phemex {
         }  else {
             if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                let mut changes: Value = self.safe_dict2(message, Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
+                let mut changes: crate::value::Dict = self.safe_dict2(message, Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut asks: Value = self.safe_list_k(changes.clone(), "asks", &[Value::from(vec![])]);
-                let mut bids: Value = self.safe_list_k(changes, "bids", &[Value::from(vec![])]);
+                })]).into_dict();
+                let mut asks: Value = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]);
+                let mut bids: Value = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]);
                 self.custom_handle_deltas(orderbook.book_field("asks"), asks, &[market.clone()]);
                 self.custom_handle_deltas(orderbook.book_field("bids"), bids, &[market]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -2280,8 +2280,8 @@ impl Phemex {
         //     }
         // }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut status: Option<String> = self.safe_string_k(result, "status", &[]).as_str().map(str::to_owned);
+        let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut status: Option<String> = self.safe_string_k(&result, "status", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("authenticated".into());
         if (status.as_deref() == Some("success")) {
             client.resolve(&[message.clone(), messageHash.clone()]);

@@ -835,8 +835,8 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_time(&[params]).await;
-        return self.safe_integer_k(response, "time", &[]);
+        let mut response: crate::value::Dict = self.public_get_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "time", &[]);
         Value::Null
         }).await?))
     }
@@ -1419,9 +1419,9 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut feesValue: Value = self.safe_dict_k(fees.clone(), "fees", &[]);
-        let mut maker: Option<f64> = self.safe_number_k(feesValue.clone(), "maker", &[]).as_f64();
-        let mut taker: Option<f64> = self.safe_number_k(feesValue, "taker", &[]).as_f64();
+        let mut feesValue: crate::value::Dict = self.safe_dict_k(fees.clone(), "fees", &[]).into_dict();
+        let mut maker: Option<f64> = self.safe_number_k(&feesValue, "maker", &[]).as_f64();
+        let mut taker: Option<f64> = self.safe_number_k(&feesValue, "taker", &[]).as_f64();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1659,12 +1659,12 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_456: bool = true;
             while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (response.len() as i64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-            account.insert("used".into(), self.safe_string_k(balance, "inOrder", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "inOrder", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -1723,7 +1723,7 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_subaccounts(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_subaccounts(&[params]).await.into_dict();
         //
         //     {
         //         "items": [
@@ -1739,7 +1739,7 @@ impl Bitvavo {
         //         "maxItems": 0
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
+        let mut accounts: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
         return self.parse_accounts(accounts, &[]);
         Value::Null
         }).await?))
@@ -1873,7 +1873,7 @@ impl Bitvavo {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_5 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_subaccounts_transfers(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_get_subaccounts_transfers(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "items": [
@@ -1893,7 +1893,7 @@ impl Bitvavo {
         //         "limit": 25
         //     }
         //
-        let mut items: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
+        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
         return self.parse_transfers(items, &[currency, since, limit]);
         Value::Null
         }).await?))
@@ -2842,7 +2842,7 @@ impl Bitvavo {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_12 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_account_history(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.private_get_account_history(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "items": [
@@ -2866,7 +2866,7 @@ impl Bitvavo {
         //         "maxItems": 100
         //     }
         //
-        let mut items: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
+        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
         return self.parse_ledger(items, &[currency, since, limit]);
         Value::Null
         }).await?))

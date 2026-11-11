@@ -1141,7 +1141,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_spot_get_currencies(&[params]).await;
+        let mut response: crate::value::Dict = self.public_spot_get_currencies(&[params]).await.into_dict();
         //
         //     {
         //         "data":[
@@ -1182,7 +1182,7 @@ impl Digifinex {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut groupedById: Value = self.group_by(data, Value::Str("currency".into()), &[]);
         let mut values: Value = Value::Array(groupedById.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         return self.parse_currencies(values);
@@ -1273,11 +1273,11 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut method: Option<String> = self.safe_string_k(options, "method", &[Value::Str("fetch_markets_v2".into())]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut method: Option<String> = self.safe_string_k(&options, "method", &[Value::Str("fetch_markets_v2".into())]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("fetch_markets_v2")) {
             return self.fetch_markets_v2(&[params.clone()]).await;
         }
@@ -1303,8 +1303,8 @@ impl Digifinex {
         }
         promisesRaw.push(self.public_swap_get_public_instruments(&[params]).await);
         let mut promises: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut spotMarkets: Value = self.safe_dict(promises.clone(), Value::Int(0), &[]);
-        let mut swapMarkets: Value = self.safe_dict(promises, Value::Int(1), &[]);
+        let mut spotMarkets: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
+        let mut swapMarkets: crate::value::Dict = self.safe_dict(promises, Value::Int(1), &[]).into_dict();
         //
         // spot and margin
         //
@@ -1357,8 +1357,8 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut spotData: Value = self.safe_list_k(spotMarkets, "symbol_list", &[Value::from(vec![])]);
-        let mut swapData: Value = self.safe_list_k(swapMarkets, "data", &[Value::from(vec![])]);
+        let mut spotData: Value = self.safe_list_k(&spotMarkets, "symbol_list", &[Value::from(vec![])]);
+        let mut swapData: Value = self.safe_list_k(&swapMarkets, "data", &[Value::from(vec![])]);
         let mut response: Value = self.array_concat(spotData, swapData);
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1481,7 +1481,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_spot_get_markets(&[params]).await;
+        let mut response: crate::value::Dict = self.public_spot_get_markets(&[params]).await.into_dict();
         //
         //     {
         //         "data": [
@@ -1497,7 +1497,7 @@ impl Digifinex {
         //         "code":0
         //     }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2308,8 +2308,8 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_spot_get_time(&[params]).await;
-        return self.safe_timestamp_k(response, "server_time", &[]);
+        let mut response: crate::value::Dict = self.public_spot_get_time(&[params]).await.into_dict();
+        return self.safe_timestamp_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
     }
@@ -2586,11 +2586,11 @@ impl Digifinex {
         //
         let mut candles: Value = Value::Null;
         if (market).swap {
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            candles = self.safe_list_k(data, "candles", &[Value::from(vec![])]);
+})]).into_dict();
+            candles = self.safe_list_k(&data, "candles", &[Value::from(vec![])]);
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
@@ -3271,7 +3271,7 @@ impl Digifinex {
                 }));
             }
             }
-            let mut swapResponse: Value = self.private_swap_post_trade_batch_cancel_order(&[Value::from(ordersRequests)]).await; // don't extend with params, otherwise the array body is turned into an object
+            let mut swapResponse: crate::value::Dict = self.private_swap_post_trade_batch_cancel_order(&[Value::from(ordersRequests)]).await.into_dict(); // don't extend with params, otherwise the array body is turned into an object
             //
             //     {
             //         "code": 0,
@@ -3282,7 +3282,7 @@ impl Digifinex {
             //     }
             //
             // ids that were not canceled are absent from data
-            let mut data: Value = self.safe_list_k(swapResponse, "data", &[Value::from(vec![])]);
+            let mut data: Value = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]);
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
@@ -4178,11 +4178,11 @@ impl Digifinex {
         if !isMargin && (marketType.as_str() == Some("swap")) {
             ledger = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
-            let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            ledger = self.safe_list_k(data, "finance", &[Value::from(vec![])]);
+})]).into_dict();
+            ledger = self.safe_list_k(&data, "finance", &[Value::from(vec![])]);
         }
         return self.parse_ledger(ledger, &[currency, since, limit]);
         Value::Null
@@ -4246,7 +4246,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_spot_get_deposit_address(&[__ws_arg_31]).await;
+        let mut response: crate::value::Dict = self.private_spot_get_deposit_address(&[__ws_arg_31]).await.into_dict();
         //
         //     {
         //         "data":[
@@ -4260,7 +4260,7 @@ impl Digifinex {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut addresses: Value = self.index_by(self.parse_deposit_addresses(data, &[Value::from(vec![currency.get("code").cloned().unwrap_or(Value::Null)]), Value::Bool(false)]), Value::Str("currency".into()));
         let mut address: Value = self.safe_dict(addresses, code.clone(), &[]);
         if (address == Value::Null) {
@@ -4709,7 +4709,7 @@ impl Digifinex {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_spot_get_margin_positions(&[__ws_arg_37]).await;
+        let mut response: crate::value::Dict = self.private_spot_get_margin_positions(&[__ws_arg_37]).await.into_dict();
         //
         //     {
         //         "margin": "45.71246418952618",
@@ -4731,7 +4731,7 @@ impl Digifinex {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response, "positions", &[]);
+        let mut rows: Value = self.safe_list_k(&response, "positions", &[]);
         let mut interest: Value = self.parse_borrow_interests(rows, &[market]);
         return self.filter_by_currency_since_limit(interest, &[code, since, limit]);
         Value::Null
@@ -4805,7 +4805,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_spot_get_margin_assets(&[__ws_arg_38]).await;
+        let mut response: crate::value::Dict = self.private_spot_get_margin_assets(&[__ws_arg_38]).await.into_dict();
         //
         //     {
         //         "list": [
@@ -4823,7 +4823,7 @@ impl Digifinex {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -4862,7 +4862,7 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_spot_get_margin_assets(&[params]).await;
+        let mut response: crate::value::Dict = self.private_spot_get_margin_assets(&[params]).await.into_dict();
         //
         //     {
         //         "list": [
@@ -4880,7 +4880,7 @@ impl Digifinex {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut result: Value = self.safe_list_k(response, "list", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "list", &[Value::from(vec![])]);
         return self.parse_borrow_rates(result, Value::Str("currency".into()));
         Value::Null
         }).await?))
@@ -4977,7 +4977,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_swap_get_public_funding_rate(&[__ws_arg_39]).await;
+        let mut response: crate::value::Dict = self.public_swap_get_public_funding_rate(&[__ws_arg_39]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -4990,10 +4990,10 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_funding_rate(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -5126,7 +5126,7 @@ impl Digifinex {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_swap_get_public_funding_rate_history(&[__ws_arg_40]).await;
+        let mut response: crate::value::Dict = self.public_swap_get_public_funding_rate_history(&[__ws_arg_40]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -5142,18 +5142,18 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut result: Vec<Value> = self.safe_list_k(data.clone(), "funding_rates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut result: Vec<Value> = self.safe_list_k(&data, "funding_rates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_653: bool = true;
             while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (result.len() as i64) } {
             let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_id", &[]).as_str().map(str::to_owned);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "time", &[]).as_i64();
             rates.push(Value::Map({
@@ -5206,7 +5206,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_swap_get_account_trading_fee_rate(&[__ws_arg_41]).await;
+        let mut response: crate::value::Dict = self.private_swap_get_account_trading_fee_rate(&[__ws_arg_41]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -5217,10 +5217,10 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_trading_fee(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -5737,7 +5737,7 @@ impl Digifinex {
             request.insert("limit".into(), limit.clone()); // default 20 max 100
         }
         let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_swap_get_account_transfer_record(&[__ws_arg_47]).await;
+        let mut response: crate::value::Dict = self.private_swap_get_account_transfer_record(&[__ws_arg_47]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -5753,7 +5753,7 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut transfers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transfers(transfers, &[currency, since, limit]);
         Value::Null
         }).await?))
@@ -5782,7 +5782,7 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_swap_get_public_instruments(&[params]).await;
+        let mut response: crate::value::Dict = self.public_swap_get_public_instruments(&[params]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -5812,7 +5812,7 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         return self.parse_leverage_tiers(data, &[symbolsNormalized, Value::Str("instrument_id".into())]);
         Value::Null
@@ -5852,7 +5852,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_swap_get_public_instrument(&[__ws_arg_48]).await;
+        let mut response: crate::value::Dict = self.public_swap_get_public_instrument(&[__ws_arg_48]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -5880,10 +5880,10 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_market_leverage_tiers(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -5996,7 +5996,7 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_spot_get_currencies(&[params]).await;
+        let mut response: crate::value::Dict = self.public_spot_get_currencies(&[params]).await.into_dict();
         //
         //   {
         //       "data": [
@@ -6026,7 +6026,7 @@ impl Digifinex {
         //       "code": 200,
         //   }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[]);
         return self.parse_deposit_withdraw_fees(data, &[codes]);
         Value::Null
         }).await?))
@@ -6210,7 +6210,7 @@ impl Digifinex {
             m
         });
         let __ws_arg_49 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_swap_post_account_position_margin(&[__ws_arg_49]).await;
+        let mut response: crate::value::Dict = self.private_swap_post_account_position_margin(&[__ws_arg_49]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -6222,15 +6222,15 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
+        let mut code: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
         let mut status: String = "failed".to_string();
         if (code == Some(0)) {
             status = "ok".to_string();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let __ws_arg_50 = self.parse_margin_modification(data, &[(market).raw.clone()]);
         return self.extend(__ws_arg_50, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6318,7 +6318,7 @@ impl Digifinex {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
         let __ws_arg_51 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_swap_get_account_funding_fee(&[__ws_arg_51]).await;
+        let mut response: crate::value::Dict = self.private_swap_get_account_funding_fee(&[__ws_arg_51]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -6332,7 +6332,7 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_incomes(data, &[market, since, limit]);
         Value::Null
         }).await?))

@@ -808,12 +808,12 @@ impl Independentreserve {
                         let mut i: i64 = 0;
             let mut __for_first_833: bool = true;
             while { if !__for_first_833 { i += 1; } __for_first_833 = false; i < (accounts.len() as i64) } {
-            let mut balance: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "CurrencyCode", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(accounts.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "CurrencyCode", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "AvailableBalance", &[]));
-            account.insert("total".into(), self.safe_string_k(balance, "TotalBalance", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "AvailableBalance", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "TotalBalance", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -1208,8 +1208,8 @@ impl Independentreserve {
         request.insert("pageIndex".into(), Value::Int(1));
         request.insert("pageSize".into(), limitResolved.clone());
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_post_get_open_orders(&[__ws_arg_3]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limitResolved]);
         Value::Null
         }).await?))
@@ -1255,8 +1255,8 @@ impl Independentreserve {
         request.insert("pageIndex".into(), Value::Int(1));
         request.insert("pageSize".into(), limitResolved.clone());
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_post_get_closed_orders(&[__ws_arg_4]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limitResolved]);
         Value::Null
         }).await?))
@@ -1300,12 +1300,12 @@ impl Independentreserve {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_get_trades(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_post_get_trades(&[__ws_arg_5]).await.into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limitResolved]);
         Value::Null
         }).await?))
@@ -1392,8 +1392,8 @@ impl Independentreserve {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
-        let mut trades: Value = self.safe_list_k(response, "Trades", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_get_recent_trades(&[__ws_arg_6]).await.into_dict();
+        let mut trades: Value = self.safe_list_k(&response, "Trades", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1722,12 +1722,12 @@ impl Independentreserve {
         //        "Transaction": null
         //    }
         //
-        let mut amount: Value = self.safe_dict_k(transaction.clone(), "Amount", &[]);
-        let mut destination: Value = self.safe_dict_k(transaction.clone(), "Destination", &[]);
+        let mut amount: crate::value::Dict = self.safe_dict_k(transaction.clone(), "Amount", &[]).into_dict();
+        let mut destination: crate::value::Dict = self.safe_dict_k(transaction.clone(), "Destination", &[]).into_dict();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "PrimaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k(transaction.clone(), "CreatedTimestampUtc", &[]).as_str().map(str::to_owned);
-        let mut address: Option<String> = self.safe_string_k(destination.clone(), "Address", &[]).as_str().map(str::to_owned);
-        let mut tag: Option<String> = self.safe_string_k(destination, "Tag", &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string_k(&destination, "Address", &[]).as_str().map(str::to_owned);
+        let mut tag: Option<String> = self.safe_string_k(&destination, "Tag", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1737,7 +1737,7 @@ impl Independentreserve {
         m.insert("type".to_string(), Value::Str("withdraw".into()));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(amount.clone(), "Total", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&amount, "Total", &[]));
         m.insert("status".to_string(), self.safe_string_k(transaction, "Status", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1752,7 +1752,7 @@ impl Independentreserve {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), self.safe_number_k(amount, "Fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&amount, "Fee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));

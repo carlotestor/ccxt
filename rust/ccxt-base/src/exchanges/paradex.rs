@@ -1281,8 +1281,8 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_system_time(&[params]).await;
-        return self.safe_integer_k(response, "server_time", &[]);
+        let mut response: crate::value::Dict = self.public_get_system_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
     }
@@ -1343,7 +1343,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_markets(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_markets(&[params]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1377,7 +1377,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[]);
         return self.parse_markets(data);
         Value::Null
         }).await?))
@@ -1618,28 +1618,28 @@ impl Paradex {
         //
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut feeConfig: Value = self.safe_dict_k(fee.clone(), "fee_config", &[Value::Map({
+        let mut feeConfig: crate::value::Dict = self.safe_dict_k(fee.clone(), "fee_config", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut apiFee: Value = self.safe_dict_k(feeConfig, "api_fee", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut makerFee: Value = self.safe_dict_k(apiFee.clone(), "maker_fee", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut takerFee: Value = self.safe_dict_k(apiFee, "taker_fee", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut apiFee: crate::value::Dict = self.safe_dict_k(&feeConfig, "api_fee", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut makerFee: crate::value::Dict = self.safe_dict_k(&apiFee, "maker_fee", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut takerFee: crate::value::Dict = self.safe_dict_k(&apiFee, "taker_fee", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("maker".to_string(), self.safe_number_k(makerFee, "fee", &[self.safe_number(marketResolved.clone(), Value::Str("maker".into()), &[])]));
-        m.insert("taker".to_string(), self.safe_number_k(takerFee, "fee", &[self.safe_number(marketResolved, Value::Str("taker".into()), &[])]));
+        m.insert("maker".to_string(), self.safe_number_k(&makerFee, "fee", &[self.safe_number_k(marketResolved.clone(), "maker", &[])]));
+        m.insert("taker".to_string(), self.safe_number_k(&takerFee, "fee", &[self.safe_number_k(marketResolved, "taker", &[])]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -1681,7 +1681,7 @@ impl Paradex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_markets(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1701,7 +1701,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1732,7 +1732,7 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_markets(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_markets(&[params]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1752,7 +1752,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut fees: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fees: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1840,7 +1840,7 @@ impl Paradex {
                 (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
         }
         let __ws_arg_1 = self.extend(requestUntil, &[paramsOmitted]);
-        let mut response: Value = self.public_get_markets_klines(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_klines(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1855,7 +1855,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1898,7 +1898,7 @@ impl Paradex {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1920,7 +1920,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_tickers(data, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -1956,7 +1956,7 @@ impl Paradex {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_3]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -1978,7 +1978,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2085,8 +2085,8 @@ impl Paradex {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_4]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_funding_rates(data, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -2305,7 +2305,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_6 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.public_get_trades(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_6]).await.into_dict();
         //
         //     {
         //         "next": "...",
@@ -2323,12 +2323,12 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1057: bool = true;
             while { if !__for_first_1057 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
+            add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
         }
         }
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
@@ -2444,7 +2444,7 @@ impl Paradex {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -2466,7 +2466,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         let mut interest: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2700,13 +2700,13 @@ impl Paradex {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(account, "address", &[])); }
         add_element_to_object(&mut params, &Value::Str("timestamp".into()), req.get("timestamp").cloned().unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".into(), req.get("expiration").cloned().unwrap_or(Value::Null)); }
-        let mut response: Value = self.private_post_auth(&[params]).await;
+        let mut response: crate::value::Dict = self.private_post_auth(&[params]).await.into_dict();
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
         // }
         //
-        let mut token: Value = self.safe_string_k(response, "jwt_token", &[]);
+        let mut token: Value = self.safe_string_k(&response, "jwt_token", &[]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".into(), token.clone()); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".into(), expires); }
         return token;
@@ -3247,23 +3247,23 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1058: bool = true;
             while { if !__for_first_1058 { i += 1; } __for_first_1058 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut type_var: Option<String> = self.safe_string_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut side: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
-            let mut price: Option<f64> = self.safe_number_k(rawOrder.clone(), "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
+            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut extendedParams: Value = self.extend(params.clone(), &[orderParams]);
             let mut orderRequest: Value = self.create_order_request(symbol.clone().map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), extendedParams]);
             orderRequest = self.sign_order_request(orderRequest.clone(), &[]).await;
             ordersRequests.push(orderRequest);
         }
         }
-        let mut response: Value = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await.into_dict();
         //
         // orders and errors are index-aligned with the request, null where the other array has the entry
         //
@@ -3289,8 +3289,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
-        let mut errors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
+        let mut responseOrders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
+        let mut errors: Value = self.safe_list_k(&response, "errors", &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3408,7 +3408,7 @@ impl Paradex {
             request.insert("client_order_ids".into(), clientOrderIds);
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_delete_orders_batch(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders_batch(&[__ws_arg_10]).await.into_dict();
         //
         // {
         //     "results": [
@@ -3433,7 +3433,7 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut results: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -3616,7 +3616,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_14 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_orders_history(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_orders_history(&[__ws_arg_14]).await.into_dict();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3651,8 +3651,8 @@ impl Paradex {
         //     ]
         //   }
         //
-        let mut orders: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
-        let mut paginationCursor: Option<String> = self.safe_string_k(response, "next", &[]).as_str().map(str::to_owned);
+        let mut orders: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut paginationCursor: Option<String> = self.safe_string_k(&response, "next", &[]).as_str().map(str::to_owned);
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         if (paginationCursor.is_some()) && (ordersLength > ((0i64) as f64)) {
             let mut first: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -3702,7 +3702,7 @@ impl Paradex {
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_get_orders(&[__ws_arg_15]).await.into_dict();
         //
         //  {
         //     "results": [
@@ -3735,7 +3735,7 @@ impl Paradex {
         //     ]
         //   }
         //
-        let mut orders: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut orders: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -3763,7 +3763,7 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_balance(&[]).await;
+        let mut response: crate::value::Dict = self.private_get_balance(&[]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -3775,7 +3775,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_balance_list(data);
         Value::Null
         }).await?))
@@ -3791,14 +3791,14 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1061: bool = true;
             while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (response.len() as i64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "token", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "token", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(balance, "size", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "size", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -3864,7 +3864,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_16 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_fills(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_fills(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "next": null,
@@ -3888,12 +3888,12 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1062: bool = true;
             while { if !__for_first_1062 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
+            add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
         }
         }
         return self.parse_trades(trades, &[market, since, limit]);
@@ -3926,8 +3926,8 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = self.private_get_positions(&[params]).await;
-        let mut data: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_get_positions(&[params]).await.into_dict();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         let mut matching: Vec<Value> = Vec::new();
         {
@@ -3973,7 +3973,7 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.private_get_positions(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_positions(&[params]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -4001,7 +4001,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // the endpoint keeps returning a market's position after it is closed, with a size of 0
         let mut openPositions: Vec<Value> = Vec::new();
         {
@@ -4135,7 +4135,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_17 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_liquidations(&[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_get_liquidations(&[__ws_arg_17]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -4146,7 +4146,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_liquidations(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
@@ -4239,7 +4239,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_19]).await.into_dict();
         //
         //     {
         //         "next": null,
@@ -4261,9 +4261,9 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         // the cursor pagination reads the next page cursor from the parsed entries
-        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1065: bool = true;
@@ -4347,7 +4347,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_21 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_21]).await.into_dict();
         //
         //     {
         //         "next": null,
@@ -4369,9 +4369,9 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         // the cursor pagination reads the next page cursor from the parsed entries
-        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1067: bool = true;
@@ -4449,7 +4449,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_22 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_22]).await;
+        let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_22]).await.into_dict();
         //
         //     {
         //         "next": null,
@@ -4471,9 +4471,9 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         // the cursor pagination reads the next page cursor from the parsed entries
-        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1069: bool = true;
@@ -4599,8 +4599,8 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1070: bool = true;
             while { if !__for_first_1070 { i += 1; } __for_first_1070 = false; i < (transactions.len() as i64) } {
-            let mut info: Value = self.safe_dict_k(transactions.get(i as usize).cloned().unwrap_or(Value::Null), "info", &[]);
-            if (self.safe_string_k(info, "kind", &[]).as_str() == kind.as_str()) {
+            let mut info: crate::value::Dict = self.safe_dict_k(transactions.get(i as usize).cloned().unwrap_or(Value::Null), "info", &[]).into_dict();
+            if (self.safe_string_k(&info, "kind", &[]).as_str() == kind.as_str()) {
                 result.push(transactions.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -4653,7 +4653,7 @@ impl Paradex {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_margin(&[__ws_arg_23]).await;
+        let mut response: crate::value::Dict = self.private_get_account_margin(&[__ws_arg_23]).await.into_dict();
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4666,7 +4666,7 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(response, "configs", &[]);
+        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
         return self.parse_margin_mode(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -4773,7 +4773,7 @@ impl Paradex {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_margin(&[__ws_arg_25]).await;
+        let mut response: crate::value::Dict = self.private_get_account_margin(&[__ws_arg_25]).await.into_dict();
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4786,7 +4786,7 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(response, "configs", &[]);
+        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
         return self.parse_leverage(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -4895,7 +4895,7 @@ impl Paradex {
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_27]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -4930,7 +4930,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         let mut greeks: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4970,7 +4970,7 @@ impl Paradex {
             m
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_28]).await.into_dict();
         //
         //     {
         //         "results": [
@@ -5005,7 +5005,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut results: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         return self.parse_all_greeks(results, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -5047,22 +5047,22 @@ impl Paradex {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("option".into())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_k(greeks.clone(), "created_at", &[]).as_i64();
-        let mut greeksData: Value = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
+        let mut greeksData: crate::value::Dict = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("delta".to_string(), self.safe_number_k(greeksData.clone(), "delta", &[]));
-        m.insert("gamma".to_string(), self.safe_number_k(greeksData.clone(), "gamma", &[]));
+        m.insert("delta".to_string(), self.safe_number_k(&greeksData, "delta", &[]));
+        m.insert("gamma".to_string(), self.safe_number_k(&greeksData, "gamma", &[]));
         m.insert("theta".to_string(), Value::Null);
-        m.insert("vega".to_string(), self.safe_number_k(greeksData.clone(), "vega", &[]));
-        m.insert("rho".to_string(), self.safe_number_k(greeksData.clone(), "rho", &[]));
-        m.insert("vanna".to_string(), self.safe_number_k(greeksData.clone(), "vanna", &[]));
-        m.insert("volga".to_string(), self.safe_number_k(greeksData, "volga", &[]));
+        m.insert("vega".to_string(), self.safe_number_k(&greeksData, "vega", &[]));
+        m.insert("rho".to_string(), self.safe_number_k(&greeksData, "rho", &[]));
+        m.insert("vanna".to_string(), self.safe_number_k(&greeksData, "vanna", &[]));
+        m.insert("volga".to_string(), self.safe_number_k(&greeksData, "volga", &[]));
         m.insert("bidSize".to_string(), Value::Null);
         m.insert("askSize".to_string(), Value::Null);
         m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "bid_iv", &[]));
@@ -5138,7 +5138,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_funding_payments(&[__ws_arg_29]).await;
+        let mut response: crate::value::Dict = self.private_get_funding_payments(&[__ws_arg_29]).await.into_dict();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -5156,9 +5156,9 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        let mut results: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
         // the cursor pagination reads the next page cursor from the parsed entries
-        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1071: bool = true;
@@ -5253,7 +5253,7 @@ impl Paradex {
             request.insert("end_at".into(), Value::from(until));
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.public_get_funding_data(&[__ws_arg_30]).await;
+        let mut response: crate::value::Dict = self.public_get_funding_data(&[__ws_arg_30]).await.into_dict();
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -5274,7 +5274,7 @@ impl Paradex {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        let mut results: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

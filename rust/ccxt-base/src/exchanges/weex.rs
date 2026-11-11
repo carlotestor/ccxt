@@ -2420,14 +2420,14 @@ impl Weex {
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut historical: Value = historicalparamsHistoricalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHistorical: Value = historicalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut timeframeOption: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframeOption: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut contractTimeframes: Value = self.safe_dict_k(timeframeOption, "contract", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut contractTimeframes: Value = self.safe_dict_k(&timeframeOption, "contract", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4664,8 +4664,8 @@ impl Weex {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_35 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
-            let mut contractResponse: Value = self.contract_private_post_capi_v3_account_income(&[__ws_arg_35]).await;
-            items = self.safe_list_k(contractResponse, "items", &[Value::from(vec![])]);
+            let mut contractResponse: crate::value::Dict = self.contract_private_post_capi_v3_account_income(&[__ws_arg_35]).await.into_dict();
+            items = self.safe_list_k(&contractResponse, "items", &[Value::from(vec![])]);
         }  else if (accountType.as_deref() == Some("funding")) {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -4677,8 +4677,8 @@ impl Weex {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_36 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
-            let mut fundingResponse: Value = self.private_post_api_v3_account_funding_bills(&[__ws_arg_36]).await;
-            items = self.safe_list_k(fundingResponse, "items", &[Value::from(vec![])]);
+            let mut fundingResponse: crate::value::Dict = self.private_post_api_v3_account_funding_bills(&[__ws_arg_36]).await.into_dict();
+            items = self.safe_list_k(&fundingResponse, "items", &[Value::from(vec![])]);
         }  else {
             if (since != Value::Null) {
                 request.insert("after".into(), since.clone());
@@ -4878,7 +4878,7 @@ impl Weex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires since to be set when until is used".into()))));
         }
         let __ws_arg_38 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.contract_private_post_capi_v3_account_income(&[__ws_arg_38]).await;
+        let mut response: crate::value::Dict = self.contract_private_post_capi_v3_account_income(&[__ws_arg_38]).await.into_dict();
         //
         //     {
         //         "hasNextPage": false,
@@ -4898,7 +4898,7 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut items: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
+        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
         return self.parse_incomes(items, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -5666,11 +5666,11 @@ impl Weex {
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await;
-        let mut entry: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut separatedType: Option<String> = self.safe_string_k(entry, "separatedType", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut separatedType: Option<String> = self.safe_string_k(&entry, "separatedType", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

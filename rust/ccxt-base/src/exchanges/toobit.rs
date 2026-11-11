@@ -1239,8 +1239,8 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.common_get_api_v1_time(&[params]).await;
-        return self.safe_integer_k(response, "serverTime", &[]);
+        let mut response: crate::value::Dict = self.common_get_api_v1_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -1692,18 +1692,18 @@ impl Toobit {
         let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
-        let mut priceFilter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
+        let mut priceFilter: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut lotSizeFilter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
+})]).into_dict();
+        let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut minNotionalFilter: Value = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
+})]).into_dict();
+        let mut minNotionalFilter: crate::value::Dict = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isContract: Value = (Value::Bool(self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null));
         let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]);
@@ -1737,8 +1737,8 @@ impl Toobit {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.safe_number_k(lotSizeFilter.clone(), "stepSize", &[]));
-        m.insert("price".to_string(), self.safe_number_k(priceFilter.clone(), "tickSize", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&lotSizeFilter, "stepSize", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&priceFilter, "tickSize", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1751,19 +1751,19 @@ impl Toobit {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(lotSizeFilter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(lotSizeFilter, "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&lotSizeFilter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&lotSizeFilter, "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(priceFilter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceFilter, "maxPrice", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&priceFilter, "minPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&priceFilter, "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(minNotionalFilter, "minNotional", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&minNotionalFilter, "minNotional", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

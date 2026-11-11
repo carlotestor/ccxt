@@ -1206,15 +1206,15 @@ impl Bithumb {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_395: bool = true;
                 while { if !__for_first_395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_395 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: Value = self.safe_dict(response.clone(), i.clone(), &[]);
+                let mut entry: crate::value::Dict = self.safe_dict(response.clone(), i.clone(), &[]).into_dict();
                 let mut account: Value = self.account();
-                let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+                let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 if (code == Value::Null) {
                     continue;
                 }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(entry.clone(), "balance", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(entry, "locked", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&entry, "balance", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&entry, "locked", &[])); }
                 result.insert(crate::runtime::stringify_param(&code), account);
             }
             }
@@ -1327,29 +1327,29 @@ impl Bithumb {
             //         }
             //     ]
             //
-            let mut result: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+            let mut result: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-            let mut orderBookUnits: Vec<Value> = self.safe_list_k(result, "orderbook_units", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+            timestamp = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
+            let mut orderBookUnits: Vec<Value> = self.safe_list_k(&result, "orderbook_units", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut bids: Vec<Value> = Vec::new();
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
-                let mut entry: Value = self.safe_dict(orderBookUnits.clone().into(), Value::Int(i), &[]);
+                let mut entry: crate::value::Dict = self.safe_dict(orderBookUnits.clone().into(), Value::Int(i), &[]).into_dict();
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("price".to_string(), self.safe_string_k(entry.clone(), "bid_price", &[]));
-                        m.insert("quantity".to_string(), self.safe_string_k(entry.clone(), "bid_size", &[]));
+                        m.insert("price".to_string(), self.safe_string_k(&entry, "bid_price", &[]));
+                        m.insert("quantity".to_string(), self.safe_string_k(&entry, "bid_size", &[]));
                     m
                 }));
                 asks.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("price".to_string(), self.safe_string_k(entry.clone(), "ask_price", &[]));
-                        m.insert("quantity".to_string(), self.safe_string_k(entry, "ask_size", &[]));
+                        m.insert("price".to_string(), self.safe_string_k(&entry, "ask_price", &[]));
+                        m.insert("quantity".to_string(), self.safe_string_k(&entry, "ask_size", &[]));
                     m
                 }));
             }
@@ -2334,26 +2334,26 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a symbol".into()))));
             }
             orderSymbols.push(symbol.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut type_var: Option<String> = self.safe_string_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
             if (type_var.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a type".into()))));
             }
-            let mut side: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             if (side.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a side".into()))));
             }
-            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
+            let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut orderRequest: Value = self.create_order_request(symbol.clone().map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), side.clone().map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
             ordersRequests.push(orderRequest);
         }
@@ -2366,7 +2366,7 @@ impl Bithumb {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsGeneration]);
-        let mut response: Value = self.private_post_v2_orders_batch(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_post_v2_orders_batch(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "batch_orders_response": [
@@ -2381,7 +2381,7 @@ impl Bithumb {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "batch_orders_response", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "batch_orders_response", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market]);
         Value::Null
         }).await?))
@@ -3514,7 +3514,7 @@ impl Bithumb {
             request.insert("order_ids".into(), ids);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[paramsRequest]);
-        let mut response: Value = self.private_post_v2_orders_cancel(&[__ws_arg_34]).await;
+        let mut response: crate::value::Dict = self.private_post_v2_orders_cancel(&[__ws_arg_34]).await.into_dict();
         //
         //     {
         //         "success": [
@@ -3526,7 +3526,7 @@ impl Bithumb {
         //         "fail": []
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "success", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "success", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))

@@ -2717,40 +2717,40 @@ pub trait ExchangeBase:
                 let mut __for_first_85: bool = true;
                 while { if !__for_first_85 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_85 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
                 let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut network: Value = self.safe_dict(networks.clone(), key, &[Value::Map({
+                let mut network: crate::value::Dict = self.safe_dict(networks.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut deposit: Option<bool> = self.safe_bool_k_opt(network.clone(), "deposit", &[]);
+})]).into_dict();
+                let mut deposit: Option<bool> = self.safe_bool_k_opt(&network, "deposit", &[]);
                 let mut currencyDeposit: Option<bool> = self.safe_bool_k_opt(currency.clone(), "deposit", &[]);
                 if (currencyDeposit.is_none()) || (deposit == Some(true)) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("deposit".into(), deposit.map(Value::Bool).unwrap_or(Value::Null)); }
                 }
-                let mut withdraw: Option<bool> = self.safe_bool_k_opt(network.clone(), "withdraw", &[]);
+                let mut withdraw: Option<bool> = self.safe_bool_k_opt(&network, "withdraw", &[]);
                 let mut currencyWithdraw: Option<bool> = self.safe_bool_k_opt(currency.clone(), "withdraw", &[]);
                 if (currencyWithdraw.is_none()) || (withdraw == Some(true)) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("withdraw".into(), withdraw.map(Value::Bool).unwrap_or(Value::Null)); }
                 }
                 // find lowest fee (which is more desired)
-                let mut fee: Option<String> = self.safe_string_k(network.clone(), "fee", &[]).as_str().map(str::to_owned);
+                let mut fee: Option<String> = self.safe_string_k(&network, "fee", &[]).as_str().map(str::to_owned);
                 let mut feeMain: Option<String> = self.safe_string_k(currency.clone(), "fee", &[]).as_str().map(str::to_owned);
                 if (feeMain.is_none()) || crate::precise::Precise::stringLt(&fee.clone().map(Value::from).unwrap_or(Value::Null), &feeMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("fee".into(), self.parse_number(fee.clone().map(Value::from).unwrap_or(Value::Null), &[])); }
                 }
                 // find lowest precision (which is more desired)
-                let mut precision: Option<String> = self.safe_string_k(network.clone(), "precision", &[]).as_str().map(str::to_owned);
+                let mut precision: Option<String> = self.safe_string_k(&network, "precision", &[]).as_str().map(str::to_owned);
                 let mut precisionMain: Option<String> = self.safe_string_k(currency.clone(), "precision", &[]).as_str().map(str::to_owned);
                 if (precisionMain.is_none()) || crate::precise::Precise::stringGt(&precision.clone().map(Value::from).unwrap_or(Value::Null), &precisionMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("precision".into(), self.parse_number(precision.clone().map(Value::from).unwrap_or(Value::Null), &[])); }
                 }
                 // limits
-                let mut limits: Value = self.safe_dict_k(network, "limits", &[]);
+                let mut limits: crate::value::Dict = self.safe_dict_k(&network, "limits", &[]).into_dict();
                 let mut limitsMain: Value = self.safe_dict_k(currency.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                 // deposits
-                let mut limitsDeposit: Value = self.safe_dict_k(limits.clone(), "deposit", &[]);
+                let mut limitsDeposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
                 let mut limitsDepositMain: Value = self.safe_dict_k(limitsMain.clone(), "deposit", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2759,8 +2759,8 @@ pub trait ExchangeBase:
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut limitsDepositMin: Option<String> = self.safe_string_k(limitsDeposit.clone(), "min", &[]).as_str().map(str::to_owned);
-                let mut limitsDepositMax: Option<String> = self.safe_string_k(limitsDeposit, "max", &[]).as_str().map(str::to_owned);
+                let mut limitsDepositMin: Option<String> = self.safe_string_k(&limitsDeposit, "min", &[]).as_str().map(str::to_owned);
+                let mut limitsDepositMax: Option<String> = self.safe_string_k(&limitsDeposit, "max", &[]).as_str().map(str::to_owned);
                 let mut limitsDepositMinMain: Option<String> = self.safe_string_k(limitsDepositMain.clone(), "min", &[]).as_str().map(str::to_owned);
                 let mut limitsDepositMaxMain: Option<String> = self.safe_string_k(limitsDepositMain.clone(), "max", &[]).as_str().map(str::to_owned);
                 // find min
@@ -2772,7 +2772,7 @@ pub trait ExchangeBase:
                     limitsDepositNew.insert("max".into(), self.parse_number(limitsDepositMax.map(Value::from).unwrap_or(Value::Null), &[]));
                 }
                 // withdrawals
-                let mut limitsWithdraw: Value = self.safe_dict_k(limits, "withdraw", &[]);
+                let mut limitsWithdraw: crate::value::Dict = self.safe_dict_k(&limits, "withdraw", &[]).into_dict();
                 let mut limitsWithdrawMain: Value = self.safe_dict_k(limitsMain.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2781,8 +2781,8 @@ pub trait ExchangeBase:
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut limitsWithdrawMin: Option<String> = self.safe_string_k(limitsWithdraw.clone(), "min", &[]).as_str().map(str::to_owned);
-                let mut limitsWithdrawMax: Option<String> = self.safe_string_k(limitsWithdraw, "max", &[]).as_str().map(str::to_owned);
+                let mut limitsWithdrawMin: Option<String> = self.safe_string_k(&limitsWithdraw, "min", &[]).as_str().map(str::to_owned);
+                let mut limitsWithdrawMax: Option<String> = self.safe_string_k(&limitsWithdraw, "max", &[]).as_str().map(str::to_owned);
                 let mut limitsWithdrawMinMain: Option<String> = self.safe_string_k(limitsWithdrawMain.clone(), "min", &[]).as_str().map(str::to_owned);
                 let mut limitsWithdrawMaxMain: Option<String> = self.safe_string_k(limitsWithdrawMain.clone(), "max", &[]).as_str().map(str::to_owned);
                 // find min
@@ -4059,8 +4059,8 @@ pub trait ExchangeBase:
             if (average == Value::Null) && (close != Value::Null) {
                 let mut precision: Value = Value::Int(18);
                 if (market != Value::Null) && self.is_tick_precision().as_bool() == Some(true) {
-                    let mut marketPrecision: Value = self.safe_dict_k(market, "precision", &[]);
-                    let mut precisionPrice: Option<String> = self.safe_string_k(marketPrecision, "price", &[]).as_str().map(str::to_owned);
+                    let mut marketPrecision: crate::value::Dict = self.safe_dict_k(market, "precision", &[]).into_dict();
+                    let mut precisionPrice: Option<String> = self.safe_string_k(&marketPrecision, "price", &[]).as_str().map(str::to_owned);
                     if (precisionPrice.is_some()) {
                         precision = self.precision_from_string(precisionPrice.clone().map(Value::from).unwrap_or(Value::Null));
                     }
@@ -4708,9 +4708,9 @@ pub trait ExchangeBase:
         let network = network.as_map().unwrap_or(&__network_empty);
         let mut withdrawEnabled: Value = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
         let mut depositEnabled: Value = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
-        let mut limits: Value = (match network.get("limits") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut withdraw: Value = self.safe_dict_k(limits.clone(), "withdraw", &[]);
-        let mut deposit: Value = self.safe_dict_k(limits, "deposit", &[]);
+        let mut limits: crate::value::Dict = (match network.get("limits") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut withdraw: crate::value::Dict = self.safe_dict_k(&limits, "withdraw", &[]).into_dict();
+        let mut deposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
         let mut isEnabled: Value = withdrawEnabled.clone();
         if (withdrawEnabled.as_bool() == Some(true)) {
             isEnabled = depositEnabled.clone();
@@ -4730,14 +4730,14 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(withdraw.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(withdraw, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&withdraw, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&withdraw, "max", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(deposit.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(deposit, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&deposit, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&deposit, "max", &[]));
     m
 }));
     m
@@ -6009,11 +6009,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut i_count: Value = Value::Int(6);
         let mut tradesLength: Value = Value::Int(trades.len() as i64);
         let mut oldest: Value = crate::runtime::Math::min(&tradesLength, &limit);
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "buildOHLCVC", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "buildOHLCVC", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut skipZeroPrices: bool = self.safe_bool_k(options, "skipZeroPrices", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+})]).into_dict();
+        let mut skipZeroPrices: bool = self.safe_bool_k(&options, "skipZeroPrices", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_135: bool = true;
@@ -6022,7 +6022,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut ts: Value = self.safe_integer_k(trade.clone().into(), "timestamp", &[]);
+            let mut ts: Value = self.safe_integer_k(&trade, "timestamp", &[]);
             let mut price: Value = trade.get("price").cloned().unwrap_or(Value::Null);
             if (ts == Value::Null) || (price == Value::Null) {
                 continue;
@@ -7906,11 +7906,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networkItem: Value = self.safe_dict(networks, networkCode, &[Value::Map({
+            let mut networkItem: crate::value::Dict = self.safe_dict(networks, networkCode, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            precision = self.safe_value_k(networkItem, "precision", &[precision.clone()]);
+})]).into_dict();
+            precision = self.safe_value_k(&networkItem, "precision", &[precision.clone()]);
         }
         if (precision == Value::Null) {
             return self.force_string(fee.clone());
@@ -9348,8 +9348,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     errors = Value::Int(0);
                     result = self.array_concat(result.clone(), response.clone());
-                    let mut last: Value = self.safe_dict(response, (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-                    let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[Value::Int(0)]);
+                    let mut last: crate::value::Dict = self.safe_dict(response, (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                        Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                    let mut lastTimestamp: Value = self.safe_integer_k(&last, "timestamp", &[Value::Int(0)]);
                     if (lastTimestamp == Value::Null) {
                         shouldBreak = true;
                         break;
@@ -9579,7 +9580,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     break;
                 }
                 result = self.array_concat(result.clone(), response.clone());
-                let mut last: Value = self.safe_dict(response.clone(), (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+                let mut last: crate::value::Dict = self.safe_dict(response.clone(), (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = Value::Null; // search for the cursor
                 {
@@ -9589,8 +9591,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (cursorValue == Value::Null) {
                         let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                             &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                        let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
-                        let mut info: Value = self.safe_dict_k(entry, "info", &[]);
+                        let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
+                        let mut info: Value = self.safe_dict_k(&entry, "info", &[]);
                         if (cursorReceived != Value::Null) {
                             cursorValue = self.safe_value(info, cursorReceived.clone(), &[]);
                         }
@@ -9601,7 +9603,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     shouldBreak = true;
                     break;
                 }
-                let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[]);
+                let mut lastTimestamp: Value = self.safe_integer_k(&last, "timestamp", &[]);
                 if (since == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() requires a since argument".into()))));
                 }

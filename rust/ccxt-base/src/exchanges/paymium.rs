@@ -973,10 +973,10 @@ impl Paymium {
         let mut updatedAt: Option<String> = self.safe_string_k(transfer.clone(), "updated_at", &[]).as_str().map(str::to_owned);
         let mut timetstamp: Value = self.parse_date(updatedAt.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut accountOperations: Value = self.safe_list_k(transfer.clone(), "account_operations", &[]);
-        let mut firstOperation: Value = self.safe_dict(accountOperations, Value::Int(0), &[Value::Map({
+        let mut firstOperation: crate::value::Dict = self.safe_dict(accountOperations, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut status: Option<String> = self.safe_string_k(transfer.clone(), "state", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -987,7 +987,7 @@ impl Paymium {
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), Value::Null);
-        m.insert("toAccount".to_string(), self.safe_string_k(firstOperation, "address", &[]));
+        m.insert("toAccount".to_string(), self.safe_string_k(&firstOperation, "address", &[]));
         m.insert("status".to_string(), self.parse_transfer_status(status.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
     m
 });

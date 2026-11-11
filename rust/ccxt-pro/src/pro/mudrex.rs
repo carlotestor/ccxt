@@ -486,12 +486,12 @@ impl Mudrex {
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut error: crate::value::Dict = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut msg: String = self.safe_string_k(error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+}) }).into_dict();
+        let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
+        let mut msg: String = self.safe_string_k(&error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg);
         if (code.as_deref() == Some("429")) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback.clone()));
@@ -509,17 +509,17 @@ impl Mudrex {
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = stream.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut interval: Value = parts.get(1).cloned().unwrap_or(Value::Null);
         let mut tf: Value = self.find_timeframe(interval, &[]);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut s: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
+}) }).into_dict();
+        let mut s: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         if (s.is_none()) {
             return;
         }
         let mut market: Value = self.safe_market(&[(if let Some(__s) = s.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "t", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(&data, "t", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

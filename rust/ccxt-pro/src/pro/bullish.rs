@@ -494,17 +494,17 @@ impl Bullish {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (symbol == Value::Null) {
             return;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -618,11 +618,11 @@ impl Bullish {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(data.clone(), &[market.clone()]).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("update")) {
-            let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let __ws_arg_3 = self.extend(self.safe_dict_k(ticker, "info", &[Value::Map({
+            })]).into_dict();
+            let __ws_arg_3 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[data]);
@@ -698,20 +698,20 @@ impl Bullish {
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
-        let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
+        let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
+        let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
         let mut snapshot: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), bids);
@@ -719,7 +719,7 @@ impl Bullish {
             m
         });
         let mut parsed: Value = self.parse_order_book(Value::Map(snapshot), symbol.clone(), &[Value::from(timestamp)]);
-        let mut sequenceNumberRange: Vec<Value> = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut sequenceNumberRange: Vec<Value> = self.safe_list_k(&data, "sequenceNumberRange", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             parsed.set_book_meta("nonce", self.safe_integer(sequenceNumberRange.clone().into(), lastIndex, &[]));

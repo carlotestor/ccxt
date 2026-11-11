@@ -1119,12 +1119,12 @@ impl Bitfinex {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".into()))));
             }
         }
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut prec: String = self.safe_string_k(options.clone(), "prec", &[Value::Str("P0".into())]).as_str().unwrap_or("P0").to_string();
-        let mut freq: String = self.safe_string_k(options, "freq", &[Value::Str("F0".into())]).as_str().unwrap_or("F0").to_string();
+        })]).into_dict();
+        let mut prec: String = self.safe_string_k(&options, "prec", &[Value::Str("P0".into())]).as_str().unwrap_or("P0").to_string();
+        let mut freq: String = self.safe_string_k(&options, "freq", &[Value::Str("F0".into())]).as_str().unwrap_or("F0").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("prec".to_string(), Value::from(prec));

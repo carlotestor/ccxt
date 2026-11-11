@@ -524,8 +524,8 @@ impl Nado {
         }
         }
         let mut trades: Value = self.watch_public_multiple(Value::Str("trade".into()), Value::from(markets), Value::from(messageHashes), &[params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -1666,11 +1666,11 @@ impl Nado {
         //         "id": 100
         //     }
         //
-        let mut cancelAndPlace: Value = self.safe_dict_k(request, "cancel_and_place", &[Value::Map({
+        let mut cancelAndPlace: crate::value::Dict = self.safe_dict_k(request, "cancel_and_place", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut placeOrder: indexmap::IndexMap<String, Value> = self.safe_dict_k(cancelAndPlace, "place_order", &[Value::Map({
+        })]).into_dict();
+        let mut placeOrder: indexmap::IndexMap<String, Value> = self.safe_dict_k(&cancelAndPlace, "place_order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -1775,11 +1775,11 @@ impl Nado {
         //         "id": 100
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1843,11 +1843,11 @@ impl Nado {
         }
         let mut request: Value = self.parent.cancel_all_orders_request(&[symbol, paramsExtended]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.clone().map(Value::from).unwrap_or(Value::Null), request).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2760,9 +2760,9 @@ impl Nado {
                 let mut __for_first_515: bool = true;
                 while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (subscriptions.len() as i64) } {
                 let mut subscriptionHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
-                let mut streamType: Option<String> = self.safe_string_k(subscription.clone(), "streamType", &[]).as_str().map(str::to_owned);
-                let mut subscriptionSymbol: Option<String> = self.safe_string_k_opt(subscription, "symbol", &[]);
+                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]).into_dict();
+                let mut streamType: Option<String> = self.safe_string_k(&subscription, "streamType", &[]).as_str().map(str::to_owned);
+                let mut subscriptionSymbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
                 if (streamType.as_deref() == Some("book_depth")) && (subscriptionSymbol.as_deref() == symbol.as_str()) {
                     __ch.remove_subscription(&subscriptionHash);
                 }
@@ -2871,12 +2871,12 @@ impl Nado {
             let mut __for_first_516: bool = true;
             while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (subscriptions.len() as i64) } {
             let mut unsubscribeHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), unsubscribeHash.clone(), &[]);
-            let mut subscriptionId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
+            let mut subscription: crate::value::Dict = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), unsubscribeHash.clone(), &[]).into_dict();
+            let mut subscriptionId: Value = self.safe_string_k(&subscription, "id", &[]);
             if (subscriptionId != id) {
                 continue;
             }
-            let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
+            let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
             if (messageHash.is_some()) {
                 self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[]);
                 self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
@@ -2973,12 +2973,12 @@ impl Nado {
         //         "id": 10
         //     }
         //
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
+}) }).into_dict();
         let __ws_arg_18 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(result, "server_time", &[__ws_arg_18]));
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&result, "server_time", &[__ws_arg_18]));
         return message;
 
     Value::Null

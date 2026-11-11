@@ -483,13 +483,13 @@ impl Lighter {
     pub fn handle_order_book_message(&self, mut client: Value, mut message: Value, mut orderbook: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut data: Value = (match __pro_message.get("order_book").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: crate::value::Dict = (match __pro_message.get("order_book").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
-        orderbook.set_book_meta("nonce", self.safe_integer_k(data, "offset", &[]));
+}) }).into_dict();
+        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
+        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
+        orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "offset", &[]));
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -1786,12 +1786,12 @@ impl Lighter {
                 let mut __for_first_475: bool = true;
                 while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (assetIds.len() as i64) } {
                 let mut assetId: Value = assetIds.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut asset: Value = self.safe_dict(assets.clone(), assetId, &[]);
-                let mut codeId: Option<String> = self.safe_string_k(asset.clone(), "symbol", &[]).as_str().map(str::to_owned);
+                let mut asset: crate::value::Dict = self.safe_dict(assets.clone(), assetId, &[]).into_dict();
+                let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                 let mut code: Value = self.safe_currency_code(codeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(asset.clone(), "locked_balance", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(asset, "balance", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&asset, "locked_balance", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&asset, "balance", &[])); }
                 if (code != Value::Null) {
                     balance.insert(crate::runtime::stringify_param(&code), account.clone());
                 }
@@ -2389,9 +2389,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (subscriptionHashes.len() as i64) } {
                 let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (subscriptionHash.as_str().unwrap_or("").starts_with("ticker")) {
-                    let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
-                    let mut subscriptionParams: Value = self.safe_dict_k(subscription, "params", &[]);
-                    let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
+                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]).into_dict();
+                    let mut subscriptionParams: crate::value::Dict = self.safe_dict_k(&subscription, "params", &[]).into_dict();
+                    let mut subscribedChannel: Option<String> = self.safe_string_k(&subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         __ch.remove_subscription(&subscriptionHash);
                         if (__ch.has_future(&subscriptionHash)) {

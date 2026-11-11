@@ -1558,11 +1558,11 @@ impl Woo {
         //         "timestamp": 1751442989564
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut statusCode: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut statusCode: Option<String> = self.safe_string_k(&data, "status", &[]).as_str().map(str::to_owned);
         let mut status: String = "maintenance".to_string();
         if (statusCode.is_none()) {
             status = "error".to_string();
@@ -1600,8 +1600,8 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v3_public_get_system_info(&[params]).await;
-        return self.safe_integer_k(response, "timestamp", &[]);
+        let mut response: crate::value::Dict = self.v3_public_get_system_info(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
     }
@@ -1627,7 +1627,7 @@ impl Woo {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut response: Value = self.v3_public_get_instruments(&[params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_instruments(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -1660,11 +1660,11 @@ impl Woo {
         //         "timestamp": 1751512951338
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_markets(rows);
         Value::Null
         }).await?))
@@ -1813,7 +1813,7 @@ impl Woo {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_market_trades(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_market_trades(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -1832,11 +1832,11 @@ impl Woo {
         //         "timestamp": 1751513988543
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1987,7 +1987,7 @@ impl Woo {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_trade_trading_fee(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_trade_trading_fee(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -1999,10 +1999,10 @@ impl Woo {
         //         "timestamp": 1751858977368
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_trading_fee(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -2061,12 +2061,12 @@ impl Woo {
         //         "timestamp": 1752062807915
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut maker: Option<String> = self.safe_string_k(data.clone(), "makerFeeRate", &[]).as_str().map(str::to_owned);
-        let mut taker: Option<String> = self.safe_string_k(data, "takerFeeRate", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut maker: Option<String> = self.safe_string_k(&data, "makerFeeRate", &[]).as_str().map(str::to_owned);
+        let mut taker: Option<String> = self.safe_string_k(&data, "takerFeeRate", &[]).as_str().map(str::to_owned);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3145,11 +3145,11 @@ impl Woo {
             let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted2]);
             response = self.v3_private_get_trade_orders(&[__ws_arg_14]).await;
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut orders: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut orders: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -3470,7 +3470,7 @@ impl Woo {
             request.insert("maxLevel".into(), limit);
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_orderbook(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_orderbook(&[__ws_arg_15]).await.into_dict();
         //
         // }
         //     {
@@ -3492,11 +3492,11 @@ impl Woo {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(response, "timestamp", &[]).as_i64();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         return self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
         }).await?))
@@ -3587,7 +3587,7 @@ impl Woo {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_futures(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_futures(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -3613,16 +3613,16 @@ impl Woo {
         //         "timestamp": 1786690534921
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(rows, Value::Int(0), &[]);
         if (first == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".into())).into()), symbol)));
         }
-        let __ws_arg_17 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_17 = self.safe_integer_k(&response, "timestamp", &[]);
         let mut ticker: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), __ws_arg_17);
@@ -3681,16 +3681,16 @@ impl Woo {
             }
             paramsRequest = paramsMarketType;
         }
-        let mut response: Value = self.v3_public_get_futures(&[paramsRequest]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_futures(&[paramsRequest]).await.into_dict();
         //
         // same as fetchTicker, with multiple rows
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Option<i64> = self.safe_integer_k(response, "timestamp", &[]).as_i64();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3766,7 +3766,7 @@ impl Woo {
             request.insert("before".into(), Value::from(until));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_public_get_kline_history(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_kline_history(&[__ws_arg_18]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -3789,11 +3789,11 @@ impl Woo {
         //         "timestamp": 1751622205410
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -3845,7 +3845,7 @@ impl Woo {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.v1_private_get_order_oid_trades(&[__ws_arg_19]).await.into_dict();
         // {
         //     "success": true,
         //     "rows": [
@@ -3864,7 +3864,7 @@ impl Woo {
         //       }
         //     ]
         // }
-        let mut trades: Value = self.safe_list_k(response, "rows", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(&response, "rows", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
         Value::Null
         }).await?))
@@ -3925,7 +3925,7 @@ impl Woo {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
-        let mut response: Value = self.v3_private_get_trade_transaction_history(&[__ws_arg_20]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_trade_transaction_history(&[__ws_arg_20]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -3955,11 +3955,11 @@ impl Woo {
         //         "timestamp": 1752055545121
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut trades: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut trades: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market, since, limit, paramsOmitted]);
         Value::Null
         }).await?))
@@ -4038,11 +4038,11 @@ impl Woo {
     m
 })]);
         let mut mainRows: Value = Value::from(vec![mainData]);
-        let mut subData: Value = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
+        let mut subData: crate::value::Dict = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut subRows: Value = self.safe_list_k(subData, "rows", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut subRows: Value = self.safe_list_k(&subData, "rows", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(mainRows, subRows);
         return self.parse_accounts(rows, &[params]);
         Value::Null
@@ -4084,7 +4084,7 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v3_private_get_asset_balances(&[params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_balances(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4108,10 +4108,10 @@ impl Woo {
         //         "timestamp": 1673323746259
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_balance(data);
         Value::Null
         }).await?))
@@ -4128,11 +4128,11 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1171: bool = true;
             while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(balance.clone(), "holding", &[]));
-            account.insert("free".into(), self.safe_string_k(balance, "availableBalance", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "availableBalance", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -4178,7 +4178,7 @@ impl Woo {
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsNetworkCode]);
-        let mut response: Value = self.v3_private_get_asset_wallet_deposit(&[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_deposit(&[__ws_arg_21]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4189,10 +4189,10 @@ impl Woo {
         //         "timestamp": 1721300689532
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let __ws_arg_22 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
@@ -4284,7 +4284,7 @@ impl Woo {
             request.insert("type".into(), transactionType.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_asset_wallet_history(&[__ws_arg_23]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_history(&[__ws_arg_23]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4320,11 +4320,11 @@ impl Woo {
         //         "timestamp": 1752485344719
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        return Value::from(vec![currency, self.safe_list_k(data, "rows", &[Value::from(vec![])])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        return Value::from(vec![currency, self.safe_list_k(&data, "rows", &[Value::from(vec![])])]);
 
     Value::Null
 }
@@ -4678,26 +4678,26 @@ impl Woo {
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_asset_transfer(&[__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_asset_transfer(&[__ws_arg_27]).await.into_dict();
         //
         //     {
         //         "success": true,
         //         "id": 200
         //     }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
         data.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         data.insert("status".into(), Value::Str("ok".into()));
         let mut transfer: Value = self.parse_transfer(Value::Map(data), &[currency]);
-        let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
+        let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+})]).into_dict();
+        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
             if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
@@ -4753,7 +4753,7 @@ impl Woo {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
-        let mut response: Value = self.v3_private_get_asset_transfer_history(&[__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_transfer_history(&[__ws_arg_28]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4785,11 +4785,11 @@ impl Woo {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_transfers(rows, &[currency, since, limit, paramsOmitted]);
         Value::Null
         }).await?))
@@ -4841,14 +4841,14 @@ impl Woo {
         if (success.is_some()) {
             status = (if success == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
         }
-        let mut fromAccount: Value = self.safe_dict_k(transfer.clone(), "from", &[Value::Map({
+        let mut fromAccount: crate::value::Dict = self.safe_dict_k(transfer.clone(), "from", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut toAccount: Value = self.safe_dict_k(transfer.clone(), "to", &[Value::Map({
+})]).into_dict();
+        let mut toAccount: crate::value::Dict = self.safe_dict_k(transfer.clone(), "to", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
@@ -4856,8 +4856,8 @@ impl Woo {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
-        m.insert("fromAccount".to_string(), self.safe_string_k(fromAccount, "applicationId", &[]));
-        m.insert("toAccount".to_string(), self.safe_string_k(toAccount, "applicationId", &[]));
+        m.insert("fromAccount".to_string(), self.safe_string_k(&fromAccount, "applicationId", &[]));
+        m.insert("toAccount".to_string(), self.safe_string_k(&toAccount, "applicationId", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer.clone(), "status", &[status])).map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), transfer);
     m
@@ -4916,19 +4916,19 @@ impl Woo {
         request.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]));
         let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_29]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_29]).await.into_dict();
         //
         //     {
         //         "success": true,
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let __ws_arg_30 = self.safe_string_k(data.clone(), "withdrawId", &[]);
-        let __ws_arg_31 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_31 = self.safe_integer_k(&response, "timestamp", &[]);
         let __ws_arg_32 = self.safe_string(self.networkAliases.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut transactionData: Value = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5240,7 +5240,7 @@ impl Woo {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_34]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_34]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5268,11 +5268,11 @@ impl Woo {
         //         "timestamp": 1721351502594
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_incomes(rows, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -5391,7 +5391,7 @@ impl Woo {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_35]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[__ws_arg_35]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5412,11 +5412,11 @@ impl Woo {
         //         "timestamp": 1751624037798
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5450,7 +5450,7 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5471,11 +5471,11 @@ impl Woo {
         //         "timestamp": 1751624037798
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_funding_rates(rows, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -5533,7 +5533,7 @@ impl Woo {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_36 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_36]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate_history(&[__ws_arg_36]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5556,11 +5556,11 @@ impl Woo {
         //         "timestamp": 1751632390031
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Vec<Value> = self.safe_list_k(data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5691,12 +5691,12 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1173: bool = true;
             while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (details.len() as i64) } {
-            let mut position: Value = self.safe_dict(details.clone().into(), Value::Int(i), &[Value::Map({
+            let mut position: crate::value::Dict = self.safe_dict(details.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut positionLeverage: Option<i64> = self.safe_integer_k(position.clone(), "leverage", &[]).as_i64();
-            let mut side: Option<String> = self.safe_string_k(position, "positionSide", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut positionLeverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
+            let mut side: Option<String> = self.safe_string_k(&position, "positionSide", &[]).as_str().map(str::to_owned);
             if (side.as_deref() == Some("BOTH")) {
                 longLeverage = Value::from(positionLeverage);
                 shortLeverage = Value::from(positionLeverage);
@@ -5885,7 +5885,7 @@ impl Woo {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_42]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[__ws_arg_42]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5917,11 +5917,11 @@ impl Woo {
         //         "timestamp": 1752500579848
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::from(vec![])]);
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(positions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5967,7 +5967,7 @@ impl Woo {
             }
         }
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_43]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[__ws_arg_43]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -5999,11 +5999,11 @@ impl Woo {
         //         "timestamp": 1752500579848
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::from(vec![])]);
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
         return self.parse_positions(positions, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -6161,7 +6161,7 @@ impl Woo {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_44]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_rfq(&[__ws_arg_44]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6178,10 +6178,10 @@ impl Woo {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut fromCurrencyId: Value = self.safe_string_k(data.clone(), "sellToken", &[fromCode]);
         let mut fromCurrency: Value = self.currency(fromCurrencyId);
         let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "buyToken", &[toCode]);
@@ -6226,7 +6226,7 @@ impl Woo {
             m
         });
         let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_45]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_convert_rft(&[__ws_arg_45]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6237,10 +6237,10 @@ impl Woo {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_conversion(data, &[]);
         Value::Null
         }).await?))
@@ -6277,7 +6277,7 @@ impl Woo {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_46]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_trade(&[__ws_arg_46]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6292,10 +6292,10 @@ impl Woo {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut fromCurrencyId: Option<String> = self.safe_string_k(data.clone(), "sellAsset", &[]).as_str().map(str::to_owned);
         let mut toCurrencyId: Option<String> = self.safe_string_k(data.clone(), "buyAsset", &[]).as_str().map(str::to_owned);
         let mut fromCurrency: Value = Value::Null;
@@ -6353,7 +6353,7 @@ impl Woo {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_47 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_47]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_trades(&[__ws_arg_47]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6374,11 +6374,11 @@ impl Woo {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut rows: Value = self.safe_list_k(data, "tradeVos", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut rows: Value = self.safe_list_k(&data, "tradeVos", &[Value::from(vec![])]);
         return self.parse_conversions(rows, &[code, Value::Str("sellAsset".into()), Value::Str("buyAsset".into()), since, limit]);
         Value::Null
         }).await?))
@@ -6466,7 +6466,7 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v3_private_get_convert_asset_info(&[params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_asset_info(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6484,7 +6484,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Vec<Value> = self.safe_list_k(response, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1174: bool = true;
@@ -6575,7 +6575,7 @@ impl Woo {
             }
         }
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_48]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[__ws_arg_48]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -6607,11 +6607,11 @@ impl Woo {
         //         "timestamp": 1768049428472
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::from(vec![])]);
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
         return self.parse_adl_ranks(positions, &[symbolsNormalized]);
         Value::Null
         }).await?))

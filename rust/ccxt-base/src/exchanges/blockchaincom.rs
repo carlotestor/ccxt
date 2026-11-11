@@ -1833,12 +1833,12 @@ impl Blockchaincom {
                         let mut i: i64 = 0;
             let mut __for_first_459: bool = true;
             while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (balances.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
-            account.insert("total".into(), self.safe_string_k(entry, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
+            account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
         }

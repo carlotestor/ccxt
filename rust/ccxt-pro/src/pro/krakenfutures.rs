@@ -655,8 +655,8 @@ impl Krakenfutures {
     m
 }));
         let mut trades: Value = self.watch_multi_helper(Value::Str("trade".into()), Value::Str("trade".into()), &[symbols, Value::Null, params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -1838,11 +1838,11 @@ impl Krakenfutures {
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone()]).map(Value::from).unwrap_or(Value::Null);
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
+        })]).into_dict();
+        let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
@@ -2115,12 +2115,12 @@ impl Krakenfutures {
                 let mut key: Value = futuresKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbol: Value = self.safe_symbol(key.clone(), &[]);
                 let mut newAccount: Value = self.account();
-                let mut future: Value = self.safe_dict(futures.clone(), key.clone(), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(future.clone(), "unit", &[]).as_str().map(str::to_owned);
+                let mut future: crate::value::Dict = self.safe_dict(futures.clone(), key.clone(), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&future, "unit", &[]).as_str().map(str::to_owned);
                 let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(future.clone(), "available", &[])); }
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(future.clone(), "initial_margin", &[])); }
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(future, "balance", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&future, "available", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&future, "initial_margin", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&future, "balance", &[])); }
                 let mut symbolAccounts: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2161,12 +2161,12 @@ impl Krakenfutures {
                 let mut __for_first_443: bool = true;
                 while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (flexFuturesKeys.len() as i64) } {
                 let mut key: Value = flexFuturesKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut flexFuture: Value = self.safe_dict(flexFutureCurrencies.clone(), key.clone(), &[]);
+                let mut flexFuture: crate::value::Dict = self.safe_dict(flexFutureCurrencies.clone(), key.clone(), &[]).into_dict();
                 let mut code: Value = self.safe_currency_code(key, &[]);
                 let mut newAccount: Value = self.account();
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(flexFuture.clone(), "available", &[])); }
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(flexFuture.clone(), "collateral_value", &[])); }
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(flexFuture, "quantity", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&flexFuture, "available", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&flexFuture, "collateral_value", &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&flexFuture, "quantity", &[])); }
                 if (code != Value::Null) {
                     flexCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); } }

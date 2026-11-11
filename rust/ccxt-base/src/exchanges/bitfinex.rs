@@ -3045,16 +3045,16 @@ impl Bitfinex {
                         let mut i: i64 = 0;
             let mut __for_first_349: bool = true;
             while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut type_var: Option<String> = self.safe_string_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut side: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
-            let mut price: Option<f64> = self.safe_number_k(rawOrder.clone(), "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
+            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut orderRequest: Value = self.create_order_request(symbol.clone().map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), orderParams]);
             ordersRequests.push(Value::from(vec![Value::Str("on".into()), orderRequest]));
         }
@@ -3817,8 +3817,8 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyNetwork: Value = self.safe_dict(currencyNetworks, network, &[]);
-        let mut networkId: Option<String> = self.safe_string_k(currencyNetwork, "id", &[]).as_str().map(str::to_owned);
+        let mut currencyNetwork: crate::value::Dict = self.safe_dict(currencyNetworks, network, &[]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&currencyNetwork, "id", &[]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
@@ -4273,8 +4273,8 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyNetwork: Value = self.safe_dict(currencyNetworks, network, &[]);
-        let mut networkId: Option<String> = self.safe_string_k(currencyNetwork, "id", &[]).as_str().map(str::to_owned);
+        let mut currencyNetwork: crate::value::Dict = self.safe_dict(currencyNetworks, network, &[]).into_dict();
+        let mut networkId: Option<String> = self.safe_string_k(&currencyNetwork, "id", &[]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
@@ -4291,11 +4291,11 @@ impl Bitfinex {
         if (tag != Value::Null) {
             request.insert("payment_id".into(), tag);
         }
-        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut includeFee: bool = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]).into_dict();
+        let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if includeFee {
             request.insert("fee_deduct".into(), Value::Int(1));
         }

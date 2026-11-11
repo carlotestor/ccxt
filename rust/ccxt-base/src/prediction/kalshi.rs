@@ -783,8 +783,8 @@ impl Kalshi {
                 request.insert("cursor".into(), cursor.clone());
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
-            let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_0]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_0]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
@@ -825,7 +825,7 @@ impl Kalshi {
                 }
             }
             }
-            cursor = self.safe_string_k(response, "cursor", &[]);
+            cursor = self.safe_string_k(&response, "cursor", &[]);
             let mut collectedLength: f64 = ((flatMarkets.len() as i64) as f64);
             if ((cursor == Value::Null) || (cursor.as_str() == Some(""))) || rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collectedLength >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;
@@ -995,8 +995,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             chunk = Value::from(vec![]);
-            let mut response: Value = self.kalshi_public_get_markets(&[Value::Map(request)]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[Value::Map(request)]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1263: bool = true;
@@ -1163,11 +1163,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
         let mut priceRanges: Value = self.safe_list_k(raw.clone(), "price_ranges", &[Value::from(vec![])]);
-        let mut firstRange: Value = self.safe_dict(priceRanges, Value::Int(0), &[Value::Map({
+        let mut firstRange: crate::value::Dict = self.safe_dict(priceRanges, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut stepDollars: Option<String> = self.safe_string_k(firstRange, "step", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut stepDollars: Option<String> = self.safe_string_k(&firstRange, "step", &[]).as_str().map(str::to_owned);
         let mut pricePrecision: Value = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(raw.clone(), "tick_size", &[Value::Str("1".into())]), &Value::Str("100".into())), &[]);
         if (stepDollars.is_some()) {
             pricePrecision = self.parse_number(stepDollars.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1725,8 +1725,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             chunk = Value::from(vec![]);
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
-            let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_3]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_3]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1269: bool = true;
@@ -1802,10 +1802,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut book: Value = self.safe_dict_k(response.clone(), "orderbook_fp", &[response.clone()]);
+        let mut book: crate::value::Dict = self.safe_dict_k(response.clone(), "orderbook_fp", &[response.clone()]).into_dict();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
-        let mut rawYes: Vec<Value> = self.safe_list_k(book.clone(), "yes_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawNo: Vec<Value> = self.safe_list_k(book, "no_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawYes: Vec<Value> = self.safe_list_k(&book, "yes_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawNo: Vec<Value> = self.safe_list_k(&book, "no_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // Convert [price_cents, size] → [price, size]
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
@@ -1948,7 +1948,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "candlesticks": [
@@ -1983,19 +1983,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        let mut candles: Vec<Value> = self.safe_list_k(response, "candlesticks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut candles: Vec<Value> = self.safe_list_k(&response, "candlesticks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut usableCandles: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1275: bool = true;
             while { if !__for_first_1275 { i += 1; } __for_first_1275 = false; i < (candles.len() as i64) } {
             let mut candle: Value = candles.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut priceObj: Value = self.safe_dict_k(candle.clone(), "price", &[Value::Map({
+            let mut priceObj: crate::value::Dict = self.safe_dict_k(candle.clone(), "price", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut openPrice: Option<f64> = self.safe_number_k(priceObj.clone(), "open_dollars", &[]).as_f64();
-            let mut previousPrice: Option<f64> = self.safe_number_k(priceObj, "previous_dollars", &[]).as_f64();
+})]).into_dict();
+            let mut openPrice: Option<f64> = self.safe_number_k(&priceObj, "open_dollars", &[]).as_f64();
+            let mut previousPrice: Option<f64> = self.safe_number_k(&priceObj, "previous_dollars", &[]).as_f64();
             if (openPrice.is_some()) || (previousPrice.is_some()) {
                 usableCandles.push(candle);
             }
@@ -2049,12 +2049,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut price: Value = self.safe_dict_k(ohlcv.clone(), "price", &[Value::Map({
+        let mut price: crate::value::Dict = self.safe_dict_k(ohlcv.clone(), "price", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        let mut previous: Option<f64> = self.safe_number_k(price.clone(), "previous_dollars", &[]).as_f64();
+        let mut previous: Option<f64> = self.safe_number_k(&price, "previous_dollars", &[]).as_f64();
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         let mut endTimestamp: Value = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]);
@@ -2064,8 +2064,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             timestamp = (match (&(endTimestamp), &((match (&(durationSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        return Value::from(vec![timestamp, self.safe_number_k(price.clone(), "open_dollars", &[Value::from(previous)]), self.safe_number_k(price.clone(), "high_dollars", &[Value::from(previous)]), self.safe_number_k(price.clone(), "low_dollars", &[Value::from(previous)]), self.safe_number_k(price, "close_dollars", &[Value::from(previous)]),
-            self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
+        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "high_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "low_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "close_dollars", &[Value::from(previous)]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
 
     Value::Null
 }
@@ -2106,8 +2105,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_markets_trades(&[__ws_arg_6]).await;
-        let mut trades: Vec<Value> = self.safe_list_k(response, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_public_get_markets_trades(&[__ws_arg_6]).await.into_dict();
+        let mut trades: Vec<Value> = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2149,11 +2148,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawSide: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "taker_side", &[]);
         let mut marketAny: Value = market.clone();
         let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
-        let mut marketInfo: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut requestedOutcomeLabel: Value = self.safe_string_lower_k(outcomeObj.clone(), "label", &[self.safe_string_lower(marketInfo, Value::Str("outcomeLabel".into()), &[])]);
+})]).into_dict();
+        let mut requestedOutcomeLabel: Value = self.safe_string_lower_k(outcomeObj.clone(), "label", &[self.safe_string_lower_k(&marketInfo, "outcomeLabel", &[])]);
         let mut outcomeSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         let mut outcomeId: Option<String> = self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
@@ -2237,8 +2236,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await;
-        let mut fills: Vec<Value> = self.safe_list_k(response, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await.into_dict();
+        let mut fills: Vec<Value> = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut fillsLength: f64 = ((fills.len() as i64) as f64);
         let mut trades: Vec<Value> = Vec::new();
         {
@@ -2439,8 +2438,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
-        let mut response: Value = self.kalshi_private_get_portfolio_positions(&[params]).await;
-        let mut positions: Value = self.safe_list_k(response, "market_positions", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_positions(&[params]).await.into_dict();
+        let mut positions: Value = self.safe_list_k(&response, "market_positions", &[Value::from(vec![])]);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         if (((outcomesLength as f64) == 0.0)) {
@@ -2459,11 +2458,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1279: bool = true;
             while { if !__for_first_1279 { i += 1; } __for_first_1279 = false; i < (outcomes.len() as i64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut outcomeInfo: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+            let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut marketTicker: Option<String> = self.safe_string_k_opt(outcomeInfo, "ticker", &[]);
+})]).into_dict();
+            let mut marketTicker: Option<String> = self.safe_string_k_opt(&outcomeInfo, "ticker", &[]);
             if (marketTicker.is_some()) {
                 if let Value::Dict(__d) = &mut wantedTickers { std::sync::Arc::make_mut(__d).insert(marketTicker.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
             }
@@ -2475,11 +2474,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1280: bool = true;
             while { if !__for_first_1280 { i += 1; } __for_first_1280 = false; i < (parsed.len() as i64) } {
             let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut positionInfo: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
+            let mut positionInfo: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut positionTicker: Option<String> = self.safe_string_k_opt(positionInfo, "ticker", &[]);
+})]).into_dict();
+            let mut positionTicker: Option<String> = self.safe_string_k_opt(&positionInfo, "ticker", &[]);
             if (positionTicker.is_some()) && (matches!((&wantedTickers, &positionTicker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(position); }
             }
@@ -2525,8 +2524,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await;
-        let mut rawSettlements: Vec<Value> = self.safe_list_k(response, "settlements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await.into_dict();
+        let mut rawSettlements: Vec<Value> = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rawSettlementsLength: f64 = ((rawSettlements.len() as i64) as f64);
         let mut parsed: Vec<Value> = Vec::new();
         {
@@ -2735,8 +2734,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_9]).await;
-        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[__ws_arg_9]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
@@ -2783,8 +2782,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_10]).await;
-        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[__ws_arg_10]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
@@ -3229,8 +3228,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
-        let mut restingResponse: Value = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await;
-        let mut restingOrders: Vec<Value> = self.safe_list_k(restingResponse, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut restingResponse: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await.into_dict();
+        let mut restingOrders: Vec<Value> = self.safe_list_k(&restingResponse, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut restingOrdersLength: f64 = ((restingOrders.len() as i64) as f64);
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
@@ -3392,14 +3391,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1288: bool = true;
             while { if !__for_first_1288 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1288 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
-            let mut searchResponse: Value = self.elections_public_get_search_series(&[Value::Map({
+            let mut searchResponse: crate::value::Dict = self.elections_public_get_search_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), queries.get((qi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                     m.insert("order_by".to_string(), Value::Str("querymatch".into()));
                     m.insert("page_size".to_string(), pageSize.clone());
                 m
-            })]).await;
-            let mut page: Vec<Value> = self.safe_list_k(searchResponse, "current_page", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            })]).await.into_dict();
+            let mut page: Vec<Value> = self.safe_list_k(&searchResponse, "current_page", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut pageLength: f64 = ((page.len() as i64) as f64);
             {
                                 let mut pi: Value = Value::Int(0);
@@ -3643,8 +3642,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     request.insert("cursor".into(), cursor.clone());
                 }
                 let __ws_arg_17 = self.extend(Value::Map(request), &[rest.clone()]);
-                let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_17]).await;
-                let mut pageEvents: Vec<Value> = self.safe_list_k(response.clone(), "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.kalshi_public_get_events(&[__ws_arg_17]).await.into_dict();
+                let mut pageEvents: Vec<Value> = self.safe_list_k(&response, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
                 {
                                         let mut ei: Value = Value::Int(0);
@@ -3653,7 +3652,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     rawEvents.push(pageEvents.get(ei.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                cursor = self.safe_string_k(response, "cursor", &[]);
+                cursor = self.safe_string_k(&response, "cursor", &[]);
                 let mut collectedAfterPage: f64 = ((rawEvents.len() as i64) as f64);
                 if hasLimit && (collectedAfterPage >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                     break;
@@ -3779,14 +3778,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut totalVolume: Value = Value::Int(0);
         let mut totalLiquidity: Value = Value::Int(0);
         // seeded from the first market, which the loop re-reads, so the min/max stays the same
-        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
+        let mut firstMarket: crate::value::Dict = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut earliestCreated: Value = self.parse8601(self.safe_string_k(firstMarket.clone(), "open_time", &[]));
+})]).into_dict();
+        let mut earliestCreated: Value = self.parse8601(self.safe_string_k(&firstMarket, "open_time", &[]));
         let mut anyActive: bool = false;
         let mut allResolved: bool = true;
-        let mut latestClose: Value = self.parse8601(self.safe_string_k(firstMarket, "close_time", &[]));
+        let mut latestClose: Value = self.parse8601(self.safe_string_k(&firstMarket, "close_time", &[]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;

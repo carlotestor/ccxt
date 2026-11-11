@@ -450,15 +450,15 @@ impl Backpack {
         let mut symbolsResolved: Vec<Value> = Vec::new();
         let mut topics: Value = Value::from(vec![]);
         let mut messageHashes: Vec<Value> = Vec::new();
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: Value = self.client(&[Value::from(url.clone())]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut kind: String = (if (bidAsk).as_bool() == Some(true) { "bidask".to_string() } else { "ticker".to_string() });
@@ -592,15 +592,15 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut method: String = "SUBSCRIBE".to_string();
         if unwatch {
             method = "UNSUBSCRIBE".to_string();
@@ -628,15 +628,15 @@ impl Backpack {
 }));
         let unwatch: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         self.check_required_credentials(&[]);
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "private", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "private", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut instruction: String = "subscribe".to_string();
         let mut ts: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
         let mut method: String = "SUBSCRIBE".to_string();
@@ -904,11 +904,11 @@ impl Backpack {
             let mut __for_first_41: bool = true;
             while { if !__for_first_41 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_41 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
             let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(subscription, "symbol", &[]);
+            })]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1016,11 +1016,11 @@ impl Backpack {
             let mut __for_first_42: bool = true;
             while { if !__for_first_42 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_42 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
             let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+            })]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1036,7 +1036,7 @@ impl Backpack {
                     m.insert("info".to_string(), data.clone());
                 m
             }), &[market]);
-            if matches!(self.safe_bool_k(subscription, "bidAsk", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&subscription, "bidAsk", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
             }  else {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
@@ -1142,11 +1142,11 @@ impl Backpack {
             let mut __for_first_43: bool = true;
             while { if !__for_first_43 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_43 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
             let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(subscription, "symbol", &[]);
+            })]).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1552,8 +1552,8 @@ impl Backpack {
         }
         }
         let mut trades: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into())]), &[])]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -1963,9 +1963,9 @@ impl Backpack {
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-        let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
+        let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
         let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
-        let mut firstDeltaStart: Value = self.safe_integer_k(firstDelta, "U", &[]);
+        let mut firstDeltaStart: Value = self.safe_integer_k(&firstDelta, "U", &[]);
         let mut cacheLength: Value = Value::Int(cache.len() as i64);
         if (nonce == Value::Null) {
             return cacheLength;
@@ -1980,9 +1980,9 @@ impl Backpack {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_51: bool = true;
             while { if !__for_first_51 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_51 = false; i.as_f64().unwrap_or(f64::NAN) < cacheLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
-            let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
-            let mut deltaEnd: Value = self.safe_integer_k(delta, "u", &[]);
+            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
+            let mut deltaStart: Value = self.safe_integer_k(&delta, "U", &[]);
+            let mut deltaEnd: Value = self.safe_integer_k(&delta, "u", &[]);
             if (deltaStart == Value::Null) || (deltaEnd == Value::Null) {
                 return cacheLength;
             }
@@ -2253,11 +2253,11 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_52: bool = true;
                 while { if !__for_first_52 { i += 1; } __for_first_52 = false; i < (securities.len() as i64) } {
-                let mut security: Value = self.safe_dict(securities.clone().into(), Value::Int(i), &[Value::Map({
+                let mut security: crate::value::Dict = self.safe_dict(securities.clone().into(), Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut code: Value = self.safe_currency_code(self.safe_string_k(security, "asset", &[]), &[]);
+                })]).into_dict();
+                let mut code: Value = self.safe_currency_code(self.safe_string_k(&security, "asset", &[]), &[]);
                 if (code == Value::Null) {
                     continue;
                 }
@@ -2306,11 +2306,11 @@ impl Backpack {
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut assetId: Option<String> = self.safe_string_k_opt(data.clone(), "a", &[]);
+}) }).into_dict();
+        let mut assetId: Option<String> = self.safe_string_k_opt(&data, "a", &[]);
         if (assetId.is_none()) {
             return Value::Bool(false);
         }
@@ -2320,9 +2320,9 @@ impl Backpack {
         })]).as_map().cloned().unwrap_or_default();
         assets.insert(assetId.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("available".to_string(), self.safe_string_k(data.clone(), "A", &[]));
-        m.insert("locked".to_string(), self.safe_string_k(data.clone(), "L", &[]));
-        m.insert("staked".to_string(), self.safe_string_k(data.clone(), "S", &[]));
+        m.insert("available".to_string(), self.safe_string_k(&data, "A", &[]));
+        m.insert("locked".to_string(), self.safe_string_k(&data, "L", &[]));
+        m.insert("staked".to_string(), self.safe_string_k(&data, "S", &[]));
     m
 }));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsBalanceAssets".into(), Value::Map(assets.clone())); }
@@ -2335,7 +2335,7 @@ impl Backpack {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut microseconds: Value = self.safe_integer_k(data, "E", &[Value::Int(0)]);
+        let mut microseconds: Value = self.safe_integer_k(&data, "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
@@ -2686,8 +2686,8 @@ impl Backpack {
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() != Some(true)) {
             return;
         }
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut event: Option<String> = self.safe_string_k(data, "e", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut event: Option<String> = self.safe_string_k(&data, "e", &[]).as_str().map(str::to_owned);
         if (event.as_deref() == Some("stockPrice")) || (event.as_deref() == Some("stockIndicativeQuote")) {
             self.handle_stock_ticker(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("balanceUpdate")) {
@@ -2723,14 +2723,14 @@ impl Backpack {
         //         }
         //     }
         //
-        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut error: crate::value::Dict = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut code: Option<i64> = self.safe_integer_k(error.clone(), "code", &[]).as_i64();
+}) }).into_dict();
+        let mut code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) {
-                let mut msg: String = self.safe_string_k(error.clone(), "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut msg: String = self.safe_string_k(&error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
             }
             return Value::Bool(true);

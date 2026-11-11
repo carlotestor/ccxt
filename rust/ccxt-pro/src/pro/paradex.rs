@@ -648,10 +648,10 @@ impl Paradex {
         //
         // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
         let mut requestId: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut authSubscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str("authenticated".into()), &[]);
-        let mut authRequestId: Value = self.safe_string_k(authSubscription, "id", &[]);
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut isAuth: bool = ((requestId != Value::Null) && (requestId == authRequestId)) || (self.safe_string_k(result, "node_id", &[]) != Value::Null);
+        let mut authSubscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::Str("authenticated".into()), &[]).into_dict();
+        let mut authRequestId: Value = self.safe_string_k(&authSubscription, "id", &[]);
+        let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut isAuth: bool = ((requestId != Value::Null) && (requestId == authRequestId)) || (self.safe_string_k(&result, "node_id", &[]) != Value::Null);
         if isAuth {
             self.handle_authentication_message(client.clone(), message.clone());
         }
@@ -760,8 +760,8 @@ impl Paradex {
         let mut url: Value = self.get_ws_url();
         // handleTrade resolves the channel of each market
         let mut trades: Value = self.subscribe_channels(url, channels.clone(), channels.clone(), &[params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -869,17 +869,17 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut parsedTrade: Value = self.parse_trade(data.clone(), &[]);
         let mut symbol: Value = parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut messageHash: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             stored = ArrayCache::new(self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]));
@@ -1072,11 +1072,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1101,10 +1101,10 @@ impl Paradex {
                                 let mut i: i64 = 0;
                 let mut __for_first_587: bool = true;
                 while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (levels.len() as i64) } {
-                let mut level: Value = self.safe_dict(levels.clone().into(), Value::Int(i), &[]);
-                let mut price: Option<String> = self.safe_string_k(level.clone(), "price", &[]).as_str().map(str::to_owned);
-                let mut size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k(level.clone(), "size", &[]).as_str().map(str::to_owned) });
-                if (self.safe_string_k(level, "side", &[]).as_str() == Some("BUY")) {
+                let mut level: crate::value::Dict = self.safe_dict(levels.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut price: Option<String> = self.safe_string_k(&level, "price", &[]).as_str().map(str::to_owned);
+                let mut size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k(&level, "size", &[]).as_str().map(str::to_owned) });
+                if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {
                     bids.push(Value::from(vec![price.clone().map(Value::from).unwrap_or(Value::Null), size.clone().map(Value::from).unwrap_or(Value::Null)]));
                 }  else {
                     asks.push(Value::from(vec![price.clone().map(Value::from).unwrap_or(Value::Null), size.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -1545,11 +1545,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1667,11 +1667,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1772,11 +1772,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1886,11 +1886,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1997,11 +1997,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2088,18 +2088,18 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut ticker: Value = self.parse_ticker(data, &[market]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker.clone(), channel.map(Value::from).unwrap_or(Value::Null)]);
@@ -2233,11 +2233,11 @@ impl Paradex {
         //         }
         //     }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -3116,12 +3116,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut __for_first_605: bool = true;
                     while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (subscribeHashes.len() as i64) } {
                     let mut subscribeHash: Value = subscribeHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
-                    if (self.safe_string_k(subscription.clone(), "id", &[]).as_str() == requestId.as_str()) {
+                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscribeHash.clone(), &[]).into_dict();
+                    if (self.safe_string_k(&subscription, "id", &[]).as_str() == requestId.as_str()) {
                         handled = true;
                         __ch.remove_subscription(&subscribeHash);
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
-                        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription, "messageHashes", &[Value::from(vec![subscribeHash])]).as_array().cloned().unwrap_or_default();
+                        let mut messageHashes: Vec<Value> = self.safe_list_k(&subscription, "messageHashes", &[Value::from(vec![subscribeHash])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
                             let mut __for_first_604: bool = true;

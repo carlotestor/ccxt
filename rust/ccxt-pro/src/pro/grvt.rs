@@ -699,8 +699,8 @@ impl Grvt {
         });
         let __ws_arg_3 = self.extend(params, &[Value::Map(request)]);
         let mut trades: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_3, Value::from(rawHashes), &[]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -1111,11 +1111,11 @@ impl Grvt {
 }));
         self.check_required_credentials(&[]);
         self.sign_in(&[]).await;
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut authenticated: Option<String> = self.safe_string_k(wsOptions, "token", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut authenticated: Option<String> = self.safe_string_k(&wsOptions, "token", &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
             let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]).as_str().map(str::to_owned);
             let mut cookieValue: Option<String> = self.safe_string_k(self.options.clone(), "AuthCookieValue", &[]).as_str().map(str::to_owned);
@@ -1532,12 +1532,12 @@ impl Grvt {
         //        "method": "subscribe"
         //    }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut error: crate::value::Dict = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut body: Value = json_stringify(&response);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-            let mut message: Option<String> = self.safe_string_k(error, "message", &[]).as_str().map(str::to_owned);
+            let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback));

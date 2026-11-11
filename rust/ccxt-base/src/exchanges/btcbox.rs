@@ -488,14 +488,14 @@ impl Btcbox {
 })]).as_map().cloned().unwrap_or_default();
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
             let mut fee: Value = (if (id.as_str() == Some("BTC")) { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
-            let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
+            let mut details: crate::value::Dict = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut tradeDetails: Value = self.safe_dict_k(details, "trade", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+            let mut tradeDetails: crate::value::Dict = self.safe_dict_k(&details, "trade", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -553,11 +553,11 @@ impl Btcbox {
 }));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(tradeDetails.clone(), "pricedecimal", &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&tradeDetails, "pricedecimal", &[])]), &[]));
         m.insert("amount".to_string(), Value::Null);
     m
 }));
-        m.insert("active".to_string(), Value::Bool(self.safe_string_k(tradeDetails, "enable", &[]).as_str() == Some("1")));
+        m.insert("active".to_string(), Value::Bool(self.safe_string_k(&tradeDetails, "enable", &[]).as_str() == Some("1")));
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), Value::Map(res));
     m

@@ -1267,8 +1267,8 @@ impl Gate {
             }
             if (cacheLength.as_f64() == waitAmount.as_f64()) {
                 // max limit is 100
-                let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-                let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
+                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
+                let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(limit), Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1296,8 +1296,8 @@ impl Gate {
 
     pub fn get_cache_index(&self, mut orderBook: Value, mut cache: Value) -> Value {
         let mut nonce: Value = self.safe_integer_k(orderBook, "nonce", &[]);
-        let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
-        let mut firstDeltaStart: Value = self.safe_integer_k(firstDelta, "U", &[]);
+        let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstDeltaStart: Value = self.safe_integer_k(&firstDelta, "U", &[]);
         if (nonce != Value::Null) && (firstDeltaStart != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) < firstDeltaStart.as_f64().unwrap_or(f64::NAN)) {
             return Value::Int(-1);
         }
@@ -1305,9 +1305,9 @@ impl Gate {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_320: bool = true;
             while { if !__for_first_320 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
-            let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
-            let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
-            let mut deltaEnd: Value = self.safe_integer_k(delta, "u", &[]);
+            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
+            let mut deltaStart: Value = self.safe_integer_k(&delta, "U", &[]);
+            let mut deltaEnd: Value = self.safe_integer_k(&delta, "u", &[]);
             if (nonce != Value::Null) && (deltaStart != Value::Null) && (deltaEnd != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= (match (&(deltaStart), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                 Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
                 return i;
@@ -1675,8 +1675,8 @@ impl Gate {
         }
         let mut url: Value = self.get_url_by_market(market);
         let mut trades: Value = self.subscribe_public_multiple(url, Value::from(messageHashes), marketIds, Value::from(channel), &[params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -2685,14 +2685,14 @@ impl Gate {
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (parsedOrders.len() as i64) } {
             let mut parsed: Value = parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             // inject order status
-            let mut info: Value = self.safe_dict_k(parsed.clone(), "info", &[]);
-            let mut event: Option<String> = self.safe_string_k(info.clone(), "event", &[]).as_str().map(str::to_owned);
+            let mut info: crate::value::Dict = self.safe_dict_k(parsed.clone(), "info", &[]).into_dict();
+            let mut event: Option<String> = self.safe_string_k(&info, "event", &[]).as_str().map(str::to_owned);
             if (event.as_deref() == Some("put")) || (event.as_deref() == Some("update")) {
                 add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("open".into()));
             }  else if (event.as_deref() == Some("finish")) {
                 let mut status: Option<String> = self.safe_string_k(parsed.clone(), "status", &[]).as_str().map(str::to_owned);
                 if (status.is_none()) {
-                    let mut left: Option<String> = self.safe_string_k(info, "left", &[]).as_str().map(str::to_owned);
+                    let mut left: Option<String> = self.safe_string_k(&info, "left", &[]).as_str().map(str::to_owned);
                     add_element_to_object(&mut parsed, &Value::Str("status".into()), (if crate::precise::Precise::stringEquals(&left.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
                 }
             }
@@ -2994,8 +2994,8 @@ impl Gate {
         //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut errs: Value = self.safe_dict_k(data, "errs", &[]);
+        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut errs: Value = self.safe_dict_k(&data, "errs", &[]);
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone()]);
         let mut code: Option<String> = self.safe_string2(error.clone(), Value::Str("code".into()), Value::Str("label".into()), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_n_opt(message.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
@@ -3278,9 +3278,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         if (requestId.is_some()) {
-            let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+            let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
             // use safeValue as result may be Array or an Object
-            let mut result: Value = self.safe_value_k(data, "result", &[]);
+            let mut result: Value = self.safe_value_k(&data, "result", &[]);
             let mut ack: bool = (match __pro_message.get("ack").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !ack {
                 client.resolve(&[result, requestId.map(Value::from).unwrap_or(Value::Null)]);

@@ -528,8 +528,8 @@ impl Bitstamp {
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut deltas: Value) -> Value {
         // we will consider it a fail
-        let mut firstElement: Value = self.safe_dict(deltas.clone(), Value::Int(0), &[]);
-        let mut firstElementNonce: Value = self.safe_integer_k(firstElement, "microtimestamp", &[]);
+        let mut firstElement: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstElementNonce: Value = self.safe_integer_k(&firstElement, "microtimestamp", &[]);
         if (firstElementNonce == Value::Null) {
             return Value::Int(-1);
         }
@@ -541,8 +541,8 @@ impl Bitstamp {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut delta: Value = self.safe_dict(deltas.clone(), i.clone(), &[]);
-            let mut deltaNonce: Value = self.safe_integer_k(delta, "microtimestamp", &[]);
+            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), i.clone(), &[]).into_dict();
+            let mut deltaNonce: Value = self.safe_integer_k(&delta, "microtimestamp", &[]);
             if (deltaNonce.as_f64() == nonce.as_f64()) {
                 return (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
@@ -1421,11 +1421,11 @@ impl Bitstamp {
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("bts:error")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
-            let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+            let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-            let mut code: Option<String> = self.safe_string_k(data, "code", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+            let mut code: Option<String> = self.safe_string_k(&data, "code", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         }
         return Value::Bool(true);

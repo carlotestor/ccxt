@@ -843,11 +843,11 @@ impl Bybit {
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut url: Value = self.get_url_by_market_type(&[symbolValue, Value::Bool(false), Value::Str("watchTicker".into()), params.clone()]).await;
         let mut paramsValue: Value = self.clean_params(params);
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTicker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut topic: String = self.safe_string_k(options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
+        })]).into_dict();
+        let mut topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         if !(market).spot && (topic != "tickers") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() only supports name tickers for contract markets".into()))));
         }
@@ -885,11 +885,11 @@ impl Bybit {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut url: Value = self.get_url_by_market_type(&[symbolsValue.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Bool(false), Value::Str("watchTickers".into()), params.clone()]).await;
         let mut paramsValue: Value = self.clean_params(params);
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTickers", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTickers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut topic: String = self.safe_string_k(options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
+        })]).into_dict();
+        let mut topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         let mut marketIds: Value = self.market_ids(&[symbolsValue.clone()]);
         let mut topics: Vec<Value> = Vec::new();
         {
@@ -943,11 +943,11 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsValue: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTickers", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTickers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut topic: String = self.safe_string_k(options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
+        })]).into_dict();
+        let mut topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut marketIds: Value = self.market_ids(&[symbolsValue.clone()]);
@@ -1136,11 +1136,11 @@ impl Bybit {
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
             symbol = self.safe_string_k(market, "symbol", &[]);
             // update the info in place
-            let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut rawTicker: Value = self.safe_dict_k(ticker, "info", &[Value::Map({
+            })]).into_dict();
+            let mut rawTicker: Value = self.safe_dict_k(&ticker, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1868,8 +1868,8 @@ impl Bybit {
         }
         }
         let mut trades: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -3010,11 +3010,11 @@ impl Bybit {
         }
         let mut orders: Value = self.orders.clone();
         let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(rawOrders.clone(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(rawOrders.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut category: Option<String> = self.safe_string_k(first, "category", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut category: Option<String> = self.safe_string_k(&first, "category", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = category.as_deref() == Some("spot");
         if !isSpot {
             rawOrders = self.safe_value_k(rawOrders.clone(), "result", &[rawOrders.clone()]);
@@ -3303,12 +3303,12 @@ impl Bybit {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_206: bool = true;
                 while { if !__for_first_206 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_206 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+                let mut result: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                account = self.safe_string_lower_k(result.clone(), "accountType", &[]);
-                rawBalances = self.array_concat(rawBalances.clone(), self.safe_list_k(result, "coin", &[Value::from(vec![])]));
+                })]).into_dict();
+                account = self.safe_string_lower_k(&result, "accountType", &[]);
+                rawBalances = self.array_concat(rawBalances.clone(), self.safe_list_k(&result, "coin", &[Value::from(vec![])]));
             }
             }
             info = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -3442,11 +3442,11 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_210: bool = true;
                 while { if !__for_first_210 { i += 1; } __for_first_210 = false; i < (subscriptionHashes.len() as i64) } {
-                let mut existing: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                let mut existing: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut recordedTopics: Vec<Value> = self.safe_list_k(existing, "topics", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                })]).into_dict();
+                let mut recordedTopics: Vec<Value> = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut recordedLength: f64 = ((recordedTopics.len() as i64) as f64);
                 {
                                         let mut j: Value = Value::Int(0);
@@ -3616,11 +3616,11 @@ impl Bybit {
             let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
             if (success != Value::Null) && (!(success.as_bool() == Some(true))) {
                 let mut ret_msg: String = (match __pro_message.get("ret_msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-                let mut request: Value = (match __pro_message.get("request").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+                let mut request: crate::value::Dict = (match __pro_message.get("request").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-                let mut op: Option<String> = self.safe_string_k_opt(request.clone(), "op", &[]);
+}) }).into_dict();
+                let mut op: Option<String> = self.safe_string_k_opt(&request, "op", &[]);
                 if (op.as_deref() == Some("auth")) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str("Authentication failed: ".into()), ret_msg)));
                 }  else {
@@ -3642,8 +3642,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if !(__ch.has_subscription(&messageHash)) {
                         continue;
                     }
-                    let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-                    let mut subId: Value = self.safe_string_k(subscription, "id", &[]);
+                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
+                    let mut subId: Value = self.safe_string_k(&subscription, "id", &[]);
                     if (reqId == subId) {
                         foundSubscription = true;
                         __ch.remove_subscription(&messageHash);

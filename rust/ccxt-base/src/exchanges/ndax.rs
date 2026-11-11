@@ -1975,13 +1975,13 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_998: bool = true;
             while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (response.len() as i64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ProductId", &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                account.insert("total".into(), self.safe_string_k(balance.clone(), "Amount", &[]));
-                account.insert("used".into(), self.safe_string_k(balance, "Hold", &[]));
+                account.insert("total".into(), self.safe_string_k(&balance, "Amount", &[]));
+                account.insert("used".into(), self.safe_string_k(&balance, "Hold", &[]));
                 if (code != Value::Null) {
                     result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
                 }
@@ -3350,7 +3350,7 @@ impl Ndax {
                 m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut withdrawTemplateTypesResponse: Value = self.private_get_get_withdraw_template_types(&[Value::Map(withdrawTemplateTypesRequest)]).await;
+        let mut withdrawTemplateTypesResponse: crate::value::Dict = self.private_get_get_withdraw_template_types(&[Value::Map(withdrawTemplateTypesRequest)]).await.into_dict();
         //
         //     {
         //         "result": true,
@@ -3363,7 +3363,7 @@ impl Ndax {
         //         ]
         //     }
         //
-        let mut templateTypes: Value = self.safe_list_k(withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
+        let mut templateTypes: Value = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
         let mut firstTemplateType: Value = self.safe_dict(templateTypes, Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
@@ -3378,7 +3378,7 @@ impl Ndax {
                 m.insert("AccountProviderId".to_string(), firstTemplateType.as_map().and_then(|__m| __m.get("AccountProviderId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut withdrawTemplateResponse: Value = self.private_get_get_withdraw_template(&[Value::Map(withdrawTemplateRequest)]).await;
+        let mut withdrawTemplateResponse: crate::value::Dict = self.private_get_get_withdraw_template(&[Value::Map(withdrawTemplateRequest)]).await.into_dict();
         //
         //     {
         //         "result": true,
@@ -3387,7 +3387,7 @@ impl Ndax {
         //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
-        let mut template: Option<String> = self.safe_string_k_opt(withdrawTemplateResponse, "Template", &[]);
+        let mut template: Option<String> = self.safe_string_k_opt(&withdrawTemplateResponse, "Template", &[]);
         if (template.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }

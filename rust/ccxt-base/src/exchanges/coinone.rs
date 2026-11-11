@@ -746,7 +746,7 @@ impl Coinone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v2_public_get_currencies(&[params]).await;
+        let mut response: crate::value::Dict = self.v2_public_get_currencies(&[params]).await.into_dict();
         //
         //     {
         //         "result": "success",
@@ -767,7 +767,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response, "currencies", &[Value::from(vec![])]);
+        let mut currencies: Value = self.safe_list_k(&response, "currencies", &[Value::from(vec![])]);
         return self.parse_currencies(currencies);
         Value::Null
         }).await?))
@@ -843,7 +843,7 @@ impl Coinone {
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
             m
         });
-        let mut response: Value = self.v2_public_get_ticker_new_quote_currency(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.v2_public_get_ticker_new_quote_currency(&[Value::Map(request)]).await.into_dict();
         //
         //     {
         //         "result": "success",
@@ -877,7 +877,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut tickers: Vec<Value> = self.safe_list_k(response, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: Vec<Value> = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -976,11 +976,11 @@ impl Coinone {
             let mut __for_first_571: bool = true;
             while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), currencyId.clone(), &[]).into_dict();
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "avail", &[]));
-            account.insert("total".into(), self.safe_string_k(balance, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "avail", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -1197,7 +1197,7 @@ impl Coinone {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_3]).await.into_dict();
         //
         //     {
         //         "result": "success",
@@ -1231,7 +1231,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "tickers", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]);
         let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1423,7 +1423,7 @@ impl Coinone {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(200)));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "result": "success",
@@ -1442,7 +1442,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "transactions", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]);
         return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1786,7 +1786,7 @@ impl Coinone {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v2_private_post_order_complete_orders(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.v2_private_post_order_complete_orders(&[__ws_arg_8]).await.into_dict();
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -1807,7 +1807,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut completeOrders: Value = self.safe_list_k(response, "completeOrders", &[Value::from(vec![])]);
+        let mut completeOrders: Value = self.safe_list_k(&response, "completeOrders", &[Value::from(vec![])]);
         return self.parse_trades(completeOrders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1884,7 +1884,7 @@ impl Coinone {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v2_private_post_account_deposit_address(&[params]).await;
+        let mut response: crate::value::Dict = self.v2_private_post_account_deposit_address(&[params]).await.into_dict();
         //
         //     {
         //         "result": "success",
@@ -1899,10 +1899,10 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut walletAddress: Value = self.safe_dict_k(response, "walletAddress", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut walletAddress: Value = self.safe_dict_k(&response, "walletAddress", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut keys: Vec<Value> = Value::Array(walletAddress.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

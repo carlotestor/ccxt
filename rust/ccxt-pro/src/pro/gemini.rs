@@ -376,8 +376,8 @@ impl Gemini {
     m
 }));
         let mut trades: Value = self.helper_for_watch_multiple_construct(Value::Str("trades".into()), &[symbols, params]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -934,10 +934,10 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_348: bool = true;
             while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (rawBidAskChanges.len() as i64) } {
-            let mut entry: Value = self.safe_dict(rawBidAskChanges.clone(), Value::Int(i), &[]);
-            let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut price: Option<f64> = self.safe_number_k(entry.clone(), "price", &[]).as_f64();
-            let mut sizeString: Option<String> = self.safe_string_k(entry, "remaining", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(rawBidAskChanges.clone(), Value::Int(i), &[]).into_dict();
+            let mut rawSide: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
+            let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
+            let mut sizeString: Option<String> = self.safe_string_k(&entry, "remaining", &[]).as_str().map(str::to_owned);
             if crate::precise::Precise::stringEq(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
@@ -1043,10 +1043,10 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_350: bool = true;
             while { if !__for_first_350 { i += 1; } __for_first_350 = false; i < (rawOrderBookChanges.len() as i64) } {
-            let mut entry: Value = self.safe_dict(rawOrderBookChanges.clone(), Value::Int(i), &[]);
-            let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
-            let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
-            let mut rawSide: Option<String> = self.safe_string_k(entry, "side", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(rawOrderBookChanges.clone(), Value::Int(i), &[]).into_dict();
+            let mut price: Value = self.safe_number_k(&entry, "price", &[]);
+            let mut size: Value = self.safe_number_k(&entry, "remaining", &[]);
+            let mut rawSide: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
             if (rawSide.as_deref() == Some("bid")) {
                 bids.store(price.clone(), size.clone());
             }  else {
@@ -1477,15 +1477,15 @@ impl Gemini {
         });
         // this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsSubOptions: Value = self.safe_dict_k(wsOptions, "options", &[Value::Map({
+        })]).into_dict();
+        let mut wsSubOptions: crate::value::Dict = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(wsSubOptions, "headers", &[Value::Map({
+        })]).into_dict();
+        let mut originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsSubOptions, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();

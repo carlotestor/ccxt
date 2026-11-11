@@ -675,7 +675,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await;
+        let mut orderbook: crate::value::Dict = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await.into_dict();
         // the full orderbook.json snapshot can contain dead orders - rows
         // published with a zero amount at their limit price, hours-stable and
         // sometimes crossing the real market. per the api docs the endpoint
@@ -683,8 +683,8 @@ impl Bit2c {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: Vec<Value> = self.safe_list_k(orderbook.clone(), "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawAsks: Vec<Value> = self.safe_list_k(orderbook, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawBids: Vec<Value> = self.safe_list_k(&orderbook, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: Vec<Value> = self.safe_list_k(&orderbook, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
@@ -884,7 +884,7 @@ impl Bit2c {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_balance(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_account_balance(&[params]).await.into_dict();
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -901,10 +901,10 @@ impl Bit2c {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(response, "Fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut fees: Value = self.safe_dict_k(&response, "Fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut keys: Vec<Value> = Value::Array(fees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1071,12 +1071,12 @@ impl Bit2c {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_order_my_orders(&[__ws_arg_8]).await;
-        let mut orders: Value = self.safe_dict(response, Value::from((market).id.clone()), &[Value::Map({
+        let mut orders: crate::value::Dict = self.safe_dict(response, Value::from((market).id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut asks: Value = self.safe_list_k(orders.clone(), "ask", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut asks: Value = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(asks, bids), &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))

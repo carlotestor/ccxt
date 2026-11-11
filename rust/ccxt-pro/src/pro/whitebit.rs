@@ -1336,14 +1336,14 @@ impl Whitebit {
                     let mut __for_first_695: bool = true;
                     while { if !__for_first_695 { j += 1; } __for_first_695 = false; j < (keys.len() as i64) } {
                     let mut currencyId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut rawBalance: Value = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
+                    let mut rawBalance: crate::value::Dict = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
-                    })]);
+                    })]).into_dict();
                     let mut code: Value = self.safe_currency_code(currencyId, &[]);
                     let mut account: Value = self.account();
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(rawBalance.clone(), "available", &[])); }
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(rawBalance, "freeze", &[])); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&rawBalance, "available", &[])); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&rawBalance, "freeze", &[])); }
                     if (code != Value::Null) {
                         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                     }
@@ -1524,13 +1524,13 @@ impl Whitebit {
         // waiter and can never park the error in client.rejections
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut authToken: Value = self.parent.v4_private_post_profile_websocket_token(&[]).await;
+            let mut authToken: crate::value::Dict = self.parent.v4_private_post_profile_websocket_token(&[]).await.into_dict();
             //
             //   {
             //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
             //   }
             //
-            let mut token: Option<String> = self.safe_string_k(authToken, "websocket_token", &[]).as_str().map(str::to_owned);
+            let mut token: Option<String> = self.safe_string_k(&authToken, "websocket_token", &[]).as_str().map(str::to_owned);
             if (token.is_none()) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty websocket_token".into()))));
             }

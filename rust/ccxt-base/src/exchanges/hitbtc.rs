@@ -1804,10 +1804,10 @@ impl Hitbtc {
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        let mut firstAddress: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
-        let mut address: Option<String> = self.safe_string_k(firstAddress.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut currencyId: Option<String> = self.safe_string_k(firstAddress.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut tag: Option<String> = self.safe_string_k(firstAddress, "payment_id", &[]).as_str().map(str::to_owned);
+        let mut firstAddress: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[]).into_dict();
+        let mut address: Option<String> = self.safe_string_k(&firstAddress, "address", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(&firstAddress, "currency", &[]).as_str().map(str::to_owned);
+        let mut tag: Option<String> = self.safe_string_k(&firstAddress, "payment_id", &[]).as_str().map(str::to_owned);
         let mut parsedCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1832,12 +1832,12 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_745: bool = true;
             while { if !__for_first_745 { i += 1; } __for_first_745 = false; i < (response.len() as i64) } {
-            let mut entry: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
-            account.insert("used".into(), self.safe_string_k(entry, "reserved", &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
+            account.insert("used".into(), self.safe_string_k(&entry, "reserved", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -2263,11 +2263,11 @@ impl Hitbtc {
             takerOrMaker = Value::Str("taker".into()); // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString.is_some()) {
-            let mut info: Value = self.safe_dict_k(marketResolved.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(marketResolved.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut feeCurrency: Option<String> = self.safe_string_k(info, "fee_currency", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut feeCurrency: Option<String> = self.safe_string_k(&info, "fee_currency", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrency.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2397,20 +2397,20 @@ impl Hitbtc {
         let mut updated: Value = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut native: Value = self.safe_dict_k(transaction.clone(), "native", &[Value::Map({
+        let mut native: crate::value::Dict = self.safe_dict_k(transaction.clone(), "native", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut currencyId: Option<String> = self.safe_string_k(native.clone(), "currency", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut currencyId: Option<String> = self.safe_string_k(&native, "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut txhash: Option<String> = self.safe_string_k(native.clone(), "hash", &[]).as_str().map(str::to_owned);
-        let mut address: Option<String> = self.safe_string_k_opt(native.clone(), "address", &[]);
+        let mut txhash: Option<String> = self.safe_string_k(&native, "hash", &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string_k_opt(&native, "address", &[]);
         let mut addressTo: Value = address.clone().map(Value::from).unwrap_or(Value::Null);
-        let mut tag: Option<String> = self.safe_string_k_opt(native.clone(), "payment_id", &[]);
+        let mut tag: Option<String> = self.safe_string_k_opt(&native, "payment_id", &[]);
         let mut tagTo: Value = tag.clone().map(Value::from).unwrap_or(Value::Null);
-        let mut sender: Value = self.safe_list_k(native.clone(), "senders", &[]);
+        let mut sender: Value = self.safe_list_k(&native, "senders", &[]);
         let mut addressFrom: Option<String> = self.safe_string(sender, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = self.safe_number_k(native.clone(), "amount", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&native, "amount", &[]).as_f64();
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
         let mut internal: Value = Value::Bool(subType.as_deref() == Some("OFFCHAIN"));
         // https://api.hitbtc.com/#check-if-offchain-is-available
@@ -2421,7 +2421,7 @@ impl Hitbtc {
                 m.insert("rate".to_string(), Value::Null);
             m
         });
-        let mut feeCost: Option<f64> = self.safe_number_k(native, "fee", &[]).as_f64();
+        let mut feeCost: Option<f64> = self.safe_number_k(&native, "fee", &[]).as_f64();
         if (feeCost.is_some()) {
             fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
             fee.insert("cost".into(), Value::from(feeCost));
@@ -4001,11 +4001,11 @@ impl Hitbtc {
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         }
-        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut includeFee: bool = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]).into_dict();
+        let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if includeFee {
             request.insert("include_fee".into(), Value::Bool(true));
         }
@@ -4792,7 +4792,7 @@ impl Hitbtc {
         //     }
         //
         let mut currencies: Value = self.safe_list_k(data.clone(), "currencies", &[Value::from(vec![])]);
-        let mut currencyInfo: Value = self.safe_dict(currencies, Value::Int(0), &[]);
+        let mut currencyInfo: crate::value::Dict = self.safe_dict(currencies, Value::Int(0), &[]).into_dict();
         let mut datetime: Option<String> = self.safe_string_k(data.clone(), "updated_at", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4802,7 +4802,7 @@ impl Hitbtc {
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), self.safe_string_k(currencyInfo, "code", &[]));
+        m.insert("code".to_string(), self.safe_string_k(&currencyInfo, "code", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5070,8 +5070,8 @@ impl Hitbtc {
                         let mut j: i64 = 0;
             let mut __for_first_758: bool = true;
             while { if !__for_first_758 { j += 1; } __for_first_758 = false; j < (networks.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(networks.clone().into(), Value::Int(j), &[]);
-            let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network", &[]).as_str().map(str::to_owned);
+            let mut networkEntry: crate::value::Dict = self.safe_dict(networks.clone().into(), Value::Int(j), &[]).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut rawNetworkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCodeUpper: Value = (if (rawNetworkCode != Value::Null) { (if let Some(__s) = rawNetworkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
@@ -5079,8 +5079,8 @@ impl Hitbtc {
             if (networkCodeUpper != Value::Null) {
                 networkCode = self.safe_string(self.networkAliases.clone(), networkCodeUpper.clone(), &[networkCodeUpper.clone()]);
             }
-            let mut withdrawFee: Option<f64> = self.safe_number_k(networkEntry.clone(), "payout_fee", &[]).as_f64();
-            let mut isDefault: bool = self.safe_bool_k(networkEntry, "default", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "payout_fee", &[]).as_f64();
+            let mut isDefault: bool = self.safe_bool_k(&networkEntry, "default", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fee".to_string(), Value::from(withdrawFee));

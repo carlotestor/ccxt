@@ -570,8 +570,8 @@ impl Toobit {
         let __ws_arg_0 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_multiple(Value::Str(format!("{}{}", __ws_arg_0, Value::Str("/quote/ws/v1".into())).into()), messageHashes.clone(), &[__ws_arg_1, messageHashes.clone()]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -777,11 +777,11 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_deref().unwrap_or_default()));
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut timeframeId: Option<String> = self.safe_string_k(params, "klineType", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut timeframeId: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -1123,7 +1123,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
+            let mut entry: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into())).into());
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]);
@@ -1133,9 +1133,9 @@ impl Toobit {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderBook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "t", &[]).as_i64();
-            let mut bids: Value = self.safe_list_k(entry.clone(), "b", &[Value::from(vec![])]);
-            let mut asks: Value = self.safe_list_k(entry, "a", &[Value::from(vec![])]);
+            let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
+            let mut bids: Value = self.safe_list_k(&entry, "b", &[Value::from(vec![])]);
+            let mut asks: Value = self.safe_list_k(&entry, "a", &[Value::from(vec![])]);
             self.handle_deltas(orderBook.book_field("asks"), asks);
             self.handle_deltas(orderBook.book_field("bids"), bids);
             orderBook.set_book_meta("timestamp", Value::from(timestamp));
@@ -1868,8 +1868,8 @@ impl Toobit {
             // that the trailing suspension point below would panic on
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: Value = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await;
-                let mut listenKey: Option<String> = self.safe_string_k_opt(response, "listenKey", &[]);
+                let mut response: crate::value::Dict = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await.into_dict();
+                let mut listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
@@ -1910,19 +1910,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut listenKey: Option<String> = self.safe_string_k(options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut listenKey: Option<String> = self.safe_string_k(&options, "listenKey", &[]).as_str().map(str::to_owned);
         if (listenKey.is_none()) {
             return Value::Null;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut response: Value = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await;
+            let mut response: crate::value::Dict = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await.into_dict();
             self.set_ws_options(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("listenKey".to_string(), self.safe_string_k(response, "listenKey", &[]));
+                    m.insert("listenKey".to_string(), self.safe_string_k(&response, "listenKey", &[]));
                     m.insert("lastAuthenticatedTime".to_string(), self.milliseconds());
                 m
             }));
