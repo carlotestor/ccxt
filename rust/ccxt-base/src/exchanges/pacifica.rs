@@ -2224,8 +2224,8 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchMyTrades".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchMyTrades".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultLimit: i64 = 100; // Default max limit
@@ -2574,12 +2574,12 @@ if _try_result.is_err() {
         if (amount != Value::Null) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
             sigPayload.insert("amount".into(), self.amount_to_precision(symbol, amount));
         }
-        let mut paramsClientOrderId: Value = (if (operationType == "create_stop_order") { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params });
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsClientOrderId.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsClientOrderId, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             sigPayload.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut request: Value = self.post_action_request(Value::from(operationType.clone()), &mut sigPayload, paramsClientOrderId);
+        let mut request: Value = self.post_action_request(Value::from(operationType.clone()), &mut sigPayload, &paramsClientOrderId);
         return Value::from(vec![request, Value::from(operationType)]);
 
     Value::Null
@@ -3570,12 +3570,12 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultLimit: i64 = 100; // max default 100
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next_cursor".into()), Value::Str("cursor".into()), Value::Null, Value::from(defaultLimit)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("next_cursor".into()), Value::Str("cursor".into()), Value::Null, Value::from(defaultLimit)]).await;
         }
-        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchOrders".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchOrders".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
@@ -4530,8 +4530,8 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchLedger".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchLedger".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultLimit: i64 = 100; // Default max limit
@@ -4815,8 +4815,8 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchFundingHistory".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchFundingHistory".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5021,8 +5021,8 @@ if _try_result.is_err() {
         });
         let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createSubAccount".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut agentAddress: Value = agentAddressparamsAgentAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAgentAddress: Value = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), paramsAgentAddress).as_array().cloned().unwrap_or_default();
+        let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), &paramsAgentAddress).as_array().cloned().unwrap_or_default();
         let mut originAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = originAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (originAddress == Value::Null) {
@@ -5266,7 +5266,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn handle_origin_and_single_address(&self, mut methodName: Value, mut params: Value) -> Value {
+    pub fn handle_origin_and_single_address(&self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let addressparamsAccountVariable: Vec<Value> = self.handle_param_string2(params, Value::Str("account".into()), Value::Str("address".into()), &[Value::Null]).as_array().cloned().unwrap_or_default();
         let mut address: Option<String> = addressparamsAccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccount: Value = addressparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null); // this is for get endpoints that accept account or address
@@ -5454,7 +5455,8 @@ if _try_result.is_err() {
         return signatureBase58.as_str().map(str::to_owned);
 }
 
-    pub fn post_action_request(&self, mut operationType: Value, sigPayload: &mut indexmap::IndexMap<String, Value>, mut params: Value) -> Value {
+    pub fn post_action_request(&self, mut operationType: Value, sigPayload: &mut indexmap::IndexMap<String, Value>, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         self.check_required_credentials(&[]); // check credentials every post action
         if (operationType.as_str() == Some("undefined")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".into())).into()), operationType).into()), Value::Str(" postActionRequest() requires \"operationType\"".into()))));
@@ -5490,8 +5492,8 @@ if _try_result.is_err() {
         });
         let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsExpiryWindow, Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut agentAddress: Value = agentAddressparamsAgentAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAgentAddress: Value = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut originAddress: Value = self.handle_origin_and_single_address(Value::Str("postActionRequest".into()), paramsAgentAddress).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut originAddress: Value = self.handle_origin_and_single_address(Value::Str("postActionRequest".into()), &paramsAgentAddress).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (originAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".into())).into()), operationType).into()), Value::Str(" postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }

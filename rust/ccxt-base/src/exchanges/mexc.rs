@@ -5241,7 +5241,8 @@ impl Mexc {
         return self.safe_string(Value::Map(statuses), orderType.clone(), &[orderType.clone()]).as_str().map(str::to_owned);
 }
 
-    pub async fn fetch_account_helper(&mut self, mut type_var: Value, mut params: Value) -> Value {
+    pub async fn fetch_account_helper(&mut self, mut type_var: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         if (type_var.as_str() == Some("spot")) {
             return self.spot_private_get_account(&[params.clone()]).await;
         }  else if (type_var.as_str() == Some("swap")) {
@@ -5279,11 +5280,11 @@ impl Mexc {
         // TODO: is the below endpoints suitable for fetchAccounts?
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchAccounts".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypequeryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.fetch_account_helper(marketType, query).await;
+        let mut response: Value = self.fetch_account_helper(marketType, &query).await;
         let mut data: Vec<Value> = self.safe_list_k(response, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {

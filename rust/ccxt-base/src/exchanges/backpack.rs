@@ -1749,7 +1749,8 @@ impl Backpack {
  * @param {object} [market] resolved market
  * @returns {Array} stock flag and remaining parameters
  */
-    pub fn handle_stock_params(&self, mut methodName: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    pub fn handle_stock_params(&self, mut methodName: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut defaultStock: bool = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName.clone(), Value::Str("stock".into()), &[Value::Bool(defaultStock)]).as_array().cloned().unwrap_or_default();
@@ -2175,7 +2176,8 @@ impl Backpack {
  * @param {object} [market] resolved market
  * @returns {object} market data parameters
  */
-    pub fn stock_data_request(&self, mut methodName: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    pub fn stock_data_request(&self, mut methodName: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut selection: Value = self.handle_stock_params(methodName.clone(), params, &[market.clone()]);
         let mut stock: bool = self.safe_bool(selection.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2351,13 +2353,13 @@ impl Backpack {
             m
         });
         if needsExternalRfqTickers || (source.as_deref() == Some("External")) {
-            let mut externalParams: Value = self.extend(query, &[Value::Map({
+            let mut externalParams: crate::value::Dict = self.extend(query, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stock".to_string(), Value::Bool(true));
                     m.insert("source".to_string(), Value::Str("External".into()));
                 m
-            })]);
-            externalResponse = self.public_get_api_v1_tickers(&[self.stock_data_request(Value::Str("fetchTickers".into()), externalParams, &[])]).await;
+            })]).into_dict();
+            externalResponse = self.public_get_api_v1_tickers(&[self.stock_data_request(Value::Str("fetchTickers".into()), &externalParams, &[])]).await;
             externalResponseById = self.index_by(externalResponse, Value::Str("symbol".into()));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -5046,7 +5048,8 @@ impl Backpack {
     Value::Null
 }
 
-    pub fn generate_batch_payload(&self, mut params: Value, mut ts: Value, mut recvWindow: Value, mut instruction: Value) -> Value {
+    pub fn generate_batch_payload(&self, params: impl Into<crate::Value>, mut ts: Value, mut recvWindow: Value, mut instruction: Value) -> Value {
+        let mut params: Value = params.into();
         let mut payload: String = "".to_string();
         let mut paramsLength: Value = get_array_length(&params);
         {

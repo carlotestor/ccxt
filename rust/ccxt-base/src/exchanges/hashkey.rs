@@ -4313,7 +4313,8 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn check_type_param(&self, mut methodName: Value, mut params: Value) {
+    pub fn check_type_param(&self, mut methodName: Value, params: impl Into<crate::Value>) {
+        let mut params: Value = params.into();
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
@@ -4326,7 +4327,8 @@ impl Hashkey {
         }
 }
 
-    pub fn handle_trigger_option_and_params(&self, mut params: Value, mut methodName: Value, optional_args: &[Value]) -> Value {
+    pub fn handle_trigger_option_and_params(&self, params: impl Into<crate::Value>, mut methodName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut isTrigger: Value = defaultValue;
         let isTriggerStopparamsStopVariable: Vec<Value> = self.handle_option_bool_and_params2(params, methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();

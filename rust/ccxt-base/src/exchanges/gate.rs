@@ -4289,7 +4289,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn get_margin_mode(&self, mut trigger: Value, mut params: Value) -> Value {
+    pub fn get_margin_mode(&self, mut trigger: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         /*
          * @ignore
          * @method

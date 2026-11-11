@@ -4636,7 +4636,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn is_futures_method(&self, mut methodName: Value, mut params: Value) -> Value {
+    pub fn is_futures_method(&self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         //
@@ -6216,7 +6217,8 @@ impl Kucoin {
         }).await?))
     }
 
-    pub fn check_trigger_prices(&self, mut params: Value) {
+    pub fn check_trigger_prices(&self, params: impl Into<crate::Value>) {
+        let mut params: Value = params.into();
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params, "takeProfitPrice", &[]).as_f64();

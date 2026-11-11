@@ -3221,7 +3221,8 @@ impl Lbank {
         }).await?))
     }
 
-    pub fn get_network_code_for_currency(&self, mut currencyCode: Value, mut params: Value) -> Option<String> {
+    pub fn get_network_code_for_currency(&self, mut currencyCode: Value, params: impl Into<crate::Value>) -> Option<String> {
+        let mut params: Value = params.into();
         let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
         let mut defaultNetwork: Option<String> = self.safe_string_upper(&defaultNetworks, currencyCode, &[]).as_str().map(str::to_owned);
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({

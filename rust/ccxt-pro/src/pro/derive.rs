@@ -1445,8 +1445,8 @@ impl Derive {
         }
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
+        let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.balance.clone() == Value::Null) {
@@ -1532,8 +1532,8 @@ impl Derive {
         let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
+        let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.positions.clone() == Value::Null) {

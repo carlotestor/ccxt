@@ -2326,7 +2326,8 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn parse_bids_asks_custom(&self, mut tickers: Value, mut symbols: Value, mut params: Value) -> Value {
+    pub fn parse_bids_asks_custom(&self, mut tickers: Value, mut symbols: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let __tickers_empty = Vec::new();
         let tickers = tickers.as_array().unwrap_or(&__tickers_empty);
         let mut results: Vec<Value> = Vec::new();

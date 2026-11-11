@@ -2736,7 +2736,8 @@ impl Deepcoin {
     Value::Null
 }
 
-    pub fn handle_type_post_only_and_time_in_force(&self, mut type_var: Value, mut params: Value) -> Value {
+    pub fn handle_type_post_only_and_time_in_force(&self, mut type_var: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("post_only")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

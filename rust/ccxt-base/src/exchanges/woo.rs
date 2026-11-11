@@ -4204,7 +4204,8 @@ impl Woo {
         }).await?))
     }
 
-    pub fn get_dedicated_network_id(&self, mut currency: Value, mut params: Value) -> Value {
+    pub fn get_dedicated_network_id(&self, mut currency: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let __currency_empty = indexmap::IndexMap::new();
         let currency = currency.as_map().unwrap_or(&__currency_empty);
         let networkCodeRawparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();

@@ -2276,7 +2276,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn get_sub_account_id(&self, mut params: Value) -> Option<String> {
+    pub fn get_sub_account_id(&self, params: impl Into<crate::Value>) -> Option<String> {
+        let mut params: Value = params.into();
         let mut subAccountId: Option<String> = self.safe_string_opt(self.handle_option_and_params(params, Value::Str("getSubAccountId".into()), Value::Str("accountId".into()), &[]), Value::Int(0), &[]);
         if (subAccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page".into()))));
@@ -3472,13 +3473,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.load_markets_and_sign_in().await;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub_account_id".to_string(), self.get_sub_account_id(paramsPaginate.clone()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("sub_account_id".to_string(), self.get_sub_account_id(&paramsPaginate).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut market: Value = Value::Null;
@@ -3493,7 +3494,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (since != Value::Null) {
             request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
+        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_17 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
@@ -3907,13 +3908,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.load_markets_and_sign_in().await;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(1000)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub_account_id".to_string(), self.get_sub_account_id(paramsPaginate.clone()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("sub_account_id".to_string(), self.get_sub_account_id(&paramsPaginate).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut market: Value = Value::Null;
@@ -3928,7 +3929,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (since != Value::Null) {
             request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
         }
-        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
+        let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_22 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);

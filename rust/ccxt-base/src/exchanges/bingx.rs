@@ -2448,7 +2448,8 @@ impl Bingx {
     Value::Null
 }
 
-    pub async fn fetch_inverse_swap_markets(&mut self, mut params: Value) -> Value {
+    pub async fn fetch_inverse_swap_markets(&mut self, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let mut response: crate::value::Dict = self.cswap_v1_public_get_market_contracts(&[params]).await.into_dict();
         //
         //     {
@@ -8203,7 +8204,8 @@ impl Bingx {
         }).await?))
     }
 
-    pub fn parse_params(&self, mut params: Value) -> Value {
+    pub fn parse_params(&self, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let mut copied: Value = self.clone_value(params.clone());
         let mut sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
@@ -8917,7 +8919,8 @@ impl Bingx {
     Value::Null
 }
 
-    pub fn custom_encode(&self, mut params: Value) -> Option<String> {
+    pub fn custom_encode(&self, params: impl Into<crate::Value>) -> Option<String> {
+        let mut params: Value = params.into();
         let mut sortedParams: Value = self.keysort(params, &[]);
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);

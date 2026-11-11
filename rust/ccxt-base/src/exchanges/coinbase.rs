@@ -6893,7 +6893,8 @@ if _try_result.is_err() {
  * @param {string} methodName the name of the calling method
  * @param {object} params the parameters passed to the calling method
  */
-    pub fn check_intx_portfolio_param(&self, mut methodName: Value, mut params: Value) {
+    pub fn check_intx_portfolio_param(&self, mut methodName: Value, params: impl Into<crate::Value>) {
+        let mut params: Value = params.into();
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut portfolio: Option<String> = (match params.get("portfolio") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

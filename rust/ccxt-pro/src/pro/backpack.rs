@@ -378,7 +378,8 @@ impl Backpack {
  * @param {object} params exchange-specific parameters
  * @returns {object} local parameters with the validated stock selector
  */
-    pub async fn prepare_ws_stock_params(&mut self, mut methodName: Value, mut params: Value) -> Value {
+    pub async fn prepare_ws_stock_params(&mut self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName, Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut stock: Value = stockqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -407,7 +408,8 @@ impl Backpack {
  * @param {object} params local parameters
  * @returns {string} venue market id
  */
-    pub fn ws_venue_market_id(&self, mut methodName: Value, mut market: Value, mut params: Value) -> Option<String> {
+    pub fn ws_venue_market_id(&self, mut methodName: Value, mut market: Value, params: impl Into<crate::Value>) -> Option<String> {
+        let mut params: Value = params.into();
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a market".into()))));
         }
@@ -480,13 +482,13 @@ impl Backpack {
             if (source.is_none()) {
                 source = (if (isRfq && !(bidAsk.as_bool() == Some(true))) { Some("External".to_string()) } else { Some("Venue".to_string()) });
             }
-            let mut requestParams: Value = self.extend(marketParams, &[Value::Map({
+            let mut requestParams: crate::value::Dict = self.extend(marketParams, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stock".to_string(), Value::Bool(marketStock));
                     m.insert("source".to_string(), source.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            })]);
-            let mut request: Value = self.parent.stock_data_request(methodName.clone(), requestParams, &[(market).raw.clone()]);
+            })]).into_dict();
+            let mut request: Value = self.parent.stock_data_request(methodName.clone(), &requestParams, &[(market).raw.clone()]);
             let mut tickerSymbol: String = self.safe_string_k(request.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut topic: String = format!("{}{}", Value::Str("ticker.".into()), tickerSymbol);
             if (channel.is_some()) {

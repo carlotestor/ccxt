@@ -1687,8 +1687,8 @@ impl Lighter {
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let type_varparamsTypeVariable: Vec<Value> = self.handle_param_string(params, Value::Str("type".into()), &[Value::from(defaultType)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let accountIndexparamsAccountIndexVariable: Vec<Value> = self.parent.handle_account_index(paramsType, Value::Str("watchBalance".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]).await.as_array().cloned().unwrap_or_default();
+        let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let accountIndexparamsAccountIndexVariable: Vec<Value> = self.parent.handle_account_index(&paramsType, Value::Str("watchBalance".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountIndex: Value = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);

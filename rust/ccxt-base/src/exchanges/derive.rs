@@ -3687,8 +3687,8 @@ impl Derive {
             return self.filter_by_symbol_since_limit(allOrders, &[symbol.clone(), since.clone(), limit.clone()]);
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchCanceledAndClosedOrders".into()), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchCanceledAndClosedOrders".into()), &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3861,8 +3861,8 @@ impl Derive {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchOpenOrders".into()), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchOpenOrders".into()), &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4281,11 +4281,11 @@ impl Derive {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4588,11 +4588,11 @@ impl Derive {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".into()), &paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5109,16 +5109,16 @@ impl Derive {
         if (newSubaccountManager != 0) && (maxFeeUsd == "0") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("new_subaccount_manager".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("new_subaccount_manager".into())]), &[]).into_dict();
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
-        let mut signatureExpiry: Value = self.safe_integer_k(paramsOmitted.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRANSFER_MODULE_ADDRESS: String = "0x01259207A40925b794C8ac320456F7F6c8FE2636".to_string(); // shared across mainnet and testnet in v3
         let mut transferModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![toId.clone(), Value::from(newSubaccountManager),
             assetAddress.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), self.convert_to_big_int(self.parse_units(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeUsd.clone()),
             &[]).map(Value::from).unwrap_or(Value::Null))])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
-        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address(Value::Str("transfer".into()), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address(Value::Str("transfer".into()), &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, fromId.clone(), self.convert_to_big_int(nonce.clone()), Value::from(TRANSFER_MODULE_ADDRESS), transferModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -5549,7 +5549,7 @@ impl Derive {
         let mut forceBatch: bool = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("force_batch".into()), Value::Str("forceBatch".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut defaultMaxFee: Value = (if forceBatch { Value::Str("10".into()) } else { Value::Str("1".into()) });
         let mut maxFeeUsd: Value = self.safe_string2(paramsDeriveSubaccountId.clone(), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[defaultMaxFee]);
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), Value::Str("force_batch".into()), Value::Str("forceBatch".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), Value::Str("force_batch".into()), Value::Str("forceBatch".into())]), &[]).into_dict();
         // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
         let mut amountString: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
@@ -5557,13 +5557,13 @@ impl Derive {
         let mut scale: Value = pad_end(&one, &(match (&(decimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Str("0".into()));
         let mut amountScaled: Value = crate::precise::Precise::stringMul(&amountString, &scale);
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
-        let mut signatureExpiry: Value = self.safe_integer_k(paramsOmitted.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut WITHDRAWAL_MODULE_ADDRESS: String = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083".to_string(); // shared across mainnet and testnet in v3
         let mut withdrawalModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![assetAddress.clone().map(Value::from).unwrap_or(Value::Null),
             self.convert_to_big_int(self.parse_units(maxFeeUsd.clone(), &[]).map(Value::from).unwrap_or(Value::Null)), address.clone(), self.convert_to_big_int(amountScaled), Value::Bool(forceBatch)])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
-        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address(Value::Str("withdraw".into()), paramsOmitted).as_array().cloned().unwrap_or_default();
+        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address(Value::Str("withdraw".into()), &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, subaccountId.clone(), self.convert_to_big_int(nonce.clone()), Value::from(WITHDRAWAL_MODULE_ADDRESS), withdrawalModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -5855,7 +5855,8 @@ impl Derive {
         return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn handle_derive_subaccount_id(&self, mut methodName: Value, mut params: Value) -> Value {
+    pub fn handle_derive_subaccount_id(&self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let derivesubAccountIdparamsSubaccountIdVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), Value::Str("subaccount_id".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut derivesubAccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -5877,7 +5878,8 @@ impl Derive {
     Value::Null
 }
 
-    pub fn handle_derive_wallet_address(&self, mut methodName: Value, mut params: Value) -> Value {
+    pub fn handle_derive_wallet_address(&self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("deriveWalletAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null);
