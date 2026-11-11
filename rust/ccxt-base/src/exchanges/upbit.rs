@@ -3073,7 +3073,7 @@ impl Upbit {
 }));
         let tagResolvedparamsTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagResolved: Option<String> = tagResolvedparamsTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsTag: Value = tagResolvedparamsTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTag: crate::value::Dict = tagResolvedparamsTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3087,11 +3087,11 @@ impl Upbit {
         if (code.as_str() != Some("KRW")) {
             self.check_address(&[address.clone(), code, tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
             // 2023-05-23 Change to required parameters for digital assets
-            let mut network: Option<String> = self.safe_string_upper2(paramsTag.clone(), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
+            let mut network: Option<String> = self.safe_string_upper2(Value::from(&paramsTag), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
             if (network.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network argument".into()))));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTag, Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
             request.insert("net_type".into(), network.map(Value::from).unwrap_or(Value::Null));
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             request.insert("address".into(), address);
@@ -3101,7 +3101,7 @@ impl Upbit {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_withdraws_coin(&[__ws_arg_23]).await;
         }  else {
-            let __ws_arg_24 = self.extend(Value::Map(request), &[paramsTag]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsTag]);
             response = self.private_post_withdraws_krw(&[__ws_arg_24]).await;
         }
         return self.parse_transaction(response, &[]);

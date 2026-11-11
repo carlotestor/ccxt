@@ -3112,17 +3112,17 @@ impl Woo {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
-        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4891,12 +4891,12 @@ impl Woo {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4904,8 +4904,8 @@ impl Woo {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("extra".into(), tagWithdrawTag.clone());
+        if (tagWithdrawTag.is_some()) {
+            request.insert("extra".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut network: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         if (network.is_none()) {
@@ -4936,7 +4936,7 @@ impl Woo {
                 m.insert("currency".to_string(), code);
                 m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
-                m.insert("tag".to_string(), tagWithdrawTag);
+                m.insert("tag".to_string(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
                 m.insert("network".to_string(), __ws_arg_32);
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
                 m.insert("status".to_string(), Value::Str("pending".into()));

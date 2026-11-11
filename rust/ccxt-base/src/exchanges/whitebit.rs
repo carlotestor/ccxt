@@ -3743,14 +3743,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.v4_private_post_collateral_account_balance(&[paramsMarketType.clone()]).await;
+            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await;
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchBalance")).cloned().unwrap_or(Value::Null), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
-            let mut account: Option<String> = self.safe_string2(paramsMarketType.clone(), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]);
+            let mut account: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]);
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
                 response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await;
             }  else {

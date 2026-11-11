@@ -1615,10 +1615,10 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let mut walletResponse: crate::value::Dict = self.private_get_public_api_wallet_v1_user_assets(&[paramsMarketType.clone()]).await.into_dict();
+            let mut walletResponse: crate::value::Dict = self.private_get_public_api_wallet_v1_user_assets(&[Value::from(&paramsMarketType)]).await.into_dict();
             //
             //     {
             //         "data": [
@@ -1639,7 +1639,7 @@ impl Btse {
             //
             response = self.safe_list_k(&walletResponse, "data", &[Value::from(vec![])]);
         }  else {
-            let walletparamsWalletVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("fetchBalance".into()), Value::Str("wallet".into()), &[Value::Str("CROSS@".into())]).as_array().cloned().unwrap_or_default();
+            let walletparamsWalletVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchBalance".into()), Value::Str("wallet".into()), &[Value::Str("CROSS@".into())]).as_array().cloned().unwrap_or_default();
             let mut wallet: Value = walletparamsWalletVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsWallet: crate::value::Dict = walletparamsWalletVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({

@@ -1744,8 +1744,8 @@ impl Hyperliquid {
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled(Value::Str("fetchBalance".into()), &[userAddress.clone().map(Value::from).unwrap_or(Value::Null), shouldRefresh, paramsMarginMode]).await.as_array().cloned().unwrap_or_default();
         let mut isUnifiedEnabled: Value = isUnifiedEnabledparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut dex: Option<String> = self.safe_string_k(paramsValue.clone(), "dex", &[]).as_str().map(str::to_owned);
+        let mut paramsValue: crate::value::Dict = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut dex: Option<String> = self.safe_string_k(&paramsValue, "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1753,7 +1753,7 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
         //
         //     {

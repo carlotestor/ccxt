@@ -1748,12 +1748,12 @@ impl Deribit {
         });
         let fetchAllMarketsparamsFetchAllMarketsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("fetchAllMarkets".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchAllMarkets: bool = fetchAllMarketsparamsFetchAllMarketsVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsFetchAllMarkets: Value = fetchAllMarketsparamsFetchAllMarketsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsFetchAllMarkets: crate::value::Dict = fetchAllMarketsparamsFetchAllMarketsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if fetchAllMarkets {
-            let mut instrumentsResponse: Value = self.public_get_get_instruments(&[paramsFetchAllMarkets.clone()]).await;
+            let mut instrumentsResponse: Value = self.public_get_get_instruments(&[Value::from(&paramsFetchAllMarkets)]).await;
             instrumentsResponses.push(instrumentsResponse.clone());
         }  else {
-            let mut currenciesResponse: crate::value::Dict = self.public_get_get_currencies(&[paramsFetchAllMarkets.clone()]).await.into_dict();
+            let mut currenciesResponse: crate::value::Dict = self.public_get_get_currencies(&[Value::from(&paramsFetchAllMarkets)]).await.into_dict();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1789,7 +1789,7 @@ impl Deribit {
                         m.insert("currency".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
                     m
                 });
-                let __ws_arg_0 = self.extend(Value::Map(request), &[paramsFetchAllMarkets.clone()]);
+                let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsFetchAllMarkets]);
                 let mut instrumentsResponse: Value = self.public_get_get_instruments(&[__ws_arg_0]).await;
                 //
                 //     {

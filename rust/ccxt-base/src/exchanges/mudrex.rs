@@ -1032,9 +1032,9 @@ impl Mudrex {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut requested: Option<String> = self.safe_string_n(paramsMarketType.clone(), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).into_dict();
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut requested: Option<String> = self.safe_string_n(Value::from(&paramsMarketType), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

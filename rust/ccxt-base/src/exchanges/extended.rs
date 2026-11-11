@@ -2835,11 +2835,11 @@ impl Extended {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code.clone());
-        let mut chainId: String = self.safe_string_upper2(paramsWithdrawTag.clone(), Value::Str("chainId".into()), Value::Str("network".into()), &[Value::Str("STRK".into())]).as_str().unwrap_or("STRK").to_string();
+        let mut chainId: String = self.safe_string_upper2(Value::from(&paramsWithdrawTag), Value::Str("chainId".into()), Value::Str("network".into()), &[Value::Str("STRK".into())]).as_str().unwrap_or("STRK").to_string();
         if (chainId != "STRK") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only supports Starknet withdrawals with chainId STRK".into()))));
         }
@@ -2849,7 +2849,7 @@ impl Extended {
         let mut account: Value = self.fetch_extended_account(&[]).await;
         let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
         let mut accountId: Option<String> = self.safe_string_k(account.clone(), "accountId", &[]).as_str().map(str::to_owned);
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), currency.clone(), account, &[paramsWithdrawTag.clone()]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.clone(), amountString.clone(), currency.clone(), account, &[Value::from(&paramsWithdrawTag)]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -2859,7 +2859,7 @@ impl Extended {
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()),
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()),
             Value::Str("resolution".into())]), &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;

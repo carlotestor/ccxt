@@ -1353,9 +1353,9 @@ impl Coinmate {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1379,8 +1379,8 @@ impl Coinmate {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("destinationTag".into(), tagWithdrawTag.clone());
+        if (tagWithdrawTag.is_some()) {
+            request.insert("destinationTag".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Option<crate::value::Dict> = None;
@@ -1424,7 +1424,7 @@ impl Coinmate {
             transaction.insert("amount".into(), amount);
             transaction.insert("currency".into(), code);
             transaction.insert("address".into(), address);
-            transaction.insert("tag".into(), tagWithdrawTag);
+            transaction.insert("tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             transaction.insert("type".into(), Value::Str("withdrawal".into()));
             transaction.insert("status".into(), Value::Str("pending".into()));
         }

@@ -1978,7 +1978,7 @@ impl Krakenfutures {
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(typeValue.as_str() == Some("market")), Value::Bool(typeValue.as_str() == Some("post")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             typeValue = Value::Str("post".into());
         }  else if (timeInForce.as_deref() == Some("ioc")) {
@@ -1995,19 +1995,19 @@ impl Krakenfutures {
                 m.insert("size".to_string(), self.amount_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), amount));
             m
         });
-        let mut clientOrderId: Option<String> = self.safe_string2(paramsPostOnly.clone(), Value::Str("clientOrderId".into()), Value::Str("cliOrdId".into()), &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("clientOrderId".into()), Value::Str("cliOrdId".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("cliOrdId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut triggerPrice: Option<String> = self.safe_string2(paramsPostOnly.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        let mut triggerSignal: String = self.safe_string_k(paramsPostOnly.clone(), "triggerSignal", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
-        let mut reduceOnlyParam: bool = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut triggerSignal: String = self.safe_string_k(&paramsPostOnly, "triggerSignal", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
+        let mut reduceOnlyParam: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut reduceOnly: bool = reduceOnlyParam == true;
         if isStopLossOrTakeProfitTrigger || isTriggerOrder {
             request.insert("triggerSignal".into(), Value::from(triggerSignal));
@@ -2031,7 +2031,7 @@ impl Krakenfutures {
         request.insert("orderType".into(), typeValue.clone());
         let mut priceValue: Value = self.parse_number(price, &[]); // some callers pass null instead of undefined, normalize it
         let mut isLimitOrder: bool = (typeValue.as_str() == Some("lmt")) || (typeValue.as_str() == Some("post")) || (typeValue.as_str() == Some("ioc"));
-        let mut limitPriceParam: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "limitPrice", &[]).as_str().map(str::to_owned); // the venue's own field name, forwarded as-is by this.extend below
+        let mut limitPriceParam: Option<String> = self.safe_string_k(&paramsPostOnly, "limitPrice", &[]).as_str().map(str::to_owned); // the venue's own field name, forwarded as-is by this.extend below
         if isLimitOrder && (priceValue == Value::Null) && (limitPriceParam.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder () requires a price argument for ".into())).into()), typeValue).into()), Value::Str(" orders".into()))));
         }
@@ -2039,7 +2039,7 @@ impl Krakenfutures {
         if (priceValue != Value::Null) && !isMarketOrder {
             request.insert("limitPrice".into(), self.price_to_precision(symbolValue.map(Value::from).unwrap_or(Value::Null), priceValue));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null

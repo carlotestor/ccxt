@@ -2836,7 +2836,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = marketTypeRawparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrderRequest".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2849,12 +2849,12 @@ impl Digifinex {
             marketIdRequest = "instrument_id".to_string();
         }
         request.insert(marketIdRequest, Value::from((market).id.clone()));
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[paramsMarginMode.clone()]);
+        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Value = Value::Null;
         if swap {
-            let mut reduceOnly: bool = self.safe_bool_k(paramsMarginMode.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut timeInForce: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+            let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut timeInForce: Option<String> = self.safe_string_k(&paramsMarginMode, "timeInForce", &[]).as_str().map(str::to_owned);
             let mut orderType: Option<i64> = None;
             if (side.as_str() == Some("buy")) {
                 let mut requestType: Value = (if reduceOnly { Value::Int(4) } else { Value::Int(1) });
@@ -2880,7 +2880,7 @@ impl Digifinex {
             }
             request.insert("order_type".into(), Value::from(orderType));
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
-            paramsRequest = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
+            paramsRequest = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
             postOnlyParsed = (if (postOnly).as_bool() == Some(true) { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw }));
@@ -2893,7 +2893,7 @@ impl Digifinex {
             request.insert("type".into(), Value::Str(format!("{}{}", side, suffix).into()));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let mut quantity: Value = Value::Null;
-            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut isMarketBuy: bool = matches!(&isMarketOrder, Value::Bool(true)) && (side.as_str() == Some("buy"));

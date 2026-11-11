@@ -5021,9 +5021,9 @@ if _try_result.is_err() {
         let mut agentAddress: Option<String> = agentAddressparamsAgentAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), &paramsAgentAddress).as_array().cloned().unwrap_or_default();
-        let mut originAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut originAddress: Option<String> = originAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = originAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (originAddress == Value::Null) {
+        if (originAddress.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }
         if (agentAddress.is_some()) {
@@ -5056,7 +5056,7 @@ if _try_result.is_err() {
         });
         let mut subSigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), originAddress.clone());
+                m.insert("account".to_string(), originAddress.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut subaccountSignature: Value = self.sign_message(Value::Map(subaccountSignatureHeader), Value::Map(subSigPayload), subAccountPrivateKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
@@ -5073,7 +5073,7 @@ if _try_result.is_err() {
             m
         });
         let mut main_signature: Value = self.sign_message(Value::Map(mainSignatureHeader), Value::Map(mainSigPayload), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature); }

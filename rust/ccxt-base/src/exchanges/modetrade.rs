@@ -4035,8 +4035,8 @@ impl Modetrade {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_28 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v1_private_get_trades(&[__ws_arg_28]).await.into_dict();
         //
         // {
@@ -4069,7 +4069,7 @@ impl Modetrade {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, &[market, since, limit, paramsUntil]);
+        return self.parse_trades(&trades, &[market, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }

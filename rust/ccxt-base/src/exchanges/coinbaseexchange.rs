@@ -2026,9 +2026,9 @@ impl Coinbaseexchange {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(300)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(300)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
@@ -2042,8 +2042,8 @@ impl Coinbaseexchange {
         }  else {
             request.insert("granularity".into(), timeframe.clone());
         }
-        let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut until: Value = self.safe_value2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         let mut cappedLimit: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit });

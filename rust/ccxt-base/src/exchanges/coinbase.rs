@@ -1226,16 +1226,16 @@ impl Coinbase {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchAccounts".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("next_starting_after".into()), Value::Str("starting_after".into()), Value::Null, Value::Int(100)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("next_starting_after".into()), Value::Str("starting_after".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), Value::Int(100));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsPaginate.clone()]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts(&[__ws_arg_0]).await.into_dict();
         //
         //     {
@@ -1301,7 +1301,7 @@ impl Coinbase {
     m
 })]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
         }
-        return self.parse_accounts(&data, &[paramsPaginate]);
+        return self.parse_accounts(&data, &[Value::Dict(paramsPaginate)]);
 
     Value::Null
 }
@@ -1316,16 +1316,16 @@ impl Coinbase {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchAccounts".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), Value::Int(250));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsPaginate.clone()]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_accounts(&[__ws_arg_2]).await.into_dict();
         //
         //     {
@@ -1372,7 +1372,7 @@ impl Coinbase {
     m
 })]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
         }
-        return self.parse_accounts(accounts, &[paramsPaginate]);
+        return self.parse_accounts(accounts, &[Value::Dict(paramsPaginate)]);
 
     Value::Null
 }
@@ -1670,19 +1670,19 @@ impl Coinbase {
 }));
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[code, limit.clone(), params]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("v2PrivateGetAccountsAccountIdTransactions")) {
-            let __ws_arg_7 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_7 = self.extend(request.clone(), &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await.into_opt_dict();
         }  else if (method.as_str() == Some("v2PrivateGetAccountsAccountIdWithdrawals")) {
-            let __ws_arg_8 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_8 = self.extend(request.clone(), &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
-            let __ws_arg_9 = self.extend(request, &[paramsValue]);
+            let __ws_arg_9 = self.extend(request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_deposits(&[__ws_arg_9]).await.into_opt_dict();
         }
         return self.parse_transactions(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[Value::Null, since, limit]);
@@ -2363,12 +2363,12 @@ impl Coinbase {
 }));
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUsePrivate: Value = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut spotUnresolvedPromises: Vec<Value> = Vec::new();
         if usePrivate {
-            spotUnresolvedPromises.push(self.v3_private_get_brokerage_products(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_private_get_brokerage_products(&[Value::from(&paramsUsePrivate)]).await);
         }  else {
-            spotUnresolvedPromises.push(self.v3_public_get_brokerage_market_products(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_public_get_brokerage_market_products(&[Value::from(&paramsUsePrivate)]).await);
         }
         //
         //    {
@@ -2416,7 +2416,7 @@ impl Coinbase {
         //    }
         //
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
-            spotUnresolvedPromises.push(self.v3_private_get_brokerage_transaction_summary(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_private_get_brokerage_transaction_summary(&[Value::from(&paramsUsePrivate)]).await);
         }
         //
         //    {
@@ -3896,11 +3896,11 @@ if _try_result.is_err() {
         }
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[code, limit.clone(), paramsPaginate]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
-        let __ws_arg_33 = self.extend(request, &[paramsValue]);
+        let __ws_arg_33 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_33]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut ledger: Value = self.parse_ledger(data, &[currency, since, limit]);
@@ -5496,9 +5496,9 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), paramsPaginate.clone(), Value::Int(299)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), Value::from(&paramsPaginate), Value::Int(299)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5507,8 +5507,8 @@ if _try_result.is_err() {
                 m.insert("granularity".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut until: Value = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Value = (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut sinceString: Value = Value::Null;
@@ -5918,7 +5918,7 @@ if _try_result.is_err() {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -5932,8 +5932,8 @@ if _try_result.is_err() {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut accountId: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]);
+        let mut accountId: Option<String> = self.safe_string2(Value::from(&paramsWithdrawTag), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]);
         if (accountId.is_none()) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires an account_id (or accountId) parameter OR a currency code argument".into()))));
@@ -6038,8 +6038,8 @@ if _try_result.is_err() {
         let mut currency: Value = self.currency(code);
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[self.safe_string_k(currency, "code", &[]), Value::Null, params]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_55 = self.extend(request, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_55 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_55]).await.into_dict();
         //
         //    {

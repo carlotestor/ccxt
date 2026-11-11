@@ -1061,9 +1061,9 @@ impl Gate {
         let mut interval: Value = Value::from(intervalDefault);
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[interval]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Value = self.get_type_by_market((market).raw.clone());
-        let mut limit: Value = self.safe_integer_k(paramsInterval.clone(), "limit", &[]);
+        let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
         if (limit == Value::Null) {
             limit = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
             if (messageType.as_str() == Some("options")) {
@@ -1090,7 +1090,7 @@ impl Gate {
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook".into()), Value::Str(":".into())).into()), symbolValue);
-        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), payload, Value::from(channel), &[paramsInterval]).await;
+        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), payload, Value::from(channel), &[Value::Dict(paramsInterval)]).await;
         Value::Null
         }).await?))
     }

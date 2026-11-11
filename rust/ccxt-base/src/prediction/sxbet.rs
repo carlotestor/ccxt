@@ -1256,9 +1256,9 @@ impl Sxbet {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the base token address from /metadata/obv3".into()))));
         }
         let spenderparamsSpenderVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut spender: Value = spenderparamsSpenderVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut spender: Option<String> = spenderparamsSpenderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSpender: crate::value::Dict = spenderparamsSpenderVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (spender == Value::Null) {
+        if (spender.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
         let mut chains: crate::value::Dict = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
@@ -1328,7 +1328,7 @@ impl Sxbet {
         let mut messageData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner.clone());
-                m.insert("spender".to_string(), spender.clone());
+                m.insert("spender".to_string(), spender.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("value".to_string(), value.clone());
                 m.insert("nonce".to_string(), nonce);
                 m.insert("deadline".to_string(), Value::from(deadline));
@@ -1340,7 +1340,7 @@ impl Sxbet {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner);
-                m.insert("spender".to_string(), spender);
+                m.insert("spender".to_string(), spender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("tokenAddress".to_string(), tokenAddress);
                 m.insert("value".to_string(), value.clone());
                 m.insert("deadline".to_string(), self.number_to_string(Value::from(deadline)));
@@ -1456,12 +1456,12 @@ impl Sxbet {
             defaultTif = "GTC".to_string();
         }
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
-        let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = timeInForceparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
-        if (type_var.as_str() == Some("market")) && (timeInForce.as_str() == Some("GTC")) {
+        if (type_var.as_str() == Some("market")) && (timeInForce.as_deref() == Some("GTC")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders cannot be GTC - use type 'limit' for a resting order".into()))));
         }
         let mut maker: Value = self.walletAddress.clone();
@@ -1535,7 +1535,7 @@ impl Sxbet {
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("baseToken".to_string(), baseToken.map(Value::from).unwrap_or(Value::Null));
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne);
-                m.insert("timeInForce".to_string(), timeInForce.clone());
+                m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("orderSignature".to_string(), orderSignature);
             m
         };
@@ -1628,7 +1628,7 @@ impl Sxbet {
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.parse_number(roundedProbability, &[]));
         m.insert("amount".to_string(), amount);

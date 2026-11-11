@@ -4526,12 +4526,12 @@ impl Mexc {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             }
-            let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default();
+            let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut response: Value = Value::Null;
@@ -4547,8 +4547,8 @@ impl Mexc {
             }
             return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(paramsMarketType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut swapParams: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+            let mut swapParams: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
             }
@@ -4706,7 +4706,7 @@ impl Mexc {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut data: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
@@ -4727,16 +4727,16 @@ impl Mexc {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
-                let __ws_arg_31 = self.extend(Value::Map(requestInner.clone()), &[query.clone()]);
+                let __ws_arg_31 = self.extend(Value::Map(requestInner.clone()), &[&query]);
                 data = self.spot_private_delete_margin_order(&[__ws_arg_31]).await;
             }  else {
-                let __ws_arg_32 = self.extend(Value::Map(requestInner), &[query.clone()]);
+                let __ws_arg_32 = self.extend(Value::Map(requestInner), &[&query]);
                 data = self.spot_private_delete_order(&[__ws_arg_32]).await;
             }
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(query.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&query), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut method: Value = self.safe_string_k(self.options.clone(), "cancelOrder", &[Value::Str("contractPrivatePostOrderCancel".into())]); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
-            method = self.safe_string_k(query, "method", &[method.clone()]);
+            method = self.safe_string_k(&query, "method", &[method.clone()]);
             if (trigger == Some(true)) {
                 method = Value::Str("contractPrivatePostPlanorderCancel".into());
             }
@@ -4879,14 +4879,14 @@ impl Mexc {
         });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
-                self.spot_private_delete_order_all(&[paramsMarketType.clone()]).await;
+                self.spot_private_delete_order_all(&[Value::from(&paramsMarketType)]).await;
                 return Value::from(vec![]);
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
-            let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
             return self.parse_orders(response.clone(), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         }  else {
@@ -4896,16 +4896,16 @@ impl Mexc {
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let mut method: Value = self.safe_string_k(self.options.clone(), "cancelAllOrders", &[Value::Str("contractPrivatePostOrderCancelAll".into())]);
-            method = self.safe_string_k(paramsMarketType.clone(), "method", &[method.clone()]);
+            method = self.safe_string_k(&paramsMarketType, "method", &[method.clone()]);
             let mut response: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             if (method.as_str() == Some("contractPrivatePostOrderCancelAll")) {
-                let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+                let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
                 response = self.contract_private_post_order_cancel_all(&[__ws_arg_34]).await;
             }  else if (method.as_str() == Some("contractPrivatePostPlanorderCancelAll")) {
-                let __ws_arg_35 = self.extend(Value::Map(request), &[paramsMarketType]);
+                let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 response = self.contract_private_post_planorder_cancel_all(&[__ws_arg_35]).await;
             }
             //
@@ -5734,7 +5734,7 @@ impl Mexc {
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut query: Value = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut trades: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("spot")) {
             if (symbol == Value::Null) {
@@ -5742,11 +5742,11 @@ impl Mexc {
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             request.insert("orderId".into(), id.clone());
-            let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&query]);
             trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
         }  else {
             request.insert("order_id".into(), id);
-            let __ws_arg_43 = self.extend(Value::Map(request), &[query.clone()]);
+            let __ws_arg_43 = self.extend(Value::Map(request), &[&query]);
             let mut response: crate::value::Dict = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_43]).await.into_dict();
             //
             //     {
@@ -5773,7 +5773,7 @@ impl Mexc {
             //
             trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, query]);
+        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, Value::Dict(query)]);
         Value::Null
         }).await?))
     }

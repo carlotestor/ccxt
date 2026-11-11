@@ -4885,7 +4885,7 @@ impl Okx {
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
@@ -4893,14 +4893,14 @@ impl Okx {
         });
         if (marketType.as_deref() == Some("option")) {
             let mut defaultUnderlying: String = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".into())]).as_str().unwrap_or("BTC-USD").to_string();
-            let mut currencyId: Value = self.safe_string2(paramsMarketType.clone(), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]);
+            let mut currencyId: Value = self.safe_string2(Value::from(&paramsMarketType), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]);
             if (currencyId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an underlying uly or marketId parameter for options markets".into()))));
             }  else {
                 request.insert("uly".into(), currencyId);
             }
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsMarketType]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.public_get_market_tickers(&[__ws_arg_16]).await.into_dict();
         //
         //     {
@@ -5012,7 +5012,7 @@ impl Okx {
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMarkPrices".into()), &[market, params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
@@ -5020,14 +5020,14 @@ impl Okx {
         });
         if (marketType.as_deref() == Some("option")) {
             let mut defaultUnderlying: String = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".into())]).as_str().unwrap_or("BTC-USD").to_string();
-            let mut currencyId: Value = self.safe_string2(paramsMarketType.clone(), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]);
+            let mut currencyId: Value = self.safe_string2(Value::from(&paramsMarketType), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]);
             if (currencyId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrices() requires an underlying uly or marketId parameter for options markets".into()))));
             }  else {
                 request.insert("uly".into(), currencyId);
             }
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsMarketType]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.public_get_public_mark_price(&[__ws_arg_18]).await.into_dict();
         let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers, &[symbolsNormalized]);
@@ -5932,9 +5932,9 @@ impl Okx {
                     // quote_ccy: sz refers to units of quote currency
                     let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
                     let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
-                    let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
-                    let mut notional: Value = self.safe_number2(paramsRequiresPrice.clone(), Value::Str("cost".into()), Value::Str("sz".into()), &[]);
-                    orderParams = self.omit(paramsRequiresPrice, Value::from(vec![Value::Str("cost".into()), Value::Str("sz".into())]), &[]);
+                    let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut notional: Value = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("sz".into()), &[]);
+                    orderParams = self.omit(&paramsRequiresPrice, Value::from(vec![Value::Str("cost".into()), Value::Str("sz".into())]), &[]);
                     if createMarketBuyOrderRequiresPrice {
                         if (price != Value::Null) {
                             if (notional == Value::Null) {
@@ -7503,9 +7503,9 @@ impl Okx {
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7528,10 +7528,10 @@ impl Okx {
     m
 })]);
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersPending".into())]).as_str().unwrap_or("privateGetTradeOrdersPending").to_string();
-        let mut method: Option<String> = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut ordType: Option<String> = self.safe_string_k_opt(paramsPaginate.clone(), "ordType", &[]);
-        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut trailing: bool = self.safe_bool_k(paramsPaginate.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut method: Option<String> = self.safe_string_k(&paramsPaginate, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
+        let mut ordType: Option<String> = self.safe_string_k_opt(&paramsPaginate, "ordType", &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trailing: bool = self.safe_bool_k(&paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if trailing || isTrigger || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             method = Some("privateGetTradeOrdersAlgoPending".to_string());
@@ -7541,7 +7541,7 @@ impl Okx {
         }  else if isTrigger && (ordType.is_none()) {
             request.insert("ordType".into(), Value::Str("trigger".into()));
         }
-        let mut query: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -7892,9 +7892,9 @@ impl Okx {
         let mut maxLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7907,7 +7907,7 @@ impl Okx {
         }
         let mut type_var: Value = Value::Null;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), paramsPaginate.clone()]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone(), Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
@@ -7921,10 +7921,10 @@ impl Okx {
     m
 })]);
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]).as_str().unwrap_or("privateGetTradeOrdersHistory").to_string();
-        let mut method: Option<String> = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut ordType: Option<String> = self.safe_string_k_opt(paramsPaginate.clone(), "ordType", &[]);
-        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut trailing: bool = self.safe_bool_k(paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut method: Option<String> = self.safe_string_k(&paramsPaginate, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
+        let mut ordType: Option<String> = self.safe_string_k_opt(&paramsPaginate, "ordType", &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trailing: bool = self.safe_bool_k(&paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if trailing || (trigger == Some(true)) || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             request.insert("state".into(), Value::Str("effective".into()));
@@ -8111,12 +8111,12 @@ impl Okx {
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         std::sync::Arc::make_mut(&mut requestUntil).insert("instType".into(), self.convert_to_instrument_type(type_var).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) && (since == Value::Null) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone()); // default 100, max 100
         }
-        let __ws_arg_47 = self.extend(requestUntil, &[query.clone()]);
+        let __ws_arg_47 = self.extend(requestUntil, &[&query]);
         let mut response: crate::value::Dict = self.private_get_trade_fills_history(&[__ws_arg_47]).await.into_dict();
         //
         //     {
@@ -8144,7 +8144,7 @@ impl Okx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, &[market, since, limit, query]);
+        return self.parse_trades(&data, &[market, since, limit, Value::Dict(query)]);
         Value::Null
         }).await?))
     }
@@ -8796,8 +8796,8 @@ impl Okx {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_54 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_54 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_54]).await.into_dict();
         //
         //     {
@@ -8838,7 +8838,7 @@ impl Okx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit, paramsUntil]);
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }
@@ -8936,8 +8936,8 @@ impl Okx {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_56 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_56 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_56]).await.into_dict();
         //
         //     {
@@ -8970,7 +8970,7 @@ impl Okx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit, paramsUntil]);
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }
@@ -10553,20 +10553,20 @@ impl Okx {
         // cross as default marginMode
         let mut defaultMarginMode: String = self.safe_string_k(params.clone(), "mgnMode", &[Value::Str("cross".into())]).as_str().unwrap_or("cross").to_string();
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::from(defaultMarginMode)]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
+        if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), leverage);
-                m.insert("mgnMode".to_string(), marginMode.clone());
+                m.insert("mgnMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut posSide: String = self.safe_string_k(&paramsMarginMode, "posSide", &[Value::Str("net".into())]).as_str().unwrap_or("net").to_string();
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             if (posSide != "long") && (posSide != "short") && (posSide != "net") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"".into()))));
             }

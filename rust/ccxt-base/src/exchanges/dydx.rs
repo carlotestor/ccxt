@@ -2059,14 +2059,14 @@ impl Dydx {
         let mut subaccountId: i64 = 0;
         let subaccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subaccountId)]).as_array().cloned().unwrap_or_default();
         let mut subaccountIdOption: Value = subaccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountId: Value = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut triggerPrice: Option<String> = self.safe_string2(paramsSubAccountId.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut stopLossPrice: Option<String> = self.safe_string_k(paramsSubAccountId.clone(), "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k(paramsSubAccountId.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut paramsSubAccountId: crate::value::Dict = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut triggerPrice: Option<String> = self.safe_string2(Value::from(&paramsSubAccountId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(&paramsSubAccountId, "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(&paramsSubAccountId, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsSubAccountId.clone(), "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[paramsSubAccountId.clone()]).as_bool() == Some(true);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsSubAccountId, "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
+        let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[Value::from(&paramsSubAccountId)]).as_bool() == Some(true);
         let mut amountStr: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
@@ -2125,12 +2125,12 @@ impl Dydx {
             }
             conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
         }
-        let mut latestBlockHeight: Value = self.safe_integer_k(paramsSubAccountId.clone(), "latestBlockHeight", &[]);
-        let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId.clone(), "goodTillBlock", &[]);
+        let mut latestBlockHeight: Value = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]);
+        let mut goodTillBlock: Value = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]);
         let mut goodTillBlockTime: Value = Value::Null;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
-        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
+        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (orderFlag == Some(0)) {

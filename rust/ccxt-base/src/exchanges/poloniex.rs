@@ -1967,9 +1967,9 @@ impl Poloniex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let mut responseRaw: crate::value::Dict = self.swap_public_get_v3_market_tickers(&[__ws_arg_2]).await.into_dict();
             //
             //    {
@@ -2000,7 +2000,7 @@ impl Poloniex {
             let mut data: Value = self.safe_list_k(&responseRaw, "data", &[]);
             return self.parse_tickers(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
-        let mut response: Value = self.public_get_markets_ticker24h(&[paramsMarketType]).await;
+        let mut response: Value = self.public_get_markets_ticker24h(&[Value::Dict(paramsMarketType)]).await;
         return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2731,7 +2731,7 @@ impl Poloniex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
             if (marketType.as_deref() == Some("spot")) {
                 request.insert("limit".into(), crate::runtime::Math::max(&limit, &Value::Int(2000)));
@@ -2739,8 +2739,8 @@ impl Poloniex {
                 request.insert("limit".into(), crate::runtime::Math::max(&limit, &Value::Int(100)));
             }
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_deref() != Some("spot")) {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3397,9 +3397,9 @@ impl Poloniex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut clientOrderIds: Value = self.safe_list2(paramsMarketType.clone(), Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into()), &[]);
-        let mut query: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into())]), &[]).into_dict();
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut clientOrderIds: Value = self.safe_list2(Value::from(&paramsMarketType), Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3481,9 +3481,9 @@ impl Poloniex {
         let mut response: Value = Value::from(vec![]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
-            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             let mut raw: crate::value::Dict = self.swap_private_delete_v3_trade_all_orders(&[__ws_arg_22]).await.into_dict();
             //
             //    {
@@ -3502,8 +3502,8 @@ impl Poloniex {
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
             return self.parse_orders(response.clone(), &[market.clone()]);
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if (isTrigger == Some(true)) {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_smartorders(&[__ws_arg_23]).await;
@@ -3554,12 +3554,12 @@ impl Poloniex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() is not supported for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets yet".into()))));
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3750,9 +3750,9 @@ impl Poloniex {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() != Some("spot")) {
-            let mut responseRaw: crate::value::Dict = self.swap_private_get_v3_account_balance(&[paramsMarketType.clone()]).await.into_dict();
+            let mut responseRaw: crate::value::Dict = self.swap_private_get_v3_account_balance(&[Value::from(&paramsMarketType)]).await.into_dict();
             //
             //    {
             //        "code": "200",
@@ -3801,7 +3801,7 @@ impl Poloniex {
                 m.insert("accountType".to_string(), Value::Str("SPOT".into()));
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsMarketType]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: Value = self.private_get_accounts_balances(&[__ws_arg_28]).await;
         return self.parse_balance_list(response);
         Value::Null

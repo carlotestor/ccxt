@@ -2513,25 +2513,25 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isUnifiedAccount: bool = self.safe_bool2(paramsSubType.clone(), Value::Str("isUnifiedAccount".into()), Value::Str("unified".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(paramsSubType, Value::from(vec![Value::Str("isUnifiedAccount".into()), Value::Str("unified".into())]), &[]);
-        let mut paramsRequest: Value = (if (type_var.as_str() != Some("spot")) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("currency".into()), Value::Str("symbol".into()), Value::Str("margin".into())]), &[]) } else { paramsOmitted.clone() });
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut isUnifiedAccount: bool = self.safe_bool2(Value::from(&paramsSubType), Value::Str("isUnifiedAccount".into()), Value::Str("unified".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: Value = self.omit(&paramsSubType, Value::from(vec![Value::Str("isUnifiedAccount".into()), Value::Str("unified".into())]), &[]);
+        let mut paramsRequest: Value = (if (type_var.as_deref() != Some("spot")) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("currency".into()), Value::Str("symbol".into()), Value::Str("margin".into())]), &[]) } else { paramsOmitted.clone() });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
         let mut marginMode: Option<String> = None;
-        let mut linear: bool = subType.as_str() == Some("linear");
-        let mut swap: bool = type_var.as_str() == Some("swap");
-        let mut future: bool = type_var.as_str() == Some("future");
+        let mut linear: bool = subType.as_deref() == Some("linear");
+        let mut swap: bool = type_var.as_deref() == Some("swap");
+        let mut future: bool = type_var.as_deref() == Some("future");
         let mut isV5Linear: bool = linear && (swap || future);
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             let mut mode: Value = self.safe_string2(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("mode".into()), &[Value::Str("2".into())]);
             mode = self.safe_string_k(paramsOmitted.clone(), "mode", &[mode.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("accounts.update".into()), Value::Str("#".into())).into()), mode).into());
@@ -2554,7 +2554,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
             let mut prefix: String = "accounts".to_string();
             messageHash = Value::from(prefix.clone());
-            if (subType.as_str() == Some("linear")) {
+            if (subType.as_deref() == Some("linear")) {
                 if isUnifiedAccount {
                     // usdt contracts account
                     prefix = "accounts_unify".to_string();
@@ -2586,7 +2586,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         }
                     }
                 }
-            }  else if (type_var.as_str() == Some("future")) {
+            }  else if (type_var.as_deref() == Some("future")) {
                 // inverse futures account
                 if (currencyCode != Value::Null) {
                     messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(currencyCode, "id", &[Value::Str("".into())])).into())).into());
@@ -2608,13 +2608,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut subscriptionParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), type_var.clone());
-                m.insert("subType".to_string(), subType.clone());
+                m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("margin".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("isV5".to_string(), Value::Bool(isV5Linear));
             m
         });
-        return self.subscribe_private(channel, messageHash, type_var, subType, &[paramsRequest, Value::Map(subscriptionParams)]).await;
+        return self.subscribe_private(channel, messageHash, type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[paramsRequest, Value::Map(subscriptionParams)]).await;
         Value::Null
         }).await?))
     }

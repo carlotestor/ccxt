@@ -2151,12 +2151,12 @@ impl Weex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() supports contract markets only".into()))));
         }
         let priceTypeparamsPriceTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchMarkPrice".into()), Value::Str("priceType".into()), &[Value::Str("MARK".into())]).as_array().cloned().unwrap_or_default();
-        let mut priceType: Value = priceTypeparamsPriceTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut priceType: Option<String> = priceTypeparamsPriceTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPriceType: crate::value::Dict = priceTypeparamsPriceTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // the endpoint defaults to INDEX
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("priceType".to_string(), priceType.clone());
+                m.insert("priceType".to_string(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPriceType]);
@@ -2173,7 +2173,7 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[response]);
-        if (priceType.as_str() == Some("INDEX")) {
+        if (priceType.as_deref() == Some("INDEX")) {
             { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("indexPrice".into(), __be_tmp); } }
         }  else {
             { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("markPrice".into(), __be_tmp); } }
@@ -4842,9 +4842,9 @@ impl Weex {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(100)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4865,12 +4865,12 @@ impl Weex {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate.clone(), &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
         let mut hasSince: bool = since != Value::Null;
-        let mut until: Option<i64> = self.safe_integer2(paramsPaginate, Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer2(Value::Dict(paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
         let mut hasUntil: bool = until.is_some();
         if hasSince && !hasUntil {
             std::sync::Arc::make_mut(&mut requestUntil).insert("endTime".into(), self.milliseconds());

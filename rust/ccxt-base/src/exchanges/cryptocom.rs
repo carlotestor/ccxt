@@ -2413,13 +2413,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsValueVariable: Vec<Value> = self.custom_handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsValue: Value = marginModeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = marginModeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             request.insert("spot_margin".into(), Value::Str("MARGIN".into()));
         }  else if (marketType.as_deref() == Some("spot")) {
             request.insert("spot_margin".into(), Value::Str("SPOT".into()));
         }
-        let mut timeInForce: Option<String> = self.safe_string_upper2(paramsValue.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper2(Value::from(&paramsValue), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         if (timeInForce.is_some()) {
             if (timeInForce.as_deref() == Some("GTC")) {
                 request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
@@ -2431,14 +2431,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut postOnly: bool = self.safe_bool_k(paramsValue.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k(&paramsValue, "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if postOnly || (timeInForce.as_deref() == Some("PO")) {
             request.insert("exec_inst".into(), Value::from(vec![Value::Str("POST_ONLY".into())]));
             request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_n(paramsValue.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("ref_price".into())]), &[]).as_str().map(str::to_owned);
-        let mut stopLossPrice: Option<f64> = self.safe_number_k(paramsValue.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitPrice: Option<f64> = self.safe_number_k(paramsValue.clone(), "takeProfitPrice", &[]).as_f64();
+        let mut triggerPrice: Option<String> = self.safe_string_n(Value::from(&paramsValue), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("ref_price".into())]), &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsValue, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsValue, "takeProfitPrice", &[]).as_f64();
         let mut isTrigger: bool = triggerPrice.is_some();
         let mut isStopLossTrigger: bool = stopLossPrice.is_some();
         let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
@@ -2491,7 +2491,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             request.insert("type".into(), uppercaseType);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsValue, Value::from(vec![Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -2769,9 +2769,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut quoteAmount: Value = Value::Null;
             let createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsCreateMarketBuy: Value = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(1).cloned().unwrap_or(Value::Null);
-            let mut cost: Option<f64> = self.safe_number2(paramsCreateMarketBuy.clone(), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
-            paramsMarketBuy = self.omit(paramsCreateMarketBuy, Value::Str("cost".into()), &[]);
+            let mut paramsCreateMarketBuy: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
+            paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {

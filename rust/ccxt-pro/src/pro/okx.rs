@@ -2800,9 +2800,9 @@ impl Okx {
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
         let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsType: Value = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isTrigger: bool = self.safe_bool2(paramsType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: Value = self.omit(&paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3059,9 +3059,9 @@ impl Okx {
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
         let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsType: Value = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isTrigger: bool = self.safe_bool2(paramsType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: Value = self.omit(&paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3484,8 +3484,8 @@ impl Okx {
         let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, paramsOp.clone()]);
+        let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, Value::from(&paramsOp)]);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
@@ -3499,7 +3499,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOp]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOp]);
         return self.watch(url.as_deref(), messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
         Value::Null
         }).await?))

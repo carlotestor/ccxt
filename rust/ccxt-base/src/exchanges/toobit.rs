@@ -2137,13 +2137,13 @@ impl Toobit {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (type_var.as_deref() == Some("spot")) {
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await;
         }
         //
@@ -2174,7 +2174,7 @@ impl Toobit {
             }
         }
         }
-        return self.parse_tickers(Value::from(rows), &[symbolsNormalized.map_or(Value::Null, Value::Arr), paramsMarketType]);
+        return self.parse_tickers(Value::from(rows), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Dict(paramsMarketType)]);
         Value::Null
         }).await?))
     }
