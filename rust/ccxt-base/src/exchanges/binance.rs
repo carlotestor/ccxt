@@ -8896,10 +8896,10 @@ impl Binance {
                 response = self.public_get_ticker(&[__ws_arg_25]).await;
                 return self.parse_tickers_for_rolling(response.clone(), symbolsNormalized.clone());
             }  else {
-                let mut request: indexmap::IndexMap<String, Value> = {
+                let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
-                };
+                });
                 if (symbolsNormalized != Value::Null) {
                     request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone()])));
                 }
@@ -15352,7 +15352,7 @@ impl Binance {
             //       },
             //    ]
             //
-            let mut spotFees: Value = Value::Map({
+            let mut spotFees: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15367,11 +15367,11 @@ impl Binance {
                 let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
                 let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut spotFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
+                    spotFees.insert(crate::runtime::stringify_param(&symbol), Value::Map(fee));
                 }
             }
             }
-            return spotFees;
+            return Value::Map(spotFees);
         }  else if isLinear.as_bool() == Some(true) {
             //
             //     {
@@ -15399,7 +15399,7 @@ impl Binance {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
             }
             let mut symbols: Value = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut linearFees: Value = Value::Map({
+            let mut linearFees: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15414,7 +15414,7 @@ impl Binance {
                 let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                    if let Value::Dict(__d) = &mut linearFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    linearFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15425,11 +15425,11 @@ impl Binance {
         m.insert("maker".to_string(), maker.clone());
         m.insert("taker".to_string(), taker.clone());
     m
-})); }
+}));
                 }
             }
             }
-            return linearFees;
+            return Value::Map(linearFees);
         }  else if isInverse.as_bool() == Some(true) {
             //
             //     {
@@ -15445,7 +15445,7 @@ impl Binance {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
             }
             let mut symbols: Value = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut inverseFees: Value = Value::Map({
+            let mut inverseFees: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15460,7 +15460,7 @@ impl Binance {
                 let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                    if let Value::Dict(__d) = &mut inverseFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    inverseFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15471,11 +15471,11 @@ impl Binance {
         m.insert("maker".to_string(), maker.clone());
         m.insert("taker".to_string(), taker.clone());
     m
-})); }
+}));
                 }
             }
             }
-            return inverseFees;
+            return Value::Map(inverseFees);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() is not supported for ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
         Value::Null
@@ -15791,7 +15791,7 @@ impl Binance {
         let account = account.as_map().unwrap_or(&__account_empty);
         let mut positions: Vec<Value> = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut assets: Vec<Value> = (match account.get("assets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut balances: Value = Value::Map({
+        let mut balances: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -15805,12 +15805,12 @@ impl Binance {
             let mut crossWalletBalance: Option<String> = self.safe_string_k(&entry, "crossWalletBalance", &[]).as_str().map(str::to_owned);
             let mut crossUnPnl: Option<String> = self.safe_string_k(&entry, "crossUnPnl", &[]).as_str().map(str::to_owned);
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut balances { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
+                balances.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("crossMargin".to_string(), crate::precise::Precise::stringAdd(&crossWalletBalance.clone().map(Value::from).unwrap_or(Value::Null), &crossUnPnl.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("crossWalletBalance".to_string(), crossWalletBalance.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})); }
+}));
             }
         }
         }
@@ -15828,11 +15828,11 @@ impl Binance {
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                if (matches!((&balances, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (matches!(&code, Value::Str(__k) if balances.contains_key(__k.as_ref()))) {
                     let __ws_arg_159 = self.extend(position, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("crossMargin".to_string(), self.safe_value((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("crossMargin".into()), &[]));
-        m.insert("crossWalletBalance".to_string(), self.safe_value((if let (Some(__m), Some(__k)) = (balances.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("crossWalletBalance".into()), &[]));
+        m.insert("crossMargin".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
+        m.insert("crossWalletBalance".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
     m
 })]);
                     let mut parsed: Value = self.parse_account_position(__ws_arg_159, &[market]);
@@ -16525,13 +16525,13 @@ impl Binance {
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
         let mut brackets: Vec<Value> = self.safe_list_k(info, "brackets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut j: i64 = 0;
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { j += 1; } __for_first_307 = false; j < (brackets.len() as i64) } {
             let mut bracket: Value = brackets.get(j as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_number_k(bracket.clone(), "bracket", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
@@ -16542,10 +16542,10 @@ impl Binance {
                     m.insert("maxLeverage".to_string(), self.safe_number_k(bracket.clone(), "initialLeverage", &[]));
                     m.insert("info".to_string(), bracket);
                 m
-            })); }
+            }));
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }
@@ -19863,7 +19863,7 @@ if _try_result.is_err() {
 }));
         // this method should not be called directly, use loadTradingLimits () instead
         let mut markets: Value = crate::types::IntoRaw::into_raw(self.fetch_markets(Value::Null).await);
-        let mut tradingLimits: Value = Value::Map({
+        let mut tradingLimits: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -19878,12 +19878,12 @@ if _try_result.is_err() {
             }
             if (symbols == Value::Null) || self.in_array(symbol.clone().map(Value::from).unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true) {
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut tradingLimits { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), crate::value::get_value_k(&crate::value::get_value_k(&market, "limits"), "amount")); }
+                    tradingLimits.insert(symbol.as_deref().unwrap_or("null").to_string(), crate::value::get_value_k(&crate::value::get_value_k(&market, "limits"), "amount"));
                 }
             }
         }
         }
-        return tradingLimits;
+        return Value::Map(tradingLimits);
 
     Value::Null
 }

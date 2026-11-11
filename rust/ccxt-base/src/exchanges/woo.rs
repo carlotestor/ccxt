@@ -2068,20 +2068,20 @@ impl Woo {
 })]).into_dict();
         let mut maker: Option<String> = self.safe_string_k(&data, "makerFeeRate", &[]).as_str().map(str::to_owned);
         let mut taker: Option<String> = self.safe_string_k(&data, "takerFeeRate", &[]).as_str().map(str::to_owned);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut symbols: Value = self.symbols.clone();
         if (symbols == Value::Null) {
-            return result;
+            return Value::Map(result);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1167: bool = true;
             while { if !__for_first_1167 { i += 1; } __for_first_1167 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -2090,10 +2090,10 @@ impl Woo {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

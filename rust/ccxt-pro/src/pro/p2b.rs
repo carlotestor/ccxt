@@ -329,14 +329,14 @@ impl P2b {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), request);
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(subscribe, &[params]);
+        let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[query, messageHash.clone()]).await;
 
     Value::Null

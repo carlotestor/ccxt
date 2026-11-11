@@ -3067,7 +3067,7 @@ if _try_result.is_err() {
         })]).as_map().cloned().unwrap_or_default();
         let mut ratesIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut currencies: Value = self.array_concat(fiatData, cryptoData);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3099,7 +3099,7 @@ if _try_result.is_err() {
                 type_var = "crypto".to_string();
             }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+                result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency.clone());
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3132,7 +3132,7 @@ if _try_result.is_err() {
     m
 }));
     m
-}))); }
+})));
             }
             if (assetId.is_some()) {
                 let mut lowerCaseName: Value = (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
@@ -3149,9 +3149,9 @@ if _try_result.is_err() {
             while { if !__for_first_541 { i += 1; } __for_first_541 = false; i < (ratesIds.len() as i64) } {
             let mut currencyId: Value = ratesIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if (code == Value::Null) || !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (code == Value::Null) || !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+                    result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3165,7 +3165,7 @@ if _try_result.is_err() {
     m
 }));
     m
-}))); }
+})));
                 }
             }
         }
@@ -3174,7 +3174,7 @@ if _try_result.is_err() {
         { let __be_tmp = self.extend(Value::Map(networks), &[__ws_arg_12]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networks".into(), __be_tmp); } }
         let __ws_arg_13 = crate::value::get_value_k(&self.options, "networksById");
         { let __be_tmp = self.extend(Value::Map(networksById), &[__ws_arg_13]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networksById".into(), __be_tmp); } }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -7027,7 +7027,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut taker_fee: Option<f64> = self.safe_number_k(&data, "taker_fee_rate", &[]).as_f64();
         let mut maker_fee: Option<f64> = self.safe_number_k(&data, "maker_fee_rate", &[]).as_f64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -7038,7 +7038,7 @@ if _try_result.is_err() {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (isSpot && matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true))) || (!isSpot && !(market).spot) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -7046,11 +7046,11 @@ if _try_result.is_err() {
         m.insert("taker".to_string(), Value::from(taker_fee));
         m.insert("percentage".to_string(), Value::Bool(true));
     m
-})); }
+}));
             }
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

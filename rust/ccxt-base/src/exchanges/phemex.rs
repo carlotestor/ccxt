@@ -5707,7 +5707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         let mut rows: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1080: bool = true;
@@ -5716,7 +5716,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "createTime", &[]).as_i64();
             let mut execFee: Option<String> = self.safe_string2(entry.clone(), Value::Str("execFeeEv".into()), Value::Str("execFeeRv".into()), &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_currency_code(self.safe_string_k(entry.clone(), "currency", &[]), &[]).as_str().map(str::to_owned);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_string_k(entry, "symbol", &[]));
@@ -5726,10 +5726,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("id".to_string(), Value::Null);
                     m.insert("amount".to_string(), self.parse_funding_fee_to_precision(execFee.clone().map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]));
                 m
-            })); }
+            }));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -6226,7 +6226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut riskLimits: Vec<Value> = self.safe_list(marketResolved.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("riskLimits".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         let mut minNotional: Option<i64> = Some(0);
         {
                         let mut i: i64 = 0;
@@ -6235,7 +6235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut tier: Value = self.safe_dict(riskLimits.clone().into(), Value::Int(i), &[]);
             let mut maxNotional: Option<i64> = self.safe_integer_k(tier.clone(), "limit", &[]).as_i64();
             let mut minNotionalResponse: Value = Value::from(minNotional); // java req
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
@@ -6246,11 +6246,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("maxLeverage".to_string(), Value::Null);
                     m.insert("info".to_string(), tier);
                 m
-            })); }
+            }));
             minNotional = maxNotional;
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

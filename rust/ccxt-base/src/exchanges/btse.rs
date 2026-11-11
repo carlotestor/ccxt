@@ -1798,7 +1798,7 @@ impl Btse {
             m
         })]);
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![single])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1838,11 +1838,11 @@ impl Btse {
                     minNotional = Value::from(maxNotional);
                 }
                 }
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tiers); }; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                result.insert(crate::runtime::stringify_param(&symbol), tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -3803,7 +3803,7 @@ impl Btse {
         //
         let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
         let mut responseList: Value = self.array_concat(Value::from(vec![]), rows);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3820,7 +3820,7 @@ impl Btse {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut makerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "makerFee", &[]).as_f64();
             let mut takerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "takerFee", &[]).as_f64();
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), feeInfo);
         m.insert("symbol".to_string(), symbol.clone());
@@ -3829,10 +3829,10 @@ impl Btse {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -4896,7 +4896,7 @@ impl Btse {
         if (matches!(&response, Value::Arr(_))) {
             safeResponse = response.clone();
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
                 m.insert("symbol".to_string(), symbol);
@@ -4923,10 +4923,10 @@ impl Btse {
             }
         }
         }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginMode); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("longLeverage".into(), Value::from(longLeverage)); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("shortLeverage".into(), Value::from(shortLeverage)); }
-        return result;
+        result.insert("marginMode".into(), marginMode);
+        result.insert("longLeverage".into(), Value::from(longLeverage));
+        result.insert("shortLeverage".into(), Value::from(shortLeverage));
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

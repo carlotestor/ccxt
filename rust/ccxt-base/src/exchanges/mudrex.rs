@@ -791,10 +791,10 @@ impl Mudrex {
         }  else {
             rows = self.safe_list_k(data, "items", &[Value::from(vec![])]);
         }
-        let mut resultTickers: indexmap::IndexMap<String, Value> = {
+        let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;

@@ -1092,7 +1092,7 @@ impl Latoken {
         let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
         let mut bindings: Vec<Value> = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut networks: Value = Value::Map({
+        let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1106,8 +1106,8 @@ impl Latoken {
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
             // entries would land on the same unified code - keep the first one for a
             // deterministic binding id, since withdrawals resolve the chain through it
-            if (networkCode != Value::Null) && !(matches!((&networks, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode != Value::Null) && !(matches!(&networkCode, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
+                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), binding.clone());
         m.insert("id".to_string(), self.safe_string_k(binding.clone(), "id", &[]));
@@ -1134,7 +1134,7 @@ impl Latoken {
     m
 }));
     m
-})); }
+}));
             }
         }
         }
@@ -1166,7 +1166,7 @@ impl Latoken {
 }));
     m
 }));
-        m.insert("networks".to_string(), networks);
+        m.insert("networks".to_string(), Value::Map(networks));
     m
 }));
 

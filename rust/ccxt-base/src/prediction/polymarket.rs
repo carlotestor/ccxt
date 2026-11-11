@@ -1165,7 +1165,7 @@ impl Polymarket {
             eventsStatus = None.clone();
         }
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("status".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("searchPageSize".into()), Value::Str("maxSearchPages".into())]), &[]);
-        let mut seen: Value = Value::Map({
+        let mut seen: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1268,8 +1268,8 @@ impl Polymarket {
                 while { if !__for_first_1411 { if let Value::Int(n) = &mut ei { *n += 1; } } __for_first_1411 = false; ei.as_f64().unwrap_or(f64::NAN) < ((allEvents.len() as i64) as f64) } {
                 let mut rawEvent: Value = allEvents.get((ei).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut eventId: Option<String> = self.safe_string_k_opt(rawEvent.clone(), "id", &[]);
-                if ((eventId.is_some()) && (eventId.as_deref() != Some(""))) && !(matches!((&seen, &eventId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                if ((eventId.is_some()) && (eventId.as_deref() != Some(""))) && !(matches!(&eventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
+                    seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     rawEvents.push(rawEvent);
                 }
             }
@@ -1366,7 +1366,7 @@ impl Polymarket {
         let mut requestedTags: Vec<Value> = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut requestedTagsLength: f64 = ((requestedTags.len() as i64) as f64);
         if requestedTagsLength > ((1i64) as f64) {
-            let mut seen: Value = Value::Map({
+            let mut seen: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -1387,8 +1387,8 @@ impl Polymarket {
                     while { if !__for_first_1414 { ei += 1; } __for_first_1414 = false; ei < (tagEvents.len() as i64) } {
                     let mut rawEvent: Value = tagEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null);
                     let mut eventId: Option<String> = self.safe_string_k_opt(rawEvent.clone(), "id", &[]);
-                    if (eventId.is_some()) && !(matches!((&seen, &eventId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    if (eventId.is_some()) && !(matches!(&eventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
+                        seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                         unioned.push(rawEvent);
                     }
                 }
@@ -1919,7 +1919,7 @@ impl Polymarket {
             targets.push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut outcomesByTokenId: Value = Value::Map({
+        let mut outcomesByTokenId: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1930,8 +1930,8 @@ impl Polymarket {
             while { if !__for_first_1429 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1429 = false; i.as_f64().unwrap_or(f64::NAN) < ((targets.len() as i64) as f64) } {
             let mut outcomeObj: Value = self.outcome(targets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcomeId", &[]);
-            if (tokenId.is_some()) && !(matches!((&outcomesByTokenId, &tokenId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut outcomesByTokenId { std::sync::Arc::make_mut(__d).insert(tokenId.as_deref().unwrap_or("null").to_string(), outcomeObj.clone()); }
+            if (tokenId.is_some()) && !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
+                outcomesByTokenId.insert(tokenId.as_deref().unwrap_or("null").to_string(), outcomeObj.clone());
                 if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(tokenId.map(Value::from).unwrap_or(Value::Null)); }
             }
         }
@@ -1993,10 +1993,10 @@ impl Polymarket {
                 while { if !__for_first_1432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1432 = false; i.as_f64().unwrap_or(f64::NAN) < booksLength } {
                 let mut book: Value = books.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut tokenId: Option<String> = self.safe_string_k_opt(book.clone(), "asset_id", &[]);
-                if (tokenId.is_none()) || !(matches!((&outcomesByTokenId, &tokenId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (tokenId.is_none()) || !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                let mut outcomeObj: Value = (if let (Some(__m), Some(__k)) = (outcomesByTokenId.as_map(), tokenId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut outcomeObj: Value = outcomesByTokenId.get(tokenId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut mid: Option<String> = self.safe_string(midpoints.clone(), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2895,7 +2895,7 @@ impl Polymarket {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
-        let mut wantedIds: Value = Value::Map({
+        let mut wantedIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2907,10 +2907,10 @@ impl Polymarket {
             let mut __for_first_1438: bool = true;
             while { if !__for_first_1438 { i += 1; } __for_first_1438 = false; i < (outcomes.len() as i64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut wantedIds, &outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null), Value::Bool(true));
+            wantedIds.insert(crate::runtime::stringify_param(&(outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null))), Value::Bool(true));
         }
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1439: bool = true;
@@ -2921,12 +2921,12 @@ impl Polymarket {
     m
 })]).into_dict();
             let mut assetId: Option<String> = self.safe_string_k_opt(&info, "asset", &[]);
-            if (assetId.is_some()) && (matches!((&wantedIds, &assetId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(position); }
+            if (assetId.is_some()) && (matches!(&assetId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedIds.contains_key(__k.as_ref()))) {
+                result.push(position);
             }
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -3312,7 +3312,7 @@ impl Polymarket {
         }
         }
         let mut response: Value = self.clob_private_post_orders(&[Value::from(bodies)]).await;
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         if (matches!(&response, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -3323,13 +3323,13 @@ impl Polymarket {
                 let mut enriched: Value = self.extend(requests.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched, &[outcomes.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]);
                 if let Value::Dict(__rda) = &mut parsedItem { std::sync::Arc::make_mut(__rda).insert("info".to_string(), rawItem); } // keep info the raw exchange response
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(parsedItem); }
+                result.push(parsedItem);
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.parse_prediction_order(response, &[])); }
+            result.push(self.parse_prediction_order(response, &[]));
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -3872,21 +3872,21 @@ impl Polymarket {
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
         let mut response: Value = self.clob_private_delete_orders(&[ids]).await;
         let mut canceled: Vec<Value> = self.safe_list_k(response.clone(), "canceled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1443: bool = true;
             while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (canceled.len() as i64) } {
-            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_prediction_order(Value::Map({
+            orders.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone().into(), Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return orders;
+        return Value::from(orders);
         Value::Null
         }).await?))
     }
@@ -3929,21 +3929,21 @@ impl Polymarket {
             response = self.clob_private_delete_cancel_all(&[params]).await;
         }
         let mut canceled: Vec<Value> = self.safe_list_k(response.clone(), "canceled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1444: bool = true;
             while { if !__for_first_1444 { i += 1; } __for_first_1444 = false; i < (canceled.len() as i64) } {
-            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_prediction_order(Value::Map({
+            orders.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone().into(), Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return orders;
+        return Value::from(orders);
         Value::Null
         }).await?))
     }

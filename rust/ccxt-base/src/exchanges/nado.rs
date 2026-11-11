@@ -878,16 +878,16 @@ impl Nado {
                 directionSuffix = "above".to_string();
             }
             let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-            let mut priceRequirement: Value = Value::Map({
+            let mut priceRequirement: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut priceRequirement, &Value::Str(format!("{}{}", Value::Str("oracle_price_".into()), directionSuffix).into()), triggerPriceX18.clone());
+            priceRequirement.insert(format!("{}{}", Value::Str("oracle_price_".into()), directionSuffix), triggerPriceX18.clone());
             let mut trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price_requirement".to_string(), priceRequirement.clone());
+        m.insert("price_requirement".to_string(), Value::Map(priceRequirement));
     m
 }));
                 m
@@ -906,16 +906,16 @@ impl Nado {
                 triggerPrice = takeProfitTriggerPrice;
             }
             let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-            let mut priceRequirement: Value = Value::Map({
+            let mut priceRequirement: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut priceRequirement, &Value::Str(format!("{}{}", Value::Str("oracle_price_".into()), oracleSide).into()), triggerPriceX18);
+            priceRequirement.insert(format!("{}{}", Value::Str("oracle_price_".into()), oracleSide), triggerPriceX18);
             let mut trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price_requirement".to_string(), priceRequirement);
+        m.insert("price_requirement".to_string(), Value::Map(priceRequirement));
     m
 }));
                 m

@@ -3060,7 +3060,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("balance".to_string(), Value::Str("handle_balance_subscription".into()).clone());
                 m.insert("spot.order_book_update".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
@@ -3072,10 +3072,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (id.is_none()) {
             return;
         }
-        if (matches!((&methods, &channel.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!(&channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if methods.contains_key(__k.as_ref()))) {
             let mut subscriptionHash: Option<String> = self.safe_string(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut method: Value = (if let (Some(__m), Some(__k)) = (methods.as_map(), channel.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut method: Value = methods.get(channel.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
         }
         if (__ch.has_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null))) {

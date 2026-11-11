@@ -5019,10 +5019,10 @@ impl Kucoin {
 })]);
         let mut tickers: Value = self.safe_list2(data.clone(), Value::Str("ticker".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         let mut time: Option<i64> = self.safe_integer2(data, Value::Str("time".into()), Value::Str("ts".into()), &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_892: bool = true;
@@ -14178,7 +14178,7 @@ if _try_result.is_err() {
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
             dataList = self.safe_list_k(data, "dataList", &[Value::from(vec![])]);
         }
-        let mut fees: Value = Value::from(vec![]);
+        let mut fees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_905: bool = true;
@@ -14186,7 +14186,7 @@ if _try_result.is_err() {
             let mut listItem: Value = dataList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer2(listItem.clone(), Value::Str("timePoint".into()), Value::Str("settlementTime".into()), &[]).as_i64();
             let mut marketId: Option<String> = self.safe_string_k(listItem.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            if let Value::Arr(__a) = &mut fees { std::sync::Arc::make_mut(__a).push(Value::Map({
+            fees.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), listItem.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
@@ -14200,10 +14200,10 @@ if _try_result.is_err() {
                     m.insert("positionQty".to_string(), self.safe_number2(listItem.clone(), Value::Str("positionQty".into()), Value::Str("size".into()), &[]));
                     m.insert("positionCost".to_string(), self.safe_number2(listItem, Value::Str("positionCost".into()), Value::Str("positionValue".into()), &[]));
                 m
-            })); }
+            }));
         }
         }
-        return fees;
+        return Value::from(fees);
         Value::Null
         }).await?))
     }
@@ -15464,7 +15464,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut marketCursor: Value = market.clone();
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_908: bool = true;
@@ -15476,7 +15476,7 @@ if _try_result.is_err() {
             let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut tierMarket: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), marketCursor.clone()]);
             marketCursor = tierMarket.clone();
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_number2(tier.clone(), Value::Str("level".into()), Value::Str("tier".into()), &[]));
                     m.insert("symbol".to_string(), tierMarket.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -15487,10 +15487,10 @@ if _try_result.is_err() {
                     m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));
                     m.insert("info".to_string(), tier);
                 m
-            })); }
+            }));
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

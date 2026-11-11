@@ -1341,7 +1341,7 @@ impl Ndax {
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
         let mut nonce: Value = self.safe_integer(self.safe_list(orderbook.clone(), Value::Int(0), &[]), Value::Int(0), &[]);
         let mut latestTimestamp: Value = self.safe_integer(Value::from(vec![timestamp]), Value::Int(0), &[]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol);
                 m.insert("bids".to_string(), Value::from(vec![]));
@@ -1375,12 +1375,12 @@ impl Ndax {
             }
         }
         }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".into(), self.sort_by(Value::from(bids), Value::Int(0), &[Value::Bool(true)])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".into(), self.sort_by(Value::from(asks), Value::Int(0), &[])); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), latestTimestamp.clone()); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(latestTimestamp)); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("nonce".into(), nonce); }
-        return result;
+        result.insert("bids".into(), self.sort_by(Value::from(bids), Value::Int(0), &[Value::Bool(true)]));
+        result.insert("asks".into(), self.sort_by(Value::from(asks), Value::Int(0), &[]));
+        result.insert("timestamp".into(), latestTimestamp.clone());
+        result.insert("datetime".into(), self.iso8601(latestTimestamp));
+        result.insert("nonce".into(), nonce);
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1942,23 +1942,23 @@ impl Ndax {
         //
         //     [ 449 ] // comma-separated list of account ids
         //
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_997: bool = true;
             while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (response.len() as i64) } {
             let mut accountId: Option<String> = self.safe_string(response.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::Null);
                     m.insert("currency".to_string(), Value::Null);
                     m.insert("info".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            })); }
+            }));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }

@@ -991,10 +991,10 @@ impl Deribit {
             cachedTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut parsed: Value = self.parse_trades(trades, &[]);
-        let mut marketIds: indexmap::IndexMap<String, Value> = {
+        let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_292: bool = true;

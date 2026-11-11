@@ -1095,7 +1095,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1107,7 +1107,7 @@ impl Onetrading {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             let mut tierObject: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), spotFees.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1117,10 +1117,10 @@ impl Onetrading {
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), spotTiers.clone());
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1183,7 +1183,7 @@ impl Onetrading {
         let mut futuresTakerFee: Option<String> = self.safe_string_k(&futuresFees, "taker_fee", &[]).as_str().map(str::to_owned);
         futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1197,7 +1197,7 @@ impl Onetrading {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             let mut makerFee: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
             let mut takerFee: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1207,10 +1207,10 @@ impl Onetrading {
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Null);
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1382,10 +1382,10 @@ impl Onetrading {
         //         }
         //     ]
         //
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut rawTickers: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;

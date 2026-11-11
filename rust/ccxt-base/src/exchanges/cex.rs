@@ -1403,7 +1403,7 @@ impl Cex {
 
     pub fn parse_trading_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut useKeyAsId = get_arg(optional_args, 0, Value::Bool(false));
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1420,7 +1420,7 @@ impl Cex {
             let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market.clone()]);
             let mut parsedSymbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
             if (parsedSymbol.is_some()) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed); }
+                result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed);
             }
         }
         }
@@ -1430,13 +1430,13 @@ impl Cex {
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&result, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!(&symbol, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market])); }
+                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market]));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

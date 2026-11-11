@@ -1846,13 +1846,13 @@ impl Bitrue {
                 response = self.dapi_v1_public_get_depth(&[__ws_arg_1]).await;
             }
         }  else if (market).spot {
-            let mut request: indexmap::IndexMap<String, Value> = {
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m
-            };
+            });
             if (limit != Value::Null) {
-                request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+                request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.spot_v1_public_get_depth(&[__ws_arg_2]).await;
@@ -2096,12 +2096,12 @@ impl Bitrue {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut request: indexmap::IndexMap<String, Value> = {
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.clone()));
                     m.insert("scale".to_string(), self.safe_string(timeframesSpot, timeframe.clone(), &[Value::Str("1m".into())]));
                 m
-            };
+            });
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }

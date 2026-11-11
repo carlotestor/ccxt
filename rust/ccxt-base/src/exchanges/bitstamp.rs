@@ -2240,7 +2240,7 @@ impl Bitstamp {
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
         // fetchCurrencies invocations in the multi threaded runtimes
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2270,18 +2270,17 @@ impl Bitstamp {
             }
             let mut parts: Value = Value::Array(if let Some(__s) = minimumOrder.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut cost: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (base != Value::Null) && !(matches!(&base, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Option<i64> = self.safe_integer_k(market.clone(), "base_decimals", &[]).as_i64();
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.clone().map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(baseDecimals), Value::Null, market.clone())); }
+                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.clone().map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(baseDecimals), Value::Null, market.clone()));
             }
-            if (quote != Value::Null) && !(matches!((&result, &quote), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (quote != Value::Null) && !(matches!(&quote, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut counterDecimals: Option<i64> = self.safe_integer_k(market.clone(), "counter_decimals", &[]).as_i64();
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.clone().map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(counterDecimals),
-                    self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market)); }
+                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.clone().map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(counterDecimals), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2986,7 +2985,7 @@ impl Bitstamp {
 }
 
     pub fn parse_trading_fees(&self, mut fees: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fees.clone());
             m
@@ -2999,11 +2998,11 @@ impl Bitstamp {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(feesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(fee));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

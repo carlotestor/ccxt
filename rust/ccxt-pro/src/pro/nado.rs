@@ -2665,7 +2665,7 @@ impl Nado {
     m
 }) });
         let mut marketIds: Vec<Value> = object_keys(&bbos).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2695,11 +2695,11 @@ impl Nado {
                     m
                 }), &[market.clone()]).as_map().cloned().unwrap_or_default();
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

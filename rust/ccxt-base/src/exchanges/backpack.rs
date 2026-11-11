@@ -1387,7 +1387,7 @@ impl Backpack {
         }
         let mut securityById: Value = self.index_by(securities.clone(), Value::Str("asset".into()));
         let mut markets: Vec<Value> = Vec::new();
-        let mut marketIds: Value = Value::Map({
+        let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1413,10 +1413,10 @@ impl Backpack {
             let mut market: Value = self.parse_market((if (security == Value::Null) { rawMarket } else { __ws_arg_0 }));
             if (market != Value::Null) {
                 let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
-                if (marketId.is_none()) || (matches!((&marketIds, &marketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (marketId.is_none()) || (matches!(&marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if marketIds.contains_key(__k.as_ref()))) {
                     continue;
                 }
-                if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 if !stock || matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                     markets.push(market.clone());
                 }
@@ -1434,7 +1434,7 @@ impl Backpack {
                     continue;
                 }
                 let mut marketId: Value = Value::Str(format!("{}{}", assetId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_USDC_RFQ".into())).into());
-                if !(matches!((&marketIds, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(matches!(&marketId, Value::Str(__k) if marketIds.contains_key(__k.as_ref()))) {
                     let mut market: Value = self.parse_market(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("symbol".to_string(), marketId.clone());
@@ -1446,7 +1446,7 @@ impl Backpack {
                         m
                     }));
                     if (market != Value::Null) {
-                        if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
+                        marketIds.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
                         markets.push(market);
                     }
                 }

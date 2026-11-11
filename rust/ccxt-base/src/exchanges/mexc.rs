@@ -5989,14 +5989,14 @@ impl Mexc {
             m
         })]).into_dict();
         let mut resultList: Vec<Value> = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_955: bool = true;
             while { if !__for_first_955 { i += 1; } __for_first_955 = false; i < (resultList.len() as i64) } {
             let mut entry: Value = resultList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "settleTime", &[]).as_i64();
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbol.clone());
@@ -6006,10 +6006,10 @@ impl Mexc {
                     m.insert("id".to_string(), self.safe_number_k(entry.clone(), "id", &[]));
                     m.insert("amount".to_string(), self.safe_number_k(entry, "funding", &[]));
                 m
-            })); }
+            }));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -6368,7 +6368,7 @@ impl Mexc {
         let mut riskIncrMmr: Option<String> = self.safe_string_k(info.clone(), "riskIncrMmr", &[]).as_str().map(str::to_owned);
         let mut riskIncrImr: Option<String> = self.safe_string_k(info.clone(), "riskIncrImr", &[]).as_str().map(str::to_owned);
         let mut floor: Value = Value::Str("0".into());
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         let mut quoteId: Option<String> = self.safe_string_k(info.clone(), "quoteCoin", &[]).as_str().map(str::to_owned);
         if (riskIncrVol.as_deref() == Some("0")) {
             return Value::from(vec![Value::Map({
@@ -6387,7 +6387,7 @@ impl Mexc {
         while crate::precise::Precise::stringLt(&floor, &maxVol.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut maxLev: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("contract".into())]));
@@ -6398,12 +6398,12 @@ impl Mexc {
                     m.insert("maxLeverage".to_string(), maxLev);
                     m.insert("info".to_string(), info.clone());
                 m
-            })); }
+            }));
             initialMarginRate = crate::precise::Precise::stringAdd(&initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrImr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrMmr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             floor = cap.clone().map(Value::from).unwrap_or(Value::Null);
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

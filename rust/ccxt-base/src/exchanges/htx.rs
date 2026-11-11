@@ -3746,7 +3746,7 @@ impl Htx {
         if (symbolsValue == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3755,10 +3755,10 @@ impl Htx {
             let mut __for_first_766: bool = true;
             while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (symbolsValue.len() as i64) } {
             let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await);
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -11772,7 +11772,7 @@ impl Htx {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k(info.clone(), "trade_partition", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "contract_code", &[]).as_str().map(str::to_owned);
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         let mut brackets: Vec<Value> = self.safe_list_k(info, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -11787,7 +11787,7 @@ impl Htx {
                 while { if !__for_first_791 { k += 1; } __for_first_791 = false; k < (ladders.len() as i64) } {
                 let mut bracket: Value = ladders.get(k as usize).cloned().unwrap_or(Value::Null);
                 let mut adjustFactor: Option<String> = self.safe_string_k(bracket.clone(), "adjust_factor", &[]).as_str().map(str::to_owned);
-                if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+                tiers.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("tier".to_string(), self.safe_integer_k(bracket.clone(), "ladder", &[]));
                         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("swap".into())]));
@@ -11798,12 +11798,12 @@ impl Htx {
                         m.insert("maxLeverage".to_string(), self.parse_number(leverage.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                         m.insert("info".to_string(), bracket);
                     m
-                })); }
+                }));
             }
             }
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

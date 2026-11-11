@@ -1936,10 +1936,10 @@ impl Coinbaseinternational {
         if (symbolsResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires a symbols argument".into()))));
         }
-        let mut tickers: indexmap::IndexMap<String, Value> = {
+        let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;

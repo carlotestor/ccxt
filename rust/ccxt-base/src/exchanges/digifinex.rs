@@ -1919,10 +1919,10 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut tickers: Value = self.safe_list2(response.clone(), Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]);
         let mut date: Option<i64> = self.safe_integer_k(response, "date", &[]).as_i64();
         {
@@ -5503,7 +5503,7 @@ impl Digifinex {
         let mut data: Vec<Value> = self.safe_list(response.clone(), Value::from(dataRequest), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut position: indexmap::IndexMap<String, Value> = self.parse_position(data.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
         if (marketType.as_deref() == Some("swap")) {
-            return Value::Map(position.clone());
+            return Value::Map(position);
         }  else {
             position.insert("collateral".into(), self.safe_number_k(response.clone(), "margin", &[]));
             position.insert("marginRatio".into(), self.safe_number_k(response, "margin_rate", &[]));
@@ -5916,7 +5916,7 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "open_max_limits", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketId: Option<String> = self.safe_string_k(info, "instrument_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
@@ -5925,7 +5925,7 @@ impl Digifinex {
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (brackets.len() as i64) } {
             let mut tier: Value = self.safe_dict(brackets.clone().into(), Value::Int(i), &[]);
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone(), Value::Null, Value::Str("swap".into())]));
@@ -5936,10 +5936,10 @@ impl Digifinex {
                     m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "leverage", &[]));
                     m.insert("info".to_string(), tier);
                 m
-            })); }
+            }));
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

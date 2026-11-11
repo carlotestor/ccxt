@@ -585,14 +585,14 @@ impl Hyperliquid {
             let mut questionSlug: Option<String> = self.shorten_slug(questionName.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if (questionSlug.is_some()) && (questionSlug.as_deref() != Some("")) {
                 let mut outcomeSlug: Value = self.shorten_slug(name.clone());
-                let mut genericOutcomeNames: Value = Value::Map({
+                let mut genericOutcomeNames: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("RECURRING".to_string(), Value::Bool(true));
                         m.insert("RECURRING_FALLBACK".to_string(), Value::Bool(true));
                         m.insert("RECURRING_NAMED_OUTCOME".to_string(), Value::Bool(true));
                     m
                 });
-                if (matches!((&genericOutcomeNames, &outcomeSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (matches!(&outcomeSlug, Value::Str(__k) if genericOutcomeNames.contains_key(__k.as_ref()))) {
                     if outcomeSlug.as_str().unwrap_or("").contains("FALLBACK") {
                         outcomeSlug = Value::Str("OTHER".into());
                     }  else {
@@ -1064,7 +1064,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestedOutcomeSymbols: Value = Value::Map({
+        let mut requestedOutcomeSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1079,7 +1079,7 @@ impl Hyperliquid {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
-                if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
+                requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
             }
             }
         }  else {
@@ -1117,7 +1117,7 @@ impl Hyperliquid {
             let mut __for_first_1237: bool = true;
             while { if !__for_first_1237 { i += 1; } __for_first_1237 = false; i < (outcomeHandles.len() as i64) } {
             let mut outcomeHandle: Value = outcomeHandles.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (outcomes != Value::Null) && !(matches!((&requestedOutcomeSymbols, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (outcomes != Value::Null) && !(matches!(&outcomeHandle, Value::Str(__k) if requestedOutcomeSymbols.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut outcomeObj: Value = self.safe_dict(outcomesMap.clone(), outcomeHandle.clone(), &[Value::Map({
@@ -1509,7 +1509,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestedOutcomeSymbols: Value = Value::Map({
+        let mut requestedOutcomeSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1524,7 +1524,7 @@ impl Hyperliquid {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
-                if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
+                requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
             }
             }
         }  else {
@@ -1584,7 +1584,7 @@ impl Hyperliquid {
             let mut outcomeObj: Value = self.safe_outcome(Value::from(tradeCoin.clone()), &[]);
             if (outcomes != Value::Null) {
                 let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
-                if (outcomeHandle.is_none()) || !(matches!((&requestedOutcomeSymbols, &outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (outcomeHandle.is_none()) || !(matches!(&outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if requestedOutcomeSymbols.contains_key(__k.as_ref()))) {
                     continue;
                 }
             }

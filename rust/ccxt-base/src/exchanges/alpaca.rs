@@ -3159,7 +3159,7 @@ impl Alpaca {
     m
 })]).into_dict();
         let mut positions: Vec<Value> = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -3172,7 +3172,7 @@ impl Alpaca {
             let mut equity: Option<String> = self.safe_string_k(&account, "equity", &[]).as_str().map(str::to_owned);
             let mut positionsValue: Option<String> = self.safe_string_k(&account, "position_market_value", &[]).as_str().map(str::to_owned);
             cashAccount.insert("total".into(), crate::precise::Precise::stringSub(&equity.clone().map(Value::from).unwrap_or(Value::Null), &positionsValue.clone().map(Value::from).unwrap_or(Value::Null))); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(cashAccount)); }
+            result.insert(crate::runtime::stringify_param(&code), Value::Map(cashAccount));
         }
         {
                         let mut i: i64 = 0;
@@ -3201,15 +3201,15 @@ impl Alpaca {
                 continue;
             }
             let mut positionCode: Value = self.safe_currency_code(baseId, &[]);
-            if (positionCode != Value::Null) && !(matches!((&result, &positionCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (positionCode != Value::Null) && !(matches!(&positionCode, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut positionAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 positionAccount.insert("free".into(), self.safe_string_k(&position, "qty_available", &[]));
                 positionAccount.insert("total".into(), self.safe_string_k(&position, "qty", &[]));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&positionCode), Value::Map(positionAccount)); }
+                result.insert(crate::runtime::stringify_param(&positionCode), Value::Map(positionAccount));
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }

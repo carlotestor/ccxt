@@ -967,7 +967,7 @@ impl Predictfun {
         // the venue answers every term separately and the same category comes back for each term
         // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
         // caller's limit after filtering, spends a slot on a repeat instead of a distinct event
-        let mut seenSlugs: Value = Value::Map({
+        let mut seenSlugs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1053,8 +1053,8 @@ impl Predictfun {
                 if (categorySlug.is_none()) {
                     // nothing to key a duplicate on, keep the row rather than drop it
                     result.push(category.clone());
-                }  else if !(matches!((&seenSlugs, &categorySlug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut seenSlugs { std::sync::Arc::make_mut(__d).insert(categorySlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                }  else if !(matches!(&categorySlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenSlugs.contains_key(__k.as_ref()))) {
+                    seenSlugs.insert(categorySlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     result.push(category);
                 }
             }
@@ -1095,8 +1095,8 @@ impl Predictfun {
             let mut __for_first_1463: bool = true;
             while { if !__for_first_1463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1463 = false; i.as_f64().unwrap_or(f64::NAN) < orphanSlugsLength } {
             let mut orphanSlug: Value = orphanSlugs.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&seenSlugs, &orphanSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut seenSlugs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true)); }
+            if !(matches!(&orphanSlug, Value::Str(__k) if seenSlugs.contains_key(__k.as_ref()))) {
+                seenSlugs.insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true));
                 let mut markets: Value = (if let (Some(__m), Some(__k)) = (orphanMarkets.as_map(), orphanSlug.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 let mut first: crate::value::Dict = self.safe_dict(markets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

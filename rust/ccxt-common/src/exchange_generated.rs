@@ -8272,16 +8272,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn parse_borrow_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut interests: Value = Value::from(vec![]);
+        let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_150: bool = true;
             while { if !__for_first_150 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut row: Value = self.safe_value(response.clone(), i.clone(), &[]);
-            if let Value::Arr(__a) = &mut interests { std::sync::Arc::make_mut(__a).push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, &[market.clone()])); }
+            interests.push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, &[market.clone()]));
         }
         }
-        return interests;
+        return Value::from(interests);
 
     Value::Null
 }
@@ -8314,7 +8314,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -8325,10 +8325,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut item: Value = self.safe_value(info.clone(), i.clone(), &[]);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(borrowRate.clone(), "symbol", &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), borrowRate); }
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), borrowRate);
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -9223,16 +9223,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
-        let mut res: Value = Value::Map({
+        let mut res: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut res { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+        res.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); }
-        add_element_to_object(get_value_mut(&mut res, &symbol), &timeframe, data);
-        return res;
+}));
+        if let Value::Dict(__d) = res.entry(crate::runtime::stringify_param(&symbol)).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), data); }
+        return Value::Map(res);
 
     Value::Null
 }
@@ -9695,11 +9695,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn remove_repeated_elements_from_array(&self, mut input: Value, optional_args: &[Value]) -> Value {
         let mut fallbackToTimestamp = get_arg(optional_args, 0, Value::Bool(true));
-        let mut uniqueDic: Value = Value::Map({
+        let mut uniqueDic: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut uniqueResult: Value = Value::from(vec![]);
+        let mut uniqueResult: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
@@ -9709,15 +9709,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if fallbackToTimestamp.as_bool() == Some(true) {
                 uniqValue = self.safe_string_n(entry.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("timestamp".into()), Value::Int(0)]), &[]);
             }
-            if (uniqValue != Value::Null) && !(matches!((&uniqueDic, &uniqValue), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut uniqueDic { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1)); }
-                if let Value::Arr(__a) = &mut uniqueResult { std::sync::Arc::make_mut(__a).push(entry); }
+            if (uniqValue != Value::Null) && !(matches!(&uniqValue, Value::Str(__k) if uniqueDic.contains_key(__k.as_ref()))) {
+                uniqueDic.insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1));
+                uniqueResult.push(entry);
             }
         }
         }
         let mut valuesLength: f64 = ((uniqueResult.len() as i64) as f64);
         if valuesLength > ((0i64) as f64) {
-            return uniqueResult;
+            return Value::from(uniqueResult);
         }
         return input;
 

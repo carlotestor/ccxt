@@ -1596,13 +1596,13 @@ impl Bigone {
             response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await;
             return self.parse_contract_order_book(response.clone(), Value::from((market).symbol.clone()), &[limit.clone()]);
         }  else {
-            let mut request: indexmap::IndexMap<String, Value> = {
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
                 m
-            };
+            });
             if (limit != Value::Null) {
-                request.insert("limit".into(), limit);; // default 50, max 200
+                request.insert("limit".into(), limit); // default 50, max 200
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
             response = self.public_get_asset_pairs_asset_pair_name_depth(&[__ws_arg_3]).await;
@@ -2430,19 +2430,19 @@ impl Bigone {
         })]).into_dict();
         let mut cancelled: Vec<Value> = self.safe_list_k(&data, "cancelled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut failed: Vec<Value> = self.safe_list_k(&data, "failed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_268: bool = true;
             while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());
         m.insert("id".to_string(), orderId.clone());
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), &[])); }
+}), &[]));
         }
         }
         {
@@ -2450,16 +2450,16 @@ impl Bigone {
             let mut __for_first_269: bool = true;
             while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());
         m.insert("id".to_string(), orderId);
         m.insert("status".to_string(), Value::Str("failed".into()));
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }

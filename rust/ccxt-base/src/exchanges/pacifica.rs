@@ -1531,7 +1531,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());
             m
@@ -1539,7 +1539,7 @@ if _try_result.is_err() {
         let mut usdcAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         usdcAccount.insert("total".into(), self.safe_string_k(data.clone(), "balance", &[]));
         usdcAccount.insert("used".into(), self.safe_string_k(data.clone(), "total_margin_used", &[]));
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".into(), Value::Map(usdcAccount)); }
+        result.insert("USDC".into(), Value::Map(usdcAccount));
         let mut spotBalances: Vec<Value> = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1552,15 +1552,15 @@ if _try_result.is_err() {
             account.insert("total".into(), self.safe_string_k(&balance, "amount", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "available_to_withdraw", &[]));
             // skip a spot USDC entry so it can't clobber the perp-collateral account above
-            if (code != Value::Null) && !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            if (code != Value::Null) && !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
         }
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(data, "updated_at", &[]).as_i64();
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(Value::from(timestamp))); }
-        return self.safe_balance(result);
+        result.insert("timestamp".into(), Value::from(timestamp));
+        result.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        return self.safe_balance(Value::Map(result));
         Value::Null
         }).await?))
     }
@@ -1722,7 +1722,7 @@ if _try_result.is_err() {
     m
 });
         }
-        let mut settingsBySymbol: Value = Value::Map({
+        let mut settingsBySymbol: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1734,10 +1734,10 @@ if _try_result.is_err() {
             let mut marketId: Option<String> = self.safe_string_k(setting.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut settingsBySymbol { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), setting); }
+            settingsBySymbol.insert(crate::runtime::stringify_param(&symbol), setting);
         }
         }
-        return settingsBySymbol;
+        return Value::Map(settingsBySymbol);
 
     Value::Null
 }
@@ -2729,7 +2729,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut ordersToReturn: Value = Value::from(vec![]);
+        let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1046: bool = true;
@@ -2744,16 +2744,16 @@ if _try_result.is_err() {
                 status = Some("open".to_string());
             }
             let mut orderId: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
-            if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            ordersToReturn.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return ordersToReturn;
+        return Value::from(ordersToReturn);
         Value::Null
         }).await?))
     }
@@ -2817,7 +2817,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut ordersToReturn: Value = Value::from(vec![]);
+        let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1047: bool = true;
@@ -2831,16 +2831,16 @@ if _try_result.is_err() {
             }  else {
                 status = Some("canceled".to_string());
             }
-            if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            ordersToReturn.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.clone());
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return ordersToReturn;
+        return Value::from(ordersToReturn);
         Value::Null
         }).await?))
     }
@@ -3301,10 +3301,10 @@ if _try_result.is_err() {
         // }
         //
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_1051: bool = true;
@@ -4335,7 +4335,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4345,10 +4345,10 @@ if _try_result.is_err() {
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

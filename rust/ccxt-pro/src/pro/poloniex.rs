@@ -472,12 +472,12 @@ impl Poloniex {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut subscribe: indexmap::IndexMap<String, Value> = {
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::from(vec![name.clone()]));
             m
-        };
+        });
         let mut marketIds: Value = Value::from(vec![]);
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             append_to_array(&mut marketIds, Value::Str("all".into()));

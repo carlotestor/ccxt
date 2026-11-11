@@ -1446,10 +1446,10 @@ impl Extended {
         //     }
         //
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tickers: indexmap::IndexMap<String, Value> = {
+        let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_663: bool = true;
@@ -3308,7 +3308,7 @@ impl Extended {
         //     }
         //
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3323,11 +3323,11 @@ impl Extended {
             let mut parsed: Value = self.parse_trading_fee(fee, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed); }
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), parsed);
             }
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -4157,11 +4157,11 @@ impl Extended {
                 if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires triggerDirection for trigger order".into()))));
                 }
-                let mut trigger: indexmap::IndexMap<String, Value> = {
+                let mut trigger: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPriceStr.clone().map(Value::from).unwrap_or(Value::Null)));
                     m
-                };
+                });
                 trigger.insert("direction".into(), triggerDirection.clone().map(Value::from).unwrap_or(Value::Null));
                 request.insert("type".into(), Value::Str("CONDITIONAL".into()));
                 request.insert("trigger".into(), Value::Map(trigger));
@@ -4171,11 +4171,11 @@ impl Extended {
                 }  else {
                     triggerPriceStr = takeProfitTriggerPrice;
                 }
-                let mut trigger: indexmap::IndexMap<String, Value> = {
+                let mut trigger: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, triggerPriceStr.clone().map(Value::from).unwrap_or(Value::Null)));
                     m
-                };
+                });
                 if matches!(&isBuy, Value::Bool(true)) {
                     trigger.insert("direction".into(), (if isStopLossOrder { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
                 }  else {

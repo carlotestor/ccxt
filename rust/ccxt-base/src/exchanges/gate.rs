@@ -4843,7 +4843,7 @@ if _try_result.is_err() {
     }
 
     pub fn parse_trading_fees(&self, mut response: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4854,10 +4854,10 @@ if _try_result.is_err() {
             while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market]));
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -9559,10 +9559,10 @@ if _try_result.is_err() {
         let mut maintenanceMarginRate: Option<String> = maintenanceMarginUnit.clone();
         let mut initialMarginRatio: Option<String> = initialMarginUnit.clone();
         let mut floor: Value = Value::Str("0".into());
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         while crate::precise::Precise::stringLt(&floor, &riskLimitMax.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             let mut cap: Option<String> = crate::precise::Precise::stringAdd(&floor, &riskLimitStep.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap.clone().map(Value::from).unwrap_or(Value::Null), &riskLimitStep.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("contract".into())]));
@@ -9573,12 +9573,12 @@ if _try_result.is_err() {
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRatio.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                     m.insert("info".to_string(), info.clone());
                 m
-            })); }
+            }));
             maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &maintenanceMarginUnit.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             initialMarginRatio = crate::precise::Precise::stringAdd(&initialMarginRatio.clone().map(Value::from).unwrap_or(Value::Null), &initialMarginUnit.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             floor = cap.clone().map(Value::from).unwrap_or(Value::Null);
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }
@@ -9600,14 +9600,14 @@ if _try_result.is_err() {
             return self.parse_emulated_leverage_tiers(info.clone(), &[market.clone()]);
         }
         let mut minNotional: Value = Value::Int(0);
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_706: bool = true;
             while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (info.len() as i64) } {
             let mut item: Value = self.safe_dict(info.clone(), Value::Int(i), &[]);
             let mut maxNotional: Option<f64> = self.safe_number_k(item.clone(), "risk_limit", &[]).as_f64();
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -9618,11 +9618,11 @@ if _try_result.is_err() {
                     m.insert("maxLeverage".to_string(), self.safe_number_k(item.clone(), "leverage_max", &[]));
                     m.insert("info".to_string(), item);
                 m
-            })); }
+            }));
             minNotional = Value::from(maxNotional);
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }

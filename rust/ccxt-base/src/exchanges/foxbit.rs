@@ -1087,7 +1087,7 @@ impl Foxbit {
         //     }
         // ]
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1099,10 +1099,10 @@ impl Foxbit {
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market_symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(entry, &[market])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(entry, &[market]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

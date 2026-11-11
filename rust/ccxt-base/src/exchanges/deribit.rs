@@ -2516,10 +2516,10 @@ impl Deribit {
         //     }
         //
         let mut result: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tickers: indexmap::IndexMap<String, Value> = {
+        let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_624: bool = true;
@@ -2956,7 +2956,7 @@ impl Deribit {
             }
         }
         }
-        let mut parsedFees: Value = Value::Map({
+        let mut parsedFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2984,10 +2984,10 @@ impl Deribit {
             }  else if (market).option {
                 fee = self.extend(fee.clone(), &[Value::Map(optionFee.clone())]);
             }
-            if let Value::Dict(__d) = &mut parsedFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
+            parsedFees.insert(crate::runtime::stringify_param(&symbol), fee);
         }
         }
-        return parsedFees;
+        return Value::Map(parsedFees);
         Value::Null
         }).await?))
     }

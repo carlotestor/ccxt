@@ -533,12 +533,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut id: String = format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name); // call back ID
-        let mut subscribe: indexmap::IndexMap<String, Value> = {
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), (if isContract { Value::Str("SUBSCRIBE".into()) } else { Value::Str("subscribe".into()) }));
                 m.insert("id".to_string(), Value::from(id.clone()));
             m
-        };
+        });
         if privateAccess {
             if !isContract {
                 subscribe.insert("params".into(), Value::from(vec![name.clone()]));

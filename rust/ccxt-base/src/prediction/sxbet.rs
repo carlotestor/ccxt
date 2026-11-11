@@ -2952,7 +2952,7 @@ impl Sxbet {
     pub fn parse_sxbet_tickers_by_hash(&self, mut outcomesList: Value, mut rowsByHash: Value) -> Value {
         let __outcomesList_empty = Vec::new();
         let outcomesList = outcomesList.as_array().unwrap_or(&__outcomesList_empty);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2970,11 +2970,11 @@ impl Sxbet {
             let mut ticker: Value = self.parse_prediction_ticker(raw, &[outcomeObj]);
             let mut sym: Option<String> = self.safe_string_k_opt(ticker.clone(), "outcome", &[]);
             if (sym.is_some()) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(sym.as_deref().unwrap_or("null").to_string(), ticker); }
+                result.insert(sym.as_deref().unwrap_or("null").to_string(), ticker);
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

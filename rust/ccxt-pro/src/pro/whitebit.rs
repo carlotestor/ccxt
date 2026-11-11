@@ -1399,10 +1399,10 @@ impl Whitebit {
         let mut request: Value = Value::Null;
         let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
-            let mut subscription: indexmap::IndexMap<String, Value> = {
+            let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
-            };
+            });
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {

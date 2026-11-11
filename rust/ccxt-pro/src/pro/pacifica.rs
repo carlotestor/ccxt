@@ -704,7 +704,7 @@ impl Pacifica {
             m
         })]).into_dict();
         let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut ordersToReturn: Value = Value::from(vec![]);
+        let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_574: bool = true;
@@ -722,7 +722,7 @@ impl Pacifica {
             }  else {
                 status = Some("canceled".to_string());
             }
-            if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            ordersToReturn.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("clientOrderId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -730,10 +730,10 @@ impl Pacifica {
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m
-            }), &[])); }
+            }), &[]));
         }
         }
-        return ordersToReturn;
+        return Value::from(ordersToReturn);
         Value::Null
         }).await?))
     }

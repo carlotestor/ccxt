@@ -1181,10 +1181,10 @@ impl Coinspot {
         //        }
         //    }
         //
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut prices: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "prices", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

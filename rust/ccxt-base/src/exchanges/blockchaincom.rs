@@ -1182,7 +1182,7 @@ impl Blockchaincom {
         //
         let mut makerFee: Option<f64> = self.safe_number_k(response.clone(), "makerRate", &[]).as_f64();
         let mut takerFee: Option<f64> = self.safe_number_k(response.clone(), "takerRate", &[]).as_f64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1192,17 +1192,17 @@ impl Blockchaincom {
             let mut __for_first_458: bool = true;
             while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("taker".to_string(), Value::from(takerFee));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

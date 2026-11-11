@@ -446,7 +446,7 @@ impl Opinion {
         let mut flatMarkets: Vec<Value> = Vec::new();
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
-        let mut seenEvents: Value = Value::Map({
+        let mut seenEvents: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -495,8 +495,8 @@ impl Opinion {
                     }
                     }
                     let mut eventKey: Option<String> = self.safe_string_k_opt(event.clone(), "event", &[]);
-                    if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) && !(matches!((&seenEvents, &eventKey.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let Value::Dict(__d) = &mut seenEvents { std::sync::Arc::make_mut(__d).insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) && !(matches!(&eventKey.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenEvents.contains_key(__k.as_ref()))) {
+                        seenEvents.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                         eventsList.push(event);
                     }
                 }  else {
@@ -2364,7 +2364,7 @@ impl Opinion {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
-        let mut wantedTokenIds: Value = Value::Map({
+        let mut wantedTokenIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2377,11 +2377,11 @@ impl Opinion {
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
-                if let Value::Dict(__d) = &mut wantedTokenIds { std::sync::Arc::make_mut(__d).insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                wantedTokenIds.insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
-        let mut filtered: Value = Value::from(vec![]);
+        let mut filtered: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1402: bool = true;
@@ -2392,12 +2392,12 @@ impl Opinion {
     m
 })]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
-            if (tokenId.is_some()) && (matches!((&wantedTokenIds, &tokenId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(position); }
+            if (tokenId.is_some()) && (matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedTokenIds.contains_key(__k.as_ref()))) {
+                filtered.push(position);
             }
         }
         }
-        return filtered;
+        return Value::from(filtered);
         Value::Null
         }).await?))
     }

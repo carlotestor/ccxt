@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __outcomeSymbols_empty = Vec::new();
         let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         let mut tickers: Vec<Value> = Vec::new();
-        let mut seen: Value = Value::Map({
+        let mut seen: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -966,8 +966,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (outcomeSymbol.as_str().unwrap_or("").ends_with("-NO")) {
                 baseTicker = outcomeSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
-            if !(matches!((&seen, &baseTicker), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&baseTicker), Value::Bool(true)); }
+            if !(matches!(&baseTicker, Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
+                seen.insert(crate::runtime::stringify_param(&baseTicker), Value::Bool(true));
                 tickers.push(baseTicker.clone());
             }
         }
@@ -2445,7 +2445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
-        let mut wantedTickers: Value = Value::Map({
+        let mut wantedTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2463,11 +2463,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
             let mut marketTicker: Option<String> = self.safe_string_k_opt(&outcomeInfo, "ticker", &[]);
             if (marketTicker.is_some()) {
-                if let Value::Dict(__d) = &mut wantedTickers { std::sync::Arc::make_mut(__d).insert(marketTicker.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                wantedTickers.insert(marketTicker.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1280: bool = true;
@@ -2478,12 +2478,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
             let mut positionTicker: Option<String> = self.safe_string_k_opt(&positionInfo, "ticker", &[]);
-            if (positionTicker.is_some()) && (matches!((&wantedTickers, &positionTicker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(position); }
+            if (positionTicker.is_some()) && (matches!(&positionTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedTickers.contains_key(__k.as_ref()))) {
+                result.push(position);
             }
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }

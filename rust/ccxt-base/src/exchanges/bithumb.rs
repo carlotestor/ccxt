@@ -1566,7 +1566,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1589,10 +1589,10 @@ impl Bithumb {
             }
             let mut marketIdsLength: Value = Value::Int(marketIds.len() as i64);
             if (marketIdsLength.as_f64() == Some(0.0)) {
-                return result;
+                return Value::Map(result);
             }
             let mut marketIdsChunks: Value = Value::from(vec![]);
-            let mut promises: Value = Value::from(vec![]);
+            let mut promises: Vec<Value> = Vec::new();
             // the exchange rejects more than 200 market ids per request
             let mut maxMarketIdsOption: Value = self.safe_integer_k(self.options.clone(), "fetchTickersGeneration2MaxMarketIdsPerRequest", &[Value::Int(200)]);
             let mut maxMarketIdsPerRequest: Value = self.parse_to_int((if ((maxMarketIdsOption == Value::Null) || (maxMarketIdsOption.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) { Value::Int(200) } else { maxMarketIdsOption }));
@@ -1608,7 +1608,7 @@ impl Bithumb {
                     if let Value::Arr(__a) = &mut marketIdsChunks { std::sync::Arc::make_mut(__a).push(marketIdsChunk.clone()); }
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                     let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
-                    if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.public_get_v1_ticker(&[__ws_arg_5]).await); }
+                    promises.push(self.public_get_v1_ticker(&[__ws_arg_5]).await);
                     marketIdsChunk = Value::from(vec![]);
                 }
             }
@@ -1645,7 +1645,7 @@ impl Bithumb {
             //         },
             //     ]
             //
-            let mut responses: Value = promise_all(&promises).await;
+            let mut responses: Value = promise_all(&Value::from(promises)).await;
             let mut responsesLength: f64 = ((responses.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1697,7 +1697,7 @@ impl Bithumb {
                     if (symbol == Value::Null) {
                         continue;
                     }
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(entry, &[market.clone()])); }
+                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(entry, &[market.clone()]));
                 }
                 }
             }
@@ -1731,17 +1731,17 @@ impl Bithumb {
                     quotes = requiredQuoteIds;
                 }
             }
-            let mut promises: Value = Value::from(vec![]);
+            let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_403: bool = true;
                 while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
-                if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await); }
+                promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await);
             }
             }
-            let mut responses: Value = promise_all(&promises).await;
+            let mut responses: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_405: bool = true;
@@ -1768,13 +1768,13 @@ impl Bithumb {
                     let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into());
                     let mut market: Value = self.safe_market(&[symbol.clone()]);
                     add_element_to_object(&mut ticker, &Value::Str("date".into()), Value::from(timestamp));
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market])); }
+                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
                 }
                 }
             }
             }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbols]);
         Value::Null
         }).await?))
     }
