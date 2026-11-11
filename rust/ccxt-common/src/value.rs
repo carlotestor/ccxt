@@ -693,6 +693,29 @@ impl KeyRead for &Dict { fn key_read(&self, key: &str) -> Value { get_map_value_
 impl KeyRead for &HashMap<String, Value> { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
 impl KeyRead for &Vec<Value> { fn key_read(&self, _key: &str) -> Value { Value::Null } }
 
+/// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
+pub trait MergeOperands {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>));
+    fn for_each_operand(self, f: impl FnMut(Value));
+}
+impl MergeOperands for &[Value] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { for v in self { if let Value::Dict(m) = v { f(m) } } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { for v in self { f(v.clone()) } }
+}
+impl<const N: usize> MergeOperands for &[Value; N] {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>)) { (&self[..]).for_each_map(f) }
+    fn for_each_operand(self, f: impl FnMut(Value)) { (&self[..]).for_each_operand(f) }
+}
+impl MergeOperands for &[&Dict; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
+}
+
+/// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
+pub trait OmitSource { fn into_operand(self) -> Value; }
+impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
     {

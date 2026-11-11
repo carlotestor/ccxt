@@ -1940,35 +1940,29 @@ impl Exchange {
 
     // ── extend / deep_extend / omit ─────────────────────────────────────────
 
-    pub fn extend(&self, a: Value, optional_args: &[Value]) -> Value {
+    pub fn extend(&self, a: Value, optional_args: impl crate::value::MergeOperands) -> Value {
         let mut out = match a {
             Value::Dict(m) => Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()),
             _ => HashMap::new(),
         };
-        let merge = |out: &mut HashMap<String, Value>, src: Value| {
-            if let Value::Dict(m) = src {
-                let m = Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone());
-                for (k, v) in m {
-                    out.insert(k, v);
-                }
+        optional_args.for_each_map(|m| {
+            for (k, v) in m.iter() {
+                out.insert(k.clone(), v.clone());
             }
-        };
-        for extra in optional_args {
-            merge(&mut out, extra.clone());
-        }
+        });
         Value::Map(out)
     }
 
-    pub fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value {
+    pub fn deep_extend(&self, a: Value, optional_args: impl crate::value::MergeOperands) -> Value {
         let mut current = a;
-        for extra in optional_args {
-            current = crate::value::deep_extend(current, extra.clone());
-        }
+        optional_args.for_each_operand(|extra| {
+            current = crate::value::deep_extend(std::mem::take(&mut current), extra);
+        });
         current
     }
 
-    pub fn omit(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Value {
-        match obj {
+    pub fn omit(&self, obj: impl crate::value::OmitSource, keys: Value, _optional_args: &[Value]) -> Value {
+        match obj.into_operand() {
             Value::Dict(mut m) => {
                 let mm = Arc::make_mut(&mut m);
                 match keys {
