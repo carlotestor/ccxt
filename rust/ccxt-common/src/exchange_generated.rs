@@ -4778,9 +4778,9 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (aliasKeys.len() as i64) } {
-            let mut alias: Value = aliasKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, &alias), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return (if let (Some(__m), Some(__k)) = (networkIdsByCodes.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut alias: Option<String> = aliasKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, alias.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                return (if let (Some(__m), Some(__k)) = (networkIdsByCodes.as_map(), alias.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
         }
         }
