@@ -1462,7 +1462,7 @@ impl Pacifica {
         // }
         //
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trades: Value = self.myTrades.clone();
@@ -1662,7 +1662,7 @@ impl Pacifica {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
@@ -1953,7 +1953,7 @@ impl Pacifica {
         })]).as_map().cloned().unwrap_or_default();
         let mut ohlcv: Value = self.safe_value(Value::Map(symbolOhlcvs.clone()), timeframe.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (ohlcv == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             ohlcv = ArrayCacheByTimestamp::new(limit);
             symbolOhlcvs.insert(timeframe.as_deref().unwrap_or("null").to_string(), ohlcv.clone());
         }
@@ -2137,7 +2137,7 @@ impl Pacifica {
         // }
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut dataLength: f64 = ((data.len() as i64) as f64);

@@ -1200,7 +1200,7 @@ impl Bitget {
         }
         let mut stored: Value = self.safe_value(Value::Map(symbolOhlcvs.clone()), timeframe.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCacheByTimestamp::new(limit);
             symbolOhlcvs.insert(crate::runtime::stringify_param(&timeframe), stored.clone());
         }
@@ -1901,7 +1901,7 @@ impl Bitget {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
@@ -2648,8 +2648,8 @@ impl Bitget {
             }
         }
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            self.orders = ArrayCacheBySymbolById::new(limit.clone());
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            self.orders = ArrayCacheBySymbolById::new(Value::from(limit));
             self.triggerOrders = ArrayCacheBySymbolById::new(limit);
         }
         let mut isTrigger: bool = (channel.as_deref() == Some("orders-algo")) || (channel.as_deref() == Some("ordersAlgo"));
@@ -3184,7 +3184,7 @@ impl Bitget {
         //     }
         //
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCache::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();

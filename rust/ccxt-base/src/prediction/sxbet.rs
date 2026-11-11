@@ -3912,7 +3912,7 @@ impl Sxbet {
                 continue;
             }
             if (self.myTrades.clone() == Value::Null) {
-                let mut myTradesLimit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
+                let mut myTradesLimit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit);
             }
             let mut stored: Value = self.myTrades.clone();
@@ -3979,7 +3979,7 @@ impl Sxbet {
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
             let mut order: Value = self.parse_prediction_order(row, &[]);
             if (self.orders.clone() == Value::Null) {
-                let mut cacheLimit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+                let mut cacheLimit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheByOutcomeById::new(cacheLimit);
             }
             let mut stored: Value = self.orders.clone();

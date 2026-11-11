@@ -2805,7 +2805,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 }
             }
             if (self.myTrades.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut myTrades: Value = self.myTrades.clone();
@@ -2894,7 +2894,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: String = "orders".to_string();
         let mut market: Value = self.get_market_from_order(client.clone(), message.clone());
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut cache: Value = self.orders.clone();

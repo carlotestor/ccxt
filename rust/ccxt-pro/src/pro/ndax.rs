@@ -467,7 +467,7 @@ impl Ndax {
             let mut symbol: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
             let mut tradesArray: Value = (if (symbol.is_none()) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
             if (tradesArray == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 tradesArray = ArrayCache::new(limit);
             }
             tradesArray.append(trade);

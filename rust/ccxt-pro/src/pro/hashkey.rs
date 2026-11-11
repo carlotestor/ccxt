@@ -812,7 +812,7 @@ impl Hashkey {
         //     }
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut parsed: Value = self.parse_ws_order(message, &[]);
@@ -943,7 +943,7 @@ impl Hashkey {
         //     }
         //
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut tradesArray: Value = self.myTrades.clone();

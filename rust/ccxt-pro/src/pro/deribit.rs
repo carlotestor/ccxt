@@ -987,7 +987,7 @@ impl Deribit {
         let mut trades: Value = self.safe_list_k(&params, "data", &[Value::from(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             cachedTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut parsed: Value = self.parse_trades(trades, &[]);
@@ -1323,7 +1323,7 @@ impl Deribit {
         //     }
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({

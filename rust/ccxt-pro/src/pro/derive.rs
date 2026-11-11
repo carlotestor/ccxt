@@ -988,7 +988,7 @@ impl Derive {
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             tradesArray = ArrayCache::new(limit);
         }
         {
@@ -1190,7 +1190,7 @@ impl Derive {
             let mut orderId: Option<String> = self.safe_string_k(parsed.clone(), "id", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 if (self.orders.clone() == Value::Null) {
-                    let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+                    let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                     self.orders = ArrayCacheBySymbolById::new(limit);
                 }
                 let mut cachedOrders: Value = self.orders.clone();
@@ -1347,7 +1347,7 @@ impl Derive {
         //
         let mut myTrades: Value = self.myTrades.clone();
         if (myTrades == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = myTrades.clone();
         }

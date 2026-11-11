@@ -1248,7 +1248,7 @@ impl Grvt {
     m
 }) });
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trade: Value = self.parse_ws_my_trade(data, &[]);
@@ -1502,7 +1502,7 @@ impl Grvt {
         //
         let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut order: Value = self.parse_ws_order(data, &[]);

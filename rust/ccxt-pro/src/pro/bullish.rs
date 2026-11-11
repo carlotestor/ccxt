@@ -507,7 +507,7 @@ impl Bullish {
         let mut rawTrades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArrayCache); }
         }
@@ -868,7 +868,7 @@ impl Bullish {
         let mut numRawOrders: f64 = ((rawOrders.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawOrders > ((0i64) as f64) {
             if (self.orders.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut orders: Value = self.orders.clone();
@@ -1012,7 +1012,7 @@ impl Bullish {
         let mut numRawTrades: f64 = ((rawTrades.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawTrades > ((0i64) as f64) {
             if (self.myTrades.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut trades: Value = self.myTrades.clone();

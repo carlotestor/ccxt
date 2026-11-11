@@ -4892,7 +4892,7 @@ if _try_result.is_err() {
         }
         let mut stored: Value = self.safe_value(self.trades.clone(), outcome.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), stored.clone()); }
         }
@@ -5212,7 +5212,7 @@ if _try_result.is_err() {
 
     pub fn handle_order(&mut self, mut client: Value, mut event: Value) {
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.orders.clone();
@@ -5227,7 +5227,7 @@ if _try_result.is_err() {
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut event: Value) {
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();

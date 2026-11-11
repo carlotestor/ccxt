@@ -463,7 +463,7 @@ impl Gemini {
         //
         let mut trade: Value = self.parse_ws_trade(message, &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+        let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             stored = ArrayCache::new(tradesLimit);
@@ -521,7 +521,7 @@ impl Gemini {
         let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (trades.is_some()) {
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-            let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
                 stored = ArrayCache::new(tradesLimit);
@@ -541,7 +541,7 @@ impl Gemini {
 }
 
     pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
-        let mut tradesLimit: Option<i64> = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64();
+        let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut storesForSymbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -686,7 +686,7 @@ impl Gemini {
         }
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCacheByTimestamp::new(limit);
             if (symbol != Value::Null) && (timeframe != Value::Null) {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
@@ -1206,7 +1206,7 @@ impl Gemini {
         //
         let mut messageHash: String = "orders".to_string();
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut orders: Value = self.orders.clone();

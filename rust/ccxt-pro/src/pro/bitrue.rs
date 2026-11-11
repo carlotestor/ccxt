@@ -576,7 +576,7 @@ impl Bitrue {
         //
         let mut parsed: Value = self.parse_ws_order(message, &[]);
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut orders: Value = self.orders.clone();
@@ -958,7 +958,7 @@ impl Bitrue {
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (data.len() as i64) } {
             if (stored == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = ArrayCache::new(limit);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), stored.clone()); }
             }

@@ -4715,7 +4715,7 @@ impl Predictfun {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &order { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.orders.clone();
@@ -4739,7 +4739,7 @@ impl Predictfun {
     pub fn handle_wallet_event_trade(&mut self, mut client: Value, mut event: Value, mut order: Value) {
         let mut trade: Value = self.parse_wallet_event_trade(event, order);
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();

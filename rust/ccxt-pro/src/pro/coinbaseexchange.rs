@@ -893,7 +893,7 @@ impl Coinbaseexchange {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (tradesArray == Value::Null) {
-                let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 tradesArray = ArrayCache::new(tradesLimit);
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
@@ -916,7 +916,7 @@ impl Coinbaseexchange {
             let mut type_var: String = "myTrades".to_string();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if (self.myTrades.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut tradesArray: Value = self.myTrades.clone();
@@ -1118,7 +1118,7 @@ impl Coinbaseexchange {
         //     }
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

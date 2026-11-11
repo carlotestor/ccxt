@@ -3153,7 +3153,7 @@ if _try_result.is_err() {
     m
 }), &[outcomeObj]);
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.orders.clone();
@@ -3259,7 +3259,7 @@ if _try_result.is_err() {
     m
 }), &[outcomeObj]);
         if (self.myTrades.clone() == Value::Null) {
-            let mut myTradesLimit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
+            let mut myTradesLimit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit);
         }
         let mut stored: Value = self.myTrades.clone();

@@ -721,7 +721,7 @@ impl Bitstamp {
         let mut trade: Value = self.parse_ws_trade(data, &[market]);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             tradesArray = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         }
@@ -1019,7 +1019,7 @@ impl Bitstamp {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();
@@ -1121,7 +1121,7 @@ impl Bitstamp {
         if (symbol.is_none()) {
             return;
         }
-        let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+        let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         if (self.orders.clone() == Value::Null) {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
@@ -1303,11 +1303,11 @@ impl Bitstamp {
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
         if (topic.as_deref() == Some("orders")) && (self.orders.clone() != Value::Null) {
-            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64();
-            let mut freshOrdersCache = ArrayCacheBySymbolById::new(Value::from(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut freshOrdersCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshOrdersCache, self.orders.clone(), symbols.clone()); self.orders = __t; }
         }  else if (topic.as_deref() == Some("myTrades")) && (self.myTrades.clone() != Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut freshTradesCache = ArrayCacheBySymbolById::new(limit);
             { let __t = self.prune_cached_by_symbols(freshTradesCache, self.myTrades.clone(), symbols); self.myTrades = __t; }
         }  else {

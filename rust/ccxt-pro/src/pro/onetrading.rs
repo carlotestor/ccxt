@@ -947,7 +947,7 @@ impl Onetrading {
         //     }
         //
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut order: Value = self.parse_trading_order(message, &[]);
@@ -1702,7 +1702,7 @@ impl Onetrading {
         if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(symbolOhlcvs.clone())); }
         let mut stored: Value = self.safe_value(Value::Map(symbolOhlcvs.clone()), timeframe.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCacheByTimestamp::new(limit);
         }
         stored.append(parsed);

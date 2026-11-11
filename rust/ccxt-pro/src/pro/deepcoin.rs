@@ -1500,7 +1500,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if (__ch.has_future(&messageHash)) || (__ch.has_future(&symbolMessageHash)) {
             if (self.myTrades.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut stored: Value = self.myTrades.clone();
@@ -1604,7 +1604,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if (__ch.has_future(&messageHash)) || (__ch.has_future(&symbolMessageHash)) {
             if (self.orders.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut parsed: Value = self.parse_ws_order(data, &[market]);

@@ -1352,7 +1352,7 @@ impl Poloniex {
         let mut stored: Value = (if (timeframe == Value::Null) { Value::Null } else { self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]) });
         if (symbol != Value::Null) {
             if (stored == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = ArrayCacheByTimestamp::new(limit);
                 if (symbol != Value::Null) && (timeframe != Value::Null) {
                     if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
@@ -1403,7 +1403,7 @@ impl Poloniex {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str("::".into())).into()), self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())])).into());
                 let mut tradesArray: Value = (if (symbol.is_none()) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
                 if (tradesArray == Value::Null) {
-                    let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                    let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                     tradesArray = ArrayCache::new(tradesLimit);
                     if (symbol.is_some()) {
                         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArray.clone()); }
@@ -1607,7 +1607,7 @@ impl Poloniex {
         //
         let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]).as_i64();
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut orders: Value = self.orders.clone();
@@ -2064,7 +2064,7 @@ impl Poloniex {
         let mut messageHash: String = "myTrades".to_string();
         let mut symbol: String = self.safe_string_k(parsedTrade.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trades: Value = self.myTrades.clone();

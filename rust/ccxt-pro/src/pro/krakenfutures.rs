@@ -1055,7 +1055,7 @@ impl Krakenfutures {
             // the typed accessor casts them to a plain list in c#, which throws
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (tradesArray == Value::Null) {
-                let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 tradesArray = ArrayCache::new(tradesLimit);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
             }
@@ -1273,7 +1273,7 @@ impl Krakenfutures {
         //
         let mut orders: Value = self.orders.clone();
         if (orders == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]).as_i64();
             orders = ArrayCacheBySymbolById::new(limit);
             self.orders = orders.clone();
         }
@@ -1459,7 +1459,7 @@ impl Krakenfutures {
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
+            let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]).as_i64();
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut feed: Option<String> = (match message.get("feed") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -2247,7 +2247,7 @@ impl Krakenfutures {
         let mut trades: Vec<Value> = (match message.get("fills") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut stored: Value = self.myTrades.clone();
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCacheBySymbolById::new(limit);
             self.myTrades = stored.clone();
         }
