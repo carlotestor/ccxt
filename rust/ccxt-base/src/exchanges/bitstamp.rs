@@ -2488,11 +2488,11 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_431: bool = true;
             while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (ids.len() as i64) } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !id.as_str().unwrap_or("").contains("_") {
-                let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone(), &[]).as_i64();
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if !id.as_deref().unwrap_or_default().contains("_") {
+                let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
                 if (value.is_some()) && (value != Some(0)) {
-                    return id;
+                    return id.map(Value::from).unwrap_or(Value::Null);
                 }
             }
         }
@@ -2621,10 +2621,10 @@ impl Bitstamp {
             costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]);
         }
         symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut datetimeString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]);
+        let mut datetimeString: Option<String> = self.safe_string2(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         if (datetimeString.is_some()) {
-            if datetimeString.as_deref().unwrap_or("").contains(" ") {
+            if datetimeString.as_deref().unwrap_or_default().contains(" ") {
                 // iso8601
                 timestamp = self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {

@@ -3121,7 +3121,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut encodedArrayParams: String = "".to_string();
+        let mut encodedArrayParams: Value = Value::Str("".into());
         let mut remainingQuery: Value = query.clone();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -3131,12 +3131,12 @@ impl Coinsph {
             let mut key: Option<String> = keys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i.as_f64() != Some(0.0)) {
-                    encodedArrayParams.push_str("&");
+                    encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".into())).into());
                 }
                 let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 remainingQuery = self.omit(remainingQuery.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut encodedArrayParam: Value = self.parse_array_param(innerArray, key.map(Value::from).unwrap_or(Value::Null));
-                encodedArrayParams.push_str(&encodedArrayParam.to_string());
+                encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam).into());
             }
         }
         }
@@ -3144,7 +3144,7 @@ impl Coinsph {
         if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery.map(Value::from).unwrap_or(Value::Null), Value::Str("&".into())).into()), encodedArrayParams).into());
         }  else {
-            return Value::from(encodedArrayParams);
+            return encodedArrayParams;
         }
 
     Value::Null

@@ -2775,16 +2775,16 @@ impl Dydx {
             denom = self.safe_string_k(&feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null));
-        if (feeAmount == Value::Null) {
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
-        if feeAmount.as_str().unwrap_or("").contains(".") {
-            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone())).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+        if feeAmount.as_deref().unwrap_or_default().contains(".") {
+            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone().map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), feeAmount);
+                m.insert("amount".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("denom".to_string(), denom.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });

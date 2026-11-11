@@ -1371,17 +1371,17 @@ impl Gemini {
                 m.insert("heartbeat".to_string(), Value::Str("handle_heartbeat".into()).clone());
             m
         });
-        let mut type_var: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        if type_var.as_str().unwrap_or("").contains("candles") {
+        let mut type_var: String = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        if type_var.contains("candles") {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
-        let mut method: Value = self.safe_value(&methods, type_var.clone(), &[]);
+        let mut method: Value = self.safe_value(&methods, Value::from(type_var.clone()), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
         // handle multimarketdata
-        if (type_var.as_str() == Some("update")) {
+        if (type_var == "update") {
             let mut ts: Option<i64> = self.safe_integer_k(message, "timestampms", &[self.milliseconds()]).as_i64();
             let mut eventId: Option<i64> = (match __pro_message.get("eventId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                 Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();

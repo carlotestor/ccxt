@@ -149,7 +149,6 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "create_spot_order_request" => self.create_spot_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_swap_order" => self.create_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_swap_order_request" => self.create_swap_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "custom_urlencode" => self.custom_urlencode(&args[..]),
                 "encode_account_type" => self.encode_account_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "encode_flow_type" => self.encode_flow_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -5522,19 +5521,19 @@ impl Hashkey {
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("api/v1/spot/batchOrders")) || (path.as_str() == Some("api/v1/futures/batchOrders"))) {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
                 bodySigned = self.json(self.safe_list_k(params.clone(), "orders", &[]));
-                signature = self.hmac(self.encode(self.custom_urlencode(&[Value::Map(additionalParams.clone())])), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                signature = self.hmac(self.encode(self.custom_urlencode(&[Value::Map(additionalParams.clone())]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 let __ws_arg_44 = self.extend(Value::Map(additionalParams.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), signature.clone());
     m
 })]);
-                query = self.custom_urlencode(&[__ws_arg_44]);
+                query = self.custom_urlencode(&[__ws_arg_44]).map(Value::from).unwrap_or(Value::Null);
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
             }  else {
                 let mut totalParams: Value = self.extend(Value::Map(additionalParams), &[params.clone()]);
-                signature = self.hmac(self.encode(self.custom_urlencode(&[totalParams.clone()])), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                signature = self.hmac(self.encode(self.custom_urlencode(&[totalParams.clone()]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 if let Value::Dict(__d) = &mut totalParams { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.clone()); }
-                query = self.custom_urlencode(&[totalParams]);
+                query = self.custom_urlencode(&[totalParams]).map(Value::from).unwrap_or(Value::Null);
                 if (method.as_str() == Some("GET")) {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
                 }  else {
@@ -5570,16 +5569,14 @@ impl Hashkey {
     Value::Null
 }
 
-    pub fn custom_urlencode(&self, optional_args: &[Value]) -> Value {
+    pub fn custom_urlencode(&self, optional_args: &[Value]) -> Option<String> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut result: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
-        result = (if let Some(__s) = result.as_deref() { Some(__s.replace("%2C", ",")) } else { None });
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        let mut result: Value = self.urlencode(params, &[]);
+        result = result.as_str().map(|__s| Value::Str(__s.replace("%2C", ",").into())).unwrap_or_else(|| result.clone());
+        return result.as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {

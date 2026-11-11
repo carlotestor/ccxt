@@ -9718,11 +9718,11 @@ impl Htx {
             feeCost = crate::precise::Precise::stringAbs(&feeCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chain", &[]).as_str().map(str::to_owned);
-        let mut txHash: Value = self.safe_string_k(transaction.clone(), "tx-hash", &[]);
+        let mut txHash: Option<String> = self.safe_string_k(transaction.clone(), "tx-hash", &[]).as_str().map(str::to_owned);
         // a freshly created withdrawal has no tx-hash yet, the create
         // endpoint returns only { "status": "ok", "data": "<id>" }
-        if (txHash != Value::Null) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_str().unwrap_or("").contains("0x")) {
-            txHash = Value::Str(format!("{}{}", Value::Str("0x".into()), txHash).into());
+        if (txHash.is_some()) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_deref().unwrap_or_default().contains("0x")) {
+            txHash = Some(format!("{}{}", Value::Str("0x".into()), txHash.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
         let mut internal: Value = Value::Bool(subType.as_deref() == Some("FAST"));
@@ -9730,7 +9730,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("data".into()), &[]));
-        m.insert("txid".to_string(), txHash);
+        m.insert("txid".to_string(), txHash.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -10760,7 +10760,7 @@ impl Htx {
         let mut signedHeaders: Value = Value::Null;
         let mut signedBody: Value = Value::Null;
         let mut pathString: Value = path.clone();
-        let mut url: String = "/".to_string();
+        let mut url: Value = Value::Str("/".into());
         let mut isArrayParams: bool = matches!(&params, Value::Arr(_));
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -10774,11 +10774,11 @@ impl Htx {
             // signing implementation for the old endpoints
             let mut apiName: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
             if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("private")) {
-                url.push_str(&(self.version.clone()).to_string());
+                url = Value::Str(format!("{}{}", url, self.version.clone()).into());
             }  else if (apiName.as_str() == Some("v2Public")) || (apiName.as_str() == Some("v2Private")) {
-                url.push_str("v2");
+                url = Value::Str(format!("{}{}", url, Value::Str("v2".into())).into());
             }
-            url.push_str(&format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())));
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
             if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("v2Private")) {
                 self.check_required_credentials(&[]);
                 let mut timestamp: Value = self.ymdhms(self.nonce(), &[Value::Str("T".into())]);
@@ -10796,7 +10796,7 @@ impl Htx {
                 let mut sortedRequest: Value = self.keysort(request.clone(), &[]);
                 let mut auth: Value = self.urlencode(sortedRequest, &[Value::Bool(true)]); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), Value::from(url.clone()), auth.clone()]);
+                let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
                 let mut payload: Value = Value::Str(content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
@@ -10804,7 +10804,7 @@ impl Htx {
         m.insert("Signature".to_string(), signature.clone());
     m
 }), &[])).into())).into());
-                url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
                 if (method.as_str() == Some("POST")) {
                     let mut bodyRequest: Value = Value::Null;
                     if isArrayParams {
@@ -10827,18 +10827,18 @@ impl Htx {
                 }
             }  else {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
             if (baseApiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            url = Value::Str(format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
-})), url);
+})), url).into());
         }  else {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
@@ -10855,10 +10855,10 @@ impl Htx {
                 }
             }
             hostname = hostnames;
-            url.push_str(&(self.implode_params(path, params.clone())).to_string());
+            url = Value::Str(format!("{}{}", url, self.implode_params(path, params.clone())).into());
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }  else if (access.as_deref() == Some("private")) {
                 self.check_required_credentials(&[]);
@@ -10901,7 +10901,7 @@ impl Htx {
                 }
                 let mut auth: Value = (self.urlencode(request.clone(), &[Value::Bool(true)])).as_str().map(|__s| Value::Str(__s.replace("%2c", "%2C").into())).unwrap_or_else(|| (self.urlencode(request, &[Value::Bool(true)])).clone()); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), Value::from(url.clone()), auth.clone()]);
+                let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), url.clone(), auth.clone()]);
                 let mut payload: Value = Value::Str(content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
                 let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
@@ -10909,7 +10909,7 @@ impl Htx {
         m.insert("Signature".to_string(), signature);
     m
 }), &[])).into())).into());
-                url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
                 if (method.as_str() == Some("POST")) {
                     let mut bodyRequest: Value = Value::Null;
                     if isArrayParams {
@@ -10939,17 +10939,17 @@ impl Htx {
             if (baseApiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = format!("{}{}", self.implode_params(baseApiUrl2.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            url = Value::Str(format!("{}{}", self.implode_params(baseApiUrl2.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), finalHostname);
     m
-})), url);
+})), url).into());
         }
         let mut headersResolved: Value = signedHeaders;
         let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url));
+        m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);

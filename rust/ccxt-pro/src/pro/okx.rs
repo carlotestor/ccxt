@@ -4033,7 +4033,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
         if (channel.is_none()) {
             return;
         }
@@ -4044,11 +4044,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (channel.as_deref() == Some("trades")) || (channel.as_deref() == Some("trades-all")) {
             self.handle_un_subscription_trades(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
-        }  else if (channel.as_deref().unwrap_or("").starts_with("bbo")) || (channel.as_deref().unwrap_or("").starts_with("book")) {
+        }  else if (channel.as_deref().unwrap_or_default().starts_with("bbo")) || (channel.as_deref().unwrap_or_default().starts_with("book")) {
             self.handle_unsubscription_order_book(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
-        }  else if channel.as_deref().unwrap_or("").contains("tickers") {
+        }  else if channel.as_deref().unwrap_or_default().contains("tickers") {
             self.handle_unsubscription_ticker(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
-        }  else if (channel.as_deref().unwrap_or("").starts_with("candle")) {
+        }  else if (channel.as_deref().unwrap_or_default().starts_with("candle")) {
             self.handle_unsubscription_ohlcv(client, symbol.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null));
         }
 }

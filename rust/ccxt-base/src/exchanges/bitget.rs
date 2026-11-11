@@ -13017,14 +13017,14 @@ if _try_result.is_err() {
         if (feeCostString.is_some()) {
             feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString.map(Value::from).unwrap_or(Value::Null)), &[]); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         }
-        let mut amountRaw: Value = self.safe_string2(item.clone(), Value::Str("size".into()), Value::Str("amount".into()), &[Value::Str("".into())]);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
+        let mut amountRaw: String = self.safe_string2(item.clone(), Value::Str("size".into()), Value::Str("amount".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&Value::from(amountRaw.clone())), &[]);
         let mut before: Value = Value::Null;
-        if (balanceString.is_some()) && (amountRaw.as_str() != Some("")) {
-            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.map(Value::from).unwrap_or(Value::Null), &amountRaw), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+        if (balanceString.is_some()) && (amountRaw != "") {
+            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString.map(Value::from).unwrap_or(Value::Null), &Value::from(amountRaw.clone())), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         let mut direction: String = "in".to_string();
-        if amountRaw.as_str().unwrap_or("").contains("-") {
+        if amountRaw.contains("-") {
             direction = "out".to_string();
         }
         let mut businessType: Option<String> = self.safe_string_n(item.clone(), Value::from(vec![Value::Str("businessType".into()), Value::Str("groupType".into()), Value::Str("type".into())]), &[]).as_str().map(str::to_owned);

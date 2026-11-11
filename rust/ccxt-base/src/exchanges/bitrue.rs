@@ -4105,12 +4105,12 @@ impl Bitrue {
                 }  else if (type_var.as_deref() == Some("dapi")) {
                     signPrefix = "/dapi".to_string();
                 }
-                let mut signMessage: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), path).into())));
+                let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), path).into()))).into());
                 if (method.as_str() == Some("GET")) {
                     if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        signMessage.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
+                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
                     }
-                    let mut signature: Value = self.hmac(self.encode(Value::from(signMessage.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    let mut signature: Value = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
@@ -4126,8 +4126,8 @@ impl Bitrue {
                         m
                     }), &[paramsOmitted.clone()]);
                     requestBody = json_stringify(&query);
-                    signMessage.push_str(&requestBody.to_string());
-                    let mut signature: Value = self.hmac(self.encode(Value::from(signMessage)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
+                    let mut signature: Value = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

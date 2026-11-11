@@ -7891,29 +7891,29 @@ if _try_result.is_err() {
             side = (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut rawStatus: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("finish_as".into()), Value::Str("status".into()), Value::Str("open".into())]), &[]).as_str().map(str::to_owned);
-        let mut timestampStr: Value = self.safe_string_k(order.clone(), "create_time_ms", &[]);
-        if (timestampStr == Value::Null) {
-            timestampStr = self.safe_string2(order.clone(), Value::Str("create_time".into()), Value::Str("ctime".into()), &[]);
-            if (timestampStr != Value::Null) {
-                if (Value::Int(timestampStr.len() as i64).as_f64() == Some(10.0)) || timestampStr.as_str().unwrap_or("").contains(".") {
+        let mut timestampStr: Option<String> = self.safe_string_k(order.clone(), "create_time_ms", &[]).as_str().map(str::to_owned);
+        if (timestampStr.is_none()) {
+            timestampStr = self.safe_string2(order.clone(), Value::Str("create_time".into()), Value::Str("ctime".into()), &[]).as_str().map(str::to_owned);
+            if (timestampStr.is_some()) {
+                if (((timestampStr.as_deref().unwrap_or_default().chars().count() as i64)) == 10) || timestampStr.as_deref().unwrap_or_default().contains(".") {
                     // ts in seconds, multiply to ms
-                    timestampStr = crate::precise::Precise::stringMul(&timestampStr, &Value::Str("1000".into()));
-                }  else if (Value::Int(timestampStr.len() as i64).as_f64() == Some(16.0)) {
+                    timestampStr = crate::precise::Precise::stringMul(&timestampStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+                }  else if (((timestampStr.as_deref().unwrap_or_default().chars().count() as i64)) == 16) {
                     // ts in microseconds, divide to ms
-                    timestampStr = crate::precise::Precise::stringDiv(&timestampStr, &Value::Str("1000".into()));
+                    timestampStr = crate::precise::Precise::stringDiv(&timestampStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
                 }
             }
         }
-        let mut lastTradeTimestampStr: Value = self.safe_string_k(order.clone(), "update_time_ms", &[]);
-        if (lastTradeTimestampStr == Value::Null) {
-            lastTradeTimestampStr = self.safe_string2(order.clone(), Value::Str("update_time".into()), Value::Str("finish_time".into()), &[]);
-            if (lastTradeTimestampStr != Value::Null) {
-                if (Value::Int(lastTradeTimestampStr.len() as i64).as_f64() == Some(10.0)) || lastTradeTimestampStr.as_str().unwrap_or("").contains(".") {
+        let mut lastTradeTimestampStr: Option<String> = self.safe_string_k(order.clone(), "update_time_ms", &[]).as_str().map(str::to_owned);
+        if (lastTradeTimestampStr.is_none()) {
+            lastTradeTimestampStr = self.safe_string2(order.clone(), Value::Str("update_time".into()), Value::Str("finish_time".into()), &[]).as_str().map(str::to_owned);
+            if (lastTradeTimestampStr.is_some()) {
+                if (((lastTradeTimestampStr.as_deref().unwrap_or_default().chars().count() as i64)) == 10) || lastTradeTimestampStr.as_deref().unwrap_or_default().contains(".") {
                     // ts in seconds, multiply to ms
-                    lastTradeTimestampStr = crate::precise::Precise::stringMul(&lastTradeTimestampStr, &Value::Str("1000".into()));
-                }  else if (Value::Int(lastTradeTimestampStr.len() as i64).as_f64() == Some(16.0)) {
+                    lastTradeTimestampStr = crate::precise::Precise::stringMul(&lastTradeTimestampStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
+                }  else if (((lastTradeTimestampStr.as_deref().unwrap_or_default().chars().count() as i64)) == 16) {
                     // ts in microseconds, divide to ms
-                    lastTradeTimestampStr = crate::precise::Precise::stringDiv(&lastTradeTimestampStr, &Value::Str("1000".into()));
+                    lastTradeTimestampStr = crate::precise::Precise::stringDiv(&lastTradeTimestampStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
                 }
             }
         }
@@ -7969,11 +7969,11 @@ if _try_result.is_err() {
         }
         let mut timestamp: Value = Value::Null;
         let mut lastTradeTimestamp: Value = Value::Null;
-        if (timestampStr != Value::Null) {
-            timestamp = self.parse_to_int(timestampStr);
+        if (timestampStr.is_some()) {
+            timestamp = self.parse_to_int(timestampStr.map(Value::from).unwrap_or(Value::Null));
         }
-        if (lastTradeTimestampStr != Value::Null) {
-            lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr);
+        if (lastTradeTimestampStr.is_some()) {
+            lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr.map(Value::from).unwrap_or(Value::Null));
         }
         let mut initial: crate::value::Dict = self.safe_dict_k(order.clone(), "initial", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

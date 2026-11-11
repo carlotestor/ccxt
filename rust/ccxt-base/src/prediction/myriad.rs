@@ -4222,7 +4222,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut eventId: Option<String> = self.safe_string_k_opt(params.clone(), "eventId", &[]);
+        let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
@@ -4234,11 +4234,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]);
             rawQuestions = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]);
         }  else if (eventId.is_some()) {
-            if eventId.as_deref().unwrap_or("").contains(":") {
+            if eventId.as_deref().unwrap_or_default().contains(":") {
                 let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone().map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
                 rawMarkets = Value::from(vec![rawMarket]);
             }  else {
-                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.clone().map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
+                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
                 rawQuestions = Value::from(vec![rawQuestion.clone()]);
             }
         }  else {

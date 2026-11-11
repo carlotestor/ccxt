@@ -1158,12 +1158,12 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_846: bool = true;
             while { if !__for_first_846 { i += 1; } __for_first_846 = false; i < (keys.len() as i64) } {
-            let mut id: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut id: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut isSynthetic: bool = false;
-            if id.as_str().unwrap_or("").contains(":BTNL") {
+            if id.as_deref().unwrap_or_default().contains(":BTNL") {
                 isSynthetic = true;
             }
-            let mut market: Value = markets.get(id.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut baseIdRaw: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
             let mut quoteIdRaw: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
             let mut baseId: Value = self.safe_currency_code(baseIdRaw.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1206,15 +1206,15 @@ impl Kraken {
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut isActive: Value = Value::Bool(status.as_deref() == Some("online"));
-            let mut symbol: Value = id.clone();
+            let mut symbol: Option<String> = id.clone();
             if !isSynthetic {
-                symbol = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("wsId".to_string(), self.safe_string_k(market.clone(), "wsname", &[]));
-                    m.insert("symbol".to_string(), symbol);
+                    m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), Value::Null);
@@ -3138,9 +3138,9 @@ impl Kraken {
         let mut isLimitOrder: bool = (type_var != Value::Null) && (type_var.as_str().unwrap_or("").ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut cost: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
-        let mut flags: Option<String> = self.safe_string_k_opt(&paramsOmitted, "oflags", &[]);
+        let mut flags: Option<String> = self.safe_string_k(&paramsOmitted, "oflags", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted2: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("oflags".into())]), &[]);
-        let mut isViqcOrder: bool = (flags.is_some()) && (flags.as_deref().unwrap_or("").contains("viqc")); // volume in quote currency
+        let mut isViqcOrder: bool = (flags.is_some()) && (flags.as_deref().unwrap_or_default().contains("viqc")); // volume in quote currency
         if isMarketOrder && ((cost.is_some()) || isViqcOrder) {
             if (cost.is_none()) && (amount != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), self.number_to_string(amount))); }

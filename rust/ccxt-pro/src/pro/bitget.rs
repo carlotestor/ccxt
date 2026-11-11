@@ -1446,10 +1446,10 @@ impl Bitget {
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
-        let mut channel: String = "books".to_string();
+        let mut channel: Value = Value::Str("books".into());
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
-            channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
+            channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
             incrementalFeed = false;
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -1478,7 +1478,7 @@ impl Bitget {
             if isStockOrUta {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel, Value::from(channel.clone()));
+            args.insert(topicOrChannel, channel.clone());
             args.insert(symbolOrInstId, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
@@ -3855,15 +3855,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut topic: Value = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
-        let mut method: Value = self.safe_value(&methods, topic.clone(), &[]);
+        let mut topic: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut method: Value = self.safe_value(&methods, Value::from(topic.clone()), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
-        if topic.as_str().unwrap_or("").contains("candle") {
+        if topic.contains("candle") {
             self.handle_ohlcv(client.clone(), message.clone());
         }
-        if topic.as_str().unwrap_or("").contains("books") {
+        if topic.contains("books") {
             self.handle_order_book(client, message.clone());
         }
 }
