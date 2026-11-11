@@ -52,7 +52,7 @@ pub fn testMergeBalanceAccount() {
     result = exchange.extend(exchange.merge_balance_account(result.clone(), Value::Str("USDT".into()), usdtAccount.clone()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("5")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]) == Value::Null))));
-    let mut keys: Value = object_keys(&result);
+    let mut keys: Vec<Value> = object_keys(&result).as_array().cloned().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(keys.len() as i64).as_f64() == Some(2.0)))));
     // the merged dict is a regular safeBalance input. safeBalance parses to a number,
     // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
