@@ -1144,7 +1144,7 @@ impl Gate {
     m
 }) });
         let mut full: bool = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut marketIdWithPrefix: Option<String> = self.safe_string_k_opt(result.clone(), "s", &[]);
+        let mut marketIdWithPrefix: Option<String> = self.safe_string_k(result.clone(), "s", &[]).as_str().map(str::to_owned);
         if (marketIdWithPrefix.is_none()) {
             return;
         }
@@ -2511,13 +2511,13 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_334: bool = true;
             while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
+            let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(positions, &messageHash);
+                client.resolve(positions, messageHash.as_deref());
             }
         }
         }
@@ -3245,13 +3245,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_un_subscribe(client.clone(), message.clone());
             return;
         }
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         // after supporting more method we can create a mapping for this
-        if (channel.as_str() == Some("spot.obu")) {
+        if (channel == "spot.obu") {
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        let mut channelParts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
+        let mut channelParts: Value = Value::Array(channel.split(".").map(Value::from).collect());
         let mut channelType: Option<String> = self.safe_string(channelParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut v4Methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

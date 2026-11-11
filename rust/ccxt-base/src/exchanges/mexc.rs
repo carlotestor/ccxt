@@ -6804,7 +6804,7 @@ impl Mexc {
         let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "updateTime", &[]).as_i64();
         let mut currencyId: Value = Value::Null;
-        let mut currencyWithNetwork: Option<String> = self.safe_string_k_opt(transaction.clone(), "coin", &[]);
+        let mut currencyWithNetwork: Option<String> = self.safe_string_k(transaction.clone(), "coin", &[]).as_str().map(str::to_owned);
         if (currencyWithNetwork.is_some()) {
             let mut currencyParts: Vec<Value> = Value::Array(if let Some(__s) = currencyWithNetwork.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             currencyId = currencyParts.get(0).cloned().unwrap_or(Value::Null);

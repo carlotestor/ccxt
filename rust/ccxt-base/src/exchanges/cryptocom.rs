@@ -3270,8 +3270,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (addressString != Value::Null) && Value::Int(addressString.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             let mut addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressString.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut address: Value = addressParts.get(0).cloned().unwrap_or(Value::Null);
-            let mut rawTag: Value = addressParts.get(1).cloned().unwrap_or(Value::Null);
-            let mut splitted: Vec<Value> = Value::Array(if let Some(__s) = rawTag.as_str() { __s.split("=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut rawTag: Option<String> = addressParts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let mut splitted: Vec<Value> = Value::Array(if let Some(__s) = rawTag.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             return Value::from(vec![address, splitted.get(1).cloned().unwrap_or(Value::Null)]);
         }
         return Value::from(vec![addressString, Value::Null]);

@@ -4210,9 +4210,9 @@ impl Bingx {
             baseVolume = quoteVolume.clone();
             quoteVolume = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "volume", &[]), &contractSize.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
-        if (percentage != Value::Null) {
-            percentage = percentage.as_str().map(|__s| Value::Str(__s.replace("%", "").into())).unwrap_or_else(|| percentage.clone());
+        let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]).as_str().map(str::to_owned);
+        if (percentage.is_some()) {
+            percentage = (if let Some(__s) = percentage.as_deref() { Some(__s.replace("%", "")) } else { None });
         }
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "priceChange", &[]).as_str().map(str::to_owned);
         let mut ts: Option<i64> = self.safe_integer2(ticker.clone(), Value::Str("closeTime".into()), Value::Str("time".into()), &[]).as_i64();
@@ -4241,7 +4241,7 @@ impl Bingx {
         m.insert("last".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
@@ -5325,14 +5325,14 @@ impl Bingx {
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         let mut stopLossDict: Value = self.safe_dict_k(result.clone(), "stopLoss", &[]);
-        let mut stopLoss: Option<String> = self.safe_string_k_opt(result.clone(), "stopLoss", &[]);
+        let mut stopLoss: Option<String> = self.safe_string_k(result.clone(), "stopLoss", &[]).as_str().map(str::to_owned);
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
-        if (stopLossDict == Value::Null) && (stopLoss.is_some()) && (Value::Int(stopLoss.as_deref().and_then(|__s| __s.find("{")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+        if (stopLossDict == Value::Null) && (stopLoss.is_some()) && (((if let (Some(__h), Some(__n)) = (stopLoss.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), self.parse_json_value(stopLoss.map(Value::from).unwrap_or(Value::Null))); }
         }
-        let mut takeProfit: Option<String> = self.safe_string_k_opt(result.clone(), "takeProfit", &[]);
-        if (takeProfit.is_some()) && (Value::Int(takeProfit.as_deref().and_then(|__s| __s.find("{")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
+        let mut takeProfit: Option<String> = self.safe_string_k(result.clone(), "takeProfit", &[]).as_str().map(str::to_owned);
+        if (takeProfit.is_some()) && (((if let (Some(__h), Some(__n)) = (takeProfit.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("takeProfit".into(), self.parse_json_value(takeProfit.map(Value::from).unwrap_or(Value::Null))); }
         }
         return self.parse_order(result, &[(market).raw.clone()]);

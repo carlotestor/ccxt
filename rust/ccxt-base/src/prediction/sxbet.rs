@@ -1174,7 +1174,7 @@ impl Sxbet {
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
-            let mut digitValue: Value = self.parse_to_int(Value::Int(Some(digits.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
+            let mut digitValue: Value = self.parse_to_int(Value::Int((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })));
             let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             result = self.parse_to_int(self.sum(&[shifted, digitValue]));
         }
@@ -3394,7 +3394,7 @@ impl Sxbet {
         if (push.is_none()) {
             return;
         }
-        let mut channel: Option<String> = self.safe_string_k_opt(&push, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&push, "channel", &[]).as_str().map(str::to_owned);
         if (channel.is_none()) {
             return;
         }
@@ -3423,9 +3423,9 @@ impl Sxbet {
             self.handle_trades(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
-            if channel.as_deref().unwrap_or("").contains("orders_v3") {
+            if channel.as_deref().unwrap_or_default().contains("orders_v3") {
                 self.handle_order(client.clone(), rows.clone());
-            }  else if channel.as_deref().unwrap_or("").contains("fills_v3") {
+            }  else if channel.as_deref().unwrap_or_default().contains("fills_v3") {
                 self.handle_my_trade(client, rows);
             }
         }

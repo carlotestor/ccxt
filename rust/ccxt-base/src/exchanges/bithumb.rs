@@ -951,7 +951,7 @@ impl Bithumb {
                 let mut __for_first_390: bool = true;
                 while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (response.len() as i64) } {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
+                let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Value = Value::Null;
                 let mut quoteId: Value = Value::Null;
                 let mut base: Value = Value::Null;
@@ -2131,7 +2131,7 @@ impl Bithumb {
         let mut generationTwoTimestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut timestamp: Value = Value::from(generationTwoTimestamp);
         let mut isGenerationTwo: bool = generationTwoTimestamp.is_some();
-        let mut transactionDatetime: Option<String> = self.safe_string_k_opt(trade.clone(), "transaction_date", &[]);
+        let mut transactionDatetime: Option<String> = self.safe_string_k(trade.clone(), "transaction_date", &[]).as_str().map(str::to_owned);
         if (transactionDatetime.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: f64 = ((parts.len() as i64) as f64);
@@ -4352,13 +4352,13 @@ impl Bithumb {
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
             }  else {
                 let __ws_arg_49 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("endpoint".to_string(), Value::from(endpoint.clone()));
-                    m
-                }), &[query]);
-                let mut encodedBody: Value = self.urlencode(__ws_arg_49, &[]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("endpoint".to_string(), Value::from(endpoint.clone()));
+    m
+}), &[query]);
+                let mut encodedBody: Option<String> = self.urlencode(__ws_arg_49, &[]).as_str().map(str::to_owned);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                let mut bodyParts: Value = Value::Array(if let Some(__s) = encodedBody.as_str() { __s.split("%20").map(Value::from).collect() } else { Vec::new() });
+                let mut bodyParts: Value = Value::Array(if let Some(__s) = encodedBody.as_deref() { __s.split("%20").map(Value::from).collect() } else { Vec::new() });
                 requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
                 let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes

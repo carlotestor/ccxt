@@ -111,6 +111,7 @@ impl crate::exchange_generated::ExchangeBase for Bit2c {
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "remove_comma_from_value" => self.remove_comma_from_value(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1330,17 +1331,19 @@ impl Bit2c {
         }).await?))
     }
 
-    pub fn remove_comma_from_value(&self, mut str_val: Value) -> Option<String> {
-        let mut newString: Value = Value::Str("".into());
+    pub fn remove_comma_from_value(&self, mut str_val: Value) -> Value {
+        let mut newString: String = "".to_string();
         let mut strParts: Vec<Value> = Value::Array(if let Some(__s) = str_val.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (strParts.len() as i64) } {
-            newString = Value::Str(format!("{}{}", newString, strParts.get(i as usize).cloned().unwrap_or(Value::Null)).into());
+            newString.push_str(&(strParts.get(i as usize).cloned().unwrap_or(Value::Null)).to_string());
         }
         }
-        return newString.as_str().map(str::to_owned);
+        return Value::from(newString);
+
+    Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1392,7 +1395,7 @@ impl Bit2c {
             timestamp = self.safe_timestamp_k(trade.clone(), "ticks", &[]).as_i64();
             let mut rawPrice: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             if (rawPrice.is_some()) {
-                price = self.remove_comma_from_value(rawPrice.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+                price = self.remove_comma_from_value(rawPrice.map(Value::from).unwrap_or(Value::Null));
             }
             amount = self.safe_string_k(trade.clone(), "firstAmount", &[]).as_str().map(str::to_owned);
             let mut reference_parts: Vec<Value> = Value::Array(if let Some(__s) = reference.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'

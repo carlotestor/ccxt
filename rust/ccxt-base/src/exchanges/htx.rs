@@ -4048,12 +4048,12 @@ impl Htx {
             let mut inverse: Value = Value::Null;
             // check if parsed market is contract
             if matches!(&contract, Value::Bool(true)) {
-                let mut contractId: Option<String> = self.safe_string_k_opt(market.clone(), "contract_code", &[]);
+                let mut contractId: Option<String> = self.safe_string_k(market.clone(), "contract_code", &[]).as_str().map(str::to_owned);
                 if (contractId.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".into()))));
                 }
                 id = self.safe_string_k(market.clone(), "contract_code", &[]);
-                lowercaseId = (if let Some(__s) = contractId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+                lowercaseId = contractId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null);
                 let mut delivery_date: Option<String> = self.safe_string_k(market.clone(), "delivery_date", &[]).as_str().map(str::to_owned);
                 let mut business_type: Option<String> = self.safe_string_k(market.clone(), "business_type", &[]).as_str().map(str::to_owned);
                 future = Value::Bool(delivery_date.is_some());
@@ -4077,7 +4077,7 @@ impl Htx {
                         quoteId = Some("USD".to_string());
                         settleId = baseId.clone();
                     }  else {
-                        let mut pair: Option<String> = self.safe_string_k_opt(market.clone(), "pair", &[]);
+                        let mut pair: Option<String> = self.safe_string_k(market.clone(), "pair", &[]).as_str().map(str::to_owned);
                         if (pair.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing pair".into()))));
                         }
@@ -4979,9 +4979,9 @@ impl Htx {
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("ts".into()), Value::Str("created-at".into()), Value::Str("created_at".into()), Value::Str("create_date".into()), Value::Str("created_time".into())]), &[]).as_i64();
         let mut order: Option<String> = self.safe_string2(trade.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
-        let mut rawType: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        let mut rawType: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
-        if (rawType.is_some()) && (rawType.as_deref().unwrap_or("").contains("-")) {
+        if (rawType.is_some()) && (rawType.as_deref().unwrap_or_default().contains("-")) {
             let mut typeParts: Vec<Value> = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             side = typeParts.get(0).and_then(Value::as_str).map(str::to_owned);
             type_var = typeParts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -7679,24 +7679,24 @@ impl Htx {
         let mut side: Option<String> = self.safe_string2(order.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut contractCode: Option<String> = self.safe_string_k(order.clone(), "contract_code", &[]).as_str().map(str::to_owned);
         let mut isLinearOrder: bool = (contractCode.is_some()) && (marketResolved != Value::Null) && (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true));
-        let mut type_var: Value = self.safe_string_k(order.clone(), "order_price_type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "order_price_type", &[]).as_str().map(str::to_owned);
         if isLinearOrder {
-            type_var = self.safe_string_k(order.clone(), "type", &[]);
-            if (type_var == Value::Null) || (type_var.as_str() == Some("tp")) || (type_var.as_str() == Some("sl")) || (type_var.as_str() == Some("tpsl")) {
-                type_var = self.safe_string2(order.clone(), Value::Str("tp_type".into()), Value::Str("sl_type".into()), &[]);
+            type_var = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (type_var.is_none()) || (type_var.as_deref() == Some("tp")) || (type_var.as_deref() == Some("sl")) || (type_var.as_deref() == Some("tpsl")) {
+                type_var = self.safe_string2(order.clone(), Value::Str("tp_type".into()), Value::Str("sl_type".into()), &[]).as_str().map(str::to_owned);
             }
-            if (type_var.as_str() == Some("0")) {
-                type_var = Value::Null;
+            if (type_var.as_deref() == Some("0")) {
+                type_var = None.clone();
             }
         }  else {
-            let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
+            let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
             if (rawType.is_some()) {
-                if rawType.as_deref().unwrap_or("").contains("-") {
+                if rawType.as_deref().unwrap_or_default().contains("-") {
                     let mut orderType: Value = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     side = self.safe_string(orderType.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                    type_var = self.safe_string(orderType, Value::Int(1), &[]);
-                }  else if (type_var == Value::Null) {
-                    type_var = rawType.map(Value::from).unwrap_or(Value::Null);
+                    type_var = self.safe_string(orderType, Value::Int(1), &[]).as_str().map(str::to_owned);
+                }  else if (type_var.is_none()) {
+                    type_var = rawType;
                 }
             }
         }
@@ -7704,8 +7704,8 @@ impl Htx {
         let mut clientOrderId: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str(format!("{}{}", Value::Str("client-or".into()), Value::Str("der-id".into())).into()), Value::Str("algo_client_order_id".into())]), &[]).as_str().map(str::to_owned); // transpiler regex trick for php issue
         let mut cost: Option<String> = None;
         let mut amount: Option<String> = None;
-        let mut typeResolved: Value = type_var.clone();
-        if (typeResolved != Value::Null) && (typeResolved.as_str().unwrap_or("").contains("market")) && (!isLinearOrder) {
+        let mut typeResolved: Option<String> = type_var.clone();
+        if (typeResolved.is_some()) && (typeResolved.as_deref().unwrap_or_default().contains("market")) && (!isLinearOrder) {
             cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]).as_str().map(str::to_owned);
         }  else {
             amount = self.safe_string2(order.clone(), Value::Str("volume".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
@@ -7755,7 +7755,7 @@ impl Htx {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_upper_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -9115,7 +9115,7 @@ impl Htx {
         //         "ts": 1780822053167
         //     }
         //
-        let mut successes: Option<String> = self.safe_string_k_opt(orders.clone(), "successes", &[]);
+        let mut successes: Option<String> = self.safe_string_k(orders.clone(), "successes", &[]).as_str().map(str::to_owned);
         let mut success: Value = Value::Null;
         if (successes.is_some()) {
             success = Value::Array(if let Some(__s) = successes.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
@@ -9718,11 +9718,11 @@ impl Htx {
             feeCost = crate::precise::Precise::stringAbs(&feeCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chain", &[]).as_str().map(str::to_owned);
-        let mut txHash: Option<String> = self.safe_string_k(transaction.clone(), "tx-hash", &[]).as_str().map(str::to_owned);
+        let mut txHash: Value = self.safe_string_k(transaction.clone(), "tx-hash", &[]);
         // a freshly created withdrawal has no tx-hash yet, the create
         // endpoint returns only { "status": "ok", "data": "<id>" }
-        if (txHash.is_some()) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_deref().unwrap_or_default().contains("0x")) {
-            txHash = Some(format!("{}{}", Value::Str("0x".into()), txHash.clone().map(Value::from).unwrap_or(Value::Null)));
+        if (txHash != Value::Null) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_str().unwrap_or("").contains("0x")) {
+            txHash = Value::Str(format!("{}{}", Value::Str("0x".into()), txHash).into());
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
         let mut internal: Value = Value::Bool(subType.as_deref() == Some("FAST"));
@@ -9730,7 +9730,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("data".into()), &[]));
-        m.insert("txid".to_string(), txHash.map(Value::from).unwrap_or(Value::Null));
+        m.insert("txid".to_string(), txHash);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -10760,7 +10760,7 @@ impl Htx {
         let mut signedHeaders: Value = Value::Null;
         let mut signedBody: Value = Value::Null;
         let mut pathString: Value = path.clone();
-        let mut url: Value = Value::Str("/".into());
+        let mut url: String = "/".to_string();
         let mut isArrayParams: bool = matches!(&params, Value::Arr(_));
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -10774,11 +10774,11 @@ impl Htx {
             // signing implementation for the old endpoints
             let mut apiName: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
             if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("private")) {
-                url = Value::Str(format!("{}{}", url, self.version.clone()).into());
+                url.push_str(&(self.version.clone()).to_string());
             }  else if (apiName.as_str() == Some("v2Public")) || (apiName.as_str() == Some("v2Private")) {
-                url = Value::Str(format!("{}{}", url, Value::Str("v2".into())).into());
+                url.push_str("v2");
             }
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
+            url.push_str(&format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())));
             if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("v2Private")) {
                 self.check_required_credentials(&[]);
                 let mut timestamp: Value = self.ymdhms(self.nonce(), &[Value::Str("T".into())]);
@@ -10796,7 +10796,7 @@ impl Htx {
                 let mut sortedRequest: Value = self.keysort(request.clone(), &[]);
                 let mut auth: Value = self.urlencode(sortedRequest, &[Value::Bool(true)]); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
+                let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), Value::from(url.clone()), auth.clone()]);
                 let mut payload: Value = Value::Str(content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
@@ -10804,7 +10804,7 @@ impl Htx {
         m.insert("Signature".to_string(), signature.clone());
     m
 }), &[])).into())).into());
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 if (method.as_str() == Some("POST")) {
                     let mut bodyRequest: Value = Value::Null;
                     if isArrayParams {
@@ -10827,18 +10827,18 @@ impl Htx {
                 }
             }  else {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
             }
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
             if (baseApiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = Value::Str(format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            url = format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
-})), url).into());
+})), url);
         }  else {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
@@ -10855,10 +10855,10 @@ impl Htx {
                 }
             }
             hostname = hostnames;
-            url = Value::Str(format!("{}{}", url, self.implode_params(path, params.clone())).into());
+            url.push_str(&(self.implode_params(path, params.clone())).to_string());
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
             }  else if (access.as_deref() == Some("private")) {
                 self.check_required_credentials(&[]);
@@ -10901,7 +10901,7 @@ impl Htx {
                 }
                 let mut auth: Value = (self.urlencode(request.clone(), &[Value::Bool(true)])).as_str().map(|__s| Value::Str(__s.replace("%2c", "%2C").into())).unwrap_or_else(|| (self.urlencode(request, &[Value::Bool(true)])).clone()); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), url.clone(), auth.clone()]);
+                let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), Value::from(url.clone()), auth.clone()]);
                 let mut payload: Value = Value::Str(content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
                 let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
@@ -10909,7 +10909,7 @@ impl Htx {
         m.insert("Signature".to_string(), signature);
     m
 }), &[])).into())).into());
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 if (method.as_str() == Some("POST")) {
                     let mut bodyRequest: Value = Value::Null;
                     if isArrayParams {
@@ -10939,17 +10939,17 @@ impl Htx {
             if (baseApiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = Value::Str(format!("{}{}", self.implode_params(baseApiUrl2.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            url = format!("{}{}", self.implode_params(baseApiUrl2.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), finalHostname);
     m
-})), url).into());
+})), url);
         }
         let mut headersResolved: Value = signedHeaders;
         let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);

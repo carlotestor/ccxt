@@ -1339,7 +1339,7 @@ impl Bitget {
                 m
             })]);
         }
-        let mut channel: Value = Value::Str("books".into());
+        let mut channel: String = "books".to_string();
         let mut limit: Value = self.safe_integer_k(paramsRequest.clone(), "limit", &[]);
         let mut isFixedDepth: bool = (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0));
         let mut paramsOmitted: Value = paramsRequest.clone();
@@ -1347,9 +1347,9 @@ impl Bitget {
             paramsOmitted = self.omit(paramsRequest, Value::Str("limit".into()), &[]);
         }
         if isFixedDepth {
-            channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
+            channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
         }
-        return self.un_watch_channel(symbol, channel, Value::Str("orderbook".into()), Value::Str("watchOrderBook".into()), &[paramsOmitted]).await;
+        return self.un_watch_channel(symbol, Value::from(channel), Value::Str("orderbook".into()), Value::Str("watchOrderBook".into()), &[paramsOmitted]).await;
         Value::Null
         }).await?))
     }
@@ -1446,10 +1446,10 @@ impl Bitget {
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
-        let mut channel: Value = Value::Str("books".into());
+        let mut channel: String = "books".to_string();
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
-            channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
+            channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
             incrementalFeed = false;
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -1478,7 +1478,7 @@ impl Bitget {
             if isStockOrUta {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel, channel.clone());
+            args.insert(topicOrChannel, Value::from(channel.clone()));
             args.insert(symbolOrInstId, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
@@ -2262,13 +2262,13 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_120: bool = true;
             while { if !__for_first_120 { i += 1; } __for_first_120 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
+            let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(positions, &messageHash);
+                client.resolve(positions, messageHash.as_deref());
             }
         }
         }
@@ -3855,15 +3855,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut topic: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut method: Value = self.safe_value(&methods, Value::from(topic.clone()), &[]);
+        let mut topic: Value = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
+        let mut method: Value = self.safe_value(&methods, topic.clone(), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
-        if topic.contains("candle") {
+        if topic.as_str().unwrap_or("").contains("candle") {
             self.handle_ohlcv(client.clone(), message.clone());
         }
-        if topic.contains("books") {
+        if topic.as_str().unwrap_or("").contains("books") {
             self.handle_order_book(client, message.clone());
         }
 }

@@ -1099,12 +1099,12 @@ impl Extended {
     m
 })]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut baseId: String = self.safe_string_k(market.clone(), "assetName", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if baseId.contains("SPOT") {
-            baseId = baseId.replace("SPOT", "");
+        let mut baseId: Value = self.safe_string_k(market.clone(), "assetName", &[Value::Str("".into())]);
+        if baseId.as_str().unwrap_or("").contains("SPOT") {
+            baseId = baseId.as_str().map(|__s| Value::Str(__s.replace("SPOT", "").into())).unwrap_or_else(|| baseId.clone());
         }
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "collateralAssetName", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.clone()), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone(), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (quoteId.as_deref() == Some("USD")) {
             quote = Some("USDC".to_string());
@@ -1149,7 +1149,7 @@ impl Extended {
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle);
-        m.insert("baseId".to_string(), Value::from(baseId));
+        m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));

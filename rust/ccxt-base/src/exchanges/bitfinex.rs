@@ -2763,7 +2763,7 @@ impl Bitfinex {
             }
         }
         let mut status: Value = Value::Null;
-        let mut statusString: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(13), &[]);
+        let mut statusString: Option<String> = self.safe_string(orderList.clone(), Value::Int(13), &[]).as_str().map(str::to_owned);
         if (statusString.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = statusString.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             status = self.parse_order_status(self.safe_string(parts, Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null);
@@ -4648,7 +4648,7 @@ impl Bitfinex {
         let mut timestamp: Option<i64> = self.safe_integer(itemList.clone(), Value::Int(3), &[]).as_i64();
         let mut amount: Option<f64> = self.safe_number(itemList.clone(), Value::Int(5), &[]).as_f64();
         let mut after: Option<f64> = self.safe_number(itemList.clone(), Value::Int(6), &[]).as_f64();
-        let mut description: Option<String> = self.safe_string_opt(itemList, Value::Int(8), &[]);
+        let mut description: Option<String> = self.safe_string(itemList, Value::Int(8), &[]).as_str().map(str::to_owned);
         if (description.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             let mut first: Option<String> = self.safe_string_lower(parts, Value::Int(0), &[]).as_str().map(str::to_owned);

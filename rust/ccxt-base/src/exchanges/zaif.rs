@@ -570,7 +570,7 @@ impl Zaif {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Option<String> = self.safe_string_k(market.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
-        let mut name: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
+        let mut name: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         if (name.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
         }

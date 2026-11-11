@@ -1678,7 +1678,7 @@ impl Bittrade {
         let mut order: Option<String> = self.safe_string_k(trade.clone(), "order-id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
-        let mut typeRaw: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        let mut typeRaw: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         if (typeRaw.is_some()) {
             let mut typeParts: Value = Value::Array(if let Some(__s) = typeRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(typeParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2495,7 +2495,7 @@ impl Bittrade {
         let mut side: Option<String> = None;
         let mut type_var: Option<String> = None;
         let mut status: Value = Value::Null;
-        let mut orderTypeRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
+        let mut orderTypeRaw: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         if (orderTypeRaw.is_some()) {
             let mut orderType: Value = Value::Array(if let Some(__s) = orderTypeRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(orderType.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2817,7 +2817,7 @@ impl Bittrade {
         //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
-        let mut successes: Option<String> = self.safe_string_k_opt(orders.clone(), "successes", &[]);
+        let mut successes: Option<String> = self.safe_string_k(orders.clone(), "successes", &[]).as_str().map(str::to_owned);
         let mut success: Value = Value::Null;
         if (successes.is_some()) {
             success = Value::Array(if let Some(__s) = successes.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
@@ -3239,15 +3239,15 @@ impl Bittrade {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut url: Value = Value::Str("/".into());
+        let mut url: String = "/".to_string();
         if (apiName.as_deref() == Some("market")) {
-            url = Value::Str(format!("{}{}", url, Value::Str("market".into())).into());
+            url.push_str("market");
         }  else if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("private")) {
-            url = Value::Str(format!("{}{}", url, self.version.clone()).into());
+            url.push_str(&(self.version.clone()).to_string());
         }  else if (apiName.as_deref() == Some("v2Public")) || (apiName.as_deref() == Some("v2Private")) {
-            url = Value::Str(format!("{}{}", url, Value::Str("v2".into())).into());
+            url.push_str("v2");
         }
-        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
+        url.push_str(&format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
@@ -3274,7 +3274,7 @@ impl Bittrade {
         m.insert("Signature".to_string(), signature);
     m
 }), &[])).into())).into());
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
+            url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
             if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&query);
                 requestHeaders = Value::Map({
@@ -3291,23 +3291,23 @@ impl Bittrade {
             }
         }  else {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])));
             }
         }
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        url = Value::Str(format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        url = format!("{}{}", self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
-})), url).into());
+})), url);
         let mut headersResult: Value = requestHeaders;
         let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
         m.insert("headers".to_string(), headersResult);

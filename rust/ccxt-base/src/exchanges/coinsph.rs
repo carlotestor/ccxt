@@ -3121,7 +3121,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut encodedArrayParams: Value = Value::Str("".into());
+        let mut encodedArrayParams: String = "".to_string();
         let mut remainingQuery: Value = query.clone();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -3131,12 +3131,12 @@ impl Coinsph {
             let mut key: Option<String> = keys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i.as_f64() != Some(0.0)) {
-                    encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".into())).into());
+                    encodedArrayParams.push_str("&");
                 }
                 let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 remainingQuery = self.omit(remainingQuery.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut encodedArrayParam: Value = self.parse_array_param(innerArray, key.map(Value::from).unwrap_or(Value::Null));
-                encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, encodedArrayParam).into());
+                encodedArrayParams.push_str(&encodedArrayParam.to_string());
             }
         }
         }
@@ -3144,17 +3144,17 @@ impl Coinsph {
         if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery.map(Value::from).unwrap_or(Value::Null), Value::Str("&".into())).into()), encodedArrayParams).into());
         }  else {
-            return encodedArrayParams;
+            return Value::from(encodedArrayParams);
         }
 
     Value::Null
 }
 
     pub fn parse_array_param(&self, mut array: Value, mut key: Value) -> Value {
-        let mut stringifiedArray: Value = json_stringify(&array);
-        stringifiedArray = stringifiedArray.as_str().map(|__s| Value::Str(__s.replace("[", "%5B").into())).unwrap_or_else(|| stringifiedArray.clone());
-        stringifiedArray = stringifiedArray.as_str().map(|__s| Value::Str(__s.replace("]", "%5D").into())).unwrap_or_else(|| stringifiedArray.clone());
-        let mut urlEncodedParam: String = format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), stringifiedArray);
+        let mut stringifiedArray: Option<String> = json_stringify(&array).as_str().map(str::to_owned);
+        stringifiedArray = (if let Some(__s) = stringifiedArray.as_deref() { Some(__s.replace("[", "%5B")) } else { None });
+        stringifiedArray = (if let Some(__s) = stringifiedArray.as_deref() { Some(__s.replace("]", "%5D")) } else { None });
+        let mut urlEncodedParam: String = format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), stringifiedArray.map(Value::from).unwrap_or(Value::Null));
         return Value::from(urlEncodedParam);
 
     Value::Null

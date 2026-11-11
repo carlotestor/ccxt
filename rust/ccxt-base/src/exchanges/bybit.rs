@@ -3813,7 +3813,7 @@ impl Bybit {
         if hasSlash {
             baseName = self.safe_string(symbolBase.clone(), Value::Int(0), &[Value::Str("".into())]);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
-            let mut symbolQuoteAndSettle: Option<String> = self.safe_string_opt(symbolBase, Value::Int(1), &[]);
+            let mut symbolQuoteAndSettle: Option<String> = self.safe_string(symbolBase, Value::Int(1), &[]).as_str().map(str::to_owned);
             if (symbolQuoteAndSettle.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing symbolQuoteAndSettle".into()))));
             }
@@ -4822,7 +4822,7 @@ impl Bybit {
             let mut __for_first_504: bool = true;
             while { if !__for_first_504 { i += 1; } __for_first_504 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCoin", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteCoin", &[]).as_str().map(str::to_owned);
             let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settleCoin", &[]).as_str().map(str::to_owned);

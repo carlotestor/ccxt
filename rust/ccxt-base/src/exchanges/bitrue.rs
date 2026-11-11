@@ -1532,7 +1532,7 @@ impl Bitrue {
     }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut id: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut lowercaseId: Option<String> = self.safe_string_lower_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut side: Option<i64> = self.safe_integer_k(market.clone(), "side", &[]).as_i64(); // 1 linear, 0 inverse, undefined spot
         let mut type_var: String = "spot".to_string();
@@ -1551,7 +1551,7 @@ impl Bitrue {
         let mut settleId: Option<String> = None;
         let mut settle: Value = Value::Null;
         if isContract {
-            let mut symbolSplit: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+            let mut symbolSplit: Value = Value::Array(id.split("-").map(Value::from).collect());
             baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             quoteId = self.safe_string(symbolSplit, Value::Int(2), &[]).as_str().map(str::to_owned);
             if (isLinear == Some(true)) {
@@ -1599,7 +1599,7 @@ impl Bitrue {
         let mut isSpot: Value = (Value::Bool(type_var == "spot"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), Value::from(id));
         m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
@@ -3476,7 +3476,7 @@ impl Bitrue {
         let mut id: Option<String> = self.safe_string2(transaction.clone(), Value::Str("id".into()), Value::Str("withdrawId".into()), &[]).as_str().map(str::to_owned);
         let mut tagType: Option<String> = self.safe_string_k(transaction.clone(), "tagType", &[]).as_str().map(str::to_owned);
         let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressTo", &[]);
-        let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "addressFrom", &[]);
+        let mut addressFrom: Option<String> = self.safe_string_k(transaction.clone(), "addressFrom", &[]).as_str().map(str::to_owned);
         let mut tagTo: Option<String> = None;
         let mut tagFrom: Option<String> = None;
         if (tagType.is_some()) {
@@ -3487,7 +3487,7 @@ impl Bitrue {
             }
             if (addressFrom.is_some()) {
                 let mut parts: Value = Value::Array(if let Some(__s) = addressFrom.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-                addressFrom = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
+                addressFrom = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
                 tagFrom = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             }
         }
@@ -3503,16 +3503,16 @@ impl Bitrue {
         let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[Value::from(type_var.clone())]).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut network: Value = Value::Null;
-        let mut currencyId: Value = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("coin".into()), &[]);
-        if (currencyId != Value::Null) {
-            let mut parts: Value = Value::Array(if let Some(__s) = currencyId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
+        if (currencyId.is_some()) {
+            let mut parts: Value = Value::Array(if let Some(__s) = currencyId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+            currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut networkId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             if (networkId.is_some()) {
                 network = self.network_id_to_code(&[networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]);
             }
         }
-        let mut code: Option<String> = self.safe_currency_code(currencyId, &[currency]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         let mut fee: Value = Value::Null;
         if (feeCost.is_some()) {
@@ -3754,7 +3754,7 @@ impl Bitrue {
         //
         //     {}
         //
-        let mut transferType: Option<String> = self.safe_string_k_opt(transfer.clone(), "transferType", &[]);
+        let mut transferType: Option<String> = self.safe_string_k(transfer.clone(), "transferType", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
         if (transferType.is_some()) {
@@ -4105,12 +4105,12 @@ impl Bitrue {
                 }  else if (type_var.as_deref() == Some("dapi")) {
                     signPrefix = "/dapi".to_string();
                 }
-                let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), path).into()))).into());
+                let mut signMessage: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), path).into())));
                 if (method.as_str() == Some("GET")) {
                     if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
+                        signMessage.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
                     }
-                    let mut signature: Value = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    let mut signature: Value = self.hmac(self.encode(Value::from(signMessage.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
@@ -4126,8 +4126,8 @@ impl Bitrue {
                         m
                     }), &[paramsOmitted.clone()]);
                     requestBody = json_stringify(&query);
-                    signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
-                    let mut signature: Value = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    signMessage.push_str(&requestBody.to_string());
+                    let mut signature: Value = self.hmac(self.encode(Value::from(signMessage)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

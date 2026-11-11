@@ -3572,11 +3572,11 @@ if _try_result.is_err() {
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
             let mut item: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
-            let mut strategy: Option<String> = self.safe_string_lower_k_opt(item.clone(), "strategy", &[]);
+            let mut strategy: Option<String> = self.safe_string_lower_k(item.clone(), "strategy", &[]).as_str().map(str::to_owned);
             if (strategy.is_some()) {
-                let mut buyIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
-                let mut sellIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
-                if ((buyIndex as f64) >= ((0i64) as f64)) || ((sellIndex as f64) >= ((0i64) as f64)) {
+                let mut buyIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("buy")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+                let mut sellIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("sell")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+                if (buyIndex >= 0) || (sellIndex >= 0) {
                     trades.push(item);
                 }
             }
@@ -3674,13 +3674,13 @@ if _try_result.is_err() {
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "outcomeTokenPrice", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "outcomeTokenAmount", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "collateralAmount", &[]).as_str().map(str::to_owned);
-        let mut rawSide: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "strategy", &[]);
+        let mut rawSide: Option<String> = self.safe_string_lower_k(trade.clone(), "strategy", &[]).as_str().map(str::to_owned);
         if (rawSide.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
-        let mut sellIndex: i64 = rawSide.as_deref().and_then(|__s| __s.find("sell")).map(|__i| __i as i64).unwrap_or(-1);
+        let mut sellIndex: i64 = (if let (Some(__h), Some(__n)) = (rawSide.as_deref(), Some("sell")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
         let mut side: String = "buy".to_string();
-        if (sellIndex as f64) >= ((0i64) as f64) {
+        if sellIndex >= 0 {
             side = "sell".to_string();
         }
         let mut type_var: Option<String> = None;
@@ -3688,13 +3688,13 @@ if _try_result.is_err() {
         if (rawSide.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".into()))));
         }
-        if rawSide.as_deref().unwrap_or("").contains("limit") {
+        if rawSide.as_deref().unwrap_or_default().contains("limit") {
             type_var = Some("limit".to_string());
             takerOrMaker = Some("maker".to_string());
             if (rawSide.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing rawSide".into()))));
             }
-        }  else if rawSide.as_deref().unwrap_or("").contains("market") {
+        }  else if rawSide.as_deref().unwrap_or_default().contains("market") {
             type_var = Some("market".to_string());
             takerOrMaker = Some("taker".to_string());
         }
