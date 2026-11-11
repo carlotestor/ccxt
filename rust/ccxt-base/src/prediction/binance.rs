@@ -932,9 +932,9 @@ impl Binance {
         if (rawMarketsLength == 0.0) {
             active = Value::Bool((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
-        let mut resolved: Value = Value::Null;
+        let mut resolved: Option<bool> = None;
         if (status.is_some()) {
-            resolved = Value::Bool((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
+            resolved = Some((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -954,7 +954,7 @@ impl Binance {
         m.insert("end".to_string(), Value::from(endDate));
         m.insert("endDatetime".to_string(), self.iso8601(Value::from(endDate)));
         m.insert("category".to_string(), self.safe_string_k(rawTopic.clone(), "chartType", &[]));
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), resolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawTopic);
     m
 });

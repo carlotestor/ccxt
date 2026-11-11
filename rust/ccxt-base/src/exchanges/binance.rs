@@ -14300,9 +14300,9 @@ impl Binance {
             });
         }
         let mut internalInteger: Option<i64> = self.safe_integer_k(transaction.clone(), "transferType", &[]).as_i64();
-        let mut internal: Value = Value::Null;
+        let mut internal: Option<bool> = None;
         if (internalInteger.is_some()) {
-            internal = (if (internalInteger != Some(0)) { Value::Bool(true) } else { Value::Bool(false) });
+            internal = Some(if (internalInteger != Some(0)) { true } else { false });
         }
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
@@ -14325,7 +14325,7 @@ impl Binance {
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::from(updated));
-        m.insert("internal".to_string(), internal);
+        m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m

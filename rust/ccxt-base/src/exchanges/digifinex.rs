@@ -1394,12 +1394,12 @@ impl Digifinex {
             let mut margin: Value = (if (marginMode.is_some()) { Value::Bool(true) } else { Value::Null });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut isInverse: Option<bool> = None;
-            let mut isLinear: Value = Value::Null;
+            let mut isLinear: Option<bool> = None;
             if matches!(&swap, Value::Bool(true)) {
                 type_var = "swap".to_string();
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
                 isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]).as_bool();
-                isLinear = (if (isInverse != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
+                isLinear = Some(if (isInverse != Some(true)) { true } else { false });
                 let mut isTrading: bool = self.safe_bool_k(market.clone(), "isTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if isTrading {
                     isTradingSwap = true;
@@ -1424,7 +1424,7 @@ impl Digifinex {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), isActive);
                     m.insert("contract".to_string(), swap);
-                    m.insert("linear".to_string(), isLinear);
+                    m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contract_value", &[]));
                     m.insert("expiry".to_string(), Value::Null);

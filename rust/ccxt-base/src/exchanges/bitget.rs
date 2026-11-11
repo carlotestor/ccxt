@@ -6112,7 +6112,7 @@ if _try_result.is_err() {
         let mut contract: bool = false;
         let mut pricePrecision: Value = Value::Null;
         let mut amountPrecision: Value = Value::Null;
-        let mut linear: Value = Value::Null;
+        let mut linear: Option<bool> = None;
         let mut inverse: Value = Value::Null;
         let mut expiry: Option<i64> = None;
         let mut expiryDatetime: Value = Value::Null;
@@ -6162,7 +6162,7 @@ if _try_result.is_err() {
             }
             contract = true;
             inverse = (Value::Bool(base.as_str() == settle.as_str()));
-            linear = Value::Bool(!(inverse.as_bool() == Some(true)));
+            linear = Some(!(inverse.as_bool() == Some(true)));
             let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
             let mut amountDecimals: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
             let mut priceStep: Option<String> = self.safe_string_k_opt(market.clone(), "priceEndStep", &[]);
@@ -6185,9 +6185,9 @@ if _try_result.is_err() {
             });
         }
         let mut status: Option<String> = self.safe_string2(market.clone(), Value::Str("status".into()), Value::Str("symbolStatus".into()), &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         if (status.is_some()) {
-            active = (Value::Bool((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal"))));
+            active = Some((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal")));
         }
         let mut minCost: Value = Value::Null;
         if (quote.as_deref() == Some("USDT")) {
@@ -6212,9 +6212,9 @@ if _try_result.is_err() {
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("stock".to_string(), stock);
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(contract));
-        m.insert("linear".to_string(), linear);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
@@ -6440,7 +6440,7 @@ if _try_result.is_err() {
         let mut contract: bool = false;
         let mut pricePrecision: Value = Value::Null;
         let mut amountPrecision: Value = Value::Null;
-        let mut linear: Value = Value::Null;
+        let mut linear: Option<bool> = None;
         let mut inverse: Value = Value::Null;
         let mut expiry: Option<i64> = None;
         let mut expiryDatetime: Value = Value::Null;
@@ -6488,7 +6488,7 @@ if _try_result.is_err() {
             }
             contract = true;
             inverse = (Value::Bool(base.as_str() == settle.as_str()));
-            linear = Value::Bool(!(inverse.as_bool() == Some(true)));
+            linear = Some(!(inverse.as_bool() == Some(true)));
             marginModes = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cross".to_string(), Value::Bool(true));
@@ -6503,9 +6503,9 @@ if _try_result.is_err() {
         pricePrecision = self.parse_number(priceStep, &[]);
         amountPrecision = self.parse_number(amountStep, &[]);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         if (status.is_some()) {
-            active = (Value::Bool((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal"))));
+            active = Some((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal")));
         }
         let mut contractSize: Value = (if contract { Value::Int(1) } else { Value::Null });
         return Value::Map({
@@ -6526,9 +6526,9 @@ if _try_result.is_err() {
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("stock".to_string(), stock);
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(contract));
-        m.insert("linear".to_string(), linear);
+        m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse);
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
@@ -9891,10 +9891,10 @@ if _try_result.is_err() {
             postOnly = Some(true);
             timeInForce = Some("PO".to_string());
         }
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         let mut reduceOnlyRaw: Option<String> = self.safe_string_k(order.clone(), "reduceOnly", &[]).as_str().map(str::to_owned);
         if (reduceOnlyRaw.is_some()) {
-            reduceOnly = (if (reduceOnlyRaw.as_deref() == Some("NO")) { Value::Bool(false) } else { Value::Bool(true) });
+            reduceOnly = Some(if (reduceOnlyRaw.as_deref() == Some("NO")) { false } else { true });
         }
         let mut price: Option<String> = None;
         let mut average: Option<String> = None;
@@ -9920,7 +9920,7 @@ if _try_result.is_err() {
         }
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut posMode: Option<String> = self.safe_string_k(order.clone(), "posMode", &[]).as_str().map(str::to_owned);
-        if (posMode.as_deref() == Some("hedge_mode")) && (reduceOnly.as_bool() == Some(true)) {
+        if (posMode.as_deref() == Some("hedge_mode")) && (reduceOnly == Some(true)) {
             side = (if (side.as_deref() == Some("buy")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
@@ -9949,7 +9949,7 @@ if _try_result.is_err() {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "triggerPrice", &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_number_n(order.clone(), Value::from(vec![Value::Str("presetStopSurplusPrice".into()), Value::Str("stopSurplusTriggerPrice".into()), Value::Str("takeProfit".into())]), &[]));
         m.insert("stopLossPrice".to_string(), self.safe_number_n(order, Value::from(vec![Value::Str("presetStopLossPrice".into()), Value::Str("stopLossTriggerPrice".into()), Value::Str("stopLoss".into())]), &[]));
@@ -10314,13 +10314,13 @@ if _try_result.is_err() {
                 m.insert("orderType".to_string(), type_var.clone());
             m
         });
-        let mut hedged: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut hedged: Option<bool> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         // backward compatibility for `oneWayMode`
         let mut oneWayMode: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("oneWayMode".into()), &[]).as_array().cloned().unwrap_or_default(); oneWayMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (oneWayMode != Value::Null) {
-            hedged = Value::Bool(!is_true(&oneWayMode));
+            hedged = Some(!is_true(&oneWayMode));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsMarketType.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
@@ -10424,7 +10424,7 @@ if _try_result.is_err() {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("price"); }
                     }
                 }
-                if (hedged.as_bool() == Some(true)) {
+                if (hedged == Some(true)) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("holdSide".into(), (if (side.as_str() == Some("sell")) { Value::Str("long".into()) } else { Value::Str("short".into()) })); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("holdSide".into(), (if (side.as_str() == Some("sell")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) })); }
@@ -10470,7 +10470,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), Value::from(marginModeRequest)); }
                 let mut requestSide: Value = side.clone();
                 if reduceOnly {
-                    if (hedged.as_bool() != Some(true)) {
+                    if (hedged != Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), Value::Str("YES".into())); }
                     }  else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
@@ -10478,7 +10478,7 @@ if _try_result.is_err() {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Close".into())); }
                     }
                 }  else {
-                    if (hedged.as_bool() == Some(true)) {
+                    if (hedged == Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Open".into())); }
                     }
                 }

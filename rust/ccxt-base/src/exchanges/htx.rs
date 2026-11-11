@@ -4045,7 +4045,7 @@ impl Htx {
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
             let mut linear: Value = Value::Null;
-            let mut inverse: Value = Value::Null;
+            let mut inverse: Option<bool> = None;
             // check if parsed market is contract
             if matches!(&contract, Value::Bool(true)) {
                 let mut contractId: Option<String> = self.safe_string_k_opt(market.clone(), "contract_code", &[]);
@@ -4059,13 +4059,13 @@ impl Htx {
                 future = Value::Bool(delivery_date.is_some());
                 swap = Value::Bool(!(future.as_bool() == Some(true)));
                 linear = Value::Bool(business_type.is_some());
-                inverse = Value::Bool(!(linear.as_bool() == Some(true)));
+                inverse = Some(!(linear.as_bool() == Some(true)));
                 if swap.as_bool() == Some(true) {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
                     quoteId = self.safe_string_lower(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-                    if inverse.as_bool() == Some(true) {
+                    if (inverse == Some(true)) {
                         settleId = baseId.clone();
                     }  else {
                         settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -4073,7 +4073,7 @@ impl Htx {
                 }  else if future.as_bool() == Some(true) {
                     marketType = Some("future".to_string());
                     baseId = self.safe_string_lower_k(market.clone(), "symbol", &[]);
-                    if inverse.as_bool() == Some(true) {
+                    if (inverse == Some(true)) {
                         quoteId = Some("USD".to_string());
                         settleId = baseId.clone();
                     }  else {
@@ -4111,7 +4111,7 @@ impl Htx {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut expiry: Option<i64> = None;
             if matches!(&contract, Value::Bool(true)) {
-                if (inverse.as_bool() == Some(true)) {
+                if (inverse == Some(true)) {
                     symbol.push_str(&format!("{}{}", Value::Str(":".into()), base.clone().map(Value::from).unwrap_or(Value::Null)));
                 }  else if (linear.as_bool() == Some(true)) {
                     symbol.push_str(&format!("{}{}", Value::Str(":".into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -4128,7 +4128,7 @@ impl Htx {
             if matches!(&contract, Value::Bool(true)) {
                 if (linear.as_bool() == Some(true)) {
                     minAmount = contractSize.clone();
-                }  else if (inverse.as_bool() == Some(true)) {
+                }  else if (inverse == Some(true)) {
                     minCost = contractSize.clone();
                 }
             }
@@ -4201,7 +4201,7 @@ impl Htx {
                     m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear);
-                    m.insert("inverse".to_string(), inverse);
+                    m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), taker);
                     m.insert("maker".to_string(), maker);
                     m.insert("contractSize".to_string(), Value::from(contractSize));

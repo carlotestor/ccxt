@@ -1347,7 +1347,7 @@ if _try_result.is_err() {
         let mut contractSize: Value = Value::Null;
         let mut minLeverage: Option<i64> = None;
         let mut maxLeverage: Option<i64> = None;
-        let mut crossMargin: Value = Value::Null;
+        let mut crossMargin: Option<bool> = None;
         let mut isolatedMargin: Option<bool> = None;
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
@@ -1365,7 +1365,7 @@ if _try_result.is_err() {
             contractSize = self.parse_number(Value::Str("1".into()), &[]);
             minLeverage = Some(1);
             maxLeverage = self.safe_integer_k(market.clone(), "max_leverage", &[]).as_i64();
-            crossMargin = Value::Bool(!(isolatedOnly));
+            crossMargin = Some(!(isolatedOnly));
             isolatedMargin = Some(true);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.clone(), &[]).as_str().map(str::to_owned);
@@ -1451,7 +1451,7 @@ if _try_result.is_err() {
         m.insert("created".to_string(), self.safe_integer_k(market.clone(), "created_at", &[]));
         m.insert("marginModes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cross".to_string(), crossMargin);
+        m.insert("cross".to_string(), crossMargin.map(Value::from).unwrap_or(Value::Null));
         m.insert("isolated".to_string(), isolatedMargin.map(Value::from).unwrap_or(Value::Null));
     m
 }));
