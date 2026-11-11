@@ -792,8 +792,8 @@ impl Hyperliquid {
     m
 }) }).into_dict();
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut market: crate::types::Market = (match self.market(marketId.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: Value = Value::from((market).symbol.clone());
         let mut rawData: Value = self.safe_list_k(&entry, "levels", &[Value::from(vec![])]);
         let mut data: indexmap::IndexMap<String, Value> = ({
@@ -1614,8 +1614,8 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut coin: Option<String> = self.safe_string_k(&first, "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut market: crate::types::Market = (match self.market(marketId.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: Value = Value::from((market).symbol.clone());
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

@@ -812,7 +812,7 @@ impl Hyperliquid {
     m
 })]), Value::Str("name".into()), &[Value::Str("NO".into())]).as_str().unwrap_or("NO").to_string();
         let mut quoteCurrency: String = self.safe_string_k(self.options.clone(), "outcomeQuoteCurrency", &[Value::Str("USDH".into())]).as_str().unwrap_or("USDH").to_string();
-        let mut szDecimals: Value = Value::Int(4); // outcomes use 4 decimal places
+        let mut szDecimals: i64 = 4; // outcomes use 4 decimal places
         let mut active: bool = true;
         let mut outcomePrecision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

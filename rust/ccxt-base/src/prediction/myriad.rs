@@ -4862,10 +4862,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         stored.append(trade.clone());
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
-        let mut myWallet: Value = self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null);
-        if (myWallet != Value::Null) {
+        let mut myWallet: Option<String> = self.wallet_address_or_undefined();
+        if (myWallet.is_some()) {
             let mut myLegs: Vec<Value> = Vec::new();
-            let mut takerTrader: Value = self.safe_string_lower_k(&taker, "trader", &[]);
+            let mut takerTrader: Option<String> = self.safe_string_lower_k(&taker, "trader", &[]).as_str().map(str::to_owned);
             if (takerTrader == myWallet) {
                 myLegs.push(trade);
             }
@@ -4876,7 +4876,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1378: bool = true;
                 while { if !__for_first_1378 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1378 = false; i.as_f64().unwrap_or(f64::NAN) < makersLength } {
                 let mut maker: Value = makers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut makerTrader: Value = self.safe_string_lower_k(maker.clone(), "trader", &[]);
+                let mut makerTrader: Option<String> = self.safe_string_lower_k(maker.clone(), "trader", &[]).as_str().map(str::to_owned);
                 if (makerTrader == myWallet) {
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.clone().map(Value::from).unwrap_or(Value::Null), marketId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(maker.clone(), "outcome", &[])).map(Value::from).unwrap_or(Value::Null);
                     let mut makerMarket: Value = self.safe_market(&[makerSym.clone()]);
