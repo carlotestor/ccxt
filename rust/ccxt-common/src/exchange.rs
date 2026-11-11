@@ -1625,9 +1625,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn watch_multiple(
         &mut self,
         url: impl Into<Value>,
-        message_hashes: Value,
+        message_hashes: impl Into<Value>,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let url: Value = url.into(); async move {
+    ) -> impl ::std::future::Future<Output = Value> + Send { let (url, message_hashes): (Value, Value) = (url.into(), message_hashes.into()); async move {
         let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let hashes = ws_string_list(&message_hashes);
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);

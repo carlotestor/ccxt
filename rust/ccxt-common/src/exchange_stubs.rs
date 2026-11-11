@@ -1950,8 +1950,8 @@ impl Exchange {
         Value::Map(out)
     }
 
-    pub fn deep_extend(&self, a: Value, optional_args: impl crate::value::MergeOperands) -> Value {
-        let mut current = a;
+    pub fn deep_extend(&self, a: impl crate::value::ExtendHead, optional_args: impl crate::value::MergeOperands) -> Value {
+        let mut current = a.into_head_value();
         optional_args.for_each_operand(|extra| {
             current = crate::value::deep_extend(std::mem::take(&mut current), extra);
         });

@@ -753,12 +753,12 @@ impl MergeOperands for &[&Dict; 1] {
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
 }
 
-/// The first operand of `extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
-pub trait ExtendHead { fn into_head(self) -> HashMap<String, Value>; }
-impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()) } else { HashMap::new() } } }
-impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
-impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
-impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+/// The first operand of `extend` / `deep_extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
+pub trait ExtendHead: Sized { fn into_head(self) -> HashMap<String, Value>; fn into_head_value(self) -> Value { Value::Map(self.into_head()) } }
+impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()) } else { HashMap::new() } } fn into_head_value(self) -> Value { self } }
+impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } fn into_head_value(self) -> Value { self.clone() } }
+impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } fn into_head_value(self) -> Value { Value::Dict(self) } }
+impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } fn into_head_value(self) -> Value { Value::Dict(Arc::clone(self)) } }
 
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
