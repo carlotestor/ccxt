@@ -2652,7 +2652,7 @@ export default class modetrade extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Currency, Dict[]]> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2777,7 +2777,9 @@ export default class modetrade extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
+        const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
+        const currency = this.safeValue (currencyRows, 0);
+        const rows = this.safeList (currencyRows, 1);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -2901,7 +2903,9 @@ export default class modetrade extends Exchange {
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {};
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currency = this.safeValue (currencyRows, 0);
+        const rows: Dict[] = this.safeList (currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
