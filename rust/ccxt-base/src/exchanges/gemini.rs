@@ -2642,7 +2642,7 @@ impl Gemini {
         if (triggerPrice.is_none()) {
             optionKeys = Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
         }
-        let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]).into_dict();
         if (typeValue.as_str() == Some("stopLimit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), typeValue).into()), Value::Str(" orders".into()))));
         }
@@ -2671,7 +2671,7 @@ impl Gemini {
                 request.insert("options".into(), Value::from(vec![options.clone().map(Value::from).unwrap_or(Value::Null)]));
             }
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_v1_order_new(&[__ws_arg_7]).await;
         return self.parse_order(response, &[]);
         Value::Null
@@ -3050,7 +3050,7 @@ impl Gemini {
         let mut codeValue: Value = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
@@ -3060,7 +3060,7 @@ impl Gemini {
                 m.insert("network".to_string(), networkId);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(response, &[Value::from(vec![codeValue.clone()]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();

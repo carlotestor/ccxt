@@ -530,7 +530,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut privateAccess: bool = access.as_str() == Some("private");
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodName, &[market, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut id: String = format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name); // call back ID
         let mut subscribe: indexmap::IndexMap<String, Value> = {
@@ -559,7 +559,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
-        let mut request: Value = self.extend(Value::Map(subscribe), &[paramsMarketType]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[&paramsMarketType]);
         let mut tail: Value = access;
         if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
@@ -613,7 +613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut privateAccess: bool = access.as_str() == Some("private");
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodName, &[market, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut id: String = format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name); // call back ID
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
@@ -639,7 +639,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             tradeType = "contract".to_string();
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType);
-        let mut request: Value = self.extend(Value::Map(unsubscribe), &[paramsMarketType.clone()]);
+        let mut request: Value = self.extend(Value::Map(unsubscribe), &[&paramsMarketType]);
         let mut tail: Value = access;
         if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
@@ -666,9 +666,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsAndTimeframes != Value::Null) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
-        let mut subscriptionParamsOmitted: Value = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]);
-        let __ws_arg_0 = self.extend(request, &[paramsMarketType]);
-        let __ws_arg_1 = self.extend(Value::Map(subscription), &[subscriptionParamsOmitted]);
+        let mut subscriptionParamsOmitted: crate::value::Dict = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
+        let __ws_arg_0 = self.extend(request, &[&paramsMarketType]);
+        let __ws_arg_1 = self.extend(Value::Map(subscription), &[&subscriptionParamsOmitted]);
         return self.watch(Value::from(url), messageHash.clone(), &[__ws_arg_0, messageHash.clone(), __ws_arg_1]).await;
 
     Value::Null

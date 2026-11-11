@@ -1446,7 +1446,7 @@ if _try_result.is_err() {
         self.check_contract_market((market).raw.clone(), Value::Str("watchOrderBook".into()));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("aggregation".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("aggregation".into()), &[]).into_dict();
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1456,7 +1456,7 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
         let mut orderbook: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null

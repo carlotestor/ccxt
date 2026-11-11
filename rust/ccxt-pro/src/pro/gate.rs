@@ -659,9 +659,9 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_cancel_cp".into()));
         let channelOptionparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("channel".into()), &[Value::from(channel)]).as_array().cloned().unwrap_or_default();
         let mut channelOption: Value = channelOptionparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsChannel: Value = channelOptionparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelOptionparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut url: Value = self.get_url_by_market(market.clone());
-        let mut paramsOmitted: Value = self.omit(paramsChannel, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsChannel, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);

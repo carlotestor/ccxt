@@ -1378,8 +1378,8 @@ impl Hyperliquid {
 }));
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_4]).await;
         //
         //     [
@@ -2217,14 +2217,14 @@ impl Hyperliquid {
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("frontendOpenOrders".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), method);
                 m.insert("user".to_string(), userAddress);
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsMethod]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
         let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
         let mut ordersWithStatus: Vec<Value> = Vec::new();
         let mut rawOrders: Value = Value::from(vec![]);
@@ -2638,11 +2638,11 @@ impl Hyperliquid {
             request.insert("type".into(), Value::Str("userFills".into()));
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPublicAddress.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPublicAddress, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
         let mut fills: Value = Value::from(vec![]);
         if (matches!(&response, Value::Arr(_))) {

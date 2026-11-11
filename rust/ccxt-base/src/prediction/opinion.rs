@@ -439,7 +439,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
         let mut userLimit: Value = self.safe_integer_k(params, "limit", &[]);
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
@@ -464,7 +464,7 @@ impl Opinion {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_0]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -737,21 +737,21 @@ impl Opinion {
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (eventId.is_some()) || (slug.is_some()) {
-            let mut singleRest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
+            let mut singleRest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
             let mut singleResponse: Value = Value::Null;
             if (slug.is_some()) {
                 let __ws_arg_1 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
                     m
-                }), &[singleRest.clone()]);
+                }), &[&singleRest]);
                 singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await;
             }  else {
                 let __ws_arg_2 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("marketId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                     m
-                }), &[singleRest]);
+                }), &[&singleRest]);
                 singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await;
             }
             let mut singleResult: crate::value::Dict = self.safe_dict_k(singleResponse, "result", &[Value::Map({
@@ -766,7 +766,7 @@ impl Opinion {
             self.index_event_outcomes(single.clone());
             return self.apply_event_fetch_params(Value::from(vec![single]), &[params.clone(), queries.clone()]);
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
         let mut pageLimit: Value = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)]));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
@@ -791,7 +791,7 @@ impl Opinion {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_3 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_3]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1698,7 +1698,7 @@ impl Opinion {
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
         let mut salt: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
         let mut maker: Value = self.load_multi_sign_address().await;
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -1752,7 +1752,7 @@ impl Opinion {
                 m.insert("orderExpTime".to_string(), Value::Str("0".into()));
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
             m
-        }), &[rest]);
+        }), &[&rest]);
         let mut response: crate::value::Dict = self.opinion_private_post_order(&[orderBody]).await.into_dict();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -1977,10 +1977,10 @@ impl Onetrading {
         }
         let mut triggerKeys: Value = (if (triggerPrice.is_some()) { Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopPrice".into())]) } else { Value::from(vec![]) });
         let mut clientOrderIdKeys: Value = (if (clientOrderId.is_some()) { Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]) } else { Value::from(vec![]) });
-        let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(self.array_concat(triggerKeys, clientOrderIdKeys), Value::from(vec![Value::Str("timeInForce".into())])), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(self.array_concat(triggerKeys, clientOrderIdKeys), Value::from(vec![Value::Str("timeInForce".into())])), &[]).into_dict();
         let mut timeInForce: String = self.safe_string2(params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("GOOD_TILL_CANCELLED".into())]).as_str().unwrap_or("GOOD_TILL_CANCELLED").to_string();
         request.insert("time_in_force".into(), Value::from(timeInForce));
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_account_orders(&[__ws_arg_3]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -2014,7 +2014,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         let mut method: String = "privateDeleteAccountOrdersOrderId".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2028,10 +2028,10 @@ impl Onetrading {
         }
         let mut response: Value = Value::Null;
         if (method == "privateDeleteAccountOrdersOrderId") {
-            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await;
         }  else {
-            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_account_orders_client_client_id(&[__ws_arg_5]).await;
         }
         return self.parse_order(response, &[]);

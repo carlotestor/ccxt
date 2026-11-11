@@ -3081,7 +3081,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut currency: Value = self.currency(code.clone());
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code.clone()]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
@@ -3097,7 +3097,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("signature".to_string(), Value::Map(withdrawSignature));
             m
         });
-        let __ws_arg_15 = self.extend(self.create_signed_request(&mut request, Value::Str("EIP712_WITHDRAWAL_TYPE".into()), &[currency.clone()]), &[query]);
+        let __ws_arg_15 = self.extend(self.create_signed_request(&mut request, Value::Str("EIP712_WITHDRAWAL_TYPE".into()), &[currency.clone()]), &[&query]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_withdrawal(&[__ws_arg_15]).await.into_dict();
         //
         // {
@@ -3283,14 +3283,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             orderRequest.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
-        let mut paramsOmitted: Value = self.omit(paramsTrigger, Value::from(vec![Value::Str("builderFee".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, Value::from(vec![Value::Str("builderFee".into())]), &[]).into_dict();
         let mut signedOrderRequest: Value = self.create_signed_request(&mut orderRequest, Value::from(eipType), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), signedOrderRequest);
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_create_order(&[__ws_arg_16]).await.into_dict();
         //
         //    {

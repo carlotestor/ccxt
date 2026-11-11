@@ -821,7 +821,7 @@ impl Binance {
 }));
         let mut url: Value = self.get_stock_ws_url(&[Value::Str("market".into())]);
         let mut requestId: Value = self.request_id(url.clone());
-        let mut query: Value = self.omit(params, Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]);
+        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -834,7 +834,7 @@ impl Binance {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
@@ -1620,14 +1620,14 @@ impl Binance {
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBookWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         payload.insert("returnRateLimits".into(), returnRateLimits);
-        let mut paramsOmitted: Value = self.omit(paramsReturnRateLimits, Value::Str("test".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReturnRateLimits, Value::Str("test".into()), &[]).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("depth".into()));
-                let __ws_arg_5 = self.extend(Value::Map(payload), &[paramsOmitted]);
+                let __ws_arg_5 = self.extend(Value::Map(payload), &[&paramsOmitted]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_5]));
             m
         });
@@ -2032,8 +2032,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let nameparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTradesForSymbols".into()), Value::Str("name".into()), &[Value::Str("trade".into())]).as_array().cloned().unwrap_or_default();
         let mut name: Value = nameparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsName: Value = nameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = self.omit(paramsName, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsName: crate::value::Dict = nameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut type_var: Value = Value::from((firstMarket).market_type.clone());
         let mut isOption: bool = (firstMarket).option;
@@ -2083,7 +2083,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             }
         }
-        let mut query: Value = self.omit(paramsOmitted, Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("type".into()), &[]).into_dict();
         let mut subParamsLength: Value = Value::Int(subParams.len() as i64);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(name).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(type_var, Value::from(streamHash), &[subParamsLength]).map(Value::from).unwrap_or(Value::Null));
         let mut requestId: Value = self.request_id(Value::from(url.clone()));
@@ -2099,7 +2099,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), requestId);
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&query]);
         let mut trades: Value = self.watch_multiple(Value::from(url), Value::from(messageHashes), &[__ws_arg_6, Value::from(subscribeHashes), Value::Map(subscribe)]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -2152,8 +2152,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let nameparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTradesForSymbols".into()), Value::Str("name".into()), &[Value::Str("trade".into())]).as_array().cloned().unwrap_or_default();
         let mut name: Value = nameparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsName: Value = nameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = self.omit(paramsName, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsName: crate::value::Dict = nameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut type_var: Value = Value::from((firstMarket).market_type.clone());
         let mut isOption: bool = (firstMarket).option;
@@ -2203,7 +2203,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             }
         }
-        let mut query: Value = self.omit(paramsOmitted, Value::Str("type".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("type".into()), &[]).into_dict();
         let mut subParamsLength: Value = Value::Int(subParams.len() as i64);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone(), self.get_future_ws_category(name).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(type_var, Value::from(streamHash), &[subParamsLength]).map(Value::from).unwrap_or(Value::Null));
         let mut requestId: Value = self.request_id(Value::from(url.clone()));
@@ -2224,7 +2224,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&query]);
         return self.watch_multiple(Value::from(url), messageHashes.clone(), &[__ws_arg_7, messageHashes.clone(), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
@@ -2690,8 +2690,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsTimezone, Value::Str("callerMethodName".into()), &[]);
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTimezone, Value::Str("callerMethodName".into()), &[]).into_dict();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut res: Value = self.watch_multiple(Value::from(url), Value::from(messageHashes), &[__ws_arg_8, Value::from(subscribeHashes), Value::Map(subscribe)]).await;
         let mut symboltimeframecandlesVariable = res;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
@@ -2806,8 +2806,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsTimezone, Value::Str("callerMethodName".into()), &[]);
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTimezone, Value::Str("callerMethodName".into()), &[]).into_dict();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return self.watch_multiple(Value::from(url), messageHashes.clone(), &[__ws_arg_9, messageHashes.clone(), Value::Map(subscribe)]).await;
         Value::Null
         }).await?))
@@ -2986,17 +2986,17 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         });
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTickerWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         payload.insert("returnRateLimits".into(), returnRateLimits);
-        let mut paramsOmitted: Value = self.omit(paramsReturnRateLimits, Value::Str("test".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsReturnRateLimits, Value::Str("test".into()), &[]);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchTickerWs".into()), Value::Str("method".into()), &[Value::Str("ticker.book".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), method);
-                let __ws_arg_10 = self.extend(Value::Map(payload), &[paramsMethod]);
+                let __ws_arg_10 = self.extend(Value::Map(payload), &[&paramsMethod]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_10]));
             m
         });
@@ -3063,7 +3063,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCVWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.market_id(symbol.clone()));
@@ -3071,8 +3071,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("interval".to_string(), (if let (Some(__m), Some(__k)) = (self.timeframes.as_map(), timeframe.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             m
         });
-        let mut until: Option<i64> = self.safe_integer_k(paramsReturnRateLimits.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsReturnRateLimits, Value::Str("until".into()), &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsReturnRateLimits, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReturnRateLimits, Value::Str("until".into()), &[]).into_dict();
         if (since != Value::Null) {
             payload.insert("startTime".into(), since);
         }
@@ -3086,7 +3086,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("klines".into()));
-                m.insert("params".to_string(), self.extend(Value::Map(payload), &[paramsOmitted]));
+                m.insert("params".to_string(), self.extend(Value::Map(payload), &[&paramsOmitted]));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -3568,7 +3568,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(methodName.clone(), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
         let mut isOptionMarkPrice: bool = isMarkPrice && (marketType.as_str() == Some("option"));
         let mut rawMarketType: Value = Value::Null;
@@ -3649,13 +3649,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
         }  else {
             if (marketType.as_str() == Some("option")) {
-                let mut underlying: Option<String> = self.safe_string_lower_k_opt(paramsSubType.clone(), "underlying", &[]);
+                let mut underlying: Option<String> = self.safe_string_lower_k_opt(&paramsSubType, "underlying", &[]);
                 if (underlying.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires either symbols or params[\"underlying\"] for eOptions".into()))));
                 }
                 if isOptionTicker {
                     // eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
-                    let mut expirationDate: Option<String> = self.safe_string_k(paramsSubType.clone(), "expirationDate", &[]).as_str().map(str::to_owned);
+                    let mut expirationDate: Option<String> = self.safe_string_k(&paramsSubType, "expirationDate", &[]).as_str().map(str::to_owned);
                     if (expirationDate.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided".into()))));
                     }
@@ -3721,7 +3721,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if isOptionMarkPrice && !isUnsubscribe {
             waitHashes = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".into())).into()), channel).into())]);
         }
-        let __ws_arg_13 = self.deep_extend(Value::Map(request), &[paramsSubType]);
+        let __ws_arg_13 = self.deep_extend(Value::Map(request), &[&paramsSubType]);
         let mut result: Value = self.watch_multiple(Value::from(url), waitHashes, &[__ws_arg_13, hashes, Value::Map(subscription)]).await;
         if isUnsubscribe {
             return result;
@@ -4394,9 +4394,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("authenticate".into()), &[paramsPortfolioMargin]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isIsolatedMargin: bool = marginMode.as_deref() == Some("isolated");
-        let mut symbol: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k(&paramsMarginMode, "symbol", &[]).as_str().map(str::to_owned);
         // For margin use WebSocket API listenToken subscription
         if (type_var.as_str() == Some("margin")) || isIsolatedMargin {
             let mut marginParams: indexmap::IndexMap<String, Value> = ({
@@ -4412,7 +4412,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.ensure_user_data_stream_ws_subscribe_listen_token(&[Value::Str("margin".into()), Value::Map(marginParams)]).await;
             return Value::Null;
         }
-        let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::Str("symbol".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsMarginMode, Value::Str("symbol".into()), &[]);
         let mut isStock: bool = type_var.as_str() == Some("stock");
         let mut options: Value = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4775,12 +4775,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsReturnRateLimits, Value::Str("fetchBalanceWs".into()), Value::Str("method".into()), &[Value::Str("account.status".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), method.clone());
-                let __ws_arg_21 = self.extend(Value::Map(payload), &[paramsMethod]);
+                let __ws_arg_21 = self.extend(Value::Map(payload), &[&paramsMethod]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_21]));
             m
         });
@@ -4970,12 +4970,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         payload.insert("returnRateLimits".into(), returnRateLimits);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsReturnRateLimits, Value::Str("fetchPositionsWs".into()), Value::Str("method".into()), &[Value::Str("account.position".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), method);
-                let __ws_arg_22 = self.extend(Value::Map(payload), &[paramsMethod]);
+                let __ws_arg_22 = self.extend(Value::Map(payload), &[&paramsMethod]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_22]));
             m
         });
@@ -5401,10 +5401,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut payload: indexmap::IndexMap<String, Value> = self.parent.create_order_request(symbol.clone(), type_var, side, amount, &[price, __ws_arg_24]).as_map().cloned().unwrap_or_default();
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("createOrderWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         payload.insert("returnRateLimits".into(), returnRateLimits);
-        let mut test: bool = self.safe_bool_k(paramsReturnRateLimits.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted2: Value = self.omit(paramsReturnRateLimits, Value::Str("test".into()), &[]);
+        let mut test: bool = self.safe_bool_k(&paramsReturnRateLimits, "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsReturnRateLimits, Value::Str("test".into()), &[]).into_dict();
         if isAlgoOrder {
             payload.insert("algoType".into(), Value::Str("CONDITIONAL".into()));
         }
@@ -5412,7 +5412,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("order.place".into()));
-                let __ws_arg_25 = self.extend(Value::Map(payload), &[paramsOmitted2]);
+                let __ws_arg_25 = self.extend(Value::Map(payload), &[&paramsOmitted2]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_25]));
             m
         });
@@ -5610,13 +5610,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("editOrderWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         payload.insert("returnRateLimits".into(), returnRateLimits);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), (if (isSwap) { Value::Str("order.modify".into()) } else { Value::Str("order.cancelReplace".into()) }));
-                let __ws_arg_26 = self.extend(Value::Map(payload), &[paramsReturnRateLimits]);
+                let __ws_arg_26 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_26]));
             m
         });
@@ -5823,12 +5823,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 payload.insert("orderId".into(), self.number_to_string(id.clone()));
             }
         }
-        let mut paramsOmitted: Value = self.omit(paramsReturnRateLimits, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsReturnRateLimits, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("order.cancel".into()));
-                let __ws_arg_27 = self.extend(Value::Map(payload), &[paramsOmitted]);
+                let __ws_arg_27 = self.extend(Value::Map(payload), &[&paramsOmitted]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_27]));
             m
         });
@@ -5895,7 +5895,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.market_id(symbol.clone()));
@@ -5906,7 +5906,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("openOrders.cancelAll".into()));
-                let __ws_arg_28 = self.extend(Value::Map(payload), &[paramsReturnRateLimits]);
+                let __ws_arg_28 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_28]));
             m
         });
@@ -6063,7 +6063,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.market_id(symbol.clone()));
@@ -6074,7 +6074,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("allOrders".into()));
-                let __ws_arg_30 = self.extend(Value::Map(payload), &[paramsReturnRateLimits]);
+                let __ws_arg_30 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_30]));
             m
         });
@@ -6181,7 +6181,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("returnRateLimits".to_string(), returnRateLimits);
@@ -6194,7 +6194,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("openOrders.status".into()));
-                let __ws_arg_31 = self.extend(Value::Map(payload), &[paramsReturnRateLimits]);
+                let __ws_arg_31 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_31]));
             m
         });
@@ -6279,13 +6279,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("id".to_string(), stockRequestId.clone());
                 m
             });
-            let mut stockQuery: Value = self.omit(paramsStock.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]);
+            let mut stockQuery: crate::value::Dict = self.omit(paramsStock.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]).into_dict();
             let mut stockSubscribe: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), stockRequestId);
                 m
             });
-            let __ws_arg_33 = self.extend(Value::Map(stockRequest), &[stockQuery]);
+            let __ws_arg_33 = self.extend(Value::Map(stockRequest), &[&stockQuery]);
             let mut stockOrders: Value = self.watch(stockUrl, Value::from(stockMessageHash.clone()), &[__ws_arg_33, Value::from(stockMessageHash), Value::Map(stockSubscribe)]).await;
             let mut stockLimit: Value = limit.clone();
             if self.newUpdates.as_bool() == Some(true) {
@@ -7404,7 +7404,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTradesWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.market_id(symbol.clone()));
@@ -7417,7 +7417,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (limit != Value::Null) {
             payload.insert("limit".into(), limit.clone());
         }
-        let mut fromId: Option<i64> = self.safe_integer_k(paramsReturnRateLimits.clone(), "fromId", &[]).as_i64();
+        let mut fromId: Option<i64> = self.safe_integer_k(&paramsReturnRateLimits, "fromId", &[]).as_i64();
         if (fromId.is_some()) && (since != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time".into()))));
         }
@@ -7425,7 +7425,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("myTrades".into()));
-                let __ws_arg_35 = self.extend(Value::Map(payload), &[paramsReturnRateLimits]);
+                let __ws_arg_35 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_35]));
             m
         });
@@ -7494,7 +7494,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTradesWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReturnRateLimits: Value = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.market_id(symbol.clone()));
@@ -7508,7 +7508,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("method".to_string(), Value::Str("trades.historical".into()));
-                m.insert("params".to_string(), self.extend(Value::Map(payload), &[paramsReturnRateLimits]));
+                m.insert("params".to_string(), self.extend(Value::Map(payload), &[&paramsReturnRateLimits]));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({

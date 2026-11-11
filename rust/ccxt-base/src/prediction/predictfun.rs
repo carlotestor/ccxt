@@ -669,7 +669,7 @@ impl Predictfun {
             fetchCap = Value::from(userLimit);
         }
         let mut slug: Option<String> = self.safe_string2(paramsValue.clone(), Value::Str("slug".into()), Value::Str("eventId".into()), &[]).as_str().map(str::to_owned);
-        let mut rest: Value = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -679,7 +679,7 @@ impl Predictfun {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            }), &[rest]);
+            }), &[&rest]);
             let mut response: crate::value::Dict = self.predictfun_get_v1_categories_slug(&[__ws_arg_1]).await.into_dict();
             let mut data: Value = self.safe_dict_k(&response, "data", &[]);
             rawTopics = Value::from(vec![data.clone()]);
@@ -698,8 +698,8 @@ impl Predictfun {
                 request.insert("tagIds".into(), join(&tags, &Value::Str(",".into())));
             }
             postOmitKeys.push(Value::Str("limit".into()));
-            let mut paramsCategories: Value = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]);
-            let mut extendedRequest: Value = self.extend(Value::Map(request), &[paramsCategories]);
+            let mut paramsCategories: crate::value::Dict = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]).into_dict();
+            let mut extendedRequest: Value = self.extend(Value::Map(request), &[&paramsCategories]);
             let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[extendedRequest.clone()]).await;
             //
             //     {
@@ -961,7 +961,7 @@ impl Predictfun {
             includeResolved = "true".to_string();
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("status".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("status".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         let mut result: Vec<Value> = Vec::new();
         // the venue answers every term separately and the same category comes back for each term
@@ -988,7 +988,7 @@ impl Predictfun {
                     m.insert("includeResolved".to_string(), Value::from(includeResolved.clone()));
                 m
             });
-            let __ws_arg_2 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.predictfun_get_v1_search(&[__ws_arg_2]).await.into_dict();
             //
             //     {
@@ -2026,10 +2026,10 @@ impl Predictfun {
 })]).into_dict();
             request.insert("marketId".into(), self.safe_string_k(&info, "marketId", &[]));
         }
-        let mut query: Value = self.omit(params, Value::Str("signerAddress".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, Value::Str("signerAddress".into()), &[]).into_dict();
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
-        let __ws_arg_5 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[__ws_arg_5]).await.into_dict();
         // the venue answers with the shape documented in fetchTrades below
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
@@ -2769,15 +2769,15 @@ impl Predictfun {
         }
         // every param the method consumes itself has to come out, otherwise it survives into the
         // extend below and is posted as a top level key next to 'data'
-        let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()),
-            Value::Str("nonce".into()), Value::Str("expiration".into()), Value::Str("selfTradePrevention".into()), Value::Str("taker".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPostOnly, Value::from(vec![Value::Str("isPostOnly".into()), Value::Str("timeInForce".into()), Value::Str("isFillOrKill".into()), Value::Str("feeRateBps".into()), Value::Str("isNegRisk".into()), Value::Str("isYieldBearing".into()), Value::Str("slippageBps".into()), Value::Str("salt".into()),
+            Value::Str("nonce".into()), Value::Str("expiration".into()), Value::Str("selfTradePrevention".into()), Value::Str("taker".into())]), &[]).into_dict();
         // the JWT authorises the order, the api key only authorises the request
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("data".to_string(), Value::Map(data));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.predictfun_post_v1_orders(&[__ws_arg_9]).await;
         //
         //     {
@@ -2863,8 +2863,8 @@ impl Predictfun {
                     m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            let mut rest: Value = self.omit(params.clone(), Value::Str("address".into()), &[]);
-            let __ws_arg_10 = self.extend(Value::Map(request), &[rest]);
+            let mut rest: crate::value::Dict = self.omit(params.clone(), Value::Str("address".into()), &[]).into_dict();
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&rest]);
             response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await;
         }  else {
             // the JWT is what names the wallet whose positions come back

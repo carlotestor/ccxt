@@ -2904,7 +2904,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut paramsOmitted: Value = self.omit(paramsUta, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsOmitted]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-            let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut isFuturesMethod: Value = (Value::Bool((marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"))));
             let mut url: Value = self.negotiate(Value::Bool(true), &[isFuturesMethod.clone()]).await;
             let mut topic: String = "/spotMarket/tradeOrders".to_string();
@@ -2923,7 +2923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("privateChannel".to_string(), Value::Bool(true));
                 m
             });
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMarketType]);
             orders = self.subscribe(url, messageHash, Value::from(topic), &[__ws_arg_2]).await;
         }
         let mut limitResolved: Value = limit.clone();
@@ -3389,7 +3389,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let topicparamsTopicVariable: Vec<Value> = self.handle_option_string_and_params2(paramsUta, Value::Str("watchMyTrades".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultTopic)]).as_array().cloned().unwrap_or_default();
             let mut topic: Value = topicparamsTopicVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsTopic: Value = topicparamsTopicVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsTopic: crate::value::Dict = topicparamsTopicVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("privateChannel".to_string(), Value::Bool(true));
@@ -3399,7 +3399,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut suffix: Value = self.get_my_trades_message_hash_suffix(topic.clone());
                 messageHash = Value::Str(format!("{}{}", messageHash, suffix).into());
             }
-            let __ws_arg_3 = self.extend(Value::Map(request), &[paramsTopic]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsTopic]);
             trades = self.subscribe(url, messageHash, topic, &[__ws_arg_3]).await;
         }
         let mut limitResolved: Value = limit.clone();
@@ -3622,7 +3622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultType: Value = Value::Str("spot".into());
         if utaOption {
             defaultType = Value::Str("unified".into());
@@ -3630,9 +3630,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = defaultType.clone();
         if !utaOption {
             defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[defaultType.clone()]);
-            type_var = self.safe_string_k(paramsUta.clone(), "type", &[defaultType]);
+            type_var = self.safe_string_k(&paramsUta, "type", &[defaultType]);
         }
-        let mut paramsOmitted: Value = self.omit(paramsUta, Value::Str("type".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUta, Value::Str("type".into()), &[]).into_dict();
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3667,7 +3667,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut channel: String = "balance".to_string();
-            let __ws_arg_4 = self.extend(Value::Map(extendedParams), &[paramsOmitted.clone()]);
+            let __ws_arg_4 = self.extend(Value::Map(extendedParams), &[&paramsOmitted]);
             return self.subscribe_private_uta(Value::from(vec![Value::from(messageHash.clone())]), subscriptionHash.clone(), Value::from(channel), &[Value::Null, __ws_arg_4]).await;
         }  else {
             let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
@@ -3680,7 +3680,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("privateChannel".to_string(), Value::Bool(true));
                 m
             });
-            let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
             if !(__ch.has_subscription(&subscriptionHash)) {
                 __ch.add_subscription(&requestId, subscriptionHash.clone());
             }

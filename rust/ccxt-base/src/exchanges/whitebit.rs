@@ -2534,7 +2534,7 @@ impl Whitebit {
         // Extract control parameters from params
         let mut checkActive: bool = self.safe_bool_k(params.clone(), "checkActive", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         let mut checkExecuted: bool = self.safe_bool_k(params.clone(), "checkExecuted", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("checkActive".into()), Value::Str("checkExecuted".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("checkActive".into()), Value::Str("checkExecuted".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
@@ -2548,7 +2548,7 @@ impl Whitebit {
         // Try active orders first (if enabled)
         if checkActive {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 let mut response: Value = self.v4_private_post_orders(&[__ws_arg_1]).await;
                 // Search for order in active orders response (array format)
                 let mut orders: Value = self.to_array(response.clone());
@@ -2575,7 +2575,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // Try executed orders (if enabled)
         if checkExecuted {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 let mut response: Value = self.v4_private_post_trade_account_order_history(&[__ws_arg_2]).await;
                 // Search for order in executed orders response (object format)
                 let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -3081,7 +3081,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut cappedLimit: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1440i64) as f64))) { Value::Int(1440) } else { limit.clone() });
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit.clone() });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         if (since != Value::Null) || (until != Value::Null) {
             // the exchange ignores a start alone: it returns the last candles that closed by the end.
             // It refuses an end past its own clock, which may be behind this one, so an end within a
@@ -3106,7 +3106,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) || (until != Value::Null) || (limit != Value::Null) {
             request.insert("limit".into(), cappedLimit);
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v1_public_get_kline(&[__ws_arg_6]).await.into_dict();
         //
         //     {
@@ -3342,7 +3342,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly.as_bool() == Some(true) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -3352,7 +3352,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (marginMode.is_some()) && (marginMode.as_deref() != Some("cross")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() is only available for cross margin".into()))));
         }
-        let mut orderParams: Value = self.omit(query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut orderParams: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
         let mut response: Value = Value::Null;
         if isStopOrder {
@@ -3360,15 +3360,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if isLimitOrder {
                 // stop limit order
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-                let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                 response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await;
             }  else {
                 // stop market order
                 if useCollateralEndpoint {
-                    let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                    let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await;
                 }  else {
-                    let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                    let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await;
                 }
             }
@@ -3377,23 +3377,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // limit order
                 request.insert("price".into(), self.price_to_precision(symbol, price));
                 if useCollateralEndpoint {
-                    let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                    let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await;
                 }  else {
-                    let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                    let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_new(&[__ws_arg_12]).await;
                 }
             }  else {
                 // market order
                 if useCollateralEndpoint {
-                    let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                    let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await;
                 }  else {
                     if (cost != Value::Null) {
-                        let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[orderParams.clone()]);
+                        let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                         response = self.v4_private_post_order_market(&[__ws_arg_14]).await;
                     }  else {
-                        let __ws_arg_15 = self.extend(Value::Map(request), &[orderParams]);
+                        let __ws_arg_15 = self.extend(Value::Map(request), &[&orderParams]);
                         response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await;
                     }
                 }
@@ -3482,8 +3482,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if !hasModifiableParam {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires at least one of: amount, price, activationPrice, or total parameters".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("activationPrice".into()), Value::Str("total".into())]), &[]);
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("activationPrice".into()), Value::Str("total".into())]), &[]).into_dict();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v4_private_post_order_modify(&[__ws_arg_16]).await;
         return self.parse_order(response, &[]);
         Value::Null
@@ -3662,7 +3662,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() requires a symbol argument in params".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("symbol".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("symbol".into()), &[]).into_dict();
         if (timeout == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".into()))));
         }
@@ -3677,7 +3677,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             request.insert("timeout".into(), Value::Str("null".into()));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await;
         return response;
 
@@ -6048,14 +6048,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api".into())).into()), Value::Str("/".into())).into()), version).into()), pathWithParams);
             let nonceWindowrequestParamsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut nonceWindow: Value = nonceWindowrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut requestParams: Value = nonceWindowrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut requestParams: crate::value::Dict = nonceWindowrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_43 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request".to_string(), Value::from(request));
                     m.insert("nonce".to_string(), nonce);
                     m.insert("nonceWindow".to_string(), nonceWindow);
                 m
-            }), &[requestParams]);
+            }), &[&requestParams]);
             privateBody = self.json(__ws_arg_43);
             let mut payload: Value = self.string_to_base64(privateBody.clone(), &[]);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), secret, Value::Str("sha512".into()), &[]);

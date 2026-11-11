@@ -2306,7 +2306,7 @@ impl Phemex {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Option<i64> = self.seconds().as_i64();
         let mut settleIsUSDT: bool = self.safe_string_k(params.clone(), "settle", &[Value::Str("".into())]).as_str() == Some("USDT");
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("settle".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("settle".into()), &[]).into_dict();
         let mut channel: String = "aop.subscribe".to_string();
         if (type_var.as_str() == Some("spot")) {
             channel = "wo.subscribe".to_string();
@@ -2321,7 +2321,7 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        request = self.extend(request.clone(), &[paramsOmitted]);
+        request = self.extend(request.clone(), &[&paramsOmitted]);
         return self.watch(url, messageHash, &[request, Value::from(channel)]).await;
 
     Value::Null

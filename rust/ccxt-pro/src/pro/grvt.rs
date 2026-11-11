@@ -999,7 +999,7 @@ impl Grvt {
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut extraPart: Value = Value::Null;
         if isSnapshot {
@@ -1025,7 +1025,7 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsInterval]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsInterval]);
         let mut orderbook: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_5, Value::from(rawHashes), &[]).await;
         return orderbook.limit();
         Value::Null

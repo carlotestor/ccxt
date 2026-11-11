@@ -2817,8 +2817,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsRequest: Value = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsRequest]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
         let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

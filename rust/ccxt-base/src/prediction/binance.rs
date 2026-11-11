@@ -2664,14 +2664,14 @@ impl Binance {
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null)]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         self.check_required_credentials(&[]);
         let __ws_arg_19 = self.nonce();
         let mut extendedParams: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), __ws_arg_19);
             m
-        }), &[query]);
+        }), &[&query]);
         let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
         if (defaultRecvWindow.is_some()) {
             add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".into()), Value::from(defaultRecvWindow));

@@ -2043,7 +2043,7 @@ impl Extended {
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into()), Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.clone()));
@@ -2055,7 +2055,7 @@ impl Extended {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v1_public_get_info_candles_market_candle_type(&[__ws_arg_6]).await.into_dict();
         //
         //     {
@@ -2128,7 +2128,7 @@ impl Extended {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
         let mut until: Value = self.safe_integer_k(paramsPaginate.clone(), "until", &[self.milliseconds()]);
         let mut endTime: Value = self.safe_integer_k(paramsPaginate.clone(), "endTime", &[until]);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
         if (endTime != Value::Null) && (since == Value::Null) {
             sinceResolved = (match (&(endTime), &(((match (&((match (&((match (&(limitResolved), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -2144,7 +2144,7 @@ impl Extended {
                 m.insert("limit".to_string(), limitResolved.clone());
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v1_public_get_info_market_funding(&[__ws_arg_7]).await.into_dict();
         //
         //     {
@@ -2255,7 +2255,7 @@ impl Extended {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);
         let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[until]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
         if (endTime != Value::Null) && (since == Value::Null) {
             sinceResolved = (match (&(endTime), &(((match (&((match (&(limitResolved), &(self.parse_timeframe(timeframe))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -2271,7 +2271,7 @@ impl Extended {
                 m.insert("limit".to_string(), limitResolved.clone());
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v1_public_get_info_market_open_interests(&[__ws_arg_8]).await.into_dict();
         //
         //     {
@@ -2863,8 +2863,9 @@ impl Extended {
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]);
-        let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("recipient".into()), Value::Str("positionId".into()), Value::Str("l2Vault".into()), Value::Str("collateralId".into()),
+            Value::Str("resolution".into())]), &[]).into_dict();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;
         //
         //     {
@@ -3031,9 +3032,9 @@ impl Extended {
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), Value::Str("toL2Key".into()), Value::Str("receiverPublicKey".into()),
-            Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("assetId".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]);
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), Value::Str("toL2Key".into()),
+            Value::Str("receiverPublicKey".into()), Value::Str("settlementExpiration".into()), Value::Str("nonce".into()), Value::Str("assetId".into()), Value::Str("collateralId".into()), Value::Str("resolution".into())]), &[]).into_dict();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v1_private_post_user_transfer(&[__ws_arg_15]).await;
         //
         //     {
@@ -4427,14 +4428,14 @@ impl Extended {
         }
         let mut response: Value = Value::Null;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("externalId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_23 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_23 = self.extend(request.clone(), &[&paramsOmitted]);
             response = self.v1_private_delete_user_order(&[__ws_arg_23]).await;
         }  else {
             if (id == Value::Null) {
@@ -4445,7 +4446,7 @@ impl Extended {
                     m.insert("id".to_string(), id.clone());
                 m
             });
-            let __ws_arg_24 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await;
         }
         //
@@ -4496,8 +4497,8 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into())]), &[]);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into()), Value::Str("orderIds".into()), Value::Str("order_ids".into()),
-            Value::Str("markets".into()), Value::Str("cancelAll".into()), Value::Str("cancel_all".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("externalOrderIds".into()), Value::Str("external_order_ids".into()), Value::Str("orderIds".into()),
+            Value::Str("order_ids".into()), Value::Str("markets".into()), Value::Str("cancelAll".into()), Value::Str("cancel_all".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4522,7 +4523,7 @@ impl Extended {
         if !hasOrderIds && !hasClientOrderIds {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an ids argument or clientOrderIds parameter".into()))));
         }
-        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_25]).await;
         return Value::from(vec![]);
         Value::Null
@@ -4630,14 +4631,14 @@ impl Extended {
         let mut response: Value = Value::Null;
         let mut order: Value = Value::Null;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("externalId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_28 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_28 = self.extend(request.clone(), &[&paramsOmitted]);
             response = self.v1_private_get_user_orders_external_external_id(&[__ws_arg_28]).await;
             let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
             order = self.safe_dict(data, Value::Int(0), &[Value::Map({
@@ -4653,7 +4654,7 @@ impl Extended {
                     m.insert("id".to_string(), id);
                 m
             });
-            let __ws_arg_29 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_29 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_get_user_orders_id(&[__ws_arg_29]).await;
             order = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

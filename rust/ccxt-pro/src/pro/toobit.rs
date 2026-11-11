@@ -1060,7 +1060,7 @@ impl Toobit {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("channel".into()), &[Value::Str("depth".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1079,7 +1079,7 @@ impl Toobit {
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsChannel]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsChannel]);
         let mut orderbook: Value = self.watch_multiple(Value::from(url), messageHashes.clone(), &[__ws_arg_5, messageHashes.clone()]).await;
         return orderbook.limit();
         Value::Null

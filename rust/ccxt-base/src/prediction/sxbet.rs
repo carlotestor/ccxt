@@ -1257,7 +1257,7 @@ impl Sxbet {
         }
         let spenderparamsSpenderVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut spender: Value = spenderparamsSpenderVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSpender: Value = spenderparamsSpenderVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSpender: crate::value::Dict = spenderparamsSpenderVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
@@ -1269,7 +1269,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut rpcUrl: Value = self.safe_string_k(paramsSpender.clone(), "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
+        let mut rpcUrl: Value = self.safe_string_k(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
         if (rpcUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), self.number_to_string(Value::from(chainId))).into()), Value::Str(" - pass params.rpcUrl".into()))));
         }
@@ -1285,7 +1285,7 @@ impl Sxbet {
         let mut nonce: Value = (if (nonceHex.as_deref() == Some("")) { Value::Str("0".into()) } else { self.number_to_string(self.hex_to_int(nonceHex.clone().map(Value::from).unwrap_or(Value::Null))) });
         let mut tokenName: Value = self.fetch_erc20_name(rpcUrl, tokenAddress.clone()).await;
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
-        let mut deadline: Value = self.safe_integer_k(paramsSpender.clone(), "deadline", &[self.sum(&[self.seconds(), Value::from(defaultDeadlineSeconds)])]);
+        let mut deadline: Value = self.safe_integer_k(&paramsSpender, "deadline", &[self.sum(&[self.seconds(), Value::from(defaultDeadlineSeconds)])]);
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&self.number_to_string(Value::from(amount)), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1347,8 +1347,8 @@ impl Sxbet {
                 m.insert("signature".to_string(), signature);
             m
         });
-        let mut rest: Value = self.omit(paramsSpender, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]);
-        let __ws_arg_5 = self.extend(Value::Map(request), &[rest]);
+        let mut rest: crate::value::Dict = self.omit(&paramsSpender, Value::from(vec![Value::Str("amount".into()), Value::Str("tokenAddress".into()), Value::Str("deadline".into()), Value::Str("rpcUrl".into())]), &[]).into_dict();
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&rest]);
         let mut response: Value = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await;
         let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1457,7 +1457,7 @@ impl Sxbet {
         }
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1539,29 +1539,29 @@ impl Sxbet {
                 m.insert("orderSignature".to_string(), orderSignature);
             m
         };
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsTimeInForce.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsTimeInForce, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             orderItem.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        let mut useBetCredits: Option<bool> = self.safe_bool_k_opt(paramsTimeInForce.clone(), "useBetCredits", &[]);
+        let mut useBetCredits: Option<bool> = self.safe_bool_k_opt(&paramsTimeInForce, "useBetCredits", &[]);
         if (useBetCredits.is_some()) {
             orderItem.insert("useBetCredits".into(), useBetCredits.map(Value::Bool).unwrap_or(Value::Null));
         }
-        let mut externalUserId: Option<String> = self.safe_string_k(paramsTimeInForce.clone(), "externalUserId", &[]).as_str().map(str::to_owned);
+        let mut externalUserId: Option<String> = self.safe_string_k(&paramsTimeInForce, "externalUserId", &[]).as_str().map(str::to_owned);
         if (externalUserId.is_some()) {
             orderItem.insert("externalUserId".into(), externalUserId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut waitForOutcome: bool = self.safe_bool_k(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-        let mut rest: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
+        let mut waitForOutcome: bool = self.safe_bool_k(&paramsTimeInForce, "waitForOutcome", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut rest: crate::value::Dict = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(vec![Value::Map(orderItem)]));
                 m.insert("waitForOutcome".to_string(), Value::Bool(waitForOutcome));
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(request), &[rest]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&rest]);
         let mut response: Value = self.sxbet_private_post_orders_v3(&[__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2460,8 +2460,8 @@ impl Sxbet {
                 m.insert("status".to_string(), self.safe_string_k(params.clone(), "status", &[Value::Str("MATCHED,LOCKED".into())]));
             m
         });
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("status".into())]), &[]);
-        let __ws_arg_15 = self.extend(Value::Map(request), &[rest]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("status".into())]), &[]).into_dict();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&rest]);
         let mut response: crate::value::Dict = self.sxbet_private_get_positions_v3(&[__ws_arg_15]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

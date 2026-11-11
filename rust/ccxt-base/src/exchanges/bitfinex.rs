@@ -2881,7 +2881,7 @@ impl Bitfinex {
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (marginMode.is_none()) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType).into());
@@ -2902,8 +2902,8 @@ impl Bitfinex {
         if (clientOrderId.is_some()) {
             request.insert("cid".into(), Value::from(clientOrderId));
         }
-        let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into())]), &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -3823,7 +3823,7 @@ impl Bitfinex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
         let mut wallet: String = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".into())]).as_str().unwrap_or("exchange").to_string(); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[Value::Str("wallet".into())]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[Value::Str("wallet".into())]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3831,7 +3831,7 @@ impl Bitfinex {
                 m.insert("op_renew".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_deposit_address(&[__ws_arg_20]).await;
         //
         //     [
@@ -4279,7 +4279,7 @@ impl Bitfinex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".into())).into()), code).into()), Value::Str("'. You can specify it by providing the 'network' value inside params".into()))));
         }
         let mut wallet: String = self.safe_string_k(paramsOmitted.clone(), "wallet", &[Value::Str("exchange".into())]).as_str().unwrap_or("exchange").to_string(); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::Str("network".into()), &[Value::Str("wallet".into())]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::Str("network".into()), &[Value::Str("wallet".into())]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4299,7 +4299,7 @@ impl Bitfinex {
         if includeFee {
             request.insert("fee_deduct".into(), Value::Int(1));
         }
-        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted2]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: Value = self.private_post_auth_w_withdraw(&[__ws_arg_23]).await;
         //
         //     [
@@ -5634,8 +5634,8 @@ impl Bitfinex {
         if (leverage.is_some()) {
             request.insert("lev".into(), Value::from(leverage));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into()), Value::Str("leverage".into())]), &[]);
-        let __ws_arg_35 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into()), Value::Str("clientOrderId".into()), Value::Str("leverage".into())]), &[]).into_dict();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_order_update(&[__ws_arg_35]).await;
         //
         //     [

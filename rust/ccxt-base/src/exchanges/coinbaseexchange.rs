@@ -2043,7 +2043,7 @@ impl Coinbaseexchange {
             request.insert("granularity".into(), timeframe.clone());
         }
         let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         let mut cappedLimit: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit });
@@ -2066,7 +2066,7 @@ impl Coinbaseexchange {
                 request.insert("end".into(), self.iso8601(until));
             }
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_get_products_id_candles(&[__ws_arg_11]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
@@ -2229,8 +2229,8 @@ impl Coinbaseexchange {
             response = self.private_get_orders_id(&[__ws_arg_12]).await;
         }  else {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]);
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]).into_dict();
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
         }
         return self.parse_order(response, &[]);

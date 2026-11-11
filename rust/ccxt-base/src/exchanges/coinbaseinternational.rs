@@ -3843,9 +3843,9 @@ impl Coinbaseinternational {
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsOrder: Value = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
+        let mut paramsOrder: crate::value::Dict = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
         self.authenticate_v2(&[]).await;
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOrder]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOrder]);
         let mut response: crate::value::Dict = self.private_get_edit(&[__ws_arg_15]).await.into_dict();
         //
         //     {
@@ -4766,7 +4766,7 @@ impl Coinbaseinternational {
 }));
         let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
         let mut route: Value = routeparamsResolvedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsResolved: Value = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut deribit: Value = self.resolve_route(&[route]);
         let mut previousBackend: Value = self.safe_bool_k(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: Value = self.is_native_deribit_credentials();
@@ -4788,7 +4788,7 @@ impl Coinbaseinternational {
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), deribit.clone()); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
-        return self.omit(paramsResolved, Value::from(vec![Value::Str("route".into()), Value::Str("defaultRoute".into()), Value::Str("callerMethodName".into())]), &[]);
+        return self.omit(&paramsResolved, Value::from(vec![Value::Str("route".into()), Value::Str("defaultRoute".into()), Value::Str("callerMethodName".into())]), &[]);
 
     Value::Null
 }

@@ -1517,8 +1517,8 @@ impl Btcmarkets {
         if triggerPriceIsRequired {
             paramsTriggerPrice = self.omit(params, Value::Str("triggerPrice".into()), &[]);
         }
-        let mut paramsOmitted: Value = self.omit(paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]);
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]).into_dict();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -1988,7 +1988,7 @@ impl Btcmarkets {
     m
 }));
         let mut tagWithdrawTag: Option<String> = self.safe_string_k(params.clone(), "tag", &[]).as_str().map(str::to_owned);
-        let mut paramsWithdrawTag: Value = self.omit(params, Value::Str("tag".into()), &[]);
+        let mut paramsWithdrawTag: crate::value::Dict = self.omit(params, Value::Str("tag".into()), &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2006,7 +2006,7 @@ impl Btcmarkets {
         if (tagWithdrawTag.is_some()) {
             request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null

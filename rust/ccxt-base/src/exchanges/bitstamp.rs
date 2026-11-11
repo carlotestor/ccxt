@@ -2823,8 +2823,8 @@ impl Bitstamp {
                 request.insert("limit".into(), Value::Int(1000));
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_ohlc_pair(&[__ws_arg_3]).await.into_dict();
         //
         //     {

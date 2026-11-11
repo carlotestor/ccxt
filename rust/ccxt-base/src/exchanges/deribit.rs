@@ -2447,7 +2447,7 @@ impl Deribit {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("code".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]).into_dict();
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
@@ -2483,7 +2483,7 @@ impl Deribit {
                 request.insert("kind".into(), Value::Str("option".into()));
             }
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[__ws_arg_5]).await.into_dict();
         //
         //     {
@@ -3408,13 +3408,13 @@ impl Deribit {
                 request.insert("time_in_force".into(), Value::Str("fill_or_kill".into()));
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (self.capitalize(side).as_str() == Some("Buy")) {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_buy(&[__ws_arg_12]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_sell(&[__ws_arg_13]).await;
         }
         //
@@ -4574,7 +4574,7 @@ impl Deribit {
             m
         });
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         if (method.is_none()) {
             let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4584,10 +4584,10 @@ impl Deribit {
         }
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("privateGetSubmitTransferToUser")) {
-            let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_submit_transfer_to_user(&[__ws_arg_37]).await;
         }  else {
-            let __ws_arg_38 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_submit_transfer_to_subaccount(&[__ws_arg_38]).await;
         }
         //

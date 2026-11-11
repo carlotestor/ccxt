@@ -1343,7 +1343,7 @@ impl Zebpay {
             m
         });
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endtime".into()), &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         let mut limitResolved: Value = limit.clone();
         if (market).spot {
@@ -1360,8 +1360,8 @@ impl Zebpay {
             if (until.is_none()) || (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a both a since and until/endtime parameter for spot markets".into()))));
             }
-            let mut paramsSpot: Value = self.omit(paramsOmitted.clone(), Value::Str("priceType".into()), &[]);
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsSpot]);
+            let mut paramsSpot: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("priceType".into()), &[]).into_dict();
+            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsSpot]);
             response = self.public_spot_get_v2_market_klines(&[__ws_arg_6]).await;
         }  else {
             request.insert("timeframe".into(), timeframe.clone());
@@ -1377,7 +1377,7 @@ impl Zebpay {
                 }
                 request.insert("until".into(), Value::from(until));
             }
-            let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_swap_post_v1_market_klines(&[__ws_arg_7]).await;
         }
         //
@@ -1558,7 +1558,7 @@ impl Zebpay {
 }));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() does not support ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
         }
@@ -1570,7 +1570,7 @@ impl Zebpay {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsMarketType]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.private_spot_get_v2_ex_order_fills(&[__ws_arg_10]).await.into_dict();
         //
         //         {
@@ -1808,7 +1808,7 @@ impl Zebpay {
         let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
         let mut timeInForce: String = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[self.uuid(&[])]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("cost".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("cost".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         request.insert("type".into(), upperCaseType.clone());
         request.insert("clientOrderId".into(), clientOrderId);
         request.insert("timeInForce".into(), Value::from(timeInForce));
@@ -1824,7 +1824,7 @@ impl Zebpay {
             request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
-        return self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+        return self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
 
     Value::Null
 }

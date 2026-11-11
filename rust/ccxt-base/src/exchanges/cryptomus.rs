@@ -938,9 +938,9 @@ impl Cryptomus {
         let mut level: i64 = 0;
         let levelOptionparamsLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[Value::from(level)]).as_array().cloned().unwrap_or_default();
         let mut levelOption: Value = levelOptionparamsLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsLevel: Value = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsLevel: crate::value::Dict = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("level".into(), levelOption);
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsLevel]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsLevel]);
         let mut response: crate::value::Dict = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await.into_dict();
         //
         //     {

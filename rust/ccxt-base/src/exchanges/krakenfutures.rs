@@ -1576,7 +1576,7 @@ impl Krakenfutures {
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::Str("price".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::Str("price".into()), &[]).into_dict();
         let mut windowLimit: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((2000i64) as f64))) { Value::Int(2000) } else { limit.clone() });
         let mut windowSize: Value = self.parse_to_int(windowLimit);
         let mut limitResolved: Value = Value::Null;
@@ -1598,7 +1598,7 @@ impl Krakenfutures {
             request.insert("from".into(), self.parse_to_int((match (&(toTimestamp), &(((match (&(duration), &(windowSize)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.charts_get_price_type_symbol_interval(&[__ws_arg_2]).await.into_dict();
         //
         //    {
@@ -2039,8 +2039,8 @@ impl Krakenfutures {
         if (priceValue != Value::Null) && !isMarketOrder {
             request.insert("limitPrice".into(), self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), priceValue));
         }
-        let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -2718,9 +2718,9 @@ impl Krakenfutures {
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
-        let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
@@ -2811,9 +2811,9 @@ impl Krakenfutures {
         }
         let mut response: Value = Value::Null;
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
-            let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+            let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_14]).await;
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[params]);

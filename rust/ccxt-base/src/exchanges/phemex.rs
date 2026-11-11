@@ -2368,7 +2368,7 @@ impl Phemex {
             m
         });
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("to".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         let mut usesSpecialFromToEndpoint: bool = ((self.safe_bool_k((market).raw.clone(), "linear", &[Value::Bool(false)]).as_bool() == Some(true) || isStableSettled)) && ((since != Value::Null) || (until != Value::Null));
@@ -2404,14 +2404,14 @@ impl Phemex {
                     request.insert("from".into(), sinceSeconds.clone());
                     request.insert("to".into(), untilSeconds);
                 }
-                let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.public_get_md_v2_kline_list(&[__ws_arg_3]).await;
             }  else {
-                let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.public_get_md_v2_kline_last(&[__ws_arg_4]).await;
             }
         }  else {
-            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_md_v2_kline(&[__ws_arg_5]).await;
         }
         //
@@ -2667,8 +2667,8 @@ impl Phemex {
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchTickers".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut query: Value = self.omit(paramsSubType, Value::Str("type".into()), &[]);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut query: Value = self.omit(&paramsSubType, Value::Str("type".into()), &[]);
         let mut response: Value = Value::Null;
         if (type_var.as_deref() == Some("spot")) {
             response = self.v1_get_md_spot_ticker24hr_all(&[query.clone()]).await;
@@ -3216,9 +3216,9 @@ impl Phemex {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut code: Option<String> = self.safe_string_k(paramsMarketType.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("code".into())]), &[]);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut code: Option<String> = self.safe_string_k(&paramsMarketType, "code", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("code".into())]), &[]);
         let mut response: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3230,7 +3230,7 @@ impl Phemex {
         if (type_var.as_str() == Some("swap")) {
             let settleparamsSettleVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted.clone(), Value::Str("fetchBalance".into()), Value::Str("settle".into()), &[Value::Str("USDT".into())]).as_array().cloned().unwrap_or_default();
             let mut settle: Value = settleparamsSettleVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsSettle: Value = settleparamsSettleVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsSettle: crate::value::Dict = settleparamsSettleVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (code.is_some()) || (settle != Value::Null) {
                 let mut coin: Value = Value::Null;
                 if (code.is_some()) {
@@ -3241,18 +3241,18 @@ impl Phemex {
                 let mut currency: Value = self.currency(coin);
                 request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 if (currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) {
-                    let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsSettle.clone()]);
+                    let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsSettle]);
                     response = self.private_get_g_accounts_account_positions(&[__ws_arg_11]).await;
                 }  else {
-                    let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsSettle.clone()]);
+                    let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsSettle]);
                     response = self.private_get_accounts_account_positions(&[__ws_arg_12]).await;
                 }
             }  else {
-                let mut currency: Option<String> = self.safe_string_k_opt(paramsSettle.clone(), "currency", &[]);
+                let mut currency: Option<String> = self.safe_string_k_opt(&paramsSettle, "currency", &[]);
                 if (currency.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() requires a code parameter or a currency or settle parameter for ".into())).into()), type_var).into()), Value::Str(" type".into()))));
                 }
-                let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsSettle]);
+                let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsSettle]);
                 response = self.private_get_spot_wallets(&[__ws_arg_13]).await;
             }
         }  else {
@@ -4144,7 +4144,7 @@ impl Phemex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdID".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]).into_dict();
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         if (clientOrderId.is_some()) {
@@ -4160,8 +4160,8 @@ impl Phemex {
             }
         }
         // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
-        let mut finalQty: Option<String> = self.safe_string_k(paramsOmitted.clone(), "baseQtyEv", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("baseQtyEv".into())]), &[]);
+        let mut finalQty: Option<String> = self.safe_string_k(&paramsOmitted, "baseQtyEv", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted2: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("baseQtyEv".into())]), &[]);
         if (finalQty.is_some()) {
             request.insert("baseQtyEV".into(), finalQty.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (amount != Value::Null) {
@@ -4179,20 +4179,20 @@ impl Phemex {
                 request.insert("stopPxEp".into(), self.to_ep(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }
-        let mut paramsOmitted3: Value = self.omit(paramsOmitted2, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut paramsOmitted3: crate::value::Dict = self.omit(paramsOmitted2, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if isStableSettled {
-            let mut posSide: Option<String> = self.safe_string_k(paramsOmitted3.clone(), "posSide", &[]).as_str().map(str::to_owned);
+            let mut posSide: Option<String> = self.safe_string_k(&paramsOmitted3, "posSide", &[]).as_str().map(str::to_owned);
             if (posSide.is_none()) {
                 request.insert("posSide".into(), Value::Str("Merged".into()));
             }
-            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted3.clone()]);
+            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
             response = self.private_put_g_orders_replace(&[__ws_arg_18]).await;
         }  else if (market).swap {
-            let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted3.clone()]);
+            let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
             response = self.private_put_orders_replace(&[__ws_arg_19]).await;
         }  else {
-            let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted3]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted3]);
             response = self.private_put_spot_orders(&[__ws_arg_20]).await;
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -4240,7 +4240,7 @@ impl Phemex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdID".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("clOrdID".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -4249,17 +4249,17 @@ impl Phemex {
         let mut response: Value = Value::Null;
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
-            let mut posSide: Option<String> = self.safe_string_k(paramsOmitted.clone(), "posSide", &[]).as_str().map(str::to_owned);
+            let mut posSide: Option<String> = self.safe_string_k(&paramsOmitted, "posSide", &[]).as_str().map(str::to_owned);
             if (posSide.is_none()) {
                 request.insert("posSide".into(), Value::Str("Merged".into()));
             }
-            let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_g_orders_cancel(&[__ws_arg_21]).await;
         }  else if (market).swap {
-            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_orders_cancel(&[__ws_arg_22]).await;
         }  else {
-            let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_spot_orders(&[__ws_arg_23]).await;
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -4299,7 +4299,7 @@ impl Phemex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
@@ -4311,13 +4311,13 @@ impl Phemex {
         let mut response: Value = Value::Null;
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
-            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_g_orders_all(&[__ws_arg_24]).await;
         }  else if (market).swap {
-            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_orders_all(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_spot_orders_all(&[__ws_arg_26]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
@@ -4364,7 +4364,7 @@ impl Phemex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdID".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdID".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("clOrdID".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -4373,13 +4373,13 @@ impl Phemex {
         let mut response: Value = Value::Null;
         let mut marketSettle: Option<String> = self.safe_string_k((market).raw.clone(), "settle", &[]).as_str().map(str::to_owned);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
-            let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_api_data_g_futures_orders_by_order_id(&[__ws_arg_27]).await;
         }  else if (market).spot {
-            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_api_data_spots_orders_by_order_id(&[__ws_arg_28]).await;
         }  else {
-            let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_exchange_order(&[__ws_arg_29]).await;
         }
         let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
@@ -4707,7 +4707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4731,14 +4731,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if isUSDTSettled {
-            let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_exchange_order_v2_trading_list(&[__ws_arg_39]).await;
         }  else if (type_var.as_deref() == Some("swap")) {
             request.insert("tradeType".into(), Value::Str("Trade".into()));
-            let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_exchange_order_trade(&[__ws_arg_40]).await;
         }  else {
-            let __ws_arg_41 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_exchange_spot_order_trades(&[__ws_arg_41]).await;
         }
         //
@@ -4895,7 +4895,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut network: Value = self.safe_string_upper2(params.clone(), Value::Str("network".into()), Value::Str("chainName".into()), &[defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         if (network != Value::Null) {
             network = self.safe_string(networks, self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]), &[network.clone()]);
         }
@@ -4904,7 +4904,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             request.insert("chainName".into(), network);
         }
-        let __ws_arg_42 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_exchange_wallets_v2_deposit_address(&[__ws_arg_42]).await;
         //
         //     {
@@ -5266,12 +5266,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isUSDTSettled {
             let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSubType.clone(), Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateGetGAccountsAccountPositions".into())]).as_array().cloned().unwrap_or_default();
             let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-            let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (method.as_deref() == Some("privateGetGAccountsAccountPositions")) {
-                let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[paramsMethod.clone()]);
+                let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
                 response = self.private_get_g_accounts_account_positions(&[__ws_arg_43]).await;
             }  else {
-                let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[paramsMethod]);
+                let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
                 response = self.private_get_g_accounts_positions(&[__ws_arg_44]).await;
             }
         }  else {
@@ -6815,7 +6815,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currency: Value = self.currency(code.clone());
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Value = Value::Null;
         if (networkCode != Value::Null) {
             networkId = self.network_code_to_id(networkCode, &[code.clone()]);
@@ -6839,7 +6839,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (tagWithdrawTag != Value::Null) {
             request.insert("addressTag".into(), tagWithdrawTag);
         }
-        let __ws_arg_63 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: crate::value::Dict = self.private_post_phemex_withdraw_wallets_api_create_withdraw(&[__ws_arg_63]).await.into_dict();
         //
         //     {
@@ -7342,12 +7342,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isUSDTSettled {
             let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSubType.clone(), Value::Str("fetchPositionsADLRank".into()), Value::Str("method".into()), &[Value::Str("privateGetGAccountsAccountPositions".into())]).as_array().cloned().unwrap_or_default();
             let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-            let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (method.as_deref() == Some("privateGetGAccountsAccountPositions")) {
-                let __ws_arg_68 = self.extend(Value::Map(request.clone()), &[paramsMethod.clone()]);
+                let __ws_arg_68 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
                 response = self.private_get_g_accounts_account_positions(&[__ws_arg_68]).await;
             }  else {
-                let __ws_arg_69 = self.extend(Value::Map(request.clone()), &[paramsMethod]);
+                let __ws_arg_69 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
                 response = self.private_get_g_accounts_positions(&[__ws_arg_69]).await;
             }
         }  else {

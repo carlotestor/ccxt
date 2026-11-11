@@ -619,7 +619,7 @@ impl Limitless {
     m
 }));
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
         let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
@@ -633,7 +633,7 @@ impl Limitless {
             if (requestedLimit != Value::Null) && (requestedLimit.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64)) {
                 limit = requestedLimit;
             }
-            let mut searchRest: Value = self.omit(rest.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+            let mut searchRest: crate::value::Dict = self.omit(&rest, Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
             let mut seen: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -648,7 +648,7 @@ impl Limitless {
                         m.insert("query".to_string(), q);
                         m.insert("limit".to_string(), limit.clone());
                     m
-                }), &[searchRest.clone()]);
+                }), &[&searchRest]);
                 let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_0]).await;
                 let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
@@ -674,7 +674,7 @@ impl Limitless {
                     m.insert("limit".to_string(), pageSize.clone());
                 m
             });
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[rest.clone()]);
+            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&rest]);
             let mut firstPageResponse: crate::value::Dict = self.limitless_public_get_markets_active(&[__ws_arg_1]).await.into_dict();
             let mut firstData: Value = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]);
             match &firstData { Value::Arr(__b) => allRaw.extend(__b.iter().cloned()), _ => allRaw.clear() };
@@ -691,7 +691,7 @@ impl Limitless {
                 }
                 page = i.clone();
                 request.insert("page".into(), page.clone());
-                let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[rest.clone()]);
+                let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&rest]);
                 promises.push(self.limitless_public_get_markets_active(&[__ws_arg_2]).await);
             }
             }
@@ -715,7 +715,7 @@ impl Limitless {
                 loop {
                     page = self.sum(&[page.clone(), Value::Int(1)]);
                     request.insert("page".into(), page.clone());
-                    let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[rest.clone()]);
+                    let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&rest]);
                     let mut response: Value = self.limitless_public_get_markets_active(&[__ws_arg_3]).await;
                     let mut responseRows: Value = Value::from(vec![]);
                     if (matches!(&response, Value::Arr(_))) {
@@ -3344,8 +3344,8 @@ if _try_result.is_err() {
                 m.insert("conditionId".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("conditionId".into()), Value::Str("condition_id".into())]), &[]);
-        let __ws_arg_26 = self.extend(Value::Map(request), &[rest]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("conditionId".into()), Value::Str("condition_id".into())]), &[]).into_dict();
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&rest]);
         let mut response: Value = self.limitless_private_post_portfolio_redeem(&[__ws_arg_26]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4015,7 +4015,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into())]), &[]).into_dict();
         let mut eventId: Option<String> = self.safe_string2(params.clone(), Value::Str("eventId".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
         // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
@@ -4044,7 +4044,7 @@ if _try_result.is_err() {
                         m.insert("query".to_string(), q);
                         m.insert("limit".to_string(), limit.clone());
                     m
-                }), &[rest.clone()]);
+                }), &[&rest]);
                 let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_30]).await;
                 let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
@@ -4066,7 +4066,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("addressOrSlug".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            }), &[rest]);
+            }), &[&rest]);
             let mut response: Value = self.limitless_public_get_markets_address_or_slug(&[__ws_arg_31]).await;
             rawMarkets.push(response);
         }  else {
@@ -4159,12 +4159,12 @@ if _try_result.is_err() {
         // tags were already applied server-side (category-scoped listing); strip them before the
         // client-side pass — events built from raw markets carry venue tags, not category names,
         // so the base tag filter would wrongly drop server-matched events
-        let mut searchParams: Value = self.extend(Value::Map({
+        let mut searchParams: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("searchIn".to_string(), Value::Str("both".into()));
             m
-        }), &[params]);
-        let mut postParams: Value = self.omit(searchParams, Value::from(vec![Value::Str("tags".into())]), &[]);
+        }), &[params]).into_dict();
+        let mut postParams: Value = self.omit(&searchParams, Value::from(vec![Value::Str("tags".into())]), &[]);
         return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
         Value::Null
         }).await?))
@@ -4188,7 +4188,7 @@ if _try_result.is_err() {
         let mut categoryId = get_arg(optional_args, 1, Value::Null);
         let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
         let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into()), Value::Str("tags".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into()), Value::Str("tags".into())]), &[]).into_dict();
         let mut allRaw: Vec<Value> = Vec::new();
         let mut page: Value = Value::Int(1);
         loop {
@@ -4201,10 +4201,10 @@ if _try_result.is_err() {
             let mut response: Value = Value::Null;
             if (categoryId != Value::Null) {
                 request.insert("categoryId".into(), categoryId.clone());
-                let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[rest.clone()]);
+                let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&rest]);
                 response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await;
             }  else {
-                let __ws_arg_33 = self.extend(Value::Map(request), &[rest.clone()]);
+                let __ws_arg_33 = self.extend(Value::Map(request), &[&rest]);
                 response = self.limitless_public_get_markets_active(&[__ws_arg_33]).await;
             }
             let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();

@@ -752,7 +752,7 @@ impl Kalshi {
             }
             return Value::from(queryMarkets);
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
         // no query: page the markets listing directly. Cap the total collected so an unscoped
         // loadMarkets cannot run away through every kalshi market via the cursor.
         let mut maxMarkets: Value = self.safe_integer_k(params, "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(1000)])]);
@@ -771,7 +771,7 @@ impl Kalshi {
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
-        let mut status: String = self.safe_string_k(rest.clone(), "status", &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string();
+        let mut status: String = self.safe_string_k(&rest, "status", &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string();
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -782,7 +782,7 @@ impl Kalshi {
             if (cursor.is_some()) {
                 request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_0]).await.into_dict();
             let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
@@ -3051,7 +3051,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         let stpparamsSelfTradePreventionTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsTimeInForce, Value::Str("createOrder".into()), Value::Str("self_trade_prevention_type".into()), &[Value::Str("taker_at_cross".into())]).as_array().cloned().unwrap_or_default();
         let mut stp: Value = stpparamsSelfTradePreventionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSelfTradePreventionType: Value = stpparamsSelfTradePreventionTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSelfTradePreventionType: crate::value::Dict = stpparamsSelfTradePreventionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3064,7 +3064,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (yesPrice != Value::Null) {
             request.insert("price".into(), self.number_to_string(yesPrice));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsSelfTradePreventionType]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSelfTradePreventionType]);
         let mut response: Value = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await;
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count

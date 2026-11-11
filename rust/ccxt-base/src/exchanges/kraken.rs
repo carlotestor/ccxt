@@ -3120,26 +3120,26 @@ impl Kraken {
     m
 }));
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cl_ord_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)); }
         }
-        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(paramsOmitted.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsOmitted.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&paramsOmitted, "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&paramsOmitted, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        let mut trailingAmount: Option<String> = self.safe_string_k(paramsOmitted.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingPercent: Value = self.safe_string_k(paramsOmitted.clone(), "trailingPercent", &[]);
-        let mut trailingLimitAmount: Option<String> = self.safe_string_k(paramsOmitted.clone(), "trailingLimitAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingLimitPercent: Value = self.safe_string_k(paramsOmitted.clone(), "trailingLimitPercent", &[]);
+        let mut trailingAmount: Option<String> = self.safe_string_k(&paramsOmitted, "trailingAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingPercent: Value = self.safe_string_k(&paramsOmitted, "trailingPercent", &[]);
+        let mut trailingLimitAmount: Option<String> = self.safe_string_k(&paramsOmitted, "trailingLimitAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingLimitPercent: Value = self.safe_string_k(&paramsOmitted, "trailingLimitPercent", &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
         let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
         let mut isLimitOrder: bool = (type_var != Value::Null) && (type_var.as_str().unwrap_or("").ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        let mut cost: Option<String> = self.safe_string_k(paramsOmitted.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut flags: Option<String> = self.safe_string_k(paramsOmitted.clone(), "oflags", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("oflags".into())]), &[]);
+        let mut cost: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
+        let mut flags: Option<String> = self.safe_string_k(&paramsOmitted, "oflags", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted2: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("oflags".into())]), &[]);
         let mut isViqcOrder: bool = (flags.is_some()) && (flags.as_deref().unwrap_or_default().contains("viqc")); // volume in quote currency
         if isMarketOrder && ((cost.is_some()) || isViqcOrder) {
             if (cost.is_none()) && (amount != Value::Null) {
@@ -4628,7 +4628,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let mut codeResolved: Value = code.clone();
         if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {
             codeResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("-".into())).into()), network).into());
@@ -4638,7 +4638,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut defaultDepositMethod: Option<String> = self.safe_string(defaultDepositMethods, codeResolved.clone(), &[]).as_str().map(str::to_owned);
-        let mut depositMethod: Value = self.safe_string_k(paramsOmitted.clone(), "method", &[defaultDepositMethod.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut depositMethod: Value = self.safe_string_k(&paramsOmitted, "method", &[defaultDepositMethod.clone().map(Value::from).unwrap_or(Value::Null)]);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod == Value::Null) {
@@ -4674,7 +4674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("method".to_string(), depositMethod);
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_deposit_addresses(&[__ws_arg_25]).await.into_dict();
         //
         //     {

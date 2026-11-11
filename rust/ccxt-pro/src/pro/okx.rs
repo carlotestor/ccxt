@@ -1269,7 +1269,7 @@ impl Okx {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("channel".into()), &[Value::Str("bbo-tbt".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut url: Value = self.get_url(channel.clone(), &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut args: Vec<Value> = Vec::new();
@@ -1284,7 +1284,7 @@ impl Okx {
                     m.insert("instId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            args.push(self.extend(Value::Map(arg), &[paramsChannel.clone()]));
+            args.push(self.extend(Value::Map(arg), &[&paramsChannel]));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1566,7 +1566,7 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut accessType: String = "private".to_string();
         if isTrigger {
             accessType = "business".to_string();
@@ -1603,7 +1603,7 @@ impl Okx {
             m
         });
         let mut url: Value = self.get_url(Value::from(channel), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
-        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[&paramsOmitted]);
         let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
@@ -2856,7 +2856,7 @@ impl Okx {
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchMyTrades".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uppercaseType.as_str() == Some("SPOT")) {
             if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
@@ -2867,7 +2867,7 @@ impl Okx {
                 m.insert("instType".to_string(), uppercaseType);
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(messageHash), Value::from(channel), Value::Null, &[__ws_arg_1]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -3112,7 +3112,7 @@ impl Okx {
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uppercaseType.as_str() == Some("SPOT")) {
             if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
@@ -3127,7 +3127,7 @@ impl Okx {
         if isTrigger {
             channel = "orders-algo".to_string();
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel), symbolResolved.clone(), &[__ws_arg_3]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -3563,7 +3563,7 @@ impl Okx {
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
         let mut arg: indexmap::IndexMap<String, Value> = ({
@@ -3580,7 +3580,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), Value::Str("cancel-order".into()));
-                m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[paramsOmitted])]));
+                m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[&paramsOmitted])]));
             m
         });
         return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;

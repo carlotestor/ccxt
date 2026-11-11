@@ -806,7 +806,7 @@ impl Blofin {
         let mut channel: String = "tickers".to_string();
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), &[firstMarket, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -829,7 +829,7 @@ impl Blofin {
         }
         }
         let mut request: Value = self.get_subscription_request(Value::from(args));
-        let __ws_arg_0 = self.deep_extend(request, &[paramsMarketType]);
+        let __ws_arg_0 = self.deep_extend(request, &[&paramsMarketType]);
         let mut ticker: Value = self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1096,7 +1096,7 @@ impl Blofin {
         self.authenticate(&[]).await;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported for spot markets yet".into()))));
         }
@@ -1112,7 +1112,7 @@ impl Blofin {
             m
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&typeUrls, "private", &[]).as_str().map(str::to_owned);
-        let __ws_arg_1 = self.deep_extend(request, &[paramsMarketType]);
+        let __ws_arg_1 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
@@ -1393,7 +1393,7 @@ impl Blofin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchFundingRate".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from((market).symbol.clone()));
         let mut requestParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1407,7 +1407,7 @@ impl Blofin {
             m
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&typeUrls, "public", &[]).as_str().map(str::to_owned);
-        let __ws_arg_2 = self.deep_extend(request, &[paramsMarketType]);
+        let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
@@ -1467,7 +1467,7 @@ impl Blofin {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(callerMethodNameOption.clone(), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsCallerMethodName]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
         }
@@ -1525,7 +1525,7 @@ impl Blofin {
             m
         })]);
         let mut url: Option<String> = self.safe_string(typeUrls, Value::from(privateOrPublic), &[]).as_str().map(str::to_owned);
-        let __ws_arg_3 = self.deep_extend(request, &[paramsMarketType]);
+        let __ws_arg_3 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 
     Value::Null
@@ -1553,7 +1553,7 @@ impl Blofin {
         let mut firstMarket: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbols.clone(), Value::Int(0), &[])).as_str().unwrap_or_default()));
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(callerMethodNameOption.clone(), &[firstMarket, paramsCallerMethodName]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
         }
@@ -1588,7 +1588,7 @@ impl Blofin {
             m
         });
         let mut url: Value = crate::value::get_value_k(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "public");
-        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[paramsMarketType]);
+        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[&paramsMarketType]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
 
     Value::Null

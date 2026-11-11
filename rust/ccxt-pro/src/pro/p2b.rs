@@ -461,7 +461,7 @@ impl P2b {
         let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
         let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsName: crate::value::Dict = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut args: Vec<Value> = Vec::new();
         {
@@ -481,7 +481,7 @@ impl P2b {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsName]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsName]);
         self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         Value::Null

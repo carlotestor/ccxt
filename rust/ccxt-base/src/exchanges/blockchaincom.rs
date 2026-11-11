@@ -1033,7 +1033,7 @@ impl Blockchaincom {
             m
         });
         let mut triggerPrice: Value = self.safe_value_n(paramsOmitted.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         if (uppercaseOrderType.as_str() == Some("STOP")) || (uppercaseOrderType.as_str() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".into())).into()), uppercaseOrderType).into()), Value::Str(" order".into()))));
@@ -1061,7 +1061,7 @@ impl Blockchaincom {
         if stopPriceRequired {
             request.insert("stopPx".into(), self.price_to_precision(symbol, triggerPrice));
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted2]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -1797,13 +1797,13 @@ impl Blockchaincom {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut accountName: String = self.safe_string_k(params.clone(), "account", &[Value::Str("primary".into())]).as_str().unwrap_or("primary").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("account".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("account".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), Value::from(accountName.clone()));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_accounts(&[__ws_arg_14]).await;
         //
         //     {

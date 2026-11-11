@@ -1058,7 +1058,7 @@ impl Blockchaincom {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut type_var: String = self.safe_string_k(params.clone(), "type", &[Value::Str("l2".into())]).as_str().unwrap_or("l2").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), type_var);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1067,7 +1067,7 @@ impl Blockchaincom {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
         let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null

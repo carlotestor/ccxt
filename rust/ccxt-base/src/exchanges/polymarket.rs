@@ -3670,14 +3670,14 @@ impl Polymarket {
         if (leverage.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a params.leverage argument, the venue updates the mode and the leverage in one operation".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("leverage".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("leverage".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
         let mut leverageInt: Value = self.parse_to_int(Value::from(leverage));
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return crate::types::IntoRaw::into_raw(self.set_leverage(leverageInt.as_i64().unwrap_or_default(), symbol.as_str(), __ws_arg_15).await);
         Value::Null
         }).await?))

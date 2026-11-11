@@ -924,7 +924,7 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAggLevel: Value = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
@@ -955,7 +955,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
         let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null
@@ -989,7 +989,7 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAggLevel: Value = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1021,7 +1021,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         Value::Null
         }).await?))

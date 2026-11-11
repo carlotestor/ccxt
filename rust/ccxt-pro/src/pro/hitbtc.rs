@@ -654,7 +654,7 @@ impl Hitbtc {
         let mut name: Value = self.safe_string2(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]);
         let mut depthValue: String = self.safe_string_k(params.clone(), "depth", &[Value::Str("20".into())]).as_str().unwrap_or("20").to_string(); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("depth".into()), Value::Str("speed".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("depth".into()), Value::Str("speed".into())]), &[]).into_dict();
         if (name.as_str() == Some("orderbook/{depth}/{speed}")) {
             name = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook/D".into()), depthValue).into()), Value::Str("/".into())).into()), speedValue).into()), Value::Str("ms".into())).into());
         }  else if (name.as_str() == Some("orderbook/{depth}/{speed}/batch")) {
@@ -670,7 +670,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name, Value::Str("orderbooks".into()), &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
+        let mut orderbook: Value = self.subscribe_public(name, Value::Str("orderbooks".into()), &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -855,7 +855,7 @@ impl Hitbtc {
                 m.insert("speed".to_string(), Value::from(speedValue));
             m
         }));
-        let mut paramsOmitted: Value = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized == Value::Null) {
             marketIds.push(Value::Str("*".into()));
@@ -880,7 +880,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1060,7 +1060,7 @@ impl Hitbtc {
                 m.insert("speed".to_string(), Value::from(speedValue));
             m
         }));
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1071,7 +1071,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1871,7 +1871,7 @@ impl Hitbtc {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut name: Value = self.get_supported_mapping(type_var, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot_balance_subscribe".into()));
@@ -1879,14 +1879,14 @@ impl Hitbtc {
                 m.insert("future".to_string(), Value::Str("futures_balance_subscribe".into()));
             m
         })]);
-        let mut mode: String = self.safe_string_k(paramsMarketType.clone(), "mode", &[Value::Str("batches".into())]).as_str().unwrap_or("batches").to_string();
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::Str("mode".into()), &[]);
+        let mut mode: String = self.safe_string_k(&paramsMarketType, "mode", &[Value::Str("batches".into())]).as_str().unwrap_or("batches").to_string();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("mode".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mode".to_string(), Value::from(mode));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return self.subscribe_private(name, &[Value::Null, __ws_arg_3]).await;
         Value::Null
         }).await?))
@@ -1995,8 +1995,8 @@ impl Hitbtc {
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrderWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        request = self.extend(request.clone(), &[query]);
+        let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        request = self.extend(request.clone(), &[&query]);
         if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_order".into()), &[request.clone()]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {

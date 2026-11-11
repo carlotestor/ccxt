@@ -993,9 +993,9 @@ impl Bitget {
         let mut messageHash: Option<String> = None;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStock: Value = (market).raw.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = self.omit(paramsUta, Value::Str("stock".into()), &[]);
+        let mut paramsStock: Value = self.omit(&paramsUta, Value::Str("stock".into()), &[]);
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), (market).raw.clone(), &[Value::Bool(isStockOrUta.clone()), paramsStock]).as_array().cloned().unwrap_or_default();

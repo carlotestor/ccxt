@@ -1263,7 +1263,7 @@ impl Modetrade {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1277,7 +1277,7 @@ impl Modetrade {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1322,7 +1322,7 @@ impl Modetrade {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("stop".into()), &[]).into_dict();
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1336,7 +1336,7 @@ impl Modetrade {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

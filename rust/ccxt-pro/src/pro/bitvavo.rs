@@ -1955,7 +1955,7 @@ impl Bitvavo {
         });
         let operatorIdparamsOperatorIdVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("operatorId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOperatorId: Value = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
             request.insert("operatorId".into(), self.parse_to_int(operatorId));
         }  else {
@@ -1966,7 +1966,7 @@ impl Bitvavo {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOperatorId]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOperatorId]);
         return self.watch_request(Value::Str("privateCancelOrders".into()), __ws_arg_1).await;
         Value::Null
         }).await?))

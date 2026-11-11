@@ -1565,12 +1565,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (contractCode != Value::Null) && (contractCode.as_str() != Some("*")) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), (if let Some(__s) = contractCode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("contract_code".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("contract_code".into()), &[]).into_dict();
         let mut requestParams: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contract_code".to_string(), contractCode);
             m
-        }), &[paramsOmitted]);
+        }), &[&paramsOmitted]);
         return Value::from(vec![channel, messageHash, requestParams]);
 
     Value::Null

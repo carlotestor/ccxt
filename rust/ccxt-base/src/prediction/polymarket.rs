@@ -1164,7 +1164,8 @@ impl Polymarket {
         }  else if (status.as_deref() == Some("all")) {
             eventsStatus = None.clone();
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("status".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("searchPageSize".into()), Value::Str("maxSearchPages".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("status".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("searchPageSize".into()),
+            Value::Str("maxSearchPages".into())]), &[]).into_dict();
         let mut seen: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1192,7 +1193,7 @@ impl Polymarket {
                 m
             });
             let __ws_arg_0 = self.extend(firstRequest.clone(), &[Value::Map(baseRequest.clone())]);
-            firstRequest = self.extend(__ws_arg_0, &[rest.clone()]);
+            firstRequest = self.extend(__ws_arg_0, &[&rest]);
             let mut first: crate::value::Dict = self.gamma_public_get_public_search(&[firstRequest]).await.into_dict();
             let mut firstEvents: Vec<Value> = self.safe_list_k(&first, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut firstEventsLength: Value = Value::Int(firstEvents.len() as i64);
@@ -1235,7 +1236,7 @@ impl Polymarket {
                     m
                 });
                 let __ws_arg_1 = self.extend(pageRequest.clone(), &[Value::Map(baseRequest.clone())]);
-                pageRequest = self.extend(__ws_arg_1, &[rest.clone()]);
+                pageRequest = self.extend(__ws_arg_1, &[&rest]);
                 if let Value::Arr(__a) = &mut restPromises { std::sync::Arc::make_mut(__a).push(self.gamma_public_get_public_search(&[pageRequest]).await); }
             }
             }
@@ -1351,7 +1352,7 @@ impl Polymarket {
         }  else if (sort.as_deref() == Some("newest")) {
             order = "startDate".to_string();
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]).into_dict();
         let mut baseRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), pageSize.clone());
@@ -1359,7 +1360,7 @@ impl Polymarket {
                 m.insert("ascending".to_string(), Value::Bool(false));
             m
         });
-        baseRequest = self.extend(baseRequest.clone(), &[rest]);
+        baseRequest = self.extend(baseRequest.clone(), &[&rest]);
         // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
         // fetchEvents returns the tagged events rather than filtering the top-volume listing down
         // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
@@ -2805,14 +2806,14 @@ impl Polymarket {
         self.load_api_credentials().await;
         // the collateral balance is tied to the signature type / funder that holds the USDC
         let mut signatureType: Value = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_type".to_string(), Value::Str("COLLATERAL".into()));
                 m.insert("signature_type".to_string(), signatureType);
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[rest]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
         let mut response: Value = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await;
         return self.parse_balance(response);
         Value::Null

@@ -1955,7 +1955,7 @@ impl Tokocrypto {
         let mut maxLimit: Value = Value::Int(1500);
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut limitValue: Value = defaultLimit;
         if (limit != Value::Null) {
             limitValue = crate::runtime::Math::min(&limit, &maxLimit);
@@ -1980,10 +1980,10 @@ impl Tokocrypto {
         }
         let mut response: Value = Value::Null;
         if self.is_native_market((market).raw.clone()).as_bool() == Some(true) {
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
-            let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.binance_get_klines(&[__ws_arg_7]).await;
         }
         //
@@ -3410,12 +3410,12 @@ impl Tokocrypto {
         }
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);
         if (networkId.is_some()) {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
         let mut response: Value = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null
