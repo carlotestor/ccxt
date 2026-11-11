@@ -6347,7 +6347,7 @@ impl Kucoin {
         let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsHf, Value::Str("createOrder".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -6367,7 +6367,7 @@ impl Kucoin {
             if isMarginOrder {
                 // the classic margin order endpoints are deprecated
                 response = self.private_post_hf_margin_order_test(&[orderRequest.clone()]).await.into_opt_dict();
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 response = self.private_post_hf_orders_test(&[orderRequest.clone()]).await.into_opt_dict();
             }  else {
                 response = self.private_post_orders_test(&[orderRequest.clone()]).await.into_opt_dict();
@@ -6382,7 +6382,7 @@ impl Kucoin {
             response = self.private_post_hf_margin_order(&[orderRequest.clone()]).await.into_opt_dict();
         }  else if useSync {
             response = self.private_post_hf_orders_sync(&[orderRequest.clone()]).await.into_opt_dict();
-        }  else if (hf.as_bool() == Some(true)) {
+        }  else if (hf == Some(true)) {
             response = self.private_post_hf_orders(&[orderRequest.clone()]).await.into_opt_dict();
         }  else {
             response = self.private_post_orders(&[orderRequest]).await.into_opt_dict();
@@ -7198,7 +7198,7 @@ impl Kucoin {
             m
         });
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsHf, Value::Str("createOrders".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -7207,7 +7207,7 @@ impl Kucoin {
         if useSync {
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsSync]);
             response = self.private_post_hf_orders_multi_sync(&[__ws_arg_28]).await.into_opt_dict();
-        }  else if (hf.as_bool() == Some(true)) {
+        }  else if (hf == Some(true)) {
             let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[&paramsSync]);
             response = self.private_post_hf_orders_multi(&[__ws_arg_29]).await.into_opt_dict();
         }  else {
@@ -7511,7 +7511,7 @@ impl Kucoin {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let useSyncparamsSyncVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsHf, Value::Str("cancelOrder".into()), Value::Str("sync".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useSync: bool = useSyncparamsSyncVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -7521,7 +7521,7 @@ impl Kucoin {
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tradeType: Option<String> = self.safe_string_k(&paramsMarginMode, "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
         let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
-        if (hf.as_bool() == Some(true)) || useSync || isMarginOrder {
+        if (hf == Some(true)) || useSync || isMarginOrder {
             if !trigger {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol parameter for hf orders".into()))));
@@ -7566,7 +7566,7 @@ impl Kucoin {
             }  else if useSync {
                 let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_delete_hf_orders_sync_client_order_client_oid(&[__ws_arg_35]).await;
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 let __ws_arg_36 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_delete_hf_orders_client_order_client_oid(&[__ws_arg_36]).await;
             }  else {
@@ -7597,7 +7597,7 @@ impl Kucoin {
             }  else if useSync {
                 let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_delete_hf_orders_sync_order_id(&[__ws_arg_41]).await;
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_delete_hf_orders_order_id(&[__ws_arg_42]).await;
                 //
@@ -7857,7 +7857,7 @@ impl Kucoin {
         });
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsOmitted: Value = self.omit(&paramsHf, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
@@ -7891,7 +7891,7 @@ impl Kucoin {
         }  else if isMarginOrders {
             let __ws_arg_49 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.private_delete_hf_margin_orders(&[__ws_arg_49]).await;
-        }  else if (hf.as_bool() == Some(true)) {
+        }  else if (hf == Some(true)) {
             if (symbol == Value::Null) {
                 let __ws_arg_50 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.private_delete_hf_orders_cancel_all(&[__ws_arg_50]).await;
@@ -8167,9 +8167,9 @@ impl Kucoin {
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (hf.as_bool() == Some(true)) && (symbol == Value::Null) {
+        if (hf == Some(true)) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatus() requires a symbol parameter for hf orders".into()))));
         }
         let mut paramsOmitted: Value = self.omit(&paramsHf, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("till".into()), Value::Str("until".into())]), &[]);
@@ -8225,7 +8225,7 @@ impl Kucoin {
             }  else if isMarginOrder {
                 let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.private_get_hf_margin_orders_done(&[__ws_arg_59]).await.into_opt_dict();
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 if (lowercaseStatus.as_str() == Some("active")) {
                     let __ws_arg_60 = self.extend(Value::Map(request.clone()), &[&query]);
                     response = self.private_get_hf_orders_active(&[__ws_arg_60]).await.into_opt_dict();
@@ -8742,7 +8742,7 @@ impl Kucoin {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[paramsHf]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -8752,7 +8752,7 @@ impl Kucoin {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        if (hf.as_bool() == Some(true)) || isMarginOrder {
+        if (hf == Some(true)) || isMarginOrder {
             if !trigger {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".into()))));
@@ -8778,7 +8778,7 @@ impl Kucoin {
             }  else if isMarginOrder {
                 let __ws_arg_69 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_hf_margin_orders_client_order_client_oid(&[__ws_arg_69]).await.into_opt_dict();
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 let __ws_arg_70 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_hf_orders_client_order_client_oid(&[__ws_arg_70]).await.into_opt_dict();
             }  else {
@@ -8804,7 +8804,7 @@ impl Kucoin {
             }  else if isMarginOrder {
                 let __ws_arg_74 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_hf_margin_orders_order_id(&[__ws_arg_74]).await.into_opt_dict();
-            }  else if (hf.as_bool() == Some(true)) {
+            }  else if (hf == Some(true)) {
                 let __ws_arg_75 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_hf_orders_order_id(&[__ws_arg_75]).await.into_opt_dict();
             }  else {
@@ -11329,9 +11329,9 @@ impl Kucoin {
             return self.fetch_contract_balance(&[paramsOmitted.clone()]).await;
         }
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut hf: Value = hfparamsHfVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hf: Option<bool> = hfparamsHfVariable.get(0).and_then(Value::as_bool);
         let mut paramsHf: Value = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (hf.as_bool() == Some(true)) && (type_var.as_str() != Some("main")) {
+        if (hf == Some(true)) && (type_var.as_str() != Some("main")) {
             type_var = Value::Str("trade_hf".into());
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsHf]).as_array().cloned().unwrap_or_default();
