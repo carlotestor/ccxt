@@ -1328,8 +1328,8 @@ impl Bitrue {
         //         ],
         //     }
         //
-        let mut coins: Value = self.safe_list_k(&response, "coins", &[Value::from(vec![])]);
-        return self.parse_currencies(coins);
+        let mut coins: crate::value::List = self.safe_list_k(&response, "coins", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&coins);
         Value::Null
         }).await?))
     }

@@ -921,8 +921,8 @@ impl Bigone {
         //     ],
         // }
         //
-        let mut currenciesData: Value = self.safe_list_k(data, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(currenciesData);
+        let mut currenciesData: crate::value::List = self.safe_list_k(data, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currenciesData);
         Value::Null
         }).await?))
     }
@@ -1997,8 +1997,8 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }

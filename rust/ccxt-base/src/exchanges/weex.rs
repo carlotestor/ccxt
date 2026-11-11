@@ -1514,8 +1514,8 @@ impl Weex {
         let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1145: bool = true;
-            while { if !__for_first_1145 { j += 1; } __for_first_1145 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1146: bool = true;
+            while { if !__for_first_1146 { j += 1; } __for_first_1146 = false; j < (chains.len() as i64) } {
             let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1946,8 +1946,8 @@ impl Weex {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1146: bool = true;
-            while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < (response.len() as i64) } {
+            let mut __for_first_1147: bool = true;
+            while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (response.len() as i64) } {
             let mut rawTicker: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             let mut marketId: Option<String> = self.safe_string_k(rawTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -3011,8 +3011,8 @@ impl Weex {
         let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1147: bool = true;
-            while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1148: bool = true;
+            while { if !__for_first_1148 { i += 1; } __for_first_1148 = false; i < (balances.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {

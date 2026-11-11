@@ -6631,8 +6631,8 @@ if _try_result.is_err() {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&data);
         Value::Null
         }).await?))
     }
@@ -16517,8 +16517,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]);
-        let mut interest: Value = self.parse_borrow_interests(rows, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).into_list();
+        let mut interest: Value = self.parse_borrow_interests(&rows, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         return self.filter_by_currency_since_limit(interest, &[code, since, limit]);
         Value::Null
         }).await?))

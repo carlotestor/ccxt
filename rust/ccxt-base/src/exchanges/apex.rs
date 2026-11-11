@@ -909,10 +909,10 @@ impl Apex {
         //        }
         //     ]
         // }
-        let mut rows: Value = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]);
+        let mut rows: crate::value::List = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]).into_list();
         let mut chains: Value = self.safe_list_k(&multiChain, "chains", &[Value::from(vec![])]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), chains); }
-        let mut result: Value = self.parse_currencies(rows);
+        let mut result: Value = self.parse_currencies(&rows);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_chains"); }
         return result;
         Value::Null
@@ -1050,8 +1050,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut perpetualContract: Value = self.safe_list_k(&contractConfig, "perpetualContract", &[Value::from(vec![])]);
-        return self.parse_markets(perpetualContract);
+        let mut perpetualContract: crate::value::List = self.safe_list_k(&contractConfig, "perpetualContract", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&perpetualContract);
         Value::Null
         }).await?))
     }
@@ -1324,8 +1324,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut OHLCVs: Value = self.safe_list(&data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(OHLCVs, &[market, timeframe, since, Value::from(limitResolved)]);
+        let mut OHLCVs: crate::value::List = self.safe_list(&data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&OHLCVs, &[market, timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

@@ -2123,8 +2123,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (result.len() as i64) } {
+            let mut __for_first_494: bool = true;
+            while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (result.len() as i64) } {
             let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut datetime: Option<String> = self.safe_string_k(entry.clone(), "updatedAtDatetime", &[]).as_str().map(str::to_owned);
             rates.push(Value::Map({
@@ -3163,8 +3163,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut accounts: crate::value::List = self.to_array(response).into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_494: bool = true;
-                while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (accounts.len() as i64) } {
+                let mut __for_first_495: bool = true;
+                while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (accounts.len() as i64) } {
                 let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
                 let mut name: Option<String> = self.safe_string_k(&account, "tradingAccountName", &[]).as_str().map(str::to_owned);
                 if (name.as_deref() == Some("Primary Account")) {
@@ -3282,8 +3282,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (network != Value::Null) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_495: bool = true;
-                    while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (safeResponse.len() as i64) } {
+                    let mut __for_first_496: bool = true;
+                    while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (safeResponse.len() as i64) } {
                     let mut entry: Value = self.safe_dict(&safeResponse, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3395,8 +3395,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rows: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_496: bool = true;
-            while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (rows.len() as i64) } {
+            let mut __for_first_497: bool = true;
+            while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "assetSymbol", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

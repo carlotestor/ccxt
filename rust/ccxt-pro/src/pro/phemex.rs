@@ -825,13 +825,13 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut candles: Value = self.safe_list2(message, Value::Str("kline".into()), Value::Str("kline_p".into()), &[Value::from(vec![])]);
-        let mut first: crate::value::List = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut candles: crate::value::List = self.safe_list2(message, Value::Str("kline".into()), Value::Str("kline_p".into()), &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::List = self.safe_list(&candles, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut interval: Option<String> = self.safe_string(&first, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe != Value::Null) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);
-            let mut ohlcvs: Value = self.parse_ohlc_vs(candles, &[market]);
+            let mut ohlcvs: Value = self.parse_ohlc_vs(&candles, &[market]);
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

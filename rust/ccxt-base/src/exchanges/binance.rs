@@ -18948,8 +18948,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "rows", &[]);
-        let mut interest: Value = self.parse_borrow_interests(rows, &[market]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).into_list();
+        let mut interest: Value = self.parse_borrow_interests(&rows, &[market]);
         return self.filter_by_currency_since_limit(interest, &[code, since, limit]);
         Value::Null
         }).await?))

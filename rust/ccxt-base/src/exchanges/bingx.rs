@@ -2297,8 +2297,8 @@ impl Bingx {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&data);
         Value::Null
         }).await?))
     }
@@ -2403,8 +2403,8 @@ impl Bingx {
         //    }
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
-        let mut markets: Value = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
 
     Value::Null
 }
@@ -2442,8 +2442,8 @@ impl Bingx {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
 
     Value::Null
 }
@@ -2469,8 +2469,8 @@ impl Bingx {
         //         ]
         //     }
         //
-        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
 
     Value::Null
 }
@@ -3480,8 +3480,8 @@ impl Bingx {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_funding_rate_histories(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -7180,8 +7180,8 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_list_k(self.safe_dict_k(&response, "data", &[]), "data", &[]);
-        let mut parsed: Value = self.parse_deposit_addresses(data, &[Value::from(vec![currency.get("code").cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
+        let mut data: crate::value::List = self.safe_list_k(self.safe_dict_k(&response, "data", &[]), "data", &[Value::from(vec![])]).into_list();
+        let mut parsed: Value = self.parse_deposit_addresses(&data, &[Value::from(vec![currency.get("code").cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
         return self.index_by(parsed, Value::Str("network".into()));
         Value::Null
         }).await?))

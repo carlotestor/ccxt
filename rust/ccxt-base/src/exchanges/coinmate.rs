@@ -829,8 +829,8 @@ impl Coinmate {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (data.len() as i64) } {
+            let mut __for_first_568: bool = true;
+            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (data.len() as i64) } {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "name", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "firstCurrency", &[]).as_str().map(str::to_owned);
@@ -924,8 +924,8 @@ impl Coinmate {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_569: bool = true;
+            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId, &[]).into_dict();
@@ -1121,8 +1121,8 @@ impl Coinmate {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (keys.len() as i64) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (keys.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(self.safe_value(&data, keys.get(i as usize).cloned().unwrap_or(Value::Null), &[]), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
             result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));

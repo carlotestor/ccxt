@@ -1835,8 +1835,8 @@ impl Aster {
     m
 }));
         let mut sapiResult: crate::value::Dict = self.sapi_public_get_v3_exchange_info(&[params]).await.into_dict();
-        let mut sapiRows: Value = self.safe_list_k(&sapiResult, "assets", &[Value::from(vec![])]);
-        return self.parse_currencies(sapiRows);
+        let mut sapiRows: crate::value::List = self.safe_list_k(&sapiResult, "assets", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&sapiRows);
         Value::Null
         }).await?))
     }

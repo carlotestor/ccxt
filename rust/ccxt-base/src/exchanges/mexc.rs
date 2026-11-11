@@ -2341,8 +2341,8 @@ impl Mexc {
         let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { j += 1; } __for_first_947 = false; j < (chains.len() as i64) } {
+            let mut __for_first_948: bool = true;
+            while { if !__for_first_948 { j += 1; } __for_first_948 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -2495,8 +2495,8 @@ impl Mexc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { i += 1; } __for_first_948 = false; i < (data.len() as i64) } {
+            let mut __for_first_949: bool = true;
+            while { if !__for_first_949 { i += 1; } __for_first_949 = false; i < (data.len() as i64) } {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
@@ -2654,8 +2654,8 @@ impl Mexc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i += 1; } __for_first_949 = false; i < (data.len() as i64) } {
+            let mut __for_first_950: bool = true;
+            while { if !__for_first_950 { i += 1; } __for_first_950 = false; i < (data.len() as i64) } {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseCoin", &[]).as_str().map(str::to_owned);
@@ -4090,8 +4090,8 @@ impl Mexc {
         let mut paramsLoop: Value = params;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i += 1; } __for_first_950 = false; i < (orders.len() as i64) } {
+            let mut __for_first_951: bool = true;
+            while { if !__for_first_951 { i += 1; } __for_first_951 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5289,8 +5289,8 @@ impl Mexc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { i += 1; } __for_first_951 = false; i < (data.len() as i64) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { i += 1; } __for_first_952 = false; i < (data.len() as i64) } {
             let mut account: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string2(&account, Value::Str("asset".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -5451,8 +5451,8 @@ impl Mexc {
         if isMarginType {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_952: bool = true;
-                while { if !__for_first_952 { i += 1; } __for_first_952 = false; i < (wallet.len() as i64) } {
+                let mut __for_first_953: bool = true;
+                while { if !__for_first_953 { i += 1; } __for_first_953 = false; i < (wallet.len() as i64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), Value::Int(i), &[]);
                 let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5476,8 +5476,8 @@ impl Mexc {
         }  else if isSwapType {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_953: bool = true;
-                while { if !__for_first_953 { i += 1; } __for_first_953 = false; i < (wallet.len() as i64) } {
+                let mut __for_first_954: bool = true;
+                while { if !__for_first_954 { i += 1; } __for_first_954 = false; i < (wallet.len() as i64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -5493,8 +5493,8 @@ impl Mexc {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_954: bool = true;
-                while { if !__for_first_954 { i += 1; } __for_first_954 = false; i < (wallet.len() as i64) } {
+                let mut __for_first_955: bool = true;
+                while { if !__for_first_955 { i += 1; } __for_first_955 = false; i < (wallet.len() as i64) } {
                 let mut entry: Value = self.safe_dict(wallet.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "asset", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -5993,8 +5993,8 @@ impl Mexc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_955: bool = true;
-            while { if !__for_first_955 { i += 1; } __for_first_955 = false; i < (resultList.len() as i64) } {
+            let mut __for_first_956: bool = true;
+            while { if !__for_first_956 { i += 1; } __for_first_956 = false; i < (resultList.len() as i64) } {
             let mut entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             result.push(Value::Map({
@@ -6222,8 +6222,8 @@ impl Mexc {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_956: bool = true;
-            while { if !__for_first_956 { i += 1; } __for_first_956 = false; i < (result.len() as i64) } {
+            let mut __for_first_957: bool = true;
+            while { if !__for_first_957 { i += 1; } __for_first_957 = false; i < (result.len() as i64) } {
             let mut entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -7694,8 +7694,8 @@ impl Mexc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_957: bool = true;
-            while { if !__for_first_957 { i += 1; } __for_first_957 = false; i < (response.len() as i64) } {
+            let mut __for_first_958: bool = true;
+            while { if !__for_first_958 { i += 1; } __for_first_958 = false; i < (response.len() as i64) } {
             let mut entry: crate::value::Dict = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut currency: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -7756,8 +7756,8 @@ impl Mexc {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_958: bool = true;
-            while { if !__for_first_958 { j += 1; } __for_first_958 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_959: bool = true;
+            while { if !__for_first_959 { j += 1; } __for_first_959 = false; j < (networkList.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -7833,8 +7833,8 @@ impl Mexc {
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_959: bool = true;
-            while { if !__for_first_959 { j += 1; } __for_first_959 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_960: bool = true;
+            while { if !__for_first_960 { j += 1; } __for_first_960 = false; j < (networkList.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
@@ -7937,8 +7937,8 @@ impl Mexc {
         let mut shortLeverage: Option<i64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_960: bool = true;
-            while { if !__for_first_960 { i += 1; } __for_first_960 = false; i < (leverage.len() as i64) } {
+            let mut __for_first_961: bool = true;
+            while { if !__for_first_961 { i += 1; } __for_first_961 = false; i < (leverage.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(leverage.clone(), Value::Int(i), &[]).into_dict();
             let mut openType: Option<i64> = self.safe_integer_k(&entry, "openType", &[]).as_i64();
             let mut positionType: Option<i64> = self.safe_integer_k(&entry, "positionType", &[]).as_i64();

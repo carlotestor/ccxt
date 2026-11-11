@@ -1343,8 +1343,8 @@ impl Blofin {
     m
 }));
         let mut response: crate::value::Dict = self.public_get_market_instruments(&[params]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&data);
         Value::Null
         }).await?))
     }
@@ -1939,8 +1939,8 @@ impl Blofin {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[query]);
         let mut response: crate::value::Dict = self.public_get_market_candles(&[__ws_arg_4]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3309,8 +3309,8 @@ impl Blofin {
         // one row per currency + chain pair, group them per currency
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data, Value::Str("currency".into()), &[]);
-        let mut currencies: Value = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }

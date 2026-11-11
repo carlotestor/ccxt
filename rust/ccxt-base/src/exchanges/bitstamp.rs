@@ -2235,7 +2235,8 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
+    pub fn parse_currencies(&self, rawCurrencies: impl Into<crate::Value>) -> Value {
+        let mut rawCurrencies: Value = rawCurrencies.into();
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
@@ -2841,8 +2842,8 @@ impl Bitstamp {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ohlc: Value = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlc, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut ohlc: crate::value::List = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&ohlc, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3641,8 +3642,8 @@ impl Bitstamp {
         //         ]
         //     }
         //
-        let mut values: Value = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(values, &[market, since, limit]);
+        let mut values: crate::value::List = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]).into_list();
+        return self.parse_funding_rate_histories(&values, &[market, since, limit]);
         Value::Null
         }).await?))
     }
