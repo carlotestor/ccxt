@@ -4053,7 +4053,7 @@ if _try_result.is_err() {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut margin: Option<String> = self.safe_string_k(position.clone(), "margin", &[]).as_str().map(str::to_owned);
-        let mut rawIsolated: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
+        let mut rawIsolated: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
         let mut isIsolated: Value = Value::Bool((margin.is_some()) && (margin.as_deref() != Some("0")));
         if (rawIsolated.is_some()) {
             isIsolated = (Value::Bool(rawIsolated == Some(true)));
@@ -4976,10 +4976,10 @@ if _try_result.is_err() {
         //   "code": null
         // }
         //
-        let mut success: Option<bool> = self.safe_bool_k_opt(transfer.clone(), "success", &[]);
+        let mut success: Option<bool> = self.safe_bool_k(transfer.clone(), "success", &[]).as_bool();
         let mut status: Value = Value::Null;
         if (success.is_some()) {
-            status = (if success == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+            status = (if (success == Some(true)) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5475,10 +5475,10 @@ if _try_result.is_err() {
         let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(params, Value::Str("postActionRequest".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut expiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut timestamp: Value = self.safe_integer_k(&paramsExpiryWindow, "timestamp", &[self.milliseconds()]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&paramsExpiryWindow, "timestamp", &[self.milliseconds()]).as_i64();
         let mut signatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), timestamp);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("expiry_window".to_string(), expiryWindow);
                 m.insert("type".to_string(), operationType.clone());
             m

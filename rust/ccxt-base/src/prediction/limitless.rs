@@ -914,10 +914,10 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut collateralDecimals: Value = self.safe_integer_k(&collateralToken, "decimals", &[self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)])]);
+        let mut collateralDecimals: Option<i64> = self.safe_integer_k(&collateralToken, "decimals", &[self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)])]).as_i64();
         let mut precision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.number_to_string(collateralDecimals)]), &[]));
+                m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.number_to_string(Value::from(collateralDecimals))]), &[]));
                 m.insert("price".to_string(), Value::Float(0.001));
             m
         });
@@ -1650,8 +1650,8 @@ impl Limitless {
 })]);
             book = self.safe_dict_k(ticker.clone(), "book", &[]).into_opt_dict();
         }
-        let mut rawLabel: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "label", &[self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())])]) } else { Value::Str("yes".into()) });
-        let mut isYes: bool = (if let Some(__s) = rawLabel.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() != Some("no");
+        let mut rawLabel: Option<String> = (if (market != Value::Null) { self.safe_string_k(market.clone(), "label", &[self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())])]).as_str().map(str::to_owned) } else { Some("yes".to_string()) });
+        let mut isYes: bool = (rawLabel.as_deref().map(str::to_lowercase)).as_deref() != Some("no");
         let mut bidStr: Value = Value::Null;
         let mut askStr: Value = Value::Null;
         let mut bidSizeStr: Option<String> = None;

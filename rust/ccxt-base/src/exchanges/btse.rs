@@ -1213,7 +1213,7 @@ impl Btse {
         let mut minPriceString: Option<String> = self.safe_string_k(market.clone(), "minOrderPrice", &[]).as_str().map(str::to_owned);
         let mut pricePrecision: Option<String> = self.safe_string_k(market.clone(), "minPriceIncrement", &[]).as_str().map(str::to_owned);
         let mut amountPrecision: Option<String> = self.safe_string_k(market.clone(), "minSizeIncrement", &[]).as_str().map(str::to_owned);
-        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "active", &[]);
+        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "active", &[]).as_bool();
         let mut type_var: String = "spot".to_string();
         let mut expiry: Option<i64> = None;
         let mut contractSize: Option<String> = None;
@@ -1254,7 +1254,7 @@ impl Btse {
         m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
         m.insert("future".to_string(), Value::Bool(isFuture.clone()));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
         m.insert("contract".to_string(), Value::Bool(isSwap || isFuture));
         m.insert("linear".to_string(), (if isSpot { Value::Null } else { Value::Bool(true) }));
         m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));

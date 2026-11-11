@@ -1493,10 +1493,10 @@ impl Tokocrypto {
         id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[id.clone()]);
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "orderId", &[]).as_str().map(str::to_owned);
-        let mut buyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
+        let mut buyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (buyerMaker.is_some()) {
-            side = (if buyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
+            side = (if (buyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
             takerOrMaker = Some("taker".to_string());
         }  else if (self.safe_string_k(trade.clone(), "side", &[]) != Value::Null) {
             side = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);

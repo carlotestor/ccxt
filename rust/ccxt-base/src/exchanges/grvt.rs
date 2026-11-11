@@ -1364,8 +1364,8 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut builderFee: Value = self.safe_bool_k(params.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]); // we shouldn't omit here
-        if !(builderFee.as_bool() == Some(true)) {
+        let mut builderFee: Option<bool> = self.safe_bool_k(params.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool(); // we shouldn't omit here
+        if !(builderFee == Some(true)) {
             return Value::Bool(false);
         }
         let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2030,10 +2030,10 @@ if _try_result.is_err() {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_product_k(trade.clone(), "event_time", Value::Float(0.000001), &[]);
         let mut takerOrMaker: Option<String> = None;
-        let mut isTakerBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker_buyer", &[]);
+        let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
         let mut side: Option<String> = None;
         if (isTakerBuyer.is_some()) {
-            side = (if isTakerBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = (if (isTakerBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             takerOrMaker = Some("taker".to_string());
         }  else {
             let mut isTaker: bool = self.safe_bool_k(trade.clone(), "is_taker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -3277,8 +3277,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             paramsTrigger = self.omit(paramsTriggerPrices, Value::from(vec![Value::Str("triggerDirection".into()), Value::Str("triggerPriceType".into()), Value::Str("closePosition".into())]), &[]);
         }
         let mut eipType: String = "EIP712_ORDER_TYPE".to_string();
-        let mut builderFee: Value = self.safe_bool_k(paramsTrigger.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]);
-        if builderFee.as_bool() == Some(true) {
+        let mut builderFee: Option<bool> = self.safe_bool_k(paramsTrigger.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool();
+        if (builderFee == Some(true)) {
             eipType = "EIP712_ORDER_WITH_BUILDER_TYPE".to_string();
             orderRequest.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
@@ -4387,8 +4387,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if isMarket {
             orderType = "market".to_string();
         }
-        let mut isPostOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
-        let mut isReduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduce_only", &[]);
+        let mut isPostOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
+        let mut isReduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
         let mut timeInForceRaw: Option<String> = self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = (if (isPostOnly == Some(true)) { Value::Str("PO".into()) } else { self.parse_time_in_force(timeInForceRaw.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null) });
         let mut size: Option<String> = None;
@@ -4432,7 +4432,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("symbol".to_string(), self.safe_string_k(marketResolved.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::from(orderType));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), isPostOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), isPostOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -4443,7 +4443,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), isReduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("reduceOnly".to_string(), isReduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), order);
     m
 }), &[marketResolved]);

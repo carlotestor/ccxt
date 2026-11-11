@@ -1364,7 +1364,7 @@ impl Whitebit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "tradesEnabled", &[]);
+        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "tradesEnabled", &[]).as_bool();
         let mut isCollateral: bool = self.safe_bool_k_opt(market.clone(), "isCollateral", &[Value::Bool(false)]).unwrap_or(false);
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
@@ -1409,7 +1409,7 @@ impl Whitebit {
         m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
@@ -3991,7 +3991,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "ftime", &[]).as_i64();
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
         let mut ioc: bool = self.safe_bool_k(order.clone(), "ioc", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = None;
         if ioc {
@@ -4009,7 +4009,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "status", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));

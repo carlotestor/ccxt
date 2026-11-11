@@ -2008,10 +2008,10 @@ impl Coinsph {
                 m
             });
         }
-        let mut isBuyer: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]);
+        let mut isBuyer: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]).as_bool();
         let mut side: Value = Value::Null;
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isBuyer == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut isMaker: Option<String> = self.safe_string_k(trade.clone(), "isMaker", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;

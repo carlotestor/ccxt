@@ -3037,28 +3037,28 @@ impl Bingx {
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         let mut currencyId: Option<String> = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("currency".into()), Value::Str("N".into()), Value::Str("commissionAsset".into())]), &[]).as_str().map(str::to_owned);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut m: Value = self.safe_bool_k(trade.clone(), "m", &[]);
+        let mut m: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_n_opt(trade.clone(), Value::from(vec![Value::Str("buyerMaker".into()), Value::Str("isBuyerMaker".into()), Value::Str("maker".into())]), &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_n(trade.clone(), Value::from(vec![Value::Str("buyerMaker".into()), Value::Str("isBuyerMaker".into()), Value::Str("maker".into())]), &[]).as_bool();
         let mut takeOrMaker: Option<String> = None;
-        let mut isMakerSide: bool = (isBuyerMaker == Some(true)) || (m.as_bool() == Some(true));
-        if (isBuyerMaker.is_some()) || (m != Value::Null) {
+        let mut isMakerSide: bool = (isBuyerMaker == Some(true)) || (m == Some(true));
+        if (isBuyerMaker.is_some()) || (m.is_some()) {
             takeOrMaker = (if isMakerSide { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
         if (side.is_none()) {
-            if (isBuyerMaker.is_some()) || (m != Value::Null) {
+            if (isBuyerMaker.is_some()) || (m.is_some()) {
                 side = (if isMakerSide { Some("sell".to_string()) } else { Some("buy".to_string()) });
                 takeOrMaker = Some("taker".to_string());
             }
         }
-        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
         if (isMaker.is_some()) {
-            takeOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takeOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut amount: Option<String> = (if isSpotExecution { self.safe_string_k(trade.clone(), "l", &[]).as_str().map(str::to_owned) } else { self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("qty".into()), Value::Str("amount".into()), Value::Str("q".into())]), &[]).as_str().map(str::to_owned) });
         if (market != Value::Null) && matches!((self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) && (matches!(&trade, Value::Dict(__d) if __d.contains_key("volume"))) {
@@ -4723,10 +4723,10 @@ impl Bingx {
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]);
         marketId = marketId.as_str().map(|__s| Value::Str(__s.replace("/", "-").into())).unwrap_or_else(|| marketId.clone()); // standard return different format
-        let mut isolated: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
+        let mut isolated: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
         let mut marginMode: Option<String> = None;
         if (isolated.is_some()) {
-            marginMode = (if isolated == Some(true) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
+            marginMode = (if (isolated == Some(true)) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
         }
         let mut initialMarginString: Option<String> = self.safe_string_k(position.clone(), "initialMargin", &[]).as_str().map(str::to_owned);
         let mut unrealizedPnlString: Option<String> = self.safe_string_k(position.clone(), "unrealizedProfit", &[]).as_str().map(str::to_owned);
@@ -7150,13 +7150,13 @@ impl Bingx {
         }
         let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
         let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
-        let mut recvWindow: Value = self.safe_integer_k(params.clone(), "recvWindow", &[Value::from(defaultRecvWindow)]);
+        let mut recvWindow: Option<i64> = self.safe_integer_k(params.clone(), "recvWindow", &[Value::from(defaultRecvWindow)]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
                 m.insert("offset".to_string(), Value::Int(0));
                 m.insert("limit".to_string(), Value::Int(1000));
-                m.insert("recvWindow".to_string(), recvWindow);
+                m.insert("recvWindow".to_string(), Value::from(recvWindow));
             m
         });
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
@@ -8178,13 +8178,13 @@ impl Bingx {
                 m.insert("spot".to_string(), Value::Int(15));
             m
         });
-        let mut walletType: Value = self.safe_integer(Value::Map(walletTypes), walletTypeOption, &[Value::from(defaultWalletType)]);
+        let mut walletType: Option<i64> = self.safe_integer(Value::Map(walletTypes), walletTypeOption, &[Value::from(defaultWalletType)]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
-                m.insert("walletType".to_string(), walletType);
+                m.insert("walletType".to_string(), Value::from(walletType));
             m
         });
         let mut network: Option<String> = self.safe_string_upper_k(&paramsWalletType, "network", &[]).as_str().map(str::to_owned);
@@ -8495,7 +8495,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
-        let mut recvWindow: Value = self.safe_integer_k(params.clone(), "recvWindow", &[Value::from(defaultRecvWindow)]);
+        let mut recvWindow: Option<i64> = self.safe_integer_k(params.clone(), "recvWindow", &[Value::from(defaultRecvWindow)]).as_i64();
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("closeAllPositions".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -8507,7 +8507,7 @@ impl Bingx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("recvWindow".to_string(), recvWindow);
+                m.insert("recvWindow".to_string(), Value::from(recvWindow));
             m
         });
         let mut response: Option<crate::value::Dict> = None;

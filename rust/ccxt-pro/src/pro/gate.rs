@@ -654,7 +654,7 @@ impl Gate {
         }  else {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
-        let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_cancel_cp".into()));
         let channelOptionparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("channel".into()), &[Value::from(channel)]).as_array().cloned().unwrap_or_default();
@@ -665,7 +665,7 @@ impl Gate {
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(&[market.clone(), trigger, query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), query]) }).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(&[market.clone(), trigger.map_or(Value::Null, Value::Bool), query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), query]) }).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         self.authenticate(url.clone(), messageType).await;

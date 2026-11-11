@@ -1706,7 +1706,7 @@ impl Toobit {
         })]).into_dict();
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isContract: Value = (Value::Bool(self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null));
-        let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]);
+        let mut inverse: Option<bool> = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]).as_bool();
         if matches!(&isContract, Value::Bool(true)) {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -1728,8 +1728,8 @@ impl Toobit {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active);
         m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { (Value::Bool(inverse.as_bool() != Some(true))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { inverse } else { Value::Null }));
+        m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { (Value::Bool(inverse != Some(true))) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { inverse.map_or(Value::Null, Value::Bool) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractMultiplier", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1939,12 +1939,12 @@ impl Toobit {
         let mut amountString: Option<String> = self.safe_string2(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]).as_str().map(str::to_owned);
         let mut isBuyer: bool = self.safe_bool_k(trade.clone(), "isBuyer", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut side: Option<String> = None;
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
-        let mut isBuyerTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "ibm", &[]).as_bool();
+        let mut isBuyerTaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
         if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
+            side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }  else if (isBuyerTaker.is_some()) {
-            side = (if isBuyerTaker == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = (if (isBuyerTaker == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else {
             if isBuyer {
                 side = Some("buy".to_string());
@@ -1963,10 +1963,10 @@ impl Toobit {
                 m
             });
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

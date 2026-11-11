@@ -786,7 +786,7 @@ impl Bitget {
             m
         })]);
         let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]).as_i64();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
@@ -801,8 +801,8 @@ impl Bitget {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("high24h".into()), Value::Str("highPrice24h".into()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("low24h".into()), Value::Str("lowPrice24h".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));
@@ -929,7 +929,7 @@ impl Bitget {
             m
         })]);
         let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]).as_i64();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
@@ -941,8 +941,8 @@ impl Bitget {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("ask".to_string(), self.safe_string2(ticker.clone(), Value::Str("askPr".into()), Value::Str("ask1Price".into()), &[]));
         m.insert("askVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("bidPr".into()), Value::Str("bid1Price".into()), &[]));

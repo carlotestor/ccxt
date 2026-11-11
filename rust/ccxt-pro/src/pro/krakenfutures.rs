@@ -1591,12 +1591,12 @@ impl Krakenfutures {
         //        "reduce_only": false
         //    }
         //
-        let mut isCancelled: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_cancel", &[]);
+        let mut isCancelled: Option<bool> = self.safe_bool_k(order.clone(), "is_cancel", &[]).as_bool();
         let mut unparsedOrder: Value = order.clone();
         let mut status: Option<String> = None;
         if (isCancelled.is_some()) {
             unparsedOrder = self.safe_dict_k(order.clone(), "order", &[]);
-            if isCancelled == Some(true) {
+            if (isCancelled == Some(true)) {
                 status = Some("cancelled".to_string());
             }
         }

@@ -2704,14 +2704,14 @@ impl Predictfun {
         let mut marketIsYieldBearing: bool = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isYieldBearing: bool = self.safe_bool_k(&paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", &[Value::Bool(marketIsYieldBearing)]).as_bool() == Some(true);
         let mut defaultExpiration: i64 = self.safe_integer_k(self.options.clone(), "defaultExpiration", &[Value::Int(3600)]).as_i64().unwrap_or(3600); // 1 hour
-        let mut expirationDelta: Value = Value::from(defaultExpiration);
+        let mut expirationDelta: Option<i64> = Some(defaultExpiration);
         let mut expiration: Value = self.safe_integer_k(&paramsWarnOnMarketOrderWithoutPrice, "expiration", &[]);
         if (expiration == Value::Null) {
             if isMarket {
-                expirationDelta = self.safe_integer_k(self.options.clone(), "marketOrderExpiration", &[Value::from(defaultExpiration)]);
+                expirationDelta = self.safe_integer_k(self.options.clone(), "marketOrderExpiration", &[Value::from(defaultExpiration)]).as_i64();
             }
             let mut now: Option<i64> = self.seconds().as_i64();
-            expiration = self.sum(&[Value::from(now), expirationDelta]);
+            expiration = self.sum(&[Value::from(now), Value::from(expirationDelta)]);
         }
         let mut nonce: Value = self.incrementing_nonce();
         let mut salt: Value = self.safe_string_k(&paramsWarnOnMarketOrderWithoutPrice, "salt", &[self.number_to_string(nonce)]);
@@ -4942,10 +4942,10 @@ impl Predictfun {
         let mut price: Value = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedPriceWei", &[]), &Value::Str("1000000000000000000".into()));
         let mut amount: Value = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedSizeWei", &[]), &Value::Str("1000000000000000000".into()));
         let mut cost: Value = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedValueWei", &[]), &Value::Str("1000000000000000000".into()));
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(event.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(event.clone(), "isMaker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k(event.clone(), "fee", &[]).into_opt_dict();
         let mut fee: Value = Value::Null;

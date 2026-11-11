@@ -3114,15 +3114,15 @@ impl Backpack {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut price: Option<String> = self.safe_string2(trade.clone(), Value::Str("fillPrice".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("fillQuantity".into()), Value::Str("quantity".into()), &[]).as_str().map(str::to_owned);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyerMaker", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]).as_bool();
         let mut side: Value = self.parse_order_side(self.safe_string_k(trade.clone(), "side", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }  else if (isBuyerMaker.is_some()) {
             takerOrMaker = Some("taker".to_string());
-            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }
         let mut orderId: Option<String> = self.safe_string2(trade.clone(), Value::Str("orderId".into()), Value::Str("rfqId".into()), &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -4684,8 +4684,8 @@ impl Backpack {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executedQuantity", &[]).as_str().map(str::to_owned);
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
         let mut stopLossPrice: Option<String> = self.safe_string2(order.clone(), Value::Str("stopLossLimitPrice".into()), Value::Str("stopLossTriggerPrice".into()), &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string2(order.clone(), Value::Str("takeProfitLimitPrice".into()), Value::Str("takeProfitTriggerPrice".into()), &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -4699,8 +4699,8 @@ impl Backpack {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
+        m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));

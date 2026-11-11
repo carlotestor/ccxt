@@ -1748,7 +1748,7 @@ impl Nado {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         if (trigger == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() does not support trigger orders, use cancelOrders() instead".into()))));
         }
@@ -1827,7 +1827,7 @@ impl Nado {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         if (trigger == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead".into()))));
         }
@@ -2244,10 +2244,10 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
-        let mut isTakerBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker_buyer", &[]);
+        let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
         let mut side: Value = Value::Null;
         if (isTakerBuyer.is_some()) {
-            side = (if isTakerBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isTakerBuyer == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2294,15 +2294,15 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
-        let mut isBid: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_bid", &[]);
+        let mut isBid: Option<bool> = self.safe_bool_k(trade.clone(), "is_bid", &[]).as_bool();
         let mut side: Value = Value::Null;
         if (isBid.is_some()) {
-            side = (if isBid == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isBid == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
-        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker", &[]);
+        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker.is_some()) {
-            takerOrMaker = (if isTaker == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if (isTaker == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         let mut feeCost: Value = self.parent.parse_x18(self.safe_string_k(trade.clone(), "fee", &[]));
         let mut fee: Value = Value::Null;

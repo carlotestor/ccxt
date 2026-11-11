@@ -3251,9 +3251,9 @@ impl Ndax {
             }
         }
         let mut templateForm: Value = self.parse_json_value(self.safe_value2(transaction.clone(), Value::Str("TemplateForm".into()), Value::Str("DepositInfo".into()), &[]));
-        let mut updated: Value = self.safe_integer_k(transaction.clone(), "LastUpdateTimeStamp", &[]);
+        let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "LastUpdateTimeStamp", &[]).as_i64();
         if (templateForm != Value::Null) {
-            updated = self.safe_integer_k(templateForm.clone(), "LastUpdated", &[updated.clone()]);
+            updated = self.safe_integer_k(templateForm.clone(), "LastUpdated", &[Value::from(updated)]).as_i64();
         }
         let mut address: Option<String> = self.safe_string2(templateForm.clone(), Value::Str("ExternalAddress".into()), Value::Str("ToAddress".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(templateForm.clone(), "TimeSubmitted", &[]).as_i64();
@@ -3288,7 +3288,7 @@ impl Ndax {
         m.insert("amount".to_string(), self.safe_number_k(transaction, "Amount", &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(&[transactionStatus.clone().map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), updated);
+        m.insert("updated".to_string(), Value::from(updated));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);

@@ -421,9 +421,9 @@ impl Binance {
             }
             return Value::from(queryMarkets);
         }
-        let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(200)])]);
+        let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]);
-        let mut rawTopics: Vec<Value> = self.fetch_raw_topics(maxMarkets, &[rest]).await.as_array().cloned().unwrap_or_default();
+        let mut rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[rest]).await.as_array().cloned().unwrap_or_default();
         let mut parsedEvents: Vec<Value> = Vec::new();
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
@@ -1808,8 +1808,8 @@ impl Binance {
                 while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
-                let mut requestedOutcome: Value = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]);
-                requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
+                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
+                requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             }
         }

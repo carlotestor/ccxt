@@ -1086,11 +1086,11 @@ impl Weex {
         }  else {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool(); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             takerOrMaker = Some("taker".to_string()); // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return self.safe_trade(Value::Map({

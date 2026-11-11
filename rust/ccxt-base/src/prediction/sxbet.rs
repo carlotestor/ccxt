@@ -1545,9 +1545,9 @@ impl Sxbet {
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        let mut useBetCredits: Option<bool> = self.safe_bool_k_opt(&paramsTimeInForce, "useBetCredits", &[]);
+        let mut useBetCredits: Option<bool> = self.safe_bool_k(&paramsTimeInForce, "useBetCredits", &[]).as_bool();
         if (useBetCredits.is_some()) {
-            orderItem.insert("useBetCredits".into(), useBetCredits.map(Value::Bool).unwrap_or(Value::Null));
+            orderItem.insert("useBetCredits".into(), useBetCredits.map_or(Value::Null, Value::Bool));
         }
         let mut externalUserId: Option<String> = self.safe_string_k(&paramsTimeInForce, "externalUserId", &[]).as_str().map(str::to_owned);
         if (externalUserId.is_some()) {
@@ -2312,10 +2312,10 @@ impl Sxbet {
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&Value::from(fillAmount), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(fill.clone(), "createdAt", &[]));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(fill.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(fill.clone(), "isMaker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();

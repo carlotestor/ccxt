@@ -944,8 +944,8 @@ impl Bigone {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "gateway_name", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut deposit: Option<bool> = self.safe_bool_k_opt(chain.clone(), "is_deposit_enabled", &[]);
-            let mut withdraw: Option<bool> = self.safe_bool_k_opt(chain.clone(), "is_withdrawal_enabled", &[]);
+            let mut deposit: Option<bool> = self.safe_bool_k(chain.clone(), "is_deposit_enabled", &[]).as_bool();
+            let mut withdraw: Option<bool> = self.safe_bool_k(chain.clone(), "is_withdrawal_enabled", &[]).as_bool();
             let mut minDepositAmount: Option<String> = self.safe_string_k(chain.clone(), "min_deposit_amount", &[]).as_str().map(str::to_owned);
             let mut minWithdrawalAmount: Option<String> = self.safe_string_k(chain.clone(), "min_withdrawal_amount", &[]).as_str().map(str::to_owned);
             let mut withdrawalFee: Option<String> = self.safe_string_k(chain.clone(), "withdrawal_fee", &[]).as_str().map(str::to_owned);
@@ -956,8 +956,8 @@ impl Bigone {
         m.insert("id".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("margin".to_string(), Value::Null);
-        m.insert("deposit".to_string(), deposit.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("withdraw".to_string(), withdraw.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.parse_number(withdrawalFee.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("precision".to_string(), self.parse_number(precision, &[]));
@@ -1209,7 +1209,7 @@ impl Bigone {
                 continue;
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut inverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "isInverse", &[]);
+            let mut inverse: Option<bool> = self.safe_bool_k(market.clone(), "isInverse", &[]).as_bool();
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1229,7 +1229,7 @@ impl Bigone {
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enable", &[]));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), (Value::Bool(inverse != Some(true))));
-        m.insert("inverse".to_string(), inverse.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), inverse.map_or(Value::Null, Value::Bool));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "multiplier", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2962,7 +2962,7 @@ impl Bigone {
         if (self.safe_string_k(transaction.clone(), "customer_id", &[]) != Value::Null) {
             type_var = "withdrawal".to_string();
         }
-        let mut internal: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "is_internal", &[]);
+        let mut internal: Option<bool> = self.safe_bool_k(transaction.clone(), "is_internal", &[]).as_bool();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -2984,7 +2984,7 @@ impl Bigone {
         m.insert("updated".to_string(), updated);
         m.insert("fee".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), internal.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("internal".to_string(), internal.map_or(Value::Null, Value::Bool));
     m
 });
 

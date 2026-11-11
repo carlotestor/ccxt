@@ -3697,8 +3697,8 @@ impl Bybit {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
-        let mut enableUnifiedMargin: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "enableUnifiedMargin", &[]);
-        let mut enableUnifiedAccount: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "enableUnifiedAccount", &[]);
+        let mut enableUnifiedMargin: Option<bool> = self.safe_bool_k(self.options.clone(), "enableUnifiedMargin", &[]).as_bool();
+        let mut enableUnifiedAccount: Option<bool> = self.safe_bool_k(self.options.clone(), "enableUnifiedAccount", &[]).as_bool();
         if (enableUnifiedMargin.is_none()) || (enableUnifiedAccount.is_none()) {
             if matches!(self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]), Value::Bool(true)) {
                 // info endpoint is not available in demo trading
@@ -5726,10 +5726,10 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsValue.clone(), "until", &[]).as_i64(); // unified in milliseconds
-        let mut endTime: Value = self.safe_integer_k(paramsValue.clone(), "endTime", &[Value::from(until)]); // exchange-specific in milliseconds
+        let mut endTime: Option<i64> = self.safe_integer_k(paramsValue.clone(), "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsValue, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
-        if (endTime != Value::Null) {
-            request.insert("endTime".into(), endTime);
+        if (endTime.is_some()) {
+            request.insert("endTime".into(), Value::from(endTime));
         }  else {
             if (since != Value::Null) {
                 // end time is required when since is not empty
@@ -5968,10 +5968,10 @@ impl Bybit {
                 side = (if (isBuyer != Some(0)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             }
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }  else {
             let mut lastLiquidityInd: Option<String> = self.safe_string_k(trade.clone(), "lastLiquidityInd", &[]).as_str().map(str::to_owned);
             if (lastLiquidityInd.as_deref() == Some("UNKNOWN")) {
@@ -8299,10 +8299,10 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
-        let mut endTime: Value = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]); // exchange-specific in milliseconds
+        let mut endTime: Option<i64> = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
-        if (endTime != Value::Null) {
-            request.insert("endTime".into(), endTime);
+        if (endTime.is_some()) {
+            request.insert("endTime".into(), Value::from(endTime));
         }
         let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: Value = self.private_get_v5_order_history(&[__ws_arg_31]).await;
@@ -8534,10 +8534,10 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
-        let mut endTime: Value = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]); // exchange-specific in milliseconds
+        let mut endTime: Option<i64> = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
-        if (endTime != Value::Null) {
-            request.insert("endTime".into(), endTime);
+        if (endTime.is_some()) {
+            request.insert("endTime".into(), Value::from(endTime));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: Value = self.private_get_v5_order_history(&[__ws_arg_34]).await;

@@ -840,7 +840,7 @@ impl Nado {
         let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut nonce: Value = self.create_order_nonce(recvWindow).map(Value::from).unwrap_or(Value::Null);
         let mut requestId: Option<i64> = self.safe_integer_k(paramsRecvWindow.clone(), "id", &[]).as_i64();
-        let mut spotLeverage: Option<bool> = self.safe_bool2_opt(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
+        let mut spotLeverage: Option<bool> = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -860,7 +860,7 @@ impl Nado {
             placeOrder.insert("id".into(), Value::from(requestId));
         }
         if (spotLeverage.is_some()) {
-            placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
+            placeOrder.insert("spot_leverage".into(), spotLeverage.map_or(Value::Null, Value::Bool));
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
         let mut triggerPrice: Option<String> = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
@@ -1082,8 +1082,8 @@ impl Nado {
             appendix = self.create_order_appendix(false, &[paramsRecvWindow.clone()]);
         }
         let mut requestId: Option<i64> = self.safe_integer_k(paramsRecvWindow.clone(), "id", &[]).as_i64();
-        let mut spotLeverage: Option<bool> = self.safe_bool2_opt(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]);
-        let mut placeRequiresUnfilled: Value = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into()), &[self.safe_bool_k(&editOrderOptions, "placeRequiresUnfilled", &[Value::Bool(true)])]);
+        let mut spotLeverage: Option<bool> = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
+        let mut placeRequiresUnfilled: Option<bool> = self.safe_bool2(paramsRecvWindow.clone(), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into()), &[self.safe_bool_k(&editOrderOptions, "placeRequiresUnfilled", &[Value::Bool(true)])]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsRecvWindow, Value::from(vec![Value::Str("expiration".into()), Value::Str("nonce".into()), Value::Str("appendix".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("id".into()), Value::Str("spotLeverage".into()),
             Value::Str("spot_leverage".into()), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into())]), &[]).into_dict();
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
@@ -1124,14 +1124,14 @@ impl Nado {
             placeOrder.insert("id".into(), Value::from(requestId));
         }
         if (spotLeverage.is_some()) {
-            placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
+            placeOrder.insert("spot_leverage".into(), spotLeverage.map_or(Value::Null, Value::Bool));
         }
         let mut cancelAndPlace: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cancel_tx".to_string(), Value::Map(cancelTx));
                 m.insert("cancel_signature".to_string(), cancelSignature);
                 m.insert("place_order".to_string(), Value::Map(placeOrder));
-                m.insert("place_requires_unfilled".to_string(), placeRequiresUnfilled);
+                m.insert("place_requires_unfilled".to_string(), placeRequiresUnfilled.map_or(Value::Null, Value::Bool));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1205,7 +1205,7 @@ impl Nado {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_all_orders_request(&[symbol, paramsOmitted]).await;
         let mut response: Option<crate::value::Dict> = None;
@@ -1332,7 +1332,7 @@ impl Nado {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_orders_request(ids, &[symbol, paramsOmitted]).await;
         let mut response: Option<crate::value::Dict> = None;
@@ -1542,7 +1542,7 @@ impl Nado {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsSubaccount, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (trigger != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders only support trigger".into()))));
@@ -1647,7 +1647,7 @@ impl Nado {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         if (trigger == Some(true)) {
             let __ws_arg_6 = self.extend(paramsSubaccount.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1750,7 +1750,7 @@ impl Nado {
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsSubaccount.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         if (trigger == Some(true)) {
             let __ws_arg_8 = self.extend(paramsSubaccount.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3345,9 +3345,9 @@ impl Nado {
             }
         }
         let mut takerOrMaker: Option<String> = None;
-        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker", &[]);
+        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker", &[]).as_bool();
         if (isTaker.is_some()) {
-            if isTaker == Some(true) {
+            if (isTaker == Some(true)) {
                 takerOrMaker = Some("taker".to_string());
             }  else {
                 takerOrMaker = Some("maker".to_string());

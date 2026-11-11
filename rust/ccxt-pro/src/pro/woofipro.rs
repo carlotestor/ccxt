@@ -1025,9 +1025,9 @@ impl Woofipro {
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut takerOrMaker: Value = Value::Null;
-        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut maker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
         if (maker.is_some()) {
-            takerOrMaker = (if maker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (maker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeValue: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);

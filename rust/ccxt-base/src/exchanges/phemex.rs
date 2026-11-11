@@ -3707,7 +3707,7 @@ impl Phemex {
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         let mut execInst: Option<String> = self.safe_string_k(order.clone(), "execInst", &[]).as_str().map(str::to_owned);
         if (execInst.as_deref() == Some("ReduceOnly")) {
             reduceOnly = Some(true);
@@ -3744,7 +3744,7 @@ impl Phemex {
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), triggerPrice);
@@ -5590,7 +5590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginRatio: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateral.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isCross: bool = self.safe_bool_k(position.clone(), "crossMargin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "openedTimeNs", &[]).as_i64();
-        let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]);
+        let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]).as_i64();
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5608,7 +5608,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.parse_number(entryPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("exitPrice".to_string(), self.safe_number_k(position.clone(), "closePrice", &[]));
-        m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
+        m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString, &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -7247,7 +7247,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_opt_dict();
         let mut requestTime: Option<i64> = self.safe_integer_k(&quoteArgs, "requestAt", &[]).as_i64();
-        let mut timestamp: Value = self.safe_integer_k(conversion.clone(), "createTime", &[Value::from(requestTime)]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(conversion.clone(), "createTime", &[Value::from(requestTime)]).as_i64();
         let mut fromCoin: Value = self.safe_string_k(conversion.clone(), "fromCurrency", &[self.safe_string(fromCurrency.clone(), Value::Str("code".into()), &[])]);
         let mut fromCode: Option<String> = self.safe_currency_code(fromCoin, &[fromCurrency.clone()]).as_str().map(str::to_owned);
         let mut toCoin: Value = self.safe_string_k(conversion.clone(), "toCurrency", &[self.safe_string(toCurrency.clone(), Value::Str("code".into()), &[])]);
@@ -7265,8 +7265,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("id".to_string(), self.safe_string_k(conversion, "code", &[]));
         m.insert("fromCurrency".to_string(), fromCode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.parse_number(fromAmount, &[]));

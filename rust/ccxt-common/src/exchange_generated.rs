@@ -2721,15 +2721,15 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut deposit: Option<bool> = self.safe_bool_k_opt(&network, "deposit", &[]);
-                let mut currencyDeposit: Option<bool> = self.safe_bool_k_opt(currency.clone(), "deposit", &[]);
+                let mut deposit: Option<bool> = self.safe_bool_k(&network, "deposit", &[]).as_bool();
+                let mut currencyDeposit: Option<bool> = self.safe_bool_k(currency.clone(), "deposit", &[]).as_bool();
                 if (currencyDeposit.is_none()) || (deposit == Some(true)) {
-                    if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("deposit".into(), deposit.map(Value::Bool).unwrap_or(Value::Null)); }
+                    if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("deposit".into(), deposit.map_or(Value::Null, Value::Bool)); }
                 }
-                let mut withdraw: Option<bool> = self.safe_bool_k_opt(&network, "withdraw", &[]);
-                let mut currencyWithdraw: Option<bool> = self.safe_bool_k_opt(currency.clone(), "withdraw", &[]);
+                let mut withdraw: Option<bool> = self.safe_bool_k(&network, "withdraw", &[]).as_bool();
+                let mut currencyWithdraw: Option<bool> = self.safe_bool_k(currency.clone(), "withdraw", &[]).as_bool();
                 if (currencyWithdraw.is_none()) || (withdraw == Some(true)) {
-                    if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("withdraw".into(), withdraw.map(Value::Bool).unwrap_or(Value::Null)); }
+                    if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("withdraw".into(), withdraw.map_or(Value::Null, Value::Bool)); }
                 }
                 // find lowest fee (which is more desired)
                 let mut fee: Option<String> = self.safe_string_k(&network, "fee", &[]).as_str().map(str::to_owned);
@@ -4706,13 +4706,13 @@ pub trait ExchangeBase:
     fn safe_network(&self, mut network: Value) -> Value {
         let __network_empty = indexmap::IndexMap::new();
         let network = network.as_map().unwrap_or(&__network_empty);
-        let mut withdrawEnabled: Value = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
-        let mut depositEnabled: Value = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
+        let mut withdrawEnabled: Option<bool> = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
+        let mut depositEnabled: Option<bool> = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
         let mut limits: crate::value::Dict = (match network.get("limits") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut withdraw: crate::value::Dict = self.safe_dict_k(&limits, "withdraw", &[]).into_dict();
         let mut deposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
-        let mut isEnabled: Value = withdrawEnabled.clone();
-        if (withdrawEnabled.as_bool() == Some(true)) {
+        let mut isEnabled: Option<bool> = withdrawEnabled;
+        if (withdrawEnabled == Some(true)) {
             isEnabled = depositEnabled.clone();
         }
         return Value::Map({
@@ -4721,9 +4721,9 @@ pub trait ExchangeBase:
         m.insert("id".to_string(), (match network.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("name".to_string(), (match network.get("name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("network".to_string(), (match network.get("network") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("active".to_string(), (match network.get("active") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => isEnabled }));
-        m.insert("deposit".to_string(), depositEnabled);
-        m.insert("withdraw".to_string(), withdrawEnabled);
+        m.insert("active".to_string(), (match network.get("active") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => isEnabled.map_or(Value::Null, Value::Bool) }));
+        m.insert("deposit".to_string(), depositEnabled.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), withdrawEnabled.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), (match network.get("fee") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
         m.insert("precision".to_string(), (match network.get("precision") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }));
         m.insert("limits".to_string(), Value::Map({
@@ -5737,12 +5737,12 @@ pub trait ExchangeBase:
     fn handle_param_bool(&self, params: impl Into<crate::Value>, mut paramName: Value, optional_args: &[Value]) -> Value {
         let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let mut value: Value = self.safe_bool(params.clone(), paramName.clone(), &[defaultValue]);
+        let mut value: Option<bool> = self.safe_bool(params.clone(), paramName.clone(), &[defaultValue]).as_bool();
         let mut paramsOmitted: Value = params.clone();
-        if (value != Value::Null) {
+        if (value.is_some()) {
             paramsOmitted = self.omit(params, paramName, &[]);
         }
-        return Value::from(vec![value, paramsOmitted]);
+        return Value::from(vec![value.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
     Value::Null
 }
@@ -5750,12 +5750,12 @@ pub trait ExchangeBase:
     fn handle_param_bool2(&self, params: impl Into<crate::Value>, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
         let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let mut value: Value = self.safe_bool2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]);
+        let mut value: Option<bool> = self.safe_bool2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]).as_bool();
         let mut paramsOmitted: Value = params.clone();
-        if (value != Value::Null) {
+        if (value.is_some()) {
             paramsOmitted = self.omit(params, Value::from(vec![paramName1, paramName2]), &[]);
         }
-        return Value::from(vec![value, paramsOmitted]);
+        return Value::from(vec![value.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
     Value::Null
 }
@@ -8506,9 +8506,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn handle_trigger_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = (if (isTrigger.as_bool() == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]) } else { params });
-        return Value::from(vec![isTrigger, paramsOmitted]);
+        let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]) } else { params });
+        return Value::from(vec![isTrigger.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
     Value::Null
 }

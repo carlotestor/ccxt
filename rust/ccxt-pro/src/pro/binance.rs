@@ -1685,12 +1685,12 @@ impl Binance {
         {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut type_var: Option<String> = self.safe_string_k(subscription.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]);
+            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
             let mut params: Value = self.safe_dict_k(subscription, "params", &[]);
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone(), &[limit, params]).await;
+            let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone(), &[Value::from(limit), params]).await;
             if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
                 return Value::Null;
             }
@@ -2908,7 +2908,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
-        let mut inverse: Option<bool> = self.safe_bool_k_opt(market, "inverse", &[]);
+        let mut inverse: Option<bool> = self.safe_bool_k(market, "inverse", &[]).as_bool();
         let mut volumeKey: Value = (if (inverse == Some(true)) { Value::Str("q".into()) } else { Value::Str("v".into()) });
         let mut parsed: Value = Value::from(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, volumeKey, &[])]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), unifiedTimeframe).into());
@@ -5805,7 +5805,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("returnRateLimits".to_string(), returnRateLimits);
             m
         });
-        let mut isConditional: Option<bool> = self.safe_bool_n_opt(paramsReturnRateLimits.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
+        let mut isConditional: Option<bool> = self.safe_bool_n(paramsReturnRateLimits.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut clientOrderId: Option<String> = self.safe_string_n(paramsReturnRateLimits.clone(), Value::from(vec![Value::Str("clientAlgoId".into()), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).as_str().map(str::to_owned);
         let mut shouldUseAlgoOrder: bool = ((market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) && (((market).swap) || ((market).future)) && (isConditional == Some(true));
         if (clientOrderId.is_some()) {
@@ -6528,7 +6528,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 stockRemaining = crate::precise::Precise::stringSub(&stockAmount.clone().map(Value::from).unwrap_or(Value::Null), &stockFilled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
             let mut stockTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "T", &[]).as_i64();
-            let mut stockLastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "U", &[Value::from(stockTimestamp)]);
+            let mut stockLastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "U", &[Value::from(stockTimestamp)]).as_i64();
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -6536,7 +6536,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "i", &[]));
         m.insert("timestamp".to_string(), Value::from(stockTimestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(stockTimestamp)));
-        m.insert("lastUpdateTimestamp".to_string(), stockLastUpdateTimestamp);
+        m.insert("lastUpdateTimestamp".to_string(), Value::from(stockLastUpdateTimestamp));
         m.insert("type".to_string(), self.parent.parse_order_type_by_market(self.safe_string_lower_k(order.clone(), "o", &[]), Value::Str("spot".into())).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);

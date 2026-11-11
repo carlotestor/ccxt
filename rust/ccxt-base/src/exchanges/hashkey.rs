@@ -1642,9 +1642,9 @@ impl Hashkey {
         let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
         let mut isLinear: Option<bool> = None;
         let mut subType: Option<String> = None;
-        let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
+        let mut isInverse: Option<bool> = self.safe_bool_k(market.clone(), "inverse", &[]).as_bool();
         if (isInverse.is_some()) {
-            if isInverse == Some(true) {
+            if (isInverse == Some(true)) {
                 isLinear = Some(false);
                 subType = Some("inverse".to_string());
             }  else {
@@ -1722,7 +1722,7 @@ impl Hashkey {
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
-        m.insert("inverse".to_string(), isInverse.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("inverse".to_string(), isInverse.map_or(Value::Null, Value::Bool));
         m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
         m.insert("percentage".to_string(), self.safe_bool_k(&fees, "percentage", &[]));
@@ -2142,20 +2142,20 @@ impl Hashkey {
         if (side != Value::Null) {
             side = self.safe_string(Value::Array(if let Some(__s) = side.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[]);
         }
-        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isBuyer == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut takerOrMaker: Option<String> = None;
-        let mut isMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isMaker".into()), Value::Str("isMarker".into()), &[]);
+        let mut isMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isMaker".into()), Value::Str("isMarker".into()), &[]).as_bool();
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "ibm", &[]).as_bool();
         // if public trade
         if (isBuyerMaker.is_some()) {
             takerOrMaker = Some("taker".to_string());
-            side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+            side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
         }
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut feeCurrncyId: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);

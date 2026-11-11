@@ -1469,7 +1469,7 @@ impl Coinbase {
         //         }
         //     }
         //
-        let mut active: Option<bool> = self.safe_bool_k_opt(account.clone(), "active", &[]);
+        let mut active: Option<bool> = self.safe_bool_k(account.clone(), "active", &[]).as_bool();
         let mut currencyIdV3: Option<String> = self.safe_string_k(account.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currency: crate::value::Dict = self.safe_dict_k(account.clone(), "currency", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

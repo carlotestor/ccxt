@@ -2344,20 +2344,20 @@ impl Aster {
         let mut costString: Option<String> = self.safe_string2(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
             if (side.is_none()) {
-                let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "buyer", &[]);
+                let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "buyer", &[]).as_bool();
                 if (isBuyer.is_some()) {
-                    side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+                    side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
                 }
             }
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]).as_bool();
         if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
+            side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5198,7 +5198,7 @@ impl Aster {
         if (timestamp == Some(0)) {
             timestamp = None.clone();
         }
-        let mut isolatedRaw: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
+        let mut isolatedRaw: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
         let mut isolated: bool = false;
         if (isolatedRaw.is_none()) {
             let mut isolatedMarginRaw: Option<String> = self.safe_string_k(position.clone(), "isolatedMargin", &[]).as_str().map(str::to_owned);
@@ -5940,8 +5940,8 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut builderFee: Value = self.safe_bool_k(params.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]); // we shouldn't omit here
-        if !(builderFee.as_bool() == Some(true)) {
+        let mut builderFee: Option<bool> = self.safe_bool_k(params.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool(); // we shouldn't omit here
+        if !(builderFee == Some(true)) {
             return Value::Bool(false);
         }
         let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);

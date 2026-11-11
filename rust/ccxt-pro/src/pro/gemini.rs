@@ -1382,7 +1382,7 @@ impl Gemini {
         }
         // handle multimarketdata
         if (type_var == "update") {
-            let mut ts: Value = self.safe_integer_k(message, "timestampms", &[self.milliseconds()]);
+            let mut ts: Option<i64> = self.safe_integer_k(message, "timestampms", &[self.milliseconds()]).as_i64();
             let mut eventId: Option<i64> = (match __pro_message.get("eventId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                 Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             let mut events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
@@ -1414,15 +1414,15 @@ impl Gemini {
             }
             let mut lengthBa: f64 = ((bidaskItems.len() as i64) as f64);
             if lengthBa > ((0i64) as f64) {
-                self.handle_bids_asks_for_multidata(client.clone(), Value::from(bidaskItems), ts.clone(), Value::from(eventId));
+                self.handle_bids_asks_for_multidata(client.clone(), Value::from(bidaskItems), Value::from(ts), Value::from(eventId));
             }
             let mut lengthOb: f64 = ((orderBookItems.len() as i64) as f64);
             if lengthOb > ((0i64) as f64) {
-                self.handle_order_book_for_multidata(client.clone(), Value::from(orderBookItems), ts.clone(), Value::from(eventId));
+                self.handle_order_book_for_multidata(client.clone(), Value::from(orderBookItems), Value::from(ts), Value::from(eventId));
             }
             let mut lengthTrades: f64 = ((collectedEventsOfTrades.len() as i64) as f64);
             if lengthTrades > ((0i64) as f64) {
-                self.handle_trades_for_multidata(client, Value::from(collectedEventsOfTrades), ts);
+                self.handle_trades_for_multidata(client, Value::from(collectedEventsOfTrades), Value::from(ts));
             }
         }
 }

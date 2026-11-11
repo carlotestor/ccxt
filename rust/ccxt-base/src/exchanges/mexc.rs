@@ -2507,12 +2507,12 @@ impl Mexc {
                 continue;
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut isSpotTradingAllowed: Option<bool> = self.safe_bool_k_opt(market.clone(), "isSpotTradingAllowed", &[]);
+            let mut isSpotTradingAllowed: Option<bool> = self.safe_bool_k(market.clone(), "isSpotTradingAllowed", &[]).as_bool();
             let mut active: bool = false;
             if (status.as_deref() == Some("1")) && (isSpotTradingAllowed == Some(true)) {
                 active = true;
             }
-            let mut isMarginTradingAllowed: Option<bool> = self.safe_bool_k_opt(market.clone(), "isMarginTradingAllowed", &[]);
+            let mut isMarginTradingAllowed: Option<bool> = self.safe_bool_k(market.clone(), "isMarginTradingAllowed", &[]).as_bool();
             let mut makerCommission: Option<f64> = self.safe_number_k(market.clone(), "makerCommission", &[]).as_f64();
             let mut takerCommission: Option<f64> = self.safe_number_k(market.clone(), "takerCommission", &[]).as_f64();
             let mut maxQuoteAmount: Option<f64> = self.safe_number_k(market.clone(), "maxQuoteAmount", &[]).as_f64();
@@ -2528,7 +2528,7 @@ impl Mexc {
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
-                    m.insert("margin".to_string(), isMarginTradingAllowed.map(Value::Bool).unwrap_or(Value::Null));
+                    m.insert("margin".to_string(), isMarginTradingAllowed.map_or(Value::Null, Value::Bool));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -3048,17 +3048,17 @@ impl Mexc {
                 timestamp = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
                 amountString = self.safe_string2(trade.clone(), Value::Str("qty".into()), Value::Str("q".into()), &[]).as_str().map(str::to_owned);
                 costString = self.safe_string_k(trade.clone(), "quoteQty", &[]).as_str().map(str::to_owned);
-                let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
-                let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
-                let mut buyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
+                let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
+                let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+                let mut buyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]).as_bool();
                 if (isMaker.is_some()) {
-                    takerOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+                    takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 }
                 if (isBuyer.is_some()) {
-                    side = (if isBuyer == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                    side = (if (isBuyer == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
                 }
                 if (buyerMaker.is_some()) {
-                    side = (if buyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                    side = (if (buyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
                     takerOrMaker = Some("taker".to_string());
                 }
                 let mut feeAsset: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);
@@ -4547,7 +4547,7 @@ impl Mexc {
             }
             return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2_opt(paramsMarketType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut trigger: Option<bool> = self.safe_bool2(paramsMarketType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut swapParams: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
@@ -4734,7 +4734,7 @@ impl Mexc {
                 data = self.spot_private_delete_order(&[__ws_arg_32]).await;
             }
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2_opt(query.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut trigger: Option<bool> = self.safe_bool2(query.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut method: Value = self.safe_string_k(self.options.clone(), "cancelOrder", &[Value::Str("contractPrivatePostOrderCancel".into())]); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string_k(query, "method", &[method.clone()]);
             if (trigger == Some(true)) {

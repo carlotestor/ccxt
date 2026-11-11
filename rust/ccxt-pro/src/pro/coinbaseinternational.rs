@@ -2715,16 +2715,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             request.insert("price".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
         }
-        let mut postOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
+        let mut postOnly: Option<bool> = self.safe_bool2(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+            let mut reduceOnly: Option<bool> = self.safe_bool2(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
             if (reduceOnly.is_some()) {
-                request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+                request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
             }
         }
         if (postOnly.is_some()) {
-            request.insert("post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
-            request.insert("reject_post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("post_only".into(), postOnly.map_or(Value::Null, Value::Bool));
+            request.insert("reject_post_only".into(), postOnly.map_or(Value::Null, Value::Bool));
         }
         let mut timeInForce: Option<String> = self.safe_string2(paramsResolved.clone(), Value::Str("timeInForce".into()), Value::Str("tif".into()), &[]).as_str().map(str::to_owned);
         if (timeInForce.is_some()) {

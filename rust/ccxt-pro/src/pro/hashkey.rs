@@ -988,16 +988,16 @@ impl Hashkey {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
         let mut isPublicTrade: bool = self.safe_string_k(trade.clone(), "e", &[]) == Value::Null;
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
             if isPublicTrade {
                 takerOrMaker = Some("taker".to_string());
-                side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                side = (if (isBuyerMaker == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             }  else {
-                takerOrMaker = (if isBuyerMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+                takerOrMaker = (if (isBuyerMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 side = self.safe_string_lower_k(trade.clone(), "S", &[]);
             }
         }

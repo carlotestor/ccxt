@@ -702,9 +702,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHash: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]);
+            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
             let mut params: Value = self.safe_dict_k(subscription, "params", &[]);
-            let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[limit, params]).await;
+            let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(limit), params]).await;
             if (self.safe_dict(self.orderbooks.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
                 return Value::Null;
             }
@@ -1484,10 +1484,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut maker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (maker.is_some()) {
-            takerOrMaker = (if maker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (maker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut type_var: Option<String> = self.safe_string_lower_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;

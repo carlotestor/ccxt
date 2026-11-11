@@ -1078,8 +1078,8 @@ impl Hyperliquid {
                 while { if !__for_first_1236 { i += 1; } __for_first_1236 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
-                let mut requestedOutcome: Value = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]);
-                requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
+                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
+                requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             }
         }  else {
@@ -1349,14 +1349,14 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]).as_i64();
         let mut startTime: Value = since.clone();
         if (since == Value::Null) {
             let mut tf: Value = self.parse_timeframe(timeframe.clone());
             let mut candleCount: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(100) });
             let mut startOffset: Value = (match (&((match (&(tf), &(candleCount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
                 &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut shiftedStart: Value = self.sum(&[until.clone(), startOffset]);
+            let mut shiftedStart: Value = self.sum(&[Value::from(until), startOffset]);
             startTime = shiftedStart.clone();
             if (startTime == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".into()))));
@@ -1373,7 +1373,7 @@ impl Hyperliquid {
         m.insert("coin".to_string(), self.safe_string_k(&info, "coinName", &[]));
         m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         m.insert("startTime".to_string(), startTime);
-        m.insert("endTime".to_string(), until);
+        m.insert("endTime".to_string(), Value::from(until));
     m
 }));
             m
@@ -1523,8 +1523,8 @@ impl Hyperliquid {
                 while { if !__for_first_1241 { i += 1; } __for_first_1241 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
-                let mut requestedOutcome: Value = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]);
-                requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
+                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
+                requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             }
         }  else {

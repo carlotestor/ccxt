@@ -2625,13 +2625,13 @@ impl Weex {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
-        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyerMaker", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]).as_bool();
         if (isBuyer.is_some()) {
-            side = (if isBuyer == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else if (isBuyerMaker.is_some()) {
-            side = (if isBuyerMaker == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
+            side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         let mut tradeMarketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut realizedPnl: Option<String> = self.safe_string_k(trade.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
@@ -2665,10 +2665,10 @@ impl Weex {
                 m
             });
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }  else if (isBuyerMaker.is_some()) {
             takerOrMaker = Some("taker".to_string());
         }
@@ -4340,7 +4340,7 @@ impl Weex {
         let mut rawStatus: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned); // algo (trigger) order payloads carry algoStatus instead of status
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[])).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_upper2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
-        let mut isReduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
+        let mut isReduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         let mut isEntryTrigger: bool = !(self.safe_bool_k(order.clone(), "reduceOnly", &[Value::Bool(true)]).as_bool() == Some(true));
@@ -4367,7 +4367,7 @@ impl Weex {
         m.insert("type".to_string(), self.parse_order_type(rawType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), isReduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("reduceOnly".to_string(), isReduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("origQty".into()), Value::Str("quantity".into()), &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));

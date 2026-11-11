@@ -1428,10 +1428,10 @@ impl Polymarket {
         }  else if (side.as_deref() == Some("short")) {
             side = Some("sell".to_string());
         }
-        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
+        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker.is_some()) {
-            takerOrMaker = (if isTaker == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if (isTaker == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -2563,10 +2563,10 @@ impl Polymarket {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("created_timestamp".into()), Value::Str("cts".into()), &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("updated_timestamp".into()), Value::Str("uts".into()), &[]).as_i64();
-        let mut isBuy: Option<bool> = self.safe_bool_k_opt(order.clone(), "buy", &[]);
+        let mut isBuy: Option<bool> = self.safe_bool_k(order.clone(), "buy", &[]).as_bool();
         let mut side: Value = Value::Null;
         if (isBuy.is_some()) {
-            side = (if isBuy == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if (isBuy == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut price: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("p".into()), &[])).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
@@ -2778,10 +2778,10 @@ impl Polymarket {
             let mut isLong: Value = crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
             side = (if isLong.as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) });
         }
-        let mut isCross: Option<bool> = self.safe_bool_k_opt(position.clone(), "cross", &[]);
+        let mut isCross: Option<bool> = self.safe_bool_k(position.clone(), "cross", &[]).as_bool();
         let mut marginMode: Value = Value::Null;
         if (isCross.is_some()) {
-            marginMode = (if isCross == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if (isCross == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut roe: Option<String> = self.safe_string_k(position.clone(), "return_on_equity", &[]).as_str().map(str::to_owned);
@@ -3535,10 +3535,10 @@ impl Polymarket {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(leverage.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut isCross: Option<bool> = self.safe_bool_k_opt(leverage.clone(), "cross", &[]);
+        let mut isCross: Option<bool> = self.safe_bool_k(leverage.clone(), "cross", &[]).as_bool();
         let mut marginMode: Value = Value::Null;
         if (isCross.is_some()) {
-            marginMode = (if isCross == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if (isCross == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut value: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         return Value::Map({

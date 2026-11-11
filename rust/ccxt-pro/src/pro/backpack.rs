@@ -1673,12 +1673,12 @@ impl Backpack {
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "t", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
             takerOrMaker = Some("taker".to_string());
-            if isBuyerMaker == Some(true) {
+            if (isBuyerMaker == Some(true)) {
                 side = Some("sell".to_string());
             }  else {
                 side = Some("buy".to_string());

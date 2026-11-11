@@ -1926,8 +1926,8 @@ impl Bitfinex {
     m
 })]);
         let mut requestedType: String = self.safe_string_k(params.clone(), "type", &[Value::Str("exchange".into())]).as_str().unwrap_or("exchange").to_string();
-        let mut accountType: Value = self.safe_string(accountsByType.clone(), Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]);
-        if (accountType == Value::Null) {
+        let mut accountType: Option<String> = self.safe_string(accountsByType.clone(), Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]).as_str().map(str::to_owned);
+        if (accountType.is_none()) {
             let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
@@ -1950,12 +1950,12 @@ impl Bitfinex {
             if (interest.as_deref() != Some("0")) {
                 account.insert("debt".into(), interest.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut type_var: Option<String> = self.safe_string_opt(&balance, Value::Int(0), &[]);
+            let mut type_var: Option<String> = self.safe_string(&balance, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut currencyId: Value = self.safe_string_lower(&balance, Value::Int(1), &[Value::Str("".into())]);
             let mut isDerivativeCode: bool = (currencyId != Value::Null) && (Value::Bool(currencyId.as_str().unwrap_or("").ends_with("f0")).as_bool() == Some(true));
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             let mut derivativeCondition: bool = !isDerivative || isDerivativeCode;
-            if (accountType.as_str() == type_var.as_deref()) && derivativeCondition {
+            if (accountType == type_var) && derivativeCondition {
                 let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
                 account.insert("total".into(), self.safe_string(&balance, Value::Int(2), &[]));
                 account.insert("free".into(), self.safe_string(&balance, Value::Int(4), &[]));

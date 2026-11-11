@@ -3027,9 +3027,9 @@ impl Woofipro {
         let mut cost: Option<String> = self.safe_string2(order.clone(), Value::Str("order_amount".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned); // This is quote amount
         let mut orderType: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("order_type".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned);
-        let mut success: Option<bool> = self.safe_bool_k_opt(order.clone(), "success", &[]);
+        let mut success: Option<bool> = self.safe_bool_k(order.clone(), "success", &[]).as_bool();
         if (success.is_some()) {
-            status = (if success == Some(true) { Some("NEW".to_string()) } else { Some("REJECTED".to_string()) });
+            status = (if (success == Some(true)) { Some("NEW".to_string()) } else { Some("REJECTED".to_string()) });
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("total_executed_quantity".into()), Value::Str("totalExecutedQuantity".into()), Value::Str("executed_quantity".into()), Value::Str("executed".into())]), &[]).as_str().map(str::to_owned);
@@ -3158,7 +3158,7 @@ impl Woofipro {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".into()))));
@@ -3196,7 +3196,7 @@ impl Woofipro {
             }
         }
         if (reduceOnly == Some(true)) {
-            request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         if (price != Value::Null) {
             request.insert(priceKey, self.price_to_precision(symbol.clone(), price));
@@ -3708,7 +3708,7 @@ impl Woofipro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

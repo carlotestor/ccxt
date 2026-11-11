@@ -2854,9 +2854,9 @@ impl Delta {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[]).as_bool();
         if (reduceOnly == Some(true)) {
-            request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         let mut paramsOmitted2: crate::value::Dict = (if (reduceOnly == Some(true)) { self.omit(paramsOmitted.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted }).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted2]);

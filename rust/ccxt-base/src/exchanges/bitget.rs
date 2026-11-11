@@ -5941,7 +5941,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut isBorrowable: Option<bool> = self.safe_bool_k_opt(&firstData, "isBorrowable", &[]);
+            let mut isBorrowable: Option<bool> = self.safe_bool_k(&firstData, "isBorrowable", &[]).as_bool();
             if fetchMargins && (isBorrowable.is_some()) {
                 // cross and isolated availability are per-symbol - a coin can be listed by
                 // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
@@ -11070,7 +11070,7 @@ if _try_result.is_err() {
             m
         });
         let mut trailing: bool = self.safe_bool_k_opt(paramsMarginMode.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]);
         if !(matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (trigger == Some(true))) {
             request.insert("symbol".into(), Value::from((market).id.clone()));
@@ -11326,7 +11326,7 @@ if _try_result.is_err() {
         }
         let mut marginMode: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrders".into()), &[paramsUTA.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsUTA.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsUTA.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsUTA = self.omit(paramsUTA.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut orderIdList: Value = Value::from(vec![]);
         {
@@ -11448,7 +11448,7 @@ if _try_result.is_err() {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut response: Value = Value::Null;
         let mut uta: Option<bool> = None;
@@ -11765,7 +11765,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = Value::Null;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -11784,10 +11784,10 @@ if _try_result.is_err() {
             if (marketTypeValue.is_some()) {
                 marketType = marketTypeValue.clone().map(Value::from).unwrap_or(Value::Null);
             }
-            type_var = self.safe_string_k(paramsMarginMode.clone(), "type", &[marketType]);
+            type_var = self.safe_string_k(paramsMarginMode.clone(), "type", &[marketType]).as_str().map(str::to_owned);
         }  else {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
-            type_var = self.safe_string_k(paramsMarginMode.clone(), "type", &[defaultType]);
+            type_var = self.safe_string_k(paramsMarginMode.clone(), "type", &[defaultType]).as_str().map(str::to_owned);
         }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsMarginMode.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -11797,7 +11797,7 @@ if _try_result.is_err() {
             if (uta == Some(true)) {
                 cursorReceived = Some("cursor".to_string());
                 cursorSent = Some("cursor".to_string());
-            }  else if (type_var.as_str() == Some("spot")) {
+            }  else if (type_var.as_deref() == Some("spot")) {
                 if (marginMode.is_some()) {
                     cursorReceived = Some("minId".to_string());
                     cursorSent = Some("idLessThan".to_string());
@@ -11810,7 +11810,7 @@ if _try_result.is_err() {
         }
         let mut response: Option<crate::value::Dict> = None;
         let mut trailing: bool = self.safe_bool_k(paramsMarginMode.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut planTypeValue: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "planType", &[]).as_str().map(str::to_owned);
         let mut planTypeDefined: bool = planTypeValue.is_some();
         let mut isTrigger: bool = (trigger == Some(true)) || planTypeDefined;
@@ -11822,7 +11822,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        if (uta != Some(true)) && ((type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) || (marginMode.is_some())) {
+        if (uta != Some(true)) && ((type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) || (marginMode.is_some())) {
             let mut clientOrderId: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::Str("clientOrderId".into()), &[]);
             if (clientOrderId.is_some()) {
@@ -11833,7 +11833,7 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(&[market.clone(), paramsMarginMode.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("type".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]);
         if (uta == Some(true)) {
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 if (marginMode.is_some()) {
                     productType = Some("MARGIN".to_string());
                 }  else {
@@ -11848,7 +11848,7 @@ if _try_result.is_err() {
                 let __ws_arg_80 = self.extend(request.clone(), &[paramsMarginMode.clone()]);
                 response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_80]).await.into_opt_dict();
             }
-        }  else if (type_var.as_str() == Some("spot")) {
+        }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) {
                 if (since == Value::Null) {
                     sinceDefault = (match (&(self.milliseconds()), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -12149,7 +12149,7 @@ if _try_result.is_err() {
                 result = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
             }
             return self.parse_orders(result.clone(), &[market.clone(), sinceResolved.clone(), limit.clone()]);
-        }  else if (type_var.as_str() == Some("spot")) {
+        }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) || (trigger == Some(true)) {
                 let mut resultList: Value = self.safe_list_k(data.clone(), "orderList", &[Value::from(vec![])]);
                 return self.parse_orders(resultList, &[market.clone(), sinceResolved.clone(), limit.clone()]);
@@ -12328,7 +12328,7 @@ if _try_result.is_err() {
         }
         let mut response: Value = Value::Null;
         let mut trailing: bool = self.safe_bool_k(paramsUTA.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsUTA.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsUTA.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsUTA = self.omit(paramsUTA.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]);
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), request.clone(), paramsUTA.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (since != Value::Null) {
@@ -12643,7 +12643,7 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsProductType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsProductType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsProductType = self.omit(paramsProductType.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (trigger == Some(true)) {
             let __ws_arg_95 = self.extend(request.clone(), &[paramsProductType.clone()]);

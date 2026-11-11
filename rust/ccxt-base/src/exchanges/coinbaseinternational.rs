@@ -1366,7 +1366,7 @@ impl Coinbaseinternational {
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
         let mut isFutureOrOption: bool = isFuture || matches!(&isOption, Value::Bool(true));
         let mut expiry: Option<i64> = (if isFutureOrOption { self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64() } else { None });
-        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "is_active", &[]);
+        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "is_active", &[]).as_bool();
         let mut strike: Option<f64> = self.safe_number_k(market.clone(), "strike", &[]).as_f64();
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         if !isComboMarket && (matches!(&isOption, Value::Bool(true)) || isFuture) {
@@ -1398,7 +1398,7 @@ impl Coinbaseinternational {
                 m.insert("swap".to_string(), isPerpetual);
                 m.insert("future".to_string(), Value::Bool(isFuture));
                 m.insert("option".to_string(), isOption);
-                m.insert("active".to_string(), active.map(Value::Bool).unwrap_or(Value::Null));
+                m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
                 m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
                 m.insert("linear".to_string(), linear);
                 m.insert("inverse".to_string(), inverse);
@@ -3332,17 +3332,17 @@ impl Coinbaseinternational {
                 request.insert("price".into(), self.price_to_precision(symbol, price));
             }
         }
-        let mut postOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
+        let mut postOnly: Option<bool> = self.safe_bool2(paramsResolved.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string2(paramsResolved.clone(), Value::Str("tif".into()), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+            let mut reduceOnly: Option<bool> = self.safe_bool2(paramsResolved.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
             if (reduceOnly.is_some()) {
-                request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+                request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
             }
         }
         if (postOnly.is_some()) {
-            request.insert("post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
-            request.insert("reject_post_only".into(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("post_only".into(), postOnly.map_or(Value::Null, Value::Bool));
+            request.insert("reject_post_only".into(), postOnly.map_or(Value::Null, Value::Bool));
         }
         if (timeInForce.is_some()) {
             let mut timeInForces: indexmap::IndexMap<String, Value> = ({

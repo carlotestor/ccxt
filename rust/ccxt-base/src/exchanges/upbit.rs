@@ -819,18 +819,18 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut canWithdraw: Option<bool> = self.safe_bool_k_opt(&withdrawLimits, "can_withdraw", &[]);
+        let mut canWithdraw: Option<bool> = self.safe_bool_k(&withdrawLimits, "can_withdraw", &[]).as_bool();
         let mut walletState: Option<String> = self.safe_string_k(&currencyInfo, "wallet_state", &[]).as_str().map(str::to_owned);
-        let mut walletLocked: Value = self.safe_bool_k(&memberInfo, "wallet_locked", &[]);
-        let mut locked: Value = self.safe_bool_k(&memberInfo, "locked", &[]);
+        let mut walletLocked: Option<bool> = self.safe_bool_k(&memberInfo, "wallet_locked", &[]).as_bool();
+        let mut locked: Option<bool> = self.safe_bool_k(&memberInfo, "locked", &[]).as_bool();
         let mut active: bool = true;
         if (canWithdraw.is_some()) && (!(canWithdraw == Some(true))) {
             active = false;
         }  else if (walletState.as_deref() != Some("working")) {
             active = false;
-        }  else if (walletLocked != Value::Null) && walletLocked.as_bool() == Some(true) {
+        }  else if (walletLocked.is_some()) && (walletLocked == Some(true)) {
             active = false;
-        }  else if (locked != Value::Null) && locked.as_bool() == Some(true) {
+        }  else if (locked.is_some()) && (locked == Some(true)) {
             active = false;
         }
         let mut maxOnetimeWithdrawal: Option<String> = self.safe_string_k(&withdrawLimits, "onetime", &[]).as_str().map(str::to_owned);

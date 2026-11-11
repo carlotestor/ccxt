@@ -3126,9 +3126,9 @@ impl Derive {
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut test: bool = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3177,8 +3177,8 @@ impl Derive {
             m
         });
         if (reduceOnly.is_some()) {
-            request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
-            if reduceOnly == Some(true) && (postOnly == Some(true)) {
+            request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
+            if (reduceOnly == Some(true)) && (postOnly == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".into()))));
             }
         }
@@ -3318,9 +3318,9 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("editOrder".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3360,8 +3360,8 @@ impl Derive {
             m
         });
         if (reduceOnly.is_some()) {
-            request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
-            if reduceOnly == Some(true) && (postOnly == Some(true)) {
+            request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
+            if (reduceOnly == Some(true)) && (postOnly == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".into()))));
             }
         }

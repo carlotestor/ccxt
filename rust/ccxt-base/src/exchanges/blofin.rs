@@ -2607,9 +2607,9 @@ impl Blofin {
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint.as_bool() == Some(true);
         let mut isSlOrTp: bool = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let mut response: Option<crate::value::Dict> = None;
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(paramsTpsl.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(paramsTpsl.clone(), "reduceOnly", &[]).as_bool();
         if (reduceOnly.is_some()) {
-            if let Value::Dict(__d) = &mut paramsTpsl { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), (if reduceOnly == Some(true) { Value::Str("true".into()) } else { Value::Str("false".into()) })); }
+            if let Value::Dict(__d) = &mut paramsTpsl { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), (if (reduceOnly == Some(true)) { Value::Str("true".into()) } else { Value::Str("false".into()) })); }
         }
         if isCombinedSlTp {
             let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), paramsTpsl.clone()]);
@@ -4085,7 +4085,7 @@ impl Blofin {
         let mut method: Value = self.handle_option(Value::Str("cancelOrders".into()), Value::Str("method".into()), &[Value::Str("privatePostTradeCancelBatchOrders".into())]);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "clientOrderId", &[]));
         let mut tpslIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "tpslId", &[]));
-        let mut trigger: Option<bool> = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]);
+        let mut trigger: Option<bool> = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]).as_bool();
         if (trigger == Some(true)) {
             method = Value::Str("privatePostTradeCancelTpsl".into());
         }

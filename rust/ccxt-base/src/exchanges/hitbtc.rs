@@ -1874,13 +1874,13 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut account: Value = (if (type_var == Value::Null) { Value::Null } else { self.safe_string(accountsByType.clone(), type_var.clone(), &[type_var.clone()]) });
+        let mut account: Option<String> = (if (type_var == Value::Null) { None } else { self.safe_string(accountsByType.clone(), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned) });
         let mut response: Value = Value::Null;
-        if (account.as_str() == Some("wallet")) {
+        if (account.as_deref() == Some("wallet")) {
             response = self.private_get_wallet_balance(&[paramsOmitted.clone()]).await;
-        }  else if (account.as_str() == Some("spot")) {
+        }  else if (account.as_deref() == Some("spot")) {
             response = self.private_get_spot_balance(&[paramsOmitted.clone()]).await;
-        }  else if (account.as_str() == Some("derivatives")) {
+        }  else if (account.as_deref() == Some("derivatives")) {
             response = self.private_get_futures_balance(&[paramsOmitted]).await;
         }  else {
             let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
@@ -2255,10 +2255,10 @@ impl Hitbtc {
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
-        let mut taker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
+        let mut taker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
         let mut takerOrMaker: Option<String> = None;
         if (taker.is_some()) {
-            takerOrMaker = (if taker == Some(true) { Some("taker".to_string()) } else { Some("maker".to_string()) });
+            takerOrMaker = (if (taker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
         }  else {
             takerOrMaker = Some("taker".to_string()); // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -3557,7 +3557,7 @@ impl Hitbtc {
     m
 }));
         let mut isLimit: bool = type_var.as_str() == Some("limit");
-        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(params.clone(), "reduceOnly", &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
         let mut isPostOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Null, &[params.clone()]);
@@ -3577,7 +3577,7 @@ impl Hitbtc {
             }
         }
         if (reduceOnly == Some(true)) {
-            request.insert("reduce_only".into(), reduceOnly.map(Value::Bool).unwrap_or(Value::Null));
+            request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         if isPostOnly.as_bool() == Some(true) {
             request.insert("post_only".into(), Value::Bool(true));
@@ -3722,7 +3722,7 @@ impl Hitbtc {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[]);
         return self.safe_order(Value::Map({
@@ -3740,7 +3740,7 @@ impl Hitbtc {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);

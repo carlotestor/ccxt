@@ -2300,10 +2300,10 @@ impl Kraken {
             symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut maker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
         let mut takerOrMaker: Value = Value::Null;
         if (maker.is_some()) {
-            takerOrMaker = (if maker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (maker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         if (datetime.is_none()) {
             datetime = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
@@ -3155,7 +3155,7 @@ impl Kraken {
         }  else if isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(paramsOmitted2.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2(paramsOmitted2.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         if isStopLossOrTakeProfitTrigger {
             if isStopLossTriggerOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null))); }

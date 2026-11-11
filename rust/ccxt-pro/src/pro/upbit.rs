@@ -1015,9 +1015,9 @@ impl Upbit {
             cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut takerOrMaker: Value = Value::Null;
-        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker", &[]);
+        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_maker", &[]).as_bool();
         if (isMaker.is_some()) {
-            takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "trade_fee", &[]).as_str().map(str::to_owned);

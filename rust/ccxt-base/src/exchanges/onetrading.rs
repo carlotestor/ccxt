@@ -1855,7 +1855,7 @@ impl Onetrading {
         //         ]
         //     }
         //
-        let mut rawOrder: crate::value::Dict = self.safe_dict_k(order.clone(), "order", &[order.clone()]).into_dict();
+        let mut rawOrder: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]);
         let mut id: Option<String> = self.safe_string_k(&rawOrder, "order_id", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(&rawOrder, "client_id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(&rawOrder, "time", &[]));
@@ -1868,7 +1868,7 @@ impl Onetrading {
         let mut side: Option<String> = self.safe_string_lower_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_lower_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(&rawOrder, "time_in_force", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(&rawOrder, "is_post_only", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(rawOrder.clone(), "is_post_only", &[]).as_bool();
         let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1881,10 +1881,10 @@ impl Onetrading {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_number_k(&rawOrder, "trigger_price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(rawOrder, "trigger_price", &[]));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);

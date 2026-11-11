@@ -1269,7 +1269,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut accountIndexStr: Value = self.number_to_string(accountIndex.clone());
-        let mut isStandardTier: Option<bool> = self.safe_bool_opt(Value::Map(tiersForAccountIndexes.clone()), accountIndexStr.clone(), &[]);
+        let mut isStandardTier: Option<bool> = self.safe_bool(Value::Map(tiersForAccountIndexes.clone()), accountIndexStr.clone(), &[]).as_bool();
         if (isStandardTier.is_some()) {
             let mut cachedIsStandard: Value = (Value::Bool(isStandardTier == Some(true)));
             return cachedIsStandard;
@@ -1588,13 +1588,13 @@ if _try_result.is_err() {
             }
             let mut stopLossOrderTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             let mut stopLossOrderType: String = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-            let mut stopLossOrderLimitPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[Value::from(stopLossOrderTriggerPrice)]);
+            let mut stopLossOrderLimitPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[Value::from(stopLossOrderTriggerPrice)]).as_f64();
             let mut takeProfitOrderTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             let mut takeProfitOrderType: String = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-            let mut takeProfitOrderLimitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]);
+            let mut takeProfitOrderLimitPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]).as_f64();
             // amount should be 0 for child orders
             if (stopLoss != Value::Null) {
-                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[stopLossOrderLimitPrice, self.extend(paramsRequest.clone(), &[Value::Map({
+                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(paramsRequest.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), Value::from(stopLossOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -1608,7 +1608,7 @@ if _try_result.is_err() {
                 orders.push(orderObj.clone());
             }
             if (takeProfit != Value::Null) {
-                let __ws_arg_10 = self.create_order_request(symbol, Value::from(takeProfitOrderType), Value::from(triggerOrderSide), Value::Int(0), &[takeProfitOrderLimitPrice, self.extend(paramsRequest, &[Value::Map({
+                let __ws_arg_10 = self.create_order_request(symbol, Value::from(takeProfitOrderType), Value::from(triggerOrderSide), Value::Int(0), &[Value::from(takeProfitOrderLimitPrice), self.extend(paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -3460,11 +3460,11 @@ if _try_result.is_err() {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market_index", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "timestamp", &[]).as_i64();
-        let mut isAsk: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_ask", &[]);
+        let mut isAsk: Option<bool> = self.safe_bool_k(order.clone(), "is_ask", &[]).as_bool();
         let mut isAskAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "is_ask", &[]).as_i64();
         let mut side: Option<String> = None;
         if (isAsk.is_some()) {
-            side = (if isAsk == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
+            side = (if (isAsk == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }  else if (isAskAsInteger.is_some()) {
             side = (if (isAskAsInteger == Some(1)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
@@ -3487,11 +3487,11 @@ if _try_result.is_err() {
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         let mut tifAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "time_in_force", &[]).as_i64();
         let mut tif: Value = (if (tifAsInteger.is_some()) { self.parse_order_time_in_force_integer(Value::from(tifAsInteger)).map(Value::from).unwrap_or(Value::Null) } else { self.safe_string_k(order.clone(), "time_in_force", &[]) });
-        let mut reduceOnlyAsBool: Value = self.safe_bool_k(order.clone(), "reduce_only", &[]);
+        let mut reduceOnlyAsBool: Option<bool> = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
         let mut reduceOnlyAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
-        let mut reduceOnly: Value = reduceOnlyAsBool.clone();
-        if (reduceOnlyAsBool == Value::Null) && (reduceOnlyAsInteger.is_some()) {
-            reduceOnly = (Value::Bool(reduceOnlyAsInteger == Some(1)));
+        let mut reduceOnly: Option<bool> = reduceOnlyAsBool;
+        if (reduceOnlyAsBool.is_none()) && (reduceOnlyAsInteger.is_some()) {
+            reduceOnly = Some(reduceOnlyAsInteger == Some(1));
         }
         let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -3507,7 +3507,7 @@ if _try_result.is_err() {
         m.insert("type".to_string(), self.parse_order_type(type_var).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(tif.clone()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Bool(tif.as_str() == Some("post-only")));
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice);
@@ -4371,7 +4371,7 @@ if _try_result.is_err() {
         let mut accountIndex: Option<String> = self.safe_string_k(trade.clone(), "account_index", &[]).as_str().map(str::to_owned);
         let mut askAccountId: Option<String> = self.safe_string_k(trade.clone(), "ask_account_id", &[]).as_str().map(str::to_owned);
         let mut bidAccountId: Option<String> = self.safe_string_k(trade.clone(), "bid_account_id", &[]).as_str().map(str::to_owned);
-        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
+        let mut isMakerAsk: Option<bool> = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]).as_bool();
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = None;
         if (accountIndex.is_some()) {
@@ -4385,7 +4385,7 @@ if _try_result.is_err() {
         }
         // public trades use Lighter's taker-side convention
         if (side.is_none()) && (isMakerAsk.is_some()) {
-            side = (if isMakerAsk == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
+            side = (if (isMakerAsk == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut takerOrMaker: Value = Value::Null;
         if (side.is_some()) && (isMakerAsk.is_some()) {

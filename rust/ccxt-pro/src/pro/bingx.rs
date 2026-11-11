@@ -1193,12 +1193,12 @@ impl Bingx {
         }
         orderbook = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut snapshot: Value = Value::Null;
-        let mut timestamp: Value = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]);
-        timestamp = self.safe_integer2(data.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[timestamp.clone()]);
+        let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]).as_i64();
+        timestamp = self.safe_integer2(data.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[Value::from(timestamp)]).as_i64();
         if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-            snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
+            snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         }  else {
-            snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+            snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         }
         let mut nonce: Option<i64> = self.safe_integer_k(data, "lastUpdateId", &[]).as_i64();
         snapshot.set_book_meta("nonce", Value::from(nonce));

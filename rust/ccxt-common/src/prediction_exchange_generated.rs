@@ -2083,16 +2083,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderType: Option<String> = self.safe_string_k(outcomeOrder.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = self.safe_string_k(outcomeOrder.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         // the venue flag and the derived one are each written once, so neither local widens
-        let mut postOnlyValue: Value = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]);
+        let mut postOnlyValue: Option<bool> = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]).as_bool();
         let mut derivedPostOnly: Value = Value::Null;
         if (timeInForce.is_none()) {
             if (orderType.as_deref() == Some("market")) {
                 timeInForce = Some("IOC".to_string());
             }
-            if (postOnlyValue.as_bool() == Some(true)) {
+            if (postOnlyValue == Some(true)) {
                 timeInForce = Some("PO".to_string());
             }
-        }  else if (postOnlyValue == Value::Null) {
+        }  else if (postOnlyValue.is_none()) {
             derivedPostOnly = (Value::Bool(timeInForce.as_deref() == Some("PO")));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]).as_i64();
@@ -2120,7 +2120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("cost".to_string(), self.parse_number(cost.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
-                m.insert("postOnly".to_string(), (if (postOnlyValue != Value::Null) { postOnlyValue } else { derivedPostOnly }));
+                m.insert("postOnly".to_string(), (if (postOnlyValue.is_some()) { postOnlyValue.map_or(Value::Null, Value::Bool) } else { derivedPostOnly }));
                 m.insert("trades".to_string(), trades);
                 m.insert("outcome".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcome", &[]));
                 m.insert("outcomeId".to_string(), self.safe_string_k(outcomeOrder.clone(), "outcomeId", &[]));

@@ -2893,7 +2893,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             orders = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), messageHash.clone(), Value::from(channel), &[symbolResolved.clone(), paramsExtended]).await;
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2_opt(paramsUta.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut trigger: Option<bool> = self.safe_bool2(paramsUta.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut paramsOmitted: Value = self.omit(paramsUta, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsOmitted]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3031,7 +3031,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             timestamp = self.safe_integer_product_k(order.clone(), "orderTime", Value::Float(0.000001), &[]).as_i64();
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
-        let mut triggerSuccess: Option<bool> = self.safe_bool_k_opt(order.clone(), "triggerSuccess", &[]);
+        let mut triggerSuccess: Option<bool> = self.safe_bool_k(order.clone(), "triggerSuccess", &[]).as_bool();
         let mut triggerFail: bool = (triggerSuccess != Some(true)) && (triggerSuccess.is_some()); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if (status.as_str() == Some("triggered")) && triggerFail {
             status = Value::Str("canceled".into());

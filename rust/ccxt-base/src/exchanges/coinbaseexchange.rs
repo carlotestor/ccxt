@@ -2160,7 +2160,7 @@ impl Coinbaseexchange {
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
+        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "stop_price", &[]).as_f64();
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client_oid", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -2175,7 +2175,7 @@ impl Coinbaseexchange {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
