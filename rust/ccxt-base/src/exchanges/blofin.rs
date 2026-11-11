@@ -3569,8 +3569,8 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networkKeys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut onlyNetwork: Option<String> = self.safe_string(networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut networkKeys: crate::value::List = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut onlyNetwork: Option<String> = self.safe_string(&networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (onlyNetwork.is_some()) {
                 let mut networkResolved: indexmap::IndexMap<String, Value> = self.safe_dict(networks, onlyNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

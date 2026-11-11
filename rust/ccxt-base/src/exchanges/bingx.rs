@@ -5387,9 +5387,9 @@ impl Bingx {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(marketIds), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(marketIds), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        let mut market: crate::types::Market = (match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut market: crate::types::Market = (match self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if ((market).inverse == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() is not supported for inverse swap markets".into()))));
         }
@@ -7218,8 +7218,8 @@ impl Bingx {
             if (defaultNetworkForCurrency.is_some()) {
                 return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), defaultNetworkForCurrency.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
-                let mut keys: Value = Value::Array((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-                let mut key: Option<String> = self.safe_string(keys, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut keys: crate::value::List = Value::Array((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+                let mut key: Option<String> = self.safe_string(&keys, Value::Int(0), &[]).as_str().map(str::to_owned);
                 return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures), key.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }
         }

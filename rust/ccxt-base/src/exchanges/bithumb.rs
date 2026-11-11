@@ -2362,8 +2362,8 @@ impl Bithumb {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("batch_orders".to_string(), Value::from(ordersRequests));

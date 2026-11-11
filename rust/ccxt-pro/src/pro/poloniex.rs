@@ -1075,17 +1075,17 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
         let mut name: String = "trades".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_622: bool = true;
             while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (symbolsNormalized.len() as i64) } {
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        return self.un_subscribe(Value::from(name), symbolsNormalized, Value::from(messageHashes), &[params]).await;
+        return self.un_subscribe(Value::from(name), Value::Arr(symbolsNormalized), Value::from(messageHashes), &[params]).await;
         Value::Null
         }).await?))
     }

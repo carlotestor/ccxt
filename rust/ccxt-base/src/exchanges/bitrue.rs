@@ -2182,8 +2182,8 @@ impl Bitrue {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut first: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
         if (market).swap {
@@ -2239,7 +2239,7 @@ impl Bitrue {
             m
         });
         data.insert(crate::runtime::stringify_param(&(Value::from((market).id.clone()))), response);
-        return self.parse_tickers(Value::Map(data), &[symbolsNormalized]);
+        return self.parse_tickers(Value::Map(data), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
     }

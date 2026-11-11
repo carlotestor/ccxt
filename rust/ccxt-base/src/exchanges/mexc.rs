@@ -6615,8 +6615,8 @@ impl Mexc {
             if (defaultNetworkForCurrency.is_some()) {
                 key = defaultNetworkForCurrency;
             }  else {
-                let mut keys: Value = Value::Array((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-                key = self.safe_string(keys, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut keys: crate::value::List = Value::Array((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+                key = self.safe_string(&keys, Value::Int(0), &[]).as_str().map(str::to_owned);
             }
         }
         if (key.is_none()) || (self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), key.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {

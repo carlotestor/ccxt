@@ -6690,8 +6690,8 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut feeCoins: Value = Value::Array(cumFeeDetail.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        let mut feeCoinId: Option<String> = self.safe_string(feeCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut feeCoins: crate::value::List = Value::Array(cumFeeDetail.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+        let mut feeCoinId: Option<String> = self.safe_string(&feeCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (feeCoinId.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7293,8 +7293,8 @@ impl Bybit {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut unifiedMarginStatus: i64 = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type(Value::Str("createOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7538,8 +7538,8 @@ impl Bybit {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut unifiedMarginStatus: i64 = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type(Value::Str("editOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);

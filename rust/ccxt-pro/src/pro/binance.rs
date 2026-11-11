@@ -2629,8 +2629,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut klineType: Value = klineTypeparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = klineTypeparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut symbols: Value = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0));
-        let mut marketSymbols: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: crate::types::Market = (match self.market((marketSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketSymbols: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]).into_list();
+        let mut firstMarket: crate::types::Market = (match self.market((marketSymbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut type_var: Value = Value::from((firstMarket).market_type.clone());
         let mut wsUrlType: Value = type_var.clone();
         if (firstMarket).option {
@@ -2739,8 +2739,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut klineType: Value = klineTypeparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = klineTypeparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut symbols: Value = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0));
-        let mut marketSymbols: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: crate::types::Market = (match self.market((marketSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketSymbols: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]).into_list();
+        let mut firstMarket: crate::types::Market = (match self.market((marketSymbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut type_var: Value = Value::from((firstMarket).market_type.clone());
         let mut wsUrlType: Value = type_var.clone();
         if (firstMarket).option {
@@ -3507,23 +3507,23 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks() with stock stream requires symbols".into()))));
             }
-            let mut stockSymbols: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]);
+            let mut stockSymbols: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]).into_list();
             let mut stockStreams: Vec<Value> = Vec::new();
             let mut stockMessageHashes: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_70: bool = true;
                 while { if !__for_first_70 { i += 1; } __for_first_70 = false; i < (stockSymbols.len() as i64) } {
-                let mut stockTicker: Value = self.get_stock_ticker_from_symbol(stockSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+                let mut stockTicker: Value = self.get_stock_ticker_from_symbol(stockSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
                 stockStreams.push(Value::Str(format!("{}{}", stockTicker, Value::Str("@quote".into())).into()));
-                stockMessageHashes.push(Value::Str(format!("{}{}", Value::Str("stock:quote:".into()), stockSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                stockMessageHashes.push(Value::Str(format!("{}{}", Value::Str("stock:quote:".into()), stockSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
             let mut stockResult: Value = self.watch_stock_market_stream(Value::from(stockStreams), Value::from(stockMessageHashes), &[paramsStock.clone()]).await;
             if self.newUpdates.as_bool() == Some(true) {
                 return stockResult;
             }
-            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[stockSymbols]);
+            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(stockSymbols)]);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
         let mut result: Value = self.watch_multi_ticker_helper(Value::Str("watchBidsAsks".into()), Value::Str("bookTicker".into()), &[symbolsNormalized.clone(), paramsStock]).await;
@@ -4621,7 +4621,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // whether or not to schedule another listenKey keepAlive request
-        let mut clients: Value = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
+        let mut clients: crate::value::List = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         let mut refreshRateKey: String = "listenKeyRefreshRate".to_string();
         if isStock {
             refreshRateKey = "stockListenKeyRefreshRate".to_string();
@@ -4646,7 +4646,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_75: bool = true;
             while { if !__for_first_75 { i += 1; } __for_first_75 = false; i < (clients.len() as i64) } {
-            let mut client: Value = self.safe_dict(clients.clone(), Value::Int(i), &[]);
+            let mut client: Value = self.safe_dict(Value::Arr(clients.clone()), Value::Int(i), &[]);
             let mut clientSubscriptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(client.clone(), "subscriptions", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

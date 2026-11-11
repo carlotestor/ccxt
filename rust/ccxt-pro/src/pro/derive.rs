@@ -581,14 +581,14 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_298: bool = true;
             while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbolsResolved.len() as i64) } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsResolved.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             let mut marketId: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketSymbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), marketId).into()), Value::Str(".100".into())).into()));
@@ -625,7 +625,7 @@ impl Derive {
             result.insert(tickerSymbol, ticker);
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsResolved]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsResolved)]);
         Value::Null
         }).await?))
     }

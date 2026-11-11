@@ -446,7 +446,7 @@ impl Backpack {
         let mut stock: bool = self.safe_bool_k(query.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut explicitSource: Option<String> = self.safe_string_k(query.clone(), "source", &[]).as_str().map(str::to_owned);
         let mut channel: Option<String> = self.safe_string_k(query.clone(), "channel", &[]).as_str().map(str::to_owned);
-        let mut normalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        let mut normalized: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).into_list();
         let mut symbolsResolved: Vec<Value> = Vec::new();
         let mut topics: Value = Value::from(vec![]);
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -466,7 +466,7 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_37: bool = true;
             while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (normalized.len() as i64) } {
-            let mut market: crate::types::Market = (match self.market((normalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((normalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && ((market).raw.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 continue;
             }
@@ -1778,14 +1778,14 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_48: bool = true;
             while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -1857,14 +1857,14 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_49: bool = true;
             while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);

@@ -1505,10 +1505,10 @@ impl Gate {
         let callerMethodNameOptionparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[callerMethodName]).as_array().cloned().unwrap_or_default();
         let mut callerMethodNameOption: Value = callerMethodNameOptionparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsCallerMethodName: Value = callerMethodNameOptionparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut messageType: Value = self.get_type_by_market(market.clone());
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
+        let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption.clone(), Value::Str("method".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Value = channelNameparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = channelNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1527,7 +1527,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_322: bool = true;
             while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(":".into())).into()), symbol).into()));
         }
         }
@@ -1544,9 +1544,9 @@ impl Gate {
             return Value::Map(items);
         }
         if isWatchTickers {
-            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone(), Value::Bool(true)]);
+            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Bool(true)]);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(true)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized), Value::Bool(true)]);
 
     Value::Null
 }

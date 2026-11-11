@@ -1050,24 +1050,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
         let mut messageHash: String = "uta:ticker".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
             messageHashes.push(subMessageHash);
         }
         }
-        let mut tickers: Value = self.subscribe_public_multiple_uta(Value::from(messageHashes), Value::Str("ticker".into()), symbolsNormalized.clone(), &[params]).await;
+        let mut tickers: Value = self.subscribe_public_multiple_uta(Value::from(messageHashes), Value::Str("ticker".into()), Value::Arr(symbolsNormalized.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return tickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
 
     Value::Null
 }
@@ -1359,7 +1359,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]).into_list();
         let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
         if length > ((100i64) as f64) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() accepts a maximum of 100 symbols".into()))));
@@ -1369,13 +1369,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask@".into()), Value::from((market).symbol.clone())).into())); }
         }
         }
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesChannel]).await;
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
+        let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized)]);
         let mut joined: Value = Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
         let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1835,10 +1835,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
+        let mut firstMarket: Value = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]);
         let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
+        let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod)]).await;
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionHashes: Vec<Value> = Vec::new();
@@ -1851,7 +1851,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
             let mut marketId: String = self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             subscriptionHashes.push(Value::Str(format!("{}{}", channelName, marketId).into()));

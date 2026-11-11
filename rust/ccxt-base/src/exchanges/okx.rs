@@ -8634,8 +8634,8 @@ impl Okx {
             return self.safe_dict(response.clone(), codeNetwork.clone(), &[]);
         }
         // if the network is not specified, return the first address
-        let mut keys: Value = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        let mut first: String = self.safe_string(keys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut keys: crate::value::List = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+        let mut first: String = self.safe_string(&keys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return self.safe_dict(response, Value::from(first), &[]);
         Value::Null
         }).await?))

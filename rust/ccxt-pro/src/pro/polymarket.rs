@@ -730,7 +730,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut channels: Vec<Value> = Vec::new();
@@ -738,7 +738,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_637: bool = true;
             while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into())); }
             channels.push(Value::Str(format!("{}{}", Value::Str("bbo::".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }
@@ -756,7 +756,7 @@ impl Polymarket {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&ticker, "symbol"))), ticker.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
     }

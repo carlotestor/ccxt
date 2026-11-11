@@ -4547,8 +4547,8 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currencies: Value = Value::Array(entry.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut currencyId: Option<String> = self.safe_string_opt(currencies, Value::Int(0), &[]);
+            let mut currencies: crate::value::List = Value::Array(entry.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut currencyId: Option<String> = self.safe_string_opt(&currencies, Value::Int(0), &[]);
             data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         }

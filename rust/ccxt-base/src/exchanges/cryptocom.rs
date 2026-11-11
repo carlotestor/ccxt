@@ -3478,8 +3478,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return self.safe_dict(depositAddresses.clone(), network.clone(), &[]);
             }
         }
-        let mut keys: Value = Value::Array(depositAddresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        return self.safe_dict(depositAddresses, self.safe_string(keys, Value::Int(0), &[]), &[]);
+        let mut keys: crate::value::List = Value::Array(depositAddresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+        return self.safe_dict(depositAddresses, self.safe_string(&keys, Value::Int(0), &[]), &[]);
         Value::Null
         }).await?))
     }
