@@ -444,10 +444,10 @@ impl Bithumb {
         let mut streamMarketIds: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_127 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLengthDefined } {
-            let mut symbol: Option<String> = symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_127 { i += 1; } __for_first_127 = false; (i as f64) < symbolsLengthDefined } {
+            let mut symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
             if isGenerationTwo {

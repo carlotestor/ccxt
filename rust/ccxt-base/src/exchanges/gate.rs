@@ -8522,10 +8522,10 @@ if _try_result.is_err() {
         if openSpotOrders {
             let mut spotResult: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_702: bool = true;
-                while { if !__for_first_702 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_702 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-                let mut responseEntry: crate::value::Dict = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_702 { i += 1; } __for_first_702 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut responseEntry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

@@ -3807,10 +3807,10 @@ impl Aster {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrders() order list max 5 orders".into()))));
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_232: bool = true;
-            while { if !__for_first_232 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_232 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_232 { i += 1; } __for_first_232 = false; (i as f64) < ordersLength } {
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut currentMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             orderSymbols.push(Value::from((currentMarket).symbol.clone()));
@@ -5964,10 +5964,10 @@ impl Aster {
         let mut found: bool = false;
         let mut builderAddress: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_243: bool = true;
-            while { if !__for_first_243 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_243 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilders.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_243 { i += 1; } __for_first_243 = false; (i as f64) < length } {
+            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilders.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

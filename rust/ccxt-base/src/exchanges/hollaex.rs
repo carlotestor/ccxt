@@ -2681,10 +2681,10 @@ impl Hollaex {
             let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut keysLength: f64 = ((keys.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_765: bool = true;
-                while { if !__for_first_765 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_765 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength } {
-                let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_765 { i += 1; } __for_first_765 = false; (i as f64) < keysLength } {
+                let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

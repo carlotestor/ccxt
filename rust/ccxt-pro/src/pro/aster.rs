@@ -1863,10 +1863,10 @@ impl Aster {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_28 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; (i as f64) < symbolsLength } {
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {
                 continue;
@@ -1942,10 +1942,10 @@ impl Aster {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_29 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; (i as f64) < symbolsLength } {
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {
                 continue;

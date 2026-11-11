@@ -6256,10 +6256,10 @@ impl Htx {
         }  else if spot || margin {
             if isolated {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_778: bool = true;
-                    while { if !__for_first_778 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_778 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut entry: crate::value::Dict = self.safe_dict(data.clone(), i.clone(), &[]).into_dict();
+                    while { if !__for_first_778 { i += 1; } __for_first_778 = false; (i as f64) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    let mut entry: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[]).into_dict();
                     let mut balances: Value = self.safe_list_k(&entry, "list", &[Value::from(vec![])]);
                     let mut subResult: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -6307,10 +6307,10 @@ impl Htx {
             }
         }  else if inverse {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_780: bool = true;
-                while { if !__for_first_780 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_780 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+                while { if !__for_first_780 { i += 1; } __for_first_780 = false; (i as f64) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "symbol", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
@@ -6375,7 +6375,7 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsMarketType.clone(), "clientOrderId", &[]);
+            let mut clientOrderId: Option<String> = self.safe_string_k(paramsMarketType.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 // will be filled below in extend ()
                 // they expect clientOrderId instead of client-order-id

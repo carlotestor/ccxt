@@ -1388,10 +1388,10 @@ impl Grvt {
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), i.clone(), &[Value::Map({
+            while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
+            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

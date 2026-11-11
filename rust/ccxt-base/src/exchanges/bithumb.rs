@@ -1207,10 +1207,10 @@ impl Bithumb {
             }
         }  else {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_395: bool = true;
-                while { if !__for_first_395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_395 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: crate::value::Dict = self.safe_dict(response.clone(), i.clone(), &[]).into_dict();
+                while { if !__for_first_395 { i += 1; } __for_first_395 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
                 let mut account: Value = self.account();
                 let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1580,10 +1580,10 @@ impl Bithumb {
             }
             let mut symbolsForMarketIdsLength: f64 = ((symbolsForMarketIds.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsForMarketIdsLength } {
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+                while { if !__for_first_397 { i += 1; } __for_first_397 = false; (i as f64) < symbolsForMarketIdsLength } {
+                let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 marketIds.push(self.get_gen2_market_id(market.clone()));
             }
             }
@@ -1648,15 +1648,15 @@ impl Bithumb {
             let mut responses: Value = promise_all(&Value::from(promises)).await;
             let mut responsesLength: f64 = ((responses.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_401: bool = true;
-                while { if !__for_first_401 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_401 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength } {
-                let mut response: Value = self.safe_value(responses.clone(), i.clone(), &[]);
+                while { if !__for_first_401 { i += 1; } __for_first_401 = false; (i as f64) < responsesLength } {
+                let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response.clone(), "data", &[]);
                 }
                 let mut expectedMarketId: Value = Value::Null;
-                let mut requestedMarketIds: crate::value::List = self.safe_list(marketIdsChunks.clone(), i.clone(), &[Value::from(vec![])]).into_list();
+                let mut requestedMarketIds: crate::value::List = self.safe_list(marketIdsChunks.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                 let mut firstMarketId: Option<String> = self.safe_string(&requestedMarketIds, Value::Int(0), &[]).as_str().map(str::to_owned);
                 if (firstMarketId.is_some()) && (self.safe_string(&requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
                     expectedMarketId = firstMarketId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -4250,7 +4250,7 @@ impl Bithumb {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_value(query.clone(), key.clone(), &[]);
             if (matches!(&value, Value::Arr(_))) {
-                let mut encodedKey: Value = Value::Str(format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".into())).into());
+                let mut encodedKey: String = format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".into()));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_407: bool = true;

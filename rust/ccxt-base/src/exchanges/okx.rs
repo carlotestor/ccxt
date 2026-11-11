@@ -4547,10 +4547,10 @@ impl Okx {
         let mut type_var: String = "crypto".to_string();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1006 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            while { if !__for_first_1006 { j += 1; } __for_first_1006 = false; (j as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone(), Value::Int(j), &[]);
             // allow empty string for rare fiat-currencies, e.g. TRY
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".into())]); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId.as_str() == Some("")) {
@@ -6726,12 +6726,12 @@ impl Okx {
             let mut orderIds: Value = self.parse_ids(ids);
             if (algoIds != Value::Null) {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1012: bool = true;
-                    while { if !__for_first_1012 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1012 { i += 1; } __for_first_1012 = false; (i as f64) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), i.clone(), &[]));
+                            m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
@@ -6739,20 +6739,20 @@ impl Okx {
                 }
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1013: bool = true;
-                while { if !__for_first_1013 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1013 { i += 1; } __for_first_1013 = false; (i as f64) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("algoId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
+                            m.insert("algoId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("ordId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
+                            m.insert("ordId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
@@ -6761,21 +6761,21 @@ impl Okx {
             }
         }  else {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1014: bool = true;
-                while { if !__for_first_1014 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1014 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1014 { i += 1; } __for_first_1014 = false; (i as f64) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
-                            m.insert("algoClOrdId".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
+                            m.insert("algoClOrdId".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
-                            m.insert("clOrdId".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
+                            m.insert("clOrdId".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
                         m
                     }));
                 }
@@ -10086,7 +10086,7 @@ impl Okx {
                         let mut __for_first_1020: bool = true;
                         while { if !__for_first_1020 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
                         let mut entry: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                        let mut clientOrderId: Option<String> = self.safe_string_k_opt(entry.clone(), "clOrdId", &[]);
+                        let mut clientOrderId: Option<String> = self.safe_string_k(entry.clone(), "clOrdId", &[]).as_str().map(str::to_owned);
                         if (clientOrderId.is_none()) {
                             add_element_to_object(&mut entry, &Value::Str("clOrdId".into()), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into()));
                             add_element_to_object(&mut entry, &Value::Str("tag".into()), Value::from(brokerId.clone()));
@@ -10095,7 +10095,7 @@ impl Okx {
                     }
                     }
                 }  else {
-                    let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clOrdId", &[]);
+                    let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clOrdId", &[]).as_str().map(str::to_owned);
                     if (clientOrderId.is_none()) {
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into())); }
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("tag".into(), Value::from(brokerId)); }
@@ -11305,10 +11305,10 @@ impl Okx {
         //
         let mut tiers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1026: bool = true;
-            while { if !__for_first_1026 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1026 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
+            while { if !__for_first_1026 { i += 1; } __for_first_1026 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut tier: Value = self.safe_dict(info.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "instId", &[]).as_str().map(str::to_owned);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

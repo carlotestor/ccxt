@@ -3405,7 +3405,7 @@ impl Weex {
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("presetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
                 let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(stopLoss.clone(), "triggerPriceType", &[]);
                 if (stopLossPriceType.is_some()) {
@@ -3413,7 +3413,7 @@ impl Weex {
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("presetTakeProfitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
                 let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(takeProfit.clone(), "triggerPriceType", &[]);
                 if (takeProfitPriceType.is_some()) {
@@ -3465,7 +3465,7 @@ impl Weex {
             }
             request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
                 let mut stopLossPriceType: Option<String> = self.safe_string_k_opt(stopLoss, "triggerPriceType", &[]);
                 if (stopLossPriceType.is_some()) {
@@ -3473,7 +3473,7 @@ impl Weex {
                 }
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol, Value::from(takeProfitTriggerPrice)));
                 let mut takeProfitPriceType: Option<String> = self.safe_string_k_opt(takeProfit, "triggerPriceType", &[]);
                 if (takeProfitPriceType.is_some()) {

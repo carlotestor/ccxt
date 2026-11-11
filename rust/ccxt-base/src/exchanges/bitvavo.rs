@@ -868,10 +868,10 @@ impl Bitvavo {
     pub fn parse_markets(&self, mut markets: Value) -> Value {
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_453 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = self.safe_dict(markets.clone(), i.clone(), &[]);
+            while { if !__for_first_453 { i += 1; } __for_first_453 = false; (i as f64) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
+            let mut market: Value = self.safe_dict(markets.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "market", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);

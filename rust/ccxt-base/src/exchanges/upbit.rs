@@ -2633,10 +2633,10 @@ impl Upbit {
             }
             cost = Some("0".to_string());
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1144: bool = true;
-                while { if !__for_first_1144 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1144 = false; i.as_f64().unwrap_or(f64::NAN) < numTrades.as_f64().unwrap_or(f64::NAN) } {
-                let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), i.clone(), &[]).into_dict();
+                while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; (i as f64) < numTrades.as_f64().unwrap_or(f64::NAN) } {
+                let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(i), &[]).into_dict();
                 cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {
                     let mut tradeFee: crate::value::Dict = self.safe_dict_k(&trade, "fee", &[Value::Map({

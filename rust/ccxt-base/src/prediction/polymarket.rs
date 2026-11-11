@@ -1373,14 +1373,14 @@ impl Polymarket {
             });
             let mut unioned: Vec<Value> = Vec::new();
             {
-                                let mut ti: Value = Value::Int(0);
+                                let mut ti: i64 = 0;
                 let mut __for_first_1415: bool = true;
-                while { if !__for_first_1415 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1415 = false; ti.as_f64().unwrap_or(f64::NAN) < requestedTagsLength } {
+                while { if !__for_first_1415 { ti += 1; } __for_first_1415 = false; (ti as f64) < requestedTagsLength } {
                 let mut singleTagParams: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 }), &[params.clone()]);
-                add_element_to_object(&mut singleTagParams, &Value::Str("tags".into()), Value::from(vec![requestedTags.get(ti.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]));
+                add_element_to_object(&mut singleTagParams, &Value::Str("tags".into()), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
                 let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[singleTagParams])).await;
                 {
                                         let mut ei: i64 = 0;
@@ -1424,10 +1424,10 @@ impl Polymarket {
         let mut firstPageLength: f64 = ((firstPage.len() as i64) as f64);
         let mut allRawEvents: Vec<Value> = Vec::new();
         {
-                        let mut fi: Value = Value::Int(0);
+                        let mut fi: i64 = 0;
             let mut __for_first_1416: bool = true;
-            while { if !__for_first_1416 { if let Value::Int(n) = &mut fi { *n += 1; } } __for_first_1416 = false; fi.as_f64().unwrap_or(f64::NAN) < firstPageLength } {
-            allRawEvents.push(firstPage.as_array().and_then(|__arr| match &fi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1416 { fi += 1; } __for_first_1416 = false; (fi as f64) < firstPageLength } {
+            allRawEvents.push(firstPage.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).cloned().unwrap_or(Value::Null));
         }
         }
         if firstPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) {
@@ -1461,10 +1461,10 @@ impl Polymarket {
                 let mut page: Vec<Value> = self.safe_list(restPages.clone(), Value::Int(ri), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut pageLength: f64 = ((page.len() as i64) as f64);
                 {
-                                        let mut pi: Value = Value::Int(0);
+                                        let mut pi: i64 = 0;
                     let mut __for_first_1419: bool = true;
-                    while { if !__for_first_1419 { if let Value::Int(n) = &mut pi { *n += 1; } } __for_first_1419 = false; pi.as_f64().unwrap_or(f64::NAN) < pageLength } {
-                    allRawEvents.push(page.get(pi.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                    while { if !__for_first_1419 { pi += 1; } __for_first_1419 = false; (pi as f64) < pageLength } {
+                    allRawEvents.push(page.get(pi as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
             }
@@ -1719,10 +1719,10 @@ impl Polymarket {
                 })).as_array().cloned().unwrap_or_default();
                 let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1423: bool = true;
-                    while { if !__for_first_1423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1423 = false; i.as_f64().unwrap_or(f64::NAN) < ccxtMarketsLength } {
-                    let mut mkt: Value = ccxtMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1423 { i += 1; } __for_first_1423 = false; (i as f64) < ccxtMarketsLength } {
+                    let mut mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOutcome() could not resolve mkt".into()))));
                     }
@@ -1977,10 +1977,10 @@ impl Polymarket {
             });
             let mut lastTradesLength: f64 = ((lastTrades.len() as i64) as f64);
             {
-                                let mut li: Value = Value::Int(0);
+                                let mut li: i64 = 0;
                 let mut __for_first_1431: bool = true;
-                while { if !__for_first_1431 { if let Value::Int(n) = &mut li { *n += 1; } } __for_first_1431 = false; li.as_f64().unwrap_or(f64::NAN) < lastTradesLength } {
-                let mut lastTradeEntry: Value = lastTrades.as_array().and_then(|__arr| match &li { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1431 { li += 1; } __for_first_1431 = false; (li as f64) < lastTradesLength } {
+                let mut lastTradeEntry: Value = lastTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(li as usize).cloned().unwrap_or(Value::Null);
                 let mut lastTradeTokenId: Option<String> = self.safe_string_k_opt(lastTradeEntry.clone(), "token_id", &[]);
                 if (lastTradeTokenId.is_some()) {
                     lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), lastTradeEntry);
@@ -1989,10 +1989,10 @@ impl Polymarket {
             }
             let mut booksLength: f64 = ((books.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1432: bool = true;
-                while { if !__for_first_1432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1432 = false; i.as_f64().unwrap_or(f64::NAN) < booksLength } {
-                let mut book: Value = books.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; (i as f64) < booksLength } {
+                let mut book: Value = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tokenId: Option<String> = self.safe_string_k_opt(book.clone(), "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
                     continue;
@@ -4219,10 +4219,10 @@ impl Polymarket {
         let mut rawTagsLength: f64 = ((rawTags.len() as i64) as f64);
         let mut parsedTags: Vec<Value> = Vec::new();
         {
-                        let mut ti: Value = Value::Int(0);
+                        let mut ti: i64 = 0;
             let mut __for_first_1447: bool = true;
-            while { if !__for_first_1447 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1447 = false; ti.as_f64().unwrap_or(f64::NAN) < rawTagsLength } {
-            let mut tagLabel: Option<String> = self.safe_string2(rawTags.get(ti.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
+            while { if !__for_first_1447 { ti += 1; } __for_first_1447 = false; (ti as f64) < rawTagsLength } {
+            let mut tagLabel: Option<String> = self.safe_string2(rawTags.get(ti as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
             if (tagLabel.is_some()) {
                 parsedTags.push(tagLabel.clone().map(Value::from).unwrap_or(Value::Null));
             }

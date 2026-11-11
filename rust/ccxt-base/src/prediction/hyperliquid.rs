@@ -2823,10 +2823,10 @@ impl Hyperliquid {
                     let mut wordsLength: f64 = ((words.len() as i64) as f64);
                     let mut allWords: bool = true;
                     {
-                                                let mut wi: Value = Value::Int(0);
+                                                let mut wi: i64 = 0;
                         let mut __for_first_1253: bool = true;
-                        while { if !__for_first_1253 { if let Value::Int(n) = &mut wi { *n += 1; } } __for_first_1253 = false; wi.as_f64().unwrap_or(f64::NAN) < wordsLength } {
-                        let mut word: Value = words.get(wi.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                        while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; (wi as f64) < wordsLength } {
+                        let mut word: Value = words.get(wi as usize).cloned().unwrap_or(Value::Null);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if (word.as_str() != Some("")) && (Value::Int(haystack.as_str().zip(word.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
                             allWords = false;

@@ -6652,10 +6652,10 @@ if _try_result.is_err() {
             deposit = Value::Bool(false);
         }
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_373 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone().into(), j.clone(), &[]);
+            while { if !__for_first_373 { j += 1; } __for_first_373 = false; (j as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone().into(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (network == Value::Null) {
@@ -6950,10 +6950,10 @@ if _try_result.is_err() {
         let mut tiers: Vec<Value> = Vec::new();
         let mut minNotional: Value = Value::Int(0);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = self.safe_value(info.clone(), i.clone(), &[]);
+            while { if !__for_first_374 { i += 1; } __for_first_374 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut item: Value = self.safe_value(info.clone(), Value::Int(i), &[]);
             let mut minimumNotional: Option<f64> = self.safe_number2(item.clone(), Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]).as_f64();
             if (minimumNotional.is_some()) {
                 minNotional = Value::from(minimumNotional);
@@ -8169,7 +8169,7 @@ if _try_result.is_err() {
         let mut market: Option<crate::types::Market> = None;
         let mut stockDefault: Option<bool> = None;
         if (symbols != Value::Null) {
-            let mut symbol: Option<String> = self.safe_string_opt(symbols.clone(), Value::Int(0), &[]);
+            let mut symbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stockDefault = self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "stock", &[Value::Bool(false)]).as_bool();
         }
@@ -8228,8 +8228,8 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_375: bool = true;
                 while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (allSymbols.len() as i64) } {
-                let mut symbol: Value = allSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut entry: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+                let mut symbol: Option<String> = allSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut entry: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
                 let mut isStockMarket: bool = self.safe_bool_k(entry.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if isStockMarket {
                     let mut marketSymbol: Option<String> = self.safe_string_k(entry, "symbol", &[]).as_str().map(str::to_owned);
@@ -10435,7 +10435,7 @@ if _try_result.is_err() {
                 }
             }  else {
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     if (slTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter".into()))));
                     }
@@ -10448,7 +10448,7 @@ if _try_result.is_err() {
                     }
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     if (tpTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter".into()))));
                     }
@@ -10958,7 +10958,7 @@ if _try_result.is_err() {
             }  else if isTriggerOrder {
                 request.insert("newTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     request.insert("newStopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice)));
                     let mut slPrice: Option<f64> = self.safe_number_k(stopLoss.clone(), "price", &[]).as_f64();
                     request.insert("newStopLossExecutePrice".into(), self.price_to_precision(symbol.clone(), Value::from(slPrice)));
@@ -10966,7 +10966,7 @@ if _try_result.is_err() {
                     request.insert("newStopLossTriggerType".into(), slType);
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     request.insert("newSurplusTriggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpTriggerPrice)));
                     let mut tpPrice: Option<f64> = self.safe_number_k(takeProfit.clone(), "price", &[]).as_f64();
                     request.insert("newStopSurplusExecutePrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpPrice)));
@@ -10981,11 +10981,11 @@ if _try_result.is_err() {
                 paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("newClientOrderId".into()), &[]);
                 request.insert("newClientOid".into(), newClientOrderId);
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<f64> = self.safe_number2_opt(stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut slTriggerPrice: Option<f64> = self.safe_number2(stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     request.insert("newPresetStopLossPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice)));
                 }
                 if hasTakeProfit {
-                    let mut tpTriggerPrice: Option<f64> = self.safe_number2_opt(takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+                    let mut tpTriggerPrice: Option<f64> = self.safe_number2(takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                     request.insert("newPresetStopSurplusPrice".into(), self.price_to_precision(symbol, Value::from(tpTriggerPrice)));
                 }
                 let __ws_arg_55 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -15518,10 +15518,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), i.clone(), &[]).into_dict();
+            while { if !__for_first_388 { i += 1; } __for_first_388 = false; (i as f64) < chainsLength } {
+            let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), Value::Int(i), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);

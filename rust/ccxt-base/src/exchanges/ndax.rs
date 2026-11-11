@@ -1354,10 +1354,10 @@ impl Ndax {
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_996 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
-            let mut level: Value = self.safe_value(orderbook.clone(), i.clone(), &[]);
+            while { if !__for_first_996 { i += 1; } __for_first_996 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
+            let mut level: Value = self.safe_value(orderbook.clone(), Value::Int(i), &[]);
             let mut newTimestamp: Value = self.safe_integer(level.clone(), Value::Int(2), &[]);
             if (newTimestamp != Value::Null) && ((latestTimestamp == Value::Null) || (newTimestamp.as_f64().unwrap_or(f64::NAN) > latestTimestamp.as_f64().unwrap_or(f64::NAN))) {
                 latestTimestamp = newTimestamp;
