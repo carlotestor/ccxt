@@ -1730,12 +1730,9 @@ impl Woofipro {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let __rawCurrency_empty = indexmap::IndexMap::new();
         let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
-        let mut token: Value = (match rawCurrency.get("_token") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut currencyId: Option<String> = self.safe_string_k(token.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut networks: crate::value::List = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]).into_list();
+        let mut token: crate::value::Dict = rawCurrency.get("_token").cloned().unwrap_or_default().into_dict();
+        let mut currencyId: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
+        let mut networks: crate::value::List = self.safe_list_k(&token, "chain_details", &[Value::from(vec![])]).into_list();
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut indexedChains: Value = (match rawCurrency.get("_indexedChains") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1812,13 +1809,13 @@ impl Woofipro {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(token.clone(), "minimum_withdraw_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&token, "minimum_withdraw_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("info".to_string(), token);
+        m.insert("info".to_string(), Value::from(&token));
     m
 }));
 

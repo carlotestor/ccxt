@@ -7749,7 +7749,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: crate::value::List = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut networkList: crate::value::List = transaction.get("networkList").cloned().unwrap_or_default().into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

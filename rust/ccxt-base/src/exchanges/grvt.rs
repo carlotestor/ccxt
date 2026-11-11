@@ -3372,7 +3372,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let mut priceMultiplier: Value = Value::Int(1000000000);
-        let mut orderLegs: crate::value::List = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut orderLegs: crate::value::List = order.get("legs").cloned().unwrap_or_default().into_list();
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

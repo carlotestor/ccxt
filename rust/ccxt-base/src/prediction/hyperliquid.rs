@@ -1673,7 +1673,7 @@ impl Hyperliquid {
         let mut sideHint = get_arg(optional_args, 0, Value::Null);
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
-        let mut outcomesList: crate::value::List = (match market.get("outcomes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut outcomesList: crate::value::List = market.get("outcomes").cloned().unwrap_or_default().into_list();
         let mut normalizedHint: Value = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { (if let Some(__s) = sideHint.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
         if (normalizedHint != Value::Null) {
             {

@@ -551,7 +551,7 @@ impl Bitvavo {
         //
         self.handle_bid_ask(client.clone(), message);
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut tickers: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut tickers: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
@@ -608,7 +608,7 @@ impl Bitvavo {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut event: String = "bidask".to_string();
-        let mut tickers: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut tickers: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
@@ -962,7 +962,7 @@ impl Bitvavo {
         let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), Value::Str("_".into())).into()), interval);
-        let mut candles: crate::value::List = (match message.get("candle") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut candles: crate::value::List = message.get("candle").cloned().unwrap_or_default().into_list();
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

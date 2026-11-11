@@ -4427,7 +4427,7 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut volatilityResult: crate::value::List = (match volatility.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut volatilityResult: crate::value::List = volatility.get("result").cloned().unwrap_or_default().into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

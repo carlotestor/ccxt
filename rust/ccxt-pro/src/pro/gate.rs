@@ -1144,7 +1144,7 @@ impl Gate {
     m
 }) });
         let mut full: bool = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut marketIdWithPrefix: Option<String> = self.safe_string_k(result.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut marketIdWithPrefix: Option<String> = self.safe_string_k(&result, "s", &[]).as_str().map(str::to_owned);
         if (marketIdWithPrefix.is_none()) {
             return;
         }
@@ -1161,12 +1161,12 @@ impl Gate {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         if full {
             let mut snapshopt: Value = self.parse_order_book(result.clone(), symbol, &[Value::Null, Value::Str("b".into()), Value::Str("a".into())]);
-            snapshopt.set_book_meta("nonce", self.safe_integer_k(result.clone(), "u", &[]));
-            snapshopt.set_book_meta("timestamp", self.safe_integer_k(result.clone(), "t", &[]));
+            snapshopt.set_book_meta("nonce", self.safe_integer_k(&result, "u", &[]));
+            snapshopt.set_book_meta("timestamp", self.safe_integer_k(&result, "t", &[]));
             orderbook.reset(snapshopt);
         }  else {
             let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-            let mut deltaStart: Value = self.safe_integer_k(result.clone(), "u", &[]);
+            let mut deltaStart: Value = self.safe_integer_k(&result, "u", &[]);
             if (nonce == Value::Null) || ((deltaStart != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= deltaStart.as_f64().unwrap_or(f64::NAN))) {
                 return;
             }
@@ -2107,7 +2107,7 @@ impl Gate {
         //     ]
         // }
         //
-        let mut result: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
         let mut tradesLength: f64 = ((result.len() as i64) as f64);
         if (tradesLength == 0.0) {
             return;
@@ -2466,7 +2466,7 @@ impl Gate {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(client.url());
-        let mut data: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut data: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut newPositions: Value = Value::from(vec![]);
         {
@@ -2865,7 +2865,7 @@ impl Gate {
         //        ]
         //    }
         //
-        let mut rawLiquidations: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut rawLiquidations: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
         let mut newLiquidations: Value = Value::from(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2995,7 +2995,7 @@ impl Gate {
         //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
-        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut errs: Value = self.safe_dict_k(&data, "errs", &[]);
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone()]);
         let mut code: Option<String> = self.safe_string2(error.clone(), Value::Str("code".into()), Value::Str("label".into()), &[]).as_str().map(str::to_owned);
@@ -3018,7 +3018,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
                 if (channel.is_some()) && (Value::Int(channel.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                     let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-                    let mut payload: crate::value::List = (match __pro_message.get("payload").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+                    let mut payload: crate::value::List = __pro_message.get("payload").cloned().unwrap_or_default().into_list();
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_338: bool = true;
@@ -3279,7 +3279,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         if (requestId.is_some()) {
-            let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
             // use safeValue as result may be Array or an Object
             let mut result: Value = self.safe_value_k(&data, "result", &[]);
             let mut ack: bool = (match __pro_message.get("ack").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);

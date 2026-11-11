@@ -6873,11 +6873,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //      baseId: 159
         //  }
         //
-        let mut interestValue: Value = (match interest.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut coin: Option<String> = self.safe_string_k(interestValue.clone(), "name", &[]).as_str().map(str::to_owned);
+        let mut interestValue: crate::value::Dict = interest.get("info").cloned().unwrap_or_default().into_dict();
+        let mut coin: Option<String> = self.safe_string_k(&interestValue, "name", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = Value::Null;
         if (coin.is_some()) {
             marketId = self.coin_to_market_id(coin.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
@@ -6885,11 +6882,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number_k(interestValue.clone(), "openInterest", &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(&interestValue, "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("info".to_string(), interestValue);
+        m.insert("info".to_string(), Value::from(&interestValue));
     m
 }), &[market]);
 

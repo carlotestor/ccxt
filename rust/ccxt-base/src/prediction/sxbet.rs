@@ -3390,7 +3390,7 @@ impl Sxbet {
             client.resolve(Value::Bool(true), "centrifugoConnected");
             return;
         }
-        let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut push: Option<crate::value::Dict> = __pro_message.get("push").cloned().unwrap_or_default().into_opt_dict();
         if (push.is_none()) {
             return;
         }

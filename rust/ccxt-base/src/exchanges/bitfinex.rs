@@ -2458,7 +2458,7 @@ impl Bitfinex {
         //         ...
         //     ]
         //
-        let mut tradeList: crate::value::List = (match trade.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut tradeList: crate::value::List = trade.get("result").cloned().unwrap_or_default().into_list();
         let mut tradeLength: f64 = ((tradeList.len() as i64) as f64);
         let mut isPrivate: bool = tradeLength > ((5i64) as f64);
         let mut id: Option<String> = self.safe_string(&tradeList, Value::Int(0), &[]).as_str().map(str::to_owned);
