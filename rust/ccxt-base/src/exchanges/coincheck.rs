@@ -1091,8 +1091,8 @@ impl Coincheck {
         //                  ]
         //      }
         //
-        let mut transactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(transactions, &[market, since, limit]);
+        let mut transactions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&transactions, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1145,8 +1145,8 @@ impl Coincheck {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1395,8 +1395,8 @@ impl Coincheck {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit, Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m
@@ -1466,8 +1466,8 @@ impl Coincheck {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit, Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m

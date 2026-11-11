@@ -7108,8 +7108,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut rawTransactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(rawTransactions, &[Value::Null, Value::from(sinceResolved), limit]);
+        let mut rawTransactions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&rawTransactions, &[Value::Null, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -7377,8 +7377,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut rawTransactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(rawTransactions, &[currency, Value::from(sinceResolved), limit]);
+        let mut rawTransactions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&rawTransactions, &[currency, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -8709,8 +8709,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -13482,14 +13482,14 @@ if _try_result.is_err() {
         //
         let mut data: Value = self.safe_value_k(&response, "data", &[]);
         if (uta == Some(true)) {
-            let mut fills: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
-            return self.parse_trades(fills.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]);
+            let mut fills: crate::value::List = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&fills, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }  else if (matches!((self.safe_bool_k((market).raw.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k((market).raw.clone(), "future", &[Value::Bool(false)])), Value::Bool(true))) {
-            let mut fills: Value = self.safe_list_k(data.clone(), "fillList", &[Value::from(vec![])]);
-            return self.parse_trades(fills.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]);
+            let mut fills: crate::value::List = self.safe_list_k(data.clone(), "fillList", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&fills, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }  else if (marginMode.is_some()) {
-            let mut fills: Value = self.safe_list_k(data.clone(), "fills", &[Value::from(vec![])]);
-            return self.parse_trades(fills, &[(market).raw.clone(), since.clone(), limit.clone()]);
+            let mut fills: crate::value::List = self.safe_list_k(data.clone(), "fills", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&fills, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }
         return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -15311,8 +15311,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(data, &[currency, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&data, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -16692,8 +16692,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderInfo: Value = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
-        return self.parse_positions(orderInfo, &[Value::Null, paramsUTA]);
+        let mut orderInfo: crate::value::List = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&orderInfo, &[Value::Null, paramsUTA]);
         Value::Null
         }).await?))
     }
@@ -16859,8 +16859,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut responseList: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        let mut positions: Value = self.parse_positions(responseList, &[symbols, paramsUTA]);
+        let mut responseList: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        let mut positions: Value = self.parse_positions(&responseList, &[symbols, paramsUTA]);
         return self.filter_by_since_limit(positions, &[since, limit]);
         Value::Null
         }).await?))
@@ -17083,8 +17083,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut dataList: Value = self.safe_list_k(&data, "dataList", &[Value::from(vec![])]);
-        return self.parse_conversions(dataList, &[code, Value::Str("fromCoin".into()), Value::Str("toCoin".into()), since, limit]);
+        let mut dataList: crate::value::List = self.safe_list_k(&data, "dataList", &[Value::from(vec![])]).into_list();
+        return self.parse_conversions(&dataList, &[code, Value::Str("fromCoin".into()), Value::Str("toCoin".into()), since, limit]);
         Value::Null
         }).await?))
     }

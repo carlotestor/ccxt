@@ -464,8 +464,8 @@ impl Hollaex {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut parsedTrades: Value = self.parse_trades(data, &[market]);
+        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut parsedTrades: Value = self.parse_trades(&data, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_378: bool = true;

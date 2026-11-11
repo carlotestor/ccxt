@@ -2346,11 +2346,11 @@ impl Btse {
         //         "time": 1786605671650
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         if (until == Value::Null) {
-            return self.parse_trades(data.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]);
+            return self.parse_trades(&data, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }
-        let mut trades: Value = self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut trades: Value = self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

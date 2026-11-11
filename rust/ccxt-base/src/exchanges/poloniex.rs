@@ -2334,8 +2334,8 @@ impl Poloniex {
             //             cT: "1740777074704",
             //         },
             //
-            let mut tradesList: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-            return self.parse_trades(tradesList, &[(market).raw.clone(), since.clone(), limit.clone()]);
+            let mut tradesList: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&tradesList, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.public_get_markets_symbol_trades(&[__ws_arg_5]).await;
@@ -2444,8 +2444,8 @@ impl Poloniex {
             //                "actType": "TRADING"
             //            },
             //
-            let mut data: Value = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
-            return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
+            let mut data: crate::value::List = self.safe_list_k(&raw, "data", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
         }
         let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_trades(&[__ws_arg_7]).await;
@@ -4435,10 +4435,10 @@ impl Poloniex {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut withdrawals: Value = self.safe_list_k(response.clone(), "withdrawals", &[Value::from(vec![])]);
-        let mut deposits: Value = self.safe_list_k(response, "deposits", &[Value::from(vec![])]);
-        let mut withdrawalTransactions: Value = self.parse_transactions(withdrawals, &[currency.clone(), since.clone(), limit.clone()]);
-        let mut depositTransactions: Value = self.parse_transactions(deposits, &[currency, since.clone(), limit.clone()]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(response.clone(), "withdrawals", &[Value::from(vec![])]).into_list();
+        let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
+        let mut withdrawalTransactions: Value = self.parse_transactions(&withdrawals, &[currency.clone(), since.clone(), limit.clone()]);
+        let mut depositTransactions: Value = self.parse_transactions(&deposits, &[currency, since.clone(), limit.clone()]);
         let mut transactions: Value = self.array_concat(depositTransactions, withdrawalTransactions);
         return self.filter_by_currency_since_limit(self.sort_by(transactions, Value::Str("timestamp".into()), &[]), &[code, since, limit]);
         Value::Null
@@ -4474,8 +4474,8 @@ impl Poloniex {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut withdrawals: Value = self.safe_list_k(response, "withdrawals", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(withdrawals, &[currency, since.clone(), limit.clone()]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(response, "withdrawals", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&withdrawals, &[currency, since.clone(), limit.clone()]);
         return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -4727,8 +4727,8 @@ impl Poloniex {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut deposits: Value = self.safe_list_k(response, "deposits", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(deposits, &[currency, since.clone(), limit.clone()]);
+        let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&deposits, &[currency, since.clone(), limit.clone()]);
         return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -5122,8 +5122,8 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let mut positions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized]);
+        let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }

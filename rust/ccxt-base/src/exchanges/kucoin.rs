@@ -10957,8 +10957,8 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(items, &[currency, since, limit, Value::Map({
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&items, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m
@@ -11036,8 +11036,8 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut responseData: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(responseData, &[currency, since, limit, Value::Map({
+        let mut responseData: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&responseData, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m
@@ -11167,8 +11167,8 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(items, &[currency, since, limit, Value::Map({
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&items, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
@@ -11246,8 +11246,8 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut responseData: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(responseData, &[currency, since, limit, Value::Map({
+        let mut responseData: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&responseData, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
@@ -14382,8 +14382,8 @@ if _try_result.is_err() {
         }  else {
             response = self.futures_private_get_positions(&[paramsUta]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_positions(data, &[symbols]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&data, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -14524,8 +14524,8 @@ if _try_result.is_err() {
             response = self.futures_private_get_history_positions(&[__ws_arg_140]).await.into_opt_dict();
         }
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
-        let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_positions(items, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&items, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -16061,8 +16061,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transfers(items, &[currency, since, limit]);
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&items, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -16138,8 +16138,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_adl_ranks(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_adl_ranks(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }

@@ -1281,7 +1281,7 @@ impl Coinbase {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1301,7 +1301,7 @@ impl Coinbase {
     m
 })]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
         }
-        return self.parse_accounts(data, &[paramsPaginate]);
+        return self.parse_accounts(&data, &[paramsPaginate]);
 
     Value::Null
 }
@@ -1620,8 +1620,8 @@ impl Coinbase {
         let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]).into_dict();
         let __ws_arg_5 = self.extend(request, &[&query]);
         let mut sells: crate::value::Dict = self.v2_private_get_accounts_account_id_sells(&[__ws_arg_5]).await.into_dict();
-        let mut sellsData: Value = self.safe_list_k(&sells, "data", &[Value::from(vec![])]);
-        return self.parse_trades(sellsData, &[Value::Null, since, limit]);
+        let mut sellsData: crate::value::List = self.safe_list_k(&sells, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&sellsData, &[Value::Null, since, limit]);
 
     Value::Null
 }
@@ -1654,8 +1654,8 @@ impl Coinbase {
         let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]).into_dict();
         let __ws_arg_6 = self.extend(request, &[&query]);
         let mut buys: crate::value::Dict = self.v2_private_get_accounts_account_id_buys(&[__ws_arg_6]).await.into_dict();
-        let mut buysData: Value = self.safe_list_k(&buys, "data", &[Value::from(vec![])]);
-        return self.parse_trades(buysData, &[Value::Null, since, limit]);
+        let mut buysData: crate::value::List = self.safe_list_k(&buys, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&buysData, &[Value::Null, since, limit]);
 
     Value::Null
 }
@@ -5644,8 +5644,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -6839,8 +6839,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized]);
+        let mut positions: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }

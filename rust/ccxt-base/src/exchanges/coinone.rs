@@ -1442,8 +1442,8 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1807,8 +1807,8 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut completeOrders: Value = self.safe_list_k(&response, "completeOrders", &[Value::from(vec![])]);
-        return self.parse_trades(completeOrders, &[(market).raw.clone(), since, limit]);
+        let mut completeOrders: crate::value::List = self.safe_list_k(&response, "completeOrders", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&completeOrders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

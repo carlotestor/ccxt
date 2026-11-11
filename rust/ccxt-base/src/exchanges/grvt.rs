@@ -1974,8 +1974,8 @@ if _try_result.is_err() {
         //            },
         //            ...
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[(market).raw.clone(), since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2473,8 +2473,8 @@ if _try_result.is_err() {
             //     "next": "Qw0918="
             // }
             //
-            let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-            return self.parse_transactions(result, &[currency, since, limit]);
+            let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+            return self.parse_transactions(&result, &[currency, since, limit]);
         }
         Value::Null
         }).await?))
@@ -2559,8 +2559,8 @@ if _try_result.is_err() {
             //     "next": "Qw0918="
             // }
             //
-            let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-            return self.parse_transactions(result, &[currency, since, limit]);
+            let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+            return self.parse_transactions(&result, &[currency, since, limit]);
         }
         Value::Null
         }).await?))
@@ -2600,8 +2600,8 @@ if _try_result.is_err() {
         //        "next": ""
         //    }
         //
-        let mut rows: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        let mut transfers: Value = self.parse_transfers(rows, &[currency, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut transfers: Value = self.parse_transfers(&rows, &[currency, since, limit]);
         return transfers;
 
     Value::Null
@@ -2805,8 +2805,8 @@ if _try_result.is_err() {
         //        "next": ""
         //    }
         //
-        let mut rows: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        let mut transfers: Value = self.parse_transfers(rows, &[currency, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut transfers: Value = self.parse_transfers(&rows, &[currency, since, limit]);
         return self.to_array(self.safe_list(self.filter_transfers_by_type(transfers, Value::Str("internal".into()), &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
         Value::Null
         }).await?))
@@ -3530,8 +3530,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "next": ""
         //    }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[Value::Null, since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3609,8 +3609,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_positions(result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

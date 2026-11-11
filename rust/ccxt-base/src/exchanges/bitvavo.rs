@@ -1739,8 +1739,8 @@ impl Bitvavo {
         //         "maxItems": 0
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
-        return self.parse_accounts(accounts, &[]);
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_accounts(&accounts, &[]);
         Value::Null
         }).await?))
     }
@@ -1893,8 +1893,8 @@ impl Bitvavo {
         //         "limit": 25
         //     }
         //
-        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
-        return self.parse_transfers(items, &[currency, since, limit]);
+        let mut items: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&items, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

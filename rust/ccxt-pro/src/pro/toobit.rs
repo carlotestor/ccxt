@@ -615,8 +615,8 @@ impl Toobit {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ArrayCache::new(limit)); }
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut parsedTrades: crate::value::List = self.array_concat(self.parse_ws_trades(data, &[market]), Value::from(vec![])).into_list();
+        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut parsedTrades: crate::value::List = self.array_concat(self.parse_ws_trades(&data, &[market]), Value::from(vec![])).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_651: bool = true;

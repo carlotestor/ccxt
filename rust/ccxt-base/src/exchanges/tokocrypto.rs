@@ -1610,8 +1610,8 @@ impl Tokocrypto {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-            return self.parse_trades(list, &[market.clone(), since.clone(), limit.clone()]);
+            let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&list, &[market.clone(), since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
@@ -2953,8 +2953,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3119,8 +3119,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deposits: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit]);
+        let mut deposits: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3200,8 +3200,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdrawals: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals, &[currency, since, limit]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawals, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

@@ -395,14 +395,14 @@ impl Dydx {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut content: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
-        let mut rawTrades: Value = self.safe_list_k(&content, "trades", &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(&content, "trades", &[Value::from(vec![])]).into_list();
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut parsedTrades: Value = self.parse_trades(rawTrades, &[market]);
+        let mut parsedTrades: Value = self.parse_trades(&rawTrades, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_306: bool = true;

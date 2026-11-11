@@ -2596,13 +2596,14 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limitResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[market, since, limitResolved]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trades(&self, trades: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trades: Value = trades.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4244,8 +4245,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit, paramsDeriveSubaccountId]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit, paramsDeriveSubaccountId]);
         Value::Null
         }).await?))
     }
@@ -4383,8 +4384,8 @@ impl Derive {
                 return Value::from(vec![]);
             }
         }
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit, paramsDeriveSubaccountId]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit, paramsDeriveSubaccountId]);
         Value::Null
         }).await?))
     }
@@ -4467,8 +4468,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbols]);
+        let mut positions: crate::value::List = self.safe_list_k(&result, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -5681,8 +5682,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deposits: Value = self.safe_list_k(&result, "deposits", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit, paramsDeriveSubaccountId]);
+        let mut deposits: crate::value::List = self.safe_list_k(&result, "deposits", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit, paramsDeriveSubaccountId]);
         Value::Null
         }).await?))
     }
@@ -5756,8 +5757,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdrawals: Value = self.safe_list_k(&result, "withdrawals", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals, &[currency, since, limit, paramsDeriveSubaccountId]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(&result, "withdrawals", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawals, &[currency, since, limit, paramsDeriveSubaccountId]);
         Value::Null
         }).await?))
     }

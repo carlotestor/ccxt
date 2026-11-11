@@ -1312,7 +1312,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn parse_ws_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trades(&self, trades: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trades: Value = trades.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);

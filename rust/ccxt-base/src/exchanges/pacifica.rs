@@ -2179,8 +2179,8 @@ if _try_result.is_err() {
         //   "last_order_id": 1557404170
         // }
         //
-        let mut recentTrades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(recentTrades, &[(market).raw.clone(), since, limit]);
+        let mut recentTrades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&recentTrades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4675,8 +4675,8 @@ if _try_result.is_err() {
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_28]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut deposits: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("deposit".into()), &[]);
         return self.filter_by_since_limit(deposits, &[since, limit, Value::Str("timestamp".into())]);
         Value::Null
@@ -4721,8 +4721,8 @@ if _try_result.is_err() {
         });
         let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_29]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut withdrawals: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
         return self.filter_by_since_limit(withdrawals, &[since, limit, Value::Str("timestamp".into())]);
         Value::Null

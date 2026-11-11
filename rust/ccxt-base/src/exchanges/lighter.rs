@@ -3176,8 +3176,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]);
-        return self.parse_accounts(accounts, &[paramsAccountIndex]);
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]).into_list();
+        return self.parse_accounts(&accounts, &[paramsAccountIndex]);
         Value::Null
         }).await?))
     }
@@ -4215,8 +4215,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

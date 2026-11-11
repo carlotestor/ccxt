@@ -2347,8 +2347,8 @@ impl Latoken {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut content: Value = self.safe_list_k(&response, "content", &[Value::from(vec![])]);
-        return self.parse_transactions(content, &[currency, since, limit]);
+        let mut content: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&content, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2508,8 +2508,8 @@ impl Latoken {
         //         "hasContent": true
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(&response, "content", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        let mut transfers: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&transfers, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

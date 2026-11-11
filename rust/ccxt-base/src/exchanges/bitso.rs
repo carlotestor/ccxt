@@ -1550,8 +1550,8 @@ impl Bitso {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_5]).await.into_dict();
-        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        return self.parse_trades(payload, &[(market).raw.clone(), since, limit]);
+        let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&payload, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1709,8 +1709,8 @@ impl Bitso {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsMarker]);
         let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_7]).await.into_dict();
-        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        return self.parse_trades(payload, &[(market).raw.clone(), since, limit]);
+        let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&payload, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2130,8 +2130,8 @@ impl Bitso {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_trades_oid(&[__ws_arg_13]).await.into_dict();
-        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        return self.parse_trades(payload, &[market]);
+        let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&payload, &[market]);
         Value::Null
         }).await?))
     }
@@ -2250,8 +2250,8 @@ impl Bitso {
         //         }]
         //     }
         //
-        let mut transactions: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        return self.parse_transactions(transactions, &[currency, since, limit, params]);
+        let mut transactions: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&transactions, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }

@@ -2105,8 +2105,8 @@ impl Hitbtc {
             while { if !__for_first_747 { i += 1; } __for_first_747 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketInner: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_deref().unwrap_or_default()));
-            let mut rawTrades: Value = self.safe_list(response.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
-            let mut parsed: Value = self.parse_trades(rawTrades, &[marketInner]);
+            let mut rawTrades: crate::value::List = self.safe_list(response.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+            let mut parsed: Value = self.parse_trades(&rawTrades, &[marketInner]);
             trades = self.array_concat(trades.clone(), parsed);
         }
         }

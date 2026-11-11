@@ -2426,8 +2426,8 @@ impl Bitvavo {
         //        ]
         //    }
         //
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut deposits: Value = self.parse_transactions(response, &[Value::Null, Value::Null, Value::Null, Value::Map({
+        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut deposits: Value = self.parse_transactions(&response, &[Value::Null, Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".into()));
             m

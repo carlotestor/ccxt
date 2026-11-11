@@ -778,8 +778,8 @@ impl Phemex {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut trades: Value = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]);
-        let mut parsed: Value = self.parse_trades(trades, &[market]);
+        let mut trades: crate::value::List = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]).into_list();
+        let mut parsed: Value = self.parse_trades(&trades, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_609: bool = true;

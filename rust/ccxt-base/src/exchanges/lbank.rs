@@ -1820,8 +1820,8 @@ impl Lbank {
         //           "ts":1647021999308
         //      }
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2936,8 +2936,8 @@ impl Lbank {
         //          "ts":1648509742164
         //      }
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), sinceValue, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), sinceValue, limit]);
         Value::Null
         }).await?))
     }
@@ -3652,8 +3652,8 @@ impl Lbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deposits: Value = self.safe_list_k(&data, "depositOrders", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit]);
+        let mut deposits: crate::value::List = self.safe_list_k(&data, "depositOrders", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3729,8 +3729,8 @@ impl Lbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdraws: Value = self.safe_list_k(&data, "withdraws", &[Value::from(vec![])]);
-        return self.parse_transactions(withdraws, &[currency, since, limit]);
+        let mut withdraws: crate::value::List = self.safe_list_k(&data, "withdraws", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdraws, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

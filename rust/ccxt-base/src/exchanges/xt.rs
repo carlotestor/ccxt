@@ -3508,8 +3508,8 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone()]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3649,8 +3649,8 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -6034,8 +6034,8 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deposits: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit, params]);
+        let mut deposits: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -6114,8 +6114,8 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdrawals: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals, &[currency, since, limit, params]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawals, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -7656,8 +7656,8 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Value = self.safe_list_k(&result, "items", &[Value::from(vec![])]);
-        let mut positions: Value = self.parse_positions(items, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
+        let mut positions: Value = self.parse_positions(&items, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         return self.filter_by_since_limit(positions, &[since, limit]);
         Value::Null
         }).await?))

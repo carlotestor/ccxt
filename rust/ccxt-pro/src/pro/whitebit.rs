@@ -791,8 +791,8 @@ impl Whitebit {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut data: Value = self.safe_list(Value::Arr(params), Value::Int(1), &[Value::from(vec![])]);
-        let mut parsedTrades: Value = self.parse_trades(data, &[market]);
+        let mut data: crate::value::List = self.safe_list(Value::Arr(params), Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut parsedTrades: Value = self.parse_trades(&data, &[market]);
         {
                         let mut j: i64 = 0;
             let mut __for_first_694: bool = true;

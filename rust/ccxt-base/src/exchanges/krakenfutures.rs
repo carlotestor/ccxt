@@ -1792,7 +1792,7 @@ impl Krakenfutures {
             //
             rawTrades = self.safe_list_k(&response, "history", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_trades(Value::Arr(rawTrades), &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(&rawTrades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3525,9 +3525,9 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let mut fills: Value = self.safe_list_k(&response, "fills", &[Value::from(vec![])]);
+        let mut fills: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
         // the endpoint returns the fills of every contract, each row resolves its own market
-        let mut trades: Value = self.parse_trades(fills, &[]);
+        let mut trades: Value = self.parse_trades(&fills, &[]);
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit]);
         Value::Null
         }).await?))

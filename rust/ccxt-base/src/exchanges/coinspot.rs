@@ -1251,8 +1251,8 @@ impl Coinspot {
         //         ],
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

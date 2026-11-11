@@ -2909,8 +2909,8 @@ impl Bingx {
         //      ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4524,8 +4524,8 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut records: Value = self.safe_list_k(&data, "positionHistory", &[Value::from(vec![])]);
-        let mut positions: Value = self.parse_positions(records, &[]);
+        let mut records: crate::value::List = self.safe_list_k(&data, "positionHistory", &[Value::from(vec![])]).into_list();
+        let mut positions: Value = self.parse_positions(&records, &[]);
         return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit]);
         Value::Null
         }).await?))
@@ -4581,8 +4581,8 @@ impl Bingx {
                 response = self.swap_v2_private_get_user_positions(&[paramsSubType]).await.into_opt_dict();
             }
         }
-        let mut positions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -7079,8 +7079,8 @@ impl Bingx {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "rows", &[Value::from(vec![])]);
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&rows, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

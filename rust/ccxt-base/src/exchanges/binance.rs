@@ -14709,8 +14709,8 @@ impl Binance {
             let __ws_arg_146 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.sapi_get_asset_transfer(&[__ws_arg_146]).await;
         }
-        let mut rows: Value = self.safe_list2(response, Value::Str("rows".into()), Value::Str("data".into()), &[Value::from(vec![])]);
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        let mut rows: crate::value::List = self.safe_list2(response, Value::Str("rows".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&rows, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -20622,8 +20622,8 @@ if _try_result.is_err() {
             let __ws_arg_230 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.sapi_get_convert_trade_flow(&[__ws_arg_230]).await;
         }
-        let mut rows: Value = self.safe_list(response, responseQuery.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
-        return self.parse_conversions(rows, &[code, fromCurrencyKey.clone().map(Value::from).unwrap_or(Value::Null), toCurrencyKey.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        let mut rows: crate::value::List = self.safe_list(response, responseQuery.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+        return self.parse_conversions(&rows, &[code, fromCurrencyKey.clone().map(Value::from).unwrap_or(Value::Null), toCurrencyKey.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }

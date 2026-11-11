@@ -5384,7 +5384,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_positions(&self, mut positions: Value, optional_args: &[Value]) -> Value {
+    fn parse_positions(&self, positions: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut positions: Value = positions.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5419,7 +5420,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_adl_ranks(&self, mut ranks: Value, optional_args: &[Value]) -> Value {
+    fn parse_adl_ranks(&self, ranks: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ranks: Value = ranks.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5441,7 +5443,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_accounts(&self, mut accounts: Value, optional_args: &[Value]) -> Value {
+    fn parse_accounts(&self, accounts: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut accounts: Value = accounts.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5492,7 +5495,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn parse_trades(&self, trades: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trades: Value = trades.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -5505,7 +5509,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_ws_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    fn parse_ws_trades(&self, trades: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trades: Value = trades.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -5518,7 +5523,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_transactions(&self, mut transactions: Value, optional_args: &[Value]) -> Value {
+    fn parse_transactions(&self, transactions: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transactions: Value = transactions.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -5543,7 +5549,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_transfers(&self, mut transfers: Value, optional_args: &[Value]) -> Value {
+    fn parse_transfers(&self, transfers: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transfers: Value = transfers.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10034,7 +10041,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_conversions(&self, mut conversions: Value, optional_args: &[Value]) -> Value {
+    fn parse_conversions(&self, conversions: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut conversions: Value = conversions.into();
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut fromCurrencyKey = get_arg(optional_args, 1, Value::Null);
         let mut toCurrencyKey = get_arg(optional_args, 2, Value::Null);

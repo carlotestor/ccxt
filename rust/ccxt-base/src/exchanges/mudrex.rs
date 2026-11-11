@@ -1794,8 +1794,8 @@ impl Mudrex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut positions: Value = self.parse_positions(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut positions: Value = self.parse_positions(&data, &[symbolsNormalized]);
         return self.filter_by_since_limit(positions, &[since, limit]);
         Value::Null
         }).await?))

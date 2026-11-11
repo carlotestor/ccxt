@@ -501,8 +501,8 @@ impl Bullish {
             return;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-        let mut rawTrades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
-        let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: Value = self.parse_trades(&rawTrades, &[market.clone()]);
         if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache = ArrayCache::new(limit);

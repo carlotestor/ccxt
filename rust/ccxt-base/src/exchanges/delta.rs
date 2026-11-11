@@ -2331,8 +2331,8 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[(market).raw.clone(), since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2574,8 +2574,8 @@ impl Delta {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_positions(result, &[symbols]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&result, &[symbols]);
         Value::Null
         }).await?))
     }
@@ -3387,8 +3387,8 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[market, since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5212,8 +5212,8 @@ impl Delta {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_adl_ranks(result, &[symbolsNormalized]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_adl_ranks(&result, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
