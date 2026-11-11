@@ -321,7 +321,7 @@ impl Luno {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), subscriptionHash);
+        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), subscriptionHash);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -466,7 +466,7 @@ impl Luno {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), subscriptionHash);
+        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), subscriptionHash);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -667,7 +667,7 @@ impl Luno {
                 // and fall back to the asks only on a miss
                 let mut reduced: Value = self.reduce_order_volume(bidsOrderSide.clone(), makerOrderId.clone().map(Value::from).unwrap_or(Value::Null), tradedAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 if !(reduced.as_bool() == Some(true)) {
-                    self.reduce_order_volume(asksOrderSide.clone(), makerOrderId.clone().map(Value::from).unwrap_or(Value::Null), tradedAmount.clone().map(Value::from).unwrap_or(Value::Null));
+                    self.reduce_order_volume(asksOrderSide.clone(), makerOrderId.map(Value::from).unwrap_or(Value::Null), tradedAmount.map(Value::from).unwrap_or(Value::Null));
                 }
             }
         }
@@ -686,7 +686,7 @@ impl Luno {
         if (deleteUpdate.is_some()) {
             let mut orderId: Option<String> = self.safe_string_k(&deleteUpdate, "order_id", &[]).as_str().map(str::to_owned);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
-            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
+            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.map(Value::from).unwrap_or(Value::Null)]));
         }
 }
 
@@ -711,7 +711,7 @@ impl Luno {
             if (entryId.as_deref() == orderId.as_str()) {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string(order, Value::Int(1), &[]).as_str().map(str::to_owned);
-                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount.clone().map(Value::from).unwrap_or(Value::Null), &tradedAmount).as_str().map(str::to_owned);
+                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount.map(Value::from).unwrap_or(Value::Null), &tradedAmount).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
                     orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), orderId.clone()]));
