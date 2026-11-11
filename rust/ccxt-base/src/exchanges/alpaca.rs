@@ -119,7 +119,6 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "generate_client_order_id" => self.generate_client_order_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1812,7 +1811,7 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn generate_client_order_id(&self, mut params: Value) -> Value {
+    pub fn generate_client_order_id(&self, mut params: Value) -> Option<String> {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut clientOrderIdprefix: Option<String> = self.safe_string_k(self.options.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -1824,10 +1823,8 @@ impl Alpaca {
                 m.insert("id".to_string(), random_id);
             m
         }));
-        let mut clientOrderId: Option<String> = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultClientId }).as_str().map(str::to_owned);
-        return clientOrderId.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultClientId });
+        return clientOrderId.as_str().map(str::to_owned);
 }
 
 /*
@@ -2010,7 +2007,7 @@ impl Alpaca {
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF != Value::Null) { (if let Some(__s) = defaultTIF.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { defaultTIF }));
         let mut paramsOmitted: Value = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
-        request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()));
+        request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
         return self.parse_order(order, &[market]);
@@ -2327,7 +2324,7 @@ impl Alpaca {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
-        request.insert("client_order_id".into(), self.generate_client_order_id(paramsTimeInForce.clone()));
+        request.insert("client_order_id".into(), self.generate_client_order_id(paramsTimeInForce.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
         return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
