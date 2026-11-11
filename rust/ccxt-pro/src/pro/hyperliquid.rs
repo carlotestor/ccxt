@@ -1070,11 +1070,11 @@ impl Hyperliquid {
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("myTrades".into())).await;
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[message, Value::from(subscribeHash)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1502,7 +1502,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1519,11 +1519,11 @@ impl Hyperliquid {
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         self.wait_for_pending_unsubscribe(url.clone(), Value::from(messageHash.clone())).await;
         let mut trades: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1731,7 +1731,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1749,11 +1749,11 @@ impl Hyperliquid {
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         self.wait_for_pending_unsubscribe(url.clone(), Value::from(messageHash.clone())).await;
         let mut ohlcv: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2393,11 +2393,11 @@ impl Hyperliquid {
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("order".into())).await;
         let mut orders: Value = self.watch(url, messageHash.as_str(), &[message, Value::from(subscribeHash)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

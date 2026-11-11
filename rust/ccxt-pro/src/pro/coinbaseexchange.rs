@@ -518,14 +518,14 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "matches".to_string();
-        let mut trades: Value = self.subscribe(Value::from(name.clone()), &[symbolValue.clone(), Value::from(name), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut trades: Value = self.subscribe(Value::from(name.clone()), &[symbolValue.clone().map(Value::from).unwrap_or(Value::Null), Value::from(name), params]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -564,12 +564,12 @@ impl Coinbaseexchange {
         let mut name: String = "matches".to_string();
         let mut trades: Value = self.subscribe_multiple(Value::from(name.clone()), &[symbolsNormalized, Value::from(name), params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -603,17 +603,17 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "user".to_string();
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_0 = self.extend(params, &[authentication]);
-        let mut trades: Value = self.subscribe(Value::from(name), &[symbolValue.clone(), Value::from(messageHash), __ws_arg_0]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut trades: Value = self.subscribe(Value::from(name), &[symbolValue.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), __ws_arg_0]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -651,12 +651,12 @@ impl Coinbaseexchange {
         let __ws_arg_1 = self.extend(params, &[authentication]);
         let mut trades: Value = self.subscribe_multiple(Value::from(name), &[symbolsNormalized, Value::from(messageHash), __ws_arg_1]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -694,12 +694,12 @@ impl Coinbaseexchange {
         let __ws_arg_2 = self.extend(params, &[authentication]);
         let mut orders: Value = self.subscribe_multiple(Value::from(name), &[symbolsNormalized, Value::from(messageHash), __ws_arg_2]).await;
         let mut first: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -733,17 +733,17 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "user".to_string();
         let mut messageHash: String = "orders".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_3 = self.extend(params, &[authentication]);
-        let mut orders: Value = self.subscribe(Value::from(name), &[symbolValue.clone(), Value::from(messageHash), __ws_arg_3]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut orders: Value = self.subscribe(Value::from(name), &[symbolValue.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), __ws_arg_3]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolValue, limit);
+            limitResolved = orders.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

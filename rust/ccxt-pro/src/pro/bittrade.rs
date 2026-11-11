@@ -440,7 +440,7 @@ impl Bittrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // only supports a limit of 150 at this time
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".trade.detail".into()));
@@ -474,17 +474,17 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
-                m.insert("symbol".to_string(), symbolValue.clone());
+                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
                 m.insert("params".to_string(), params.clone());
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -571,7 +571,7 @@ impl Bittrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".kline.".into())).into()), interval.map(Value::from).unwrap_or(Value::Null));
@@ -605,18 +605,18 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
-                m.insert("symbol".to_string(), symbolValue.clone());
+                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
                 m.insert("timeframe".to_string(), timeframe);
                 m.insert("params".to_string(), params.clone());
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -865,11 +865,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut ohlcv: Value = self.subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(",".into())).into()), timeframe).into()), Value::Str("public".into()), Value::Str("watchOHLCV".into()), &[market, Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -943,11 +943,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut trades: Value = self.subscribe(Value::Str(format!("{}{}", Value::Str("trade@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("public".into()), Value::Str("watchTrades".into()), &[market, Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1102,11 +1102,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut orders: Value = self.subscribe(Value::from(name), Value::Str("private".into()), Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol, limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1145,11 +1145,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trades: Value = self.subscribe(Value::from(name), Value::Str("private".into()), Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }

@@ -1426,11 +1426,11 @@ impl Lighter {
         let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountIndex: Value = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[]).map(Value::from).unwrap_or(Value::Null);
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = Value::from((market).symbol.clone());
-            messageHash = self.get_message_hash(Value::Str("myTrades".into()), &[symbolResolved.clone()]).map(Value::from).unwrap_or(Value::Null);
+            symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
+            messageHash = self.get_message_hash(Value::Str("myTrades".into()), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1439,11 +1439,11 @@ impl Lighter {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_11]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1857,11 +1857,11 @@ impl Lighter {
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsAccountIndex]);
         let mut orders: Value = self.subscribe_private(messageHash, &[__ws_arg_16]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol.clone(), limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

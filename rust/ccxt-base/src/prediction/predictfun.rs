@@ -4163,11 +4163,11 @@ impl Predictfun {
             self.load_outcomes(&[]).await;
         }
         let mut orders: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = orders.get_limit(outcomeResolved.as_str(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -4209,11 +4209,11 @@ impl Predictfun {
             self.load_outcomes(&[]).await;
         }
         let mut trades: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = trades.get_limit(outcomeResolved.as_str(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

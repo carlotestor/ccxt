@@ -653,12 +653,12 @@ impl Okx {
         let mut url: Option<String> = self.get_url(channel, &[Value::from(access)]);
         let mut trades: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1797,15 +1797,15 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut name: String = format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null));
-        let mut ohlcv: Value = self.subscribe(Value::Str("public".into()), Value::from(name.clone()), Value::from(name), symbolValue.clone(), &[params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut ohlcv: Value = self.subscribe(Value::Str("public".into()), Value::from(name.clone()), Value::from(name), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), &[params]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1903,11 +1903,11 @@ impl Okx {
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.clone(), limit);
+            limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -2849,11 +2849,11 @@ impl Okx {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(messageHash), Value::from(channel), Value::Null, &[__ws_arg_1]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3073,11 +3073,11 @@ impl Okx {
     m
 })]).await;
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         let mut type_var: Value = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]);
+            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
             type_var = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[]);
         }
         if (type_var.as_str() == Some("future")) {
@@ -3105,12 +3105,12 @@ impl Okx {
             channel = "orders-algo".to_string();
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel), symbolResolved.clone(), &[__ws_arg_3]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), &[__ws_arg_3]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

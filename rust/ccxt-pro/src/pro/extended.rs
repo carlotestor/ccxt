@@ -513,23 +513,23 @@ impl Extended {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut orders: Value = self.watch_private(Value::from(messageHash), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbolResolved.clone());
+        m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limit".to_string(), limit.clone());
     m
 })]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -669,23 +669,23 @@ impl Extended {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut trades: Value = self.watch_private(Value::from(messageHash), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbolResolved.clone());
+        m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limit".to_string(), limit.clone());
     m
 })]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1181,7 +1181,7 @@ impl Extended {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut query: Option<String> = self.urlencode(params, &[]).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/publicTrades/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
@@ -1190,15 +1190,15 @@ impl Extended {
         }
         let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), symbolValue.clone());
+                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
                 m.insert("limit".to_string(), limit.clone());
             m
         })]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1293,7 +1293,7 @@ impl Extended {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut candleType: Option<String> = self.safe_string_k(params.clone(), "candleType", &[]).as_str().map(str::to_owned);
         if (candleType.is_none()) {
@@ -1319,18 +1319,18 @@ impl Extended {
         let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));
-                m.insert("symbol".to_string(), symbolValue.clone());
+                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
                 m.insert("timeframe".to_string(), timeframe);
                 m.insert("candleType".to_string(), candleType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("limit".to_string(), limit.clone());
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
             m
         })]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

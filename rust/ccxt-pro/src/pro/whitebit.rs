@@ -380,11 +380,11 @@ impl Whitebit {
         let mut reqParams: Value = Value::from(vec![marketId, Value::from(interval)]);
         let mut method: String = "candles_subscribe".to_string();
         let mut ohlcv: Value = self.watch_public(Value::from(messageHash), Value::from(method), &[reqParams, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -745,11 +745,11 @@ impl Whitebit {
         let mut method: String = "trades_subscribe".to_string();
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         let mut trades: Value = self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue.clone(), &[Value::Bool(false), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -840,11 +840,11 @@ impl Whitebit {
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
         let mut method: String = "deals_subscribe".to_string();
         let mut trades: Value = self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue.clone(), &[Value::Bool(true), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.clone(), limit);
+            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -997,11 +997,11 @@ impl Whitebit {
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         let mut method: String = "ordersPending_subscribe".to_string();
         let mut trades: Value = self.watch_multiple_subscription(Value::from(messageHash), Value::from(method), symbolValue.clone(), &[Value::Bool(false), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.clone(), limit);
+            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

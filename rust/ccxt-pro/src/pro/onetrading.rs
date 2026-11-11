@@ -681,14 +681,14 @@ impl Onetrading {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbolResolved.clone(), since.clone(), limitResolved.clone()]);
+        trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbolResolved.clone(), since.clone(), Value::from(limitResolved)]);
         let mut numTrades: Value = get_array_length(&trades);
         if (numTrades.as_f64() == Some(0.0)) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved.as_i64(), params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
         }
         return trades;
         Value::Null
@@ -887,14 +887,14 @@ impl Onetrading {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbolResolved.clone(), since.clone(), limitResolved.clone()]);
+        orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbolResolved.clone(), since.clone(), Value::from(limitResolved)]);
         let mut numOrders: Value = get_array_length(&orders);
         if (numOrders.as_f64() == Some(0.0)) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved.as_i64(), params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
         }
         return orders;
         Value::Null
@@ -1540,7 +1540,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Value = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -1631,11 +1631,11 @@ impl Onetrading {
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url.as_deref(), messageHash.as_str(), &[__ws_arg_0, subscriptionHash, subscription]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

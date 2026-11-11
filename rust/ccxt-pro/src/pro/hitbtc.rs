@@ -1195,11 +1195,11 @@ impl Hitbtc {
         }
         let mut name: String = "trades".to_string();
         let mut trades: Value = self.subscribe_public(Value::from(name), Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1414,11 +1414,11 @@ impl Hitbtc {
             m
         });
         let mut ohlcv: Value = self.subscribe_public(Value::from(name.clone()), Value::from(name), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -1596,11 +1596,11 @@ impl Hitbtc {
             m
         })]);
         let mut orders: Value = self.subscribe_private(name, &[symbol.clone(), paramsMarketType]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol, limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }

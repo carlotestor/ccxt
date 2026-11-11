@@ -2100,12 +2100,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let __ws_arg_6 = self.extend(Value::Map(request), &[&query]);
         let mut trades: Value = self.watch_multiple(url.as_str(), Value::from(messageHashes), &[__ws_arg_6, Value::from(subscribeHashes), Value::Map(subscribe)]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2616,11 +2616,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut stockSymbol: Value = get_value(&stockSymbolstockTimeframestockCandlesVariable, &Value::Int(0));
             let mut stockTimeframe: Value = get_value(&stockSymbolstockTimeframestockCandlesVariable, &Value::Int(1));
             let mut stockCandles: Value = get_value(&stockSymbolstockTimeframestockCandlesVariable, &Value::Int(2));
-            let mut stockLimit: Value = limit.clone();
+            let mut stockLimit: Option<i64> = limit.as_i64();
             if self.newUpdates.as_bool() == Some(true) {
-                stockLimit = stockCandles.get_limit(stockSymbol.clone(), limit.clone());
+                stockLimit = stockCandles.get_limit(stockSymbol.as_str(), limit.as_i64());
             }
-            let mut stockFiltered: Value = self.filter_by_since_limit(stockCandles, &[since.clone(), stockLimit, Value::Int(0), Value::Bool(true)]);
+            let mut stockFiltered: Value = self.filter_by_since_limit(stockCandles, &[since.clone(), Value::from(stockLimit), Value::Int(0), Value::Bool(true)]);
             return self.create_ohlcv_object(stockSymbol, stockTimeframe, stockFiltered);
         }
         let klineTypeparamsChannelVariable: Vec<Value> = self.handle_param_string2(paramsStock, Value::Str("channel".into()), Value::Str("name".into()), &[Value::Str("kline".into())]).as_array().cloned().unwrap_or_default();
@@ -2695,11 +2695,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.clone(), limit);
+            limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol.clone(), timeframe, filtered);
         Value::Null
         }).await?))
@@ -6273,11 +6273,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             });
             let __ws_arg_33 = self.extend(Value::Map(stockRequest), &[&stockQuery]);
             let mut stockOrders: Value = self.watch(stockUrl, &stockMessageHash[..], &[__ws_arg_33, Value::from(stockMessageHash.clone()), Value::Map(stockSubscribe)]).await;
-            let mut stockLimit: Value = limit.clone();
+            let mut stockLimit: Option<i64> = limit.as_i64();
             if self.newUpdates.as_bool() == Some(true) {
-                stockLimit = stockOrders.get_limit(symbol.clone(), limit.clone());
+                stockLimit = stockOrders.get_limit(symbol.as_str(), limit.as_i64());
             }
-            return self.filter_by_symbol_since_limit(stockOrders, &[symbol.clone(), since.clone(), stockLimit, Value::Bool(true)]);
+            return self.filter_by_symbol_since_limit(stockOrders, &[symbol.clone(), since.clone(), Value::from(stockLimit), Value::Bool(true)]);
         }
         let mut messageHash: String = "orders".to_string();
         let mut market: Option<crate::types::Market> = None;
@@ -6342,11 +6342,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
         let mut message: Value = Value::Null;
         let mut orders: Value = self.watch(url, messageHash.as_str(), &[message.clone(), type_var]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -7658,11 +7658,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.set_positions_cache(client.as_value(), type_var.clone(), &[Value::Null, isPortfolioMargin]);
         let mut message: Value = Value::Null;
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[message.clone(), type_var]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

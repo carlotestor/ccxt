@@ -1499,7 +1499,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -1515,7 +1515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(extendedParams), &[paramsUta.clone()]);
-            ohlcv = self.subscribe_public_uta(Value::from(messageHash.clone()), Value::from(channel), symbolValue.clone(), &[__ws_arg_0]).await;
+            ohlcv = self.subscribe_public_uta(Value::from(messageHash.clone()), Value::from(channel), Value::from(symbolValue.clone()), &[__ws_arg_0]).await;
         }  else {
             let mut isFuturesMethod: bool = (market).contract;
             let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod.clone())]).await;
@@ -1526,11 +1526,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("_".into())).into()), period);
             ohlcv = self.subscribe(url, Value::from(messageHash), Value::from(topic), &[paramsUta]).await;
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1769,12 +1769,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut channel: String = "trade".to_string();
             let mut trades: Value = self.subscribe_public_uta(Value::from(messageHash), Value::from(channel), Value::from(symbolResolved), &[paramsUta.clone()]).await;
             let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-            let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-            let mut limitResolved: Value = limit.clone();
+            let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+            let mut limitResolved: Option<i64> = limit.as_i64();
             if self.newUpdates.as_bool() == Some(true) {
-                limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit.clone());
+                limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
             }
-            return self.filter_by_since_limit(trades, &[since.clone(), limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+            return self.filter_by_since_limit(trades, &[since.clone(), Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         }
         return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), paramsUta).await);
         Value::Null
@@ -1837,12 +1837,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut trades: Value = self.subscribe_multiple(url, Value::from(messageHashes), Value::from(topic), Value::from(subscriptionHashes), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2898,11 +2898,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMarketType]);
             orders = self.subscribe(url, messageHash, Value::from(topic), &[__ws_arg_2]).await;
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3374,11 +3374,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsTopic]);
             trades = self.subscribe(url, messageHash, topic, &[__ws_arg_3]).await;
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

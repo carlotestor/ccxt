@@ -5121,11 +5121,11 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", Value::Str("orders::".into()), outcomeName);
         }
         let mut orders: Value = self.subscribe_user_channel(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = orders.get_limit(outcomeResolved.as_str(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5164,11 +5164,11 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", Value::Str("myTrades::".into()), outcomeName);
         }
         let mut trades: Value = self.subscribe_user_channel(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = trades.get_limit(outcomeResolved.as_str(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
