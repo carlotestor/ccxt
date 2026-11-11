@@ -2752,11 +2752,11 @@ impl Dydx {
         //     }
         // }
         //
-        let mut gasInfo: Value = self.safe_dict_k(&response, "gas_info", &[]);
-        if (gasInfo == Value::Null) {
+        let mut gasInfo: Option<crate::value::Dict> = self.safe_dict_k(&response, "gas_info", &[]).into_opt_dict();
+        if (gasInfo.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
         }
-        let mut gasUsed: Option<String> = self.safe_string_k(gasInfo, "gas_used", &[]).as_str().map(str::to_owned);
+        let mut gasUsed: Option<String> = self.safe_string_k(&gasInfo, "gas_used", &[]).as_str().map(str::to_owned);
         if (gasUsed.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
         }
@@ -3563,10 +3563,10 @@ impl Dydx {
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return self.walletAddress.clone();
         }
-        let mut dydxAccount: Value = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]);
-        if (dydxAccount != Value::Null) {
+        let mut dydxAccount: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]).into_opt_dict();
+        if (dydxAccount.is_some()) {
             // return dydxAccount;
-            let mut wallet: Option<String> = self.safe_string_k(dydxAccount, "address", &[]).as_str().map(str::to_owned);
+            let mut wallet: Option<String> = self.safe_string_k(&dydxAccount, "address", &[]).as_str().map(str::to_owned);
             if (wallet.is_some()) {
                 return wallet.map(Value::from).unwrap_or(Value::Null);
             }

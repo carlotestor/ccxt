@@ -2372,22 +2372,22 @@ impl Blofin {
         if postOnly.as_bool() == Some(true) {
             request.insert("type".into(), Value::Str("post_only".into()));
         }
-        let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "takeProfit", &[]).into_opt_dict();
         query = self.omit(query.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("hedged".into())]), &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         if hasStopLoss || hasTakeProfit {
             if hasStopLoss {
-                let mut slTriggerPrice: Option<String> = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut slTriggerPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), slTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut slOrderPrice: String = self.safe_string_k(stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
+                let mut slOrderPrice: String = self.safe_string_k(&stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
                 request.insert("slOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slOrderPrice)));
             }
             if hasTakeProfit {
-                let mut tpTriggerPrice: Option<String> = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut tpTriggerPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut tpPrice: String = self.safe_string_k(takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
+                let mut tpPrice: String = self.safe_string_k(&takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
                 request.insert("tpOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpPrice)));
             }
         }  else if (triggerPriceAny.is_some()) {

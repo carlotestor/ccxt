@@ -967,9 +967,9 @@ impl Deepcoin {
     m
 }));
         let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        if (fetchMarketsOption != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOption, "types", &[types.clone()]);
+        let mut fetchMarketsOption: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
+        if (fetchMarketsOption.is_some()) {
+            types = self.safe_list_k(&fetchMarketsOption, "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }

@@ -1678,12 +1678,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainConfig: Value = self.safe_dict(chains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (chainConfig == Value::Null) {
+        let mut chainConfig: Option<crate::value::Dict> = self.safe_dict(chains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        if (chainConfig.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() has no on-chain config for network ".into())).into()), networkId.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(chainConfig.clone(), "rpcUrl", &[])]);
-        let mut predictionMarket: Option<String> = self.safe_string_k(chainConfig, "predictionMarket", &[]).as_str().map(str::to_owned);
+        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
+        let mut predictionMarket: Option<String> = self.safe_string_k(&chainConfig, "predictionMarket", &[]).as_str().map(str::to_owned);
         let mut tokenAddress: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(&info, "tokenAddress", &[])]);
         let mut gasLimit: String = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0xaae60".into())]).as_str().unwrap_or("0xaae60").to_string();
         let mut sideStr: Value = sideLower;
@@ -4550,18 +4550,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
             return;
         }
-        let mut push: Value = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (push == Value::Null) {
+        let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (push.is_none()) {
             return;
         }
-        let mut channel: Option<String> = self.safe_string_k_opt(push.clone(), "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&push, "channel", &[]);
         if (channel.is_none()) {
             return;
         }
-        let mut pub_val: crate::value::Dict = self.safe_dict_k(push, "pub", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut pub_val: crate::value::Dict = self.safe_dict_k(&push, "pub", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: Value = self.safe_dict_k(&pub_val, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

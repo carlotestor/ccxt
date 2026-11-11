@@ -2075,13 +2075,13 @@ impl Whitebit {
             }
             // Extract trading limits
             let mut limits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[]).into_dict();
-            let mut amountLimits: Value = self.safe_dict_k(&limits, "amount", &[]);
-            let mut priceLimits: Value = self.safe_dict_k(&limits, "price", &[]);
-            let mut costLimits: Value = self.safe_dict_k(&limits, "cost", &[]);
+            let mut amountLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "amount", &[]).into_opt_dict();
+            let mut priceLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "price", &[]).into_opt_dict();
+            let mut costLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "cost", &[]).into_opt_dict();
             // Validate that all required limits exist and are valid numbers
-            let mut hasAmountLimits: bool = (amountLimits != Value::Null) && (amountLimits != Value::Null) && (self.safe_number_k(amountLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(amountLimits.clone(), "max", &[]) != Value::Null);
-            let mut hasPriceLimits: bool = (priceLimits != Value::Null) && (priceLimits != Value::Null) && (self.safe_number_k(priceLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(priceLimits.clone(), "max", &[]) != Value::Null);
-            let mut hasCostLimits: bool = (costLimits != Value::Null) && (costLimits != Value::Null) && (self.safe_number_k(costLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(costLimits.clone(), "max", &[]) != Value::Null);
+            let mut hasAmountLimits: bool = (amountLimits.is_some()) && (amountLimits.is_some()) && (self.safe_number_k(&amountLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&amountLimits, "max", &[]) != Value::Null);
+            let mut hasPriceLimits: bool = (priceLimits.is_some()) && (priceLimits.is_some()) && (self.safe_number_k(&priceLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&priceLimits, "max", &[]) != Value::Null);
+            let mut hasCostLimits: bool = (costLimits.is_some()) && (costLimits.is_some()) && (self.safe_number_k(&costLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&costLimits, "max", &[]) != Value::Null);
             if (hasAmountLimits) && (hasPriceLimits) && (hasCostLimits) {
                 result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2090,20 +2090,20 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(amountLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(amountLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&amountLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&amountLimits, "max", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(priceLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&priceLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&priceLimits, "max", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(costLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(costLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&costLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&costLimits, "max", &[]));
     m
 }));
     m
@@ -2262,39 +2262,39 @@ impl Whitebit {
             });
             // Add fee information if available
             if (feeData != Value::Null) {
-                let mut depositFee: Value = self.safe_dict_k(feeData.clone(), "deposit", &[]);
-                let mut withdrawFee: Value = self.safe_dict_k(feeData, "withdraw", &[]);
-                if (depositFee != Value::Null) && (depositFee != Value::Null) {
+                let mut depositFee: Option<crate::value::Dict> = self.safe_dict_k(feeData.clone(), "deposit", &[]).into_opt_dict();
+                let mut withdrawFee: Option<crate::value::Dict> = self.safe_dict_k(feeData, "withdraw", &[]).into_opt_dict();
+                if (depositFee.is_some()) && (depositFee.is_some()) {
                     let mut depositFeeData: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("fixed".to_string(), self.safe_number_k(depositFee.clone(), "fixed", &[]));
+                            m.insert("fixed".to_string(), self.safe_number_k(&depositFee, "fixed", &[]));
                         m
                     });
-                    let mut depositFlex: Value = self.safe_dict_k(depositFee, "flex", &[]);
-                    if (depositFlex != Value::Null) {
+                    let mut depositFlex: Option<crate::value::Dict> = self.safe_dict_k(&depositFee, "flex", &[]).into_opt_dict();
+                    if (depositFlex.is_some()) {
                         depositFeeData.insert("flex".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(depositFlex.clone(), "min_fee", &[]));
-        m.insert("max".to_string(), self.safe_number_k(depositFlex.clone(), "max_fee", &[]));
-        m.insert("percent".to_string(), self.safe_number_k(depositFlex, "percent", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&depositFlex, "min_fee", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&depositFlex, "max_fee", &[]));
+        m.insert("percent".to_string(), self.safe_number_k(&depositFlex, "percent", &[]));
     m
 }));
                     }
                     depositLimitsResult.insert("fee".into(), Value::Map(depositFeeData));
                 }
-                if (withdrawFee != Value::Null) && (withdrawFee != Value::Null) {
+                if (withdrawFee.is_some()) && (withdrawFee.is_some()) {
                     let mut withdrawFeeData: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("fixed".to_string(), self.safe_number_k(withdrawFee.clone(), "fixed", &[]));
+                            m.insert("fixed".to_string(), self.safe_number_k(&withdrawFee, "fixed", &[]));
                         m
                     });
-                    let mut withdrawFlex: Value = self.safe_dict_k(withdrawFee, "flex", &[]);
-                    if (withdrawFlex != Value::Null) {
+                    let mut withdrawFlex: Option<crate::value::Dict> = self.safe_dict_k(&withdrawFee, "flex", &[]).into_opt_dict();
+                    if (withdrawFlex.is_some()) {
                         withdrawFeeData.insert("flex".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(withdrawFlex.clone(), "min_fee", &[]));
-        m.insert("max".to_string(), self.safe_number_k(withdrawFlex.clone(), "max_fee", &[]));
-        m.insert("percent".to_string(), self.safe_number_k(withdrawFlex, "percent", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&withdrawFlex, "min_fee", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&withdrawFlex, "max_fee", &[]));
+        m.insert("percent".to_string(), self.safe_number_k(&withdrawFlex, "percent", &[]));
     m
 }));
                     }

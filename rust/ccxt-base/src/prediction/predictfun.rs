@@ -2291,10 +2291,10 @@ impl Predictfun {
             side = Some("sell".to_string());
         }
         order = self.safe_string_k(&party, "hash", &[]).as_str().map(str::to_owned);
-        let mut rawFee: Value = self.safe_dict_k(&party, "fee", &[]);
-        if (rawFee != Value::Null) {
-            let mut feeType: Option<String> = self.safe_string_k(rawFee.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut feeCost: Option<String> = self.safe_string_k(rawFee, "amount", &[]).as_str().map(str::to_owned);
+        let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k(&party, "fee", &[]).into_opt_dict();
+        if (rawFee.is_some()) {
+            let mut feeType: Option<String> = self.safe_string_k(&rawFee, "type", &[]).as_str().map(str::to_owned);
+            let mut feeCost: Option<String> = self.safe_string_k(&rawFee, "amount", &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
@@ -4947,14 +4947,14 @@ impl Predictfun {
         if (isMaker.is_some()) {
             takerOrMaker = (if isMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        let mut rawFee: Value = self.safe_dict_k(event.clone(), "fee", &[]);
+        let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k(event.clone(), "fee", &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
-        if (rawFee != Value::Null) {
-            let mut feeType: Option<String> = self.safe_string_k(rawFee.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (rawFee.is_some()) {
+            let mut feeType: Option<String> = self.safe_string_k(&rawFee, "type", &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
-                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(rawFee, "amountWei", &[]), &Value::Str("1000000000000000000".into())), &[]));
+                    m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&rawFee, "amountWei", &[]), &Value::Str("1000000000000000000".into())), &[]));
                 m
             });
         }

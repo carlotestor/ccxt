@@ -1246,10 +1246,10 @@ impl Cex {
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
         let mut baseId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(data.clone(), "symbol2", &[]).as_str().map(str::to_owned);
-        let mut pair: Value = self.safe_dict_k(data.clone(), "pair", &[]);
-        if (pair != Value::Null) {
-            baseId = self.safe_string_k(pair.clone(), "symbol1", &[]).as_str().map(str::to_owned);
-            quoteId = self.safe_string_k(pair, "symbol2", &[]).as_str().map(str::to_owned);
+        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "pair", &[]).into_opt_dict();
+        if (pair.is_some()) {
+            baseId = self.safe_string_k(&pair, "symbol1", &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string_k(&pair, "symbol2", &[]).as_str().map(str::to_owned);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

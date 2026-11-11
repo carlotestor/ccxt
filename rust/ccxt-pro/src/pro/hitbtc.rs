@@ -2376,12 +2376,12 @@ impl Hitbtc {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        if (error != Value::Null) {
+        let mut error: Option<crate::value::Dict> = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_opt_dict();
+        if (error.is_some()) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
-                let mut errorMessage: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
-                let mut description: Option<String> = self.safe_string_k(error.clone(), "description", &[]).as_str().map(str::to_owned);
+                let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
+                let mut errorMessage: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
+                let mut description: Option<String> = self.safe_string_k(&error, "description", &[]).as_str().map(str::to_owned);
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), description.clone().map(Value::from).unwrap_or(Value::Null));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

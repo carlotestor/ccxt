@@ -2875,11 +2875,11 @@ impl Bitso {
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
-                let mut error: Value = self.safe_dict_k(response, "error", &[]);
-                if (error == Value::Null) {
+                let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+                if (error.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
                 }
-                let mut codeError: Option<String> = self.safe_string_k(error, "code", &[]).as_str().map(str::to_owned);
+                let mut codeError: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
                 self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

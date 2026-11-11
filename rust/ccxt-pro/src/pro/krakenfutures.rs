@@ -2054,7 +2054,7 @@ impl Krakenfutures {
         // (same class of bug as kraken issue #26773)
         let mut holding: Value = (match __pro_message.get("holding").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut futures: Value = self.safe_dict_k(message.clone(), "futures", &[]);
-        let mut flexFutures: Value = (match __pro_message.get("flex_futures").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut flexFutures: Option<crate::value::Dict> = (match __pro_message.get("flex_futures").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
         let mut messageHash: String = "balances".to_string();
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if (self.balance.clone() == Value::Null) {
@@ -2139,8 +2139,8 @@ impl Krakenfutures {
                 updatedBalance = self.balance.as_map().and_then(|__m| __m.get("margin")).cloned().unwrap_or(Value::Null);
             }
         }
-        if (flexFutures != Value::Null) {
-            let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures, "currencies", &[Value::Map({
+        if (flexFutures.is_some()) {
+            let mut flexFutureCurrencies: Value = self.safe_dict_k(&flexFutures, "currencies", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

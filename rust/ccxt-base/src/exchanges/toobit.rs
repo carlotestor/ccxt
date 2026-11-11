@@ -2729,10 +2729,10 @@ impl Toobit {
         if (triggerPrice != Value::Null) {
             request.insert("stopPrice".into(), triggerPrice);
         }
-        let mut stopLoss: Value = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut triggerPriceTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MARK_PRICE".into()));
@@ -2740,25 +2740,25 @@ impl Toobit {
             m
         });
         if hasStopLoss {
-            request.insert("stopLoss".into(), self.safe_value_k(stopLoss.clone(), "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(stopLoss.clone(), "price", &[]);
+            request.insert("stopLoss".into(), self.safe_value_k(&stopLoss, "triggerPrice", &[]));
+            let mut limitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("slLimitPrice".into(), self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(stopLoss, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
                 request.insert("slTriggerBy".into(), self.safe_string(Value::Map(triggerPriceTypes.clone()), triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
             }
         }
         if hasTakeProfit {
-            request.insert("takeProfit".into(), self.safe_value_k(takeProfit.clone(), "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(takeProfit.clone(), "price", &[]);
+            request.insert("takeProfit".into(), self.safe_value_k(&takeProfit, "triggerPrice", &[]));
+            let mut limitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("tpLimitPrice".into(), self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(takeProfit, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
                 request.insert("tpTriggerBy".into(), self.safe_string(Value::Map(triggerPriceTypes), triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
             }

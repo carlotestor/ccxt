@@ -4045,17 +4045,17 @@ impl Mexc {
         //
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
         let mut id: Option<String> = None;
-        if (data == Value::Null) {
+        if (data.is_none()) {
             id = self.safe_string_k(response, "data", &[]).as_str().map(str::to_owned); // planorder/place answers with the bare trigger order id
         }  else {
-            id = self.safe_string_k(data.clone(), "orderId", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k(&data, "orderId", &[]).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), self.safe_integer_k(data, "ts", &[]));
+        m.insert("timestamp".to_string(), self.safe_integer_k(&data, "ts", &[]));
     m
 }), &[market]);
 

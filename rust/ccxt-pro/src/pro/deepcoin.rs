@@ -472,11 +472,11 @@ impl Deepcoin {
         let mut requestId: Value = self.request_id();
         let mut client: Value = self.client(&[Value::from(url.clone())]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut existingSubscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-        if (existingSubscription == Value::Null) {
+        let mut existingSubscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
+        if (existingSubscription.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no subscription for ".into())).into()), messageHash)));
         }
-        let mut subId: Option<i64> = self.safe_integer_k(existingSubscription, "id", &[]).as_i64();
+        let mut subId: Option<i64> = self.safe_integer_k(&existingSubscription, "id", &[]).as_i64();
         let mut request: Value = self.create_public_request(market.clone(), Value::from(subId), topicID, &[suffix, Value::Bool(true)]); // unsubscribe message uses the same id as the original subscribe message
         let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), messageHash);
         let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({

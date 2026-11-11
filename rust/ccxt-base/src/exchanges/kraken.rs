@@ -2929,8 +2929,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut orderDescriptionObj: Value = self.safe_dict_k(orderOmitted.clone(), "descr", &[]); // can be null
-        let mut orderDescription: Value = (if (orderDescriptionObj != Value::Null) { self.safe_string_k(orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
+        let mut orderDescriptionObj: Option<crate::value::Dict> = self.safe_dict_k(orderOmitted.clone(), "descr", &[]).into_opt_dict(); // can be null
+        let mut orderDescription: Value = (if (orderDescriptionObj.is_some()) { self.safe_string_k(&orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
         let mut side: Value = Value::Null;
         let mut descriptionType: Option<String> = None;
         let mut marketId: Value = Value::Null;

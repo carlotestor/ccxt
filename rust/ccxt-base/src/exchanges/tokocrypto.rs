@@ -2423,9 +2423,9 @@ impl Tokocrypto {
             request.insert("side".into(), Value::Int(1));
         }
         if (clientOrderId.is_none()) {
-            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[]);
-            if (broker != Value::Null) {
-                let mut brokerId: Option<String> = self.safe_string_k(broker, "marketType", &[]).as_str().map(str::to_owned);
+            let mut broker: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "broker", &[]).into_opt_dict();
+            if (broker.is_some()) {
+                let mut brokerId: Option<String> = self.safe_string_k(&broker, "marketType", &[]).as_str().map(str::to_owned);
                 if (brokerId.is_some()) {
                     request.insert("clientId".into(), Value::Str(format!("{}{}", brokerId.clone().map(Value::from).unwrap_or(Value::Null), self.uuid22(&[])).into()));
                 }

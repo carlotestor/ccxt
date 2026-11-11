@@ -2075,7 +2075,7 @@ impl Aster {
         let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
         let mut filterNotional: Value = self.safe_dict2(filtersByType.clone(), Value::Str("MIN_NOTIONAL".into()), Value::Str("NOTIONAL".into()), &[]);
         let mut filterPrice: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[]).into_dict();
-        let mut filterLotSize: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[]);
+        let mut filterLotSize: Option<crate::value::Dict> = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[]).into_opt_dict();
         let mut filterMarketLotSize: crate::value::Dict = self.safe_dict_k(filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2084,7 +2084,7 @@ impl Aster {
         if (pricePrecision == Value::Null) {
             pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
         }
-        let mut amountPrecision: Value = (if (filterLotSize != Value::Null) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
+        let mut amountPrecision: Value = (if (filterLotSize.is_some()) { self.safe_number_k(&filterLotSize, "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2130,8 +2130,8 @@ impl Aster {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filterLotSize.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filterLotSize, "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filterLotSize, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filterLotSize, "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -5119,12 +5119,12 @@ impl Aster {
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                let mut balance: Value = self.safe_dict(Value::Map(balances.clone()), code, &[]);
-                if (balance != Value::Null) {
+                let mut balance: Option<crate::value::Dict> = self.safe_dict(Value::Map(balances.clone()), code, &[]).into_opt_dict();
+                if (balance.is_some()) {
                     let __ws_arg_44 = self.extend(position, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("crossMargin".to_string(), self.safe_string_k(balance.clone(), "crossMargin", &[]));
-        m.insert("crossWalletBalance".to_string(), self.safe_string_k(balance, "crossWalletBalance", &[]));
+        m.insert("crossMargin".to_string(), self.safe_string_k(&balance, "crossMargin", &[]));
+        m.insert("crossWalletBalance".to_string(), self.safe_string_k(&balance, "crossWalletBalance", &[]));
     m
 })]);
                     let mut parsed: Value = self.parse_account_position(__ws_arg_44, &[market]);

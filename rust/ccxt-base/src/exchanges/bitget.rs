@@ -5869,10 +5869,10 @@ if _try_result.is_err() {
 
     pub async fn fetch_default_markets(&mut self, mut params: Value) -> Value {
         let mut types: Value = Value::Null;
-        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
+        let mut fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
         let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        if (fetchMarketsOptions != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
+        if (fetchMarketsOptions.is_some()) {
+            types = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
         }  else {
             // for backward-compatibility
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultMarkets]);
@@ -6050,11 +6050,11 @@ if _try_result.is_err() {
             let mut parsedMarket: Value = self.parse_market(market);
             if (parsedMarket != Value::Null) && matches!(parsedMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null), Value::Bool(true)) {
                 let mut marketId: Value = parsedMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-                let mut instrument: Value = self.safe_dict(spotInstruments.clone(), marketId, &[]);
-                if (instrument != Value::Null) {
+                let mut instrument: Option<crate::value::Dict> = self.safe_dict(spotInstruments.clone(), marketId, &[]).into_opt_dict();
+                if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
-                    let mut assetType: Option<String> = self.safe_string_lower_k(instrument.clone(), "symbolType", &[]).as_str().map(str::to_owned);
-                    let mut isReality: bool = self.safe_string_lower_k(instrument, "isReality", &[]).as_str() == Some("yes");
+                    let mut assetType: Option<String> = self.safe_string_lower_k(&instrument, "symbolType", &[]).as_str().map(str::to_owned);
+                    let mut isReality: bool = self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes");
                     if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality))); }
                 }
             }
@@ -9123,16 +9123,16 @@ if _try_result.is_err() {
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(paramsUTA, Value::Str("stock".into()), &[]).into_dict();
         let mut marketType: Value = Value::Null;
-        let mut timeframes: Value = Value::Null;
+        let mut timeframes: Option<crate::value::Dict> = None;
         let mut timeframesOption: Value = self.handle_option(Value::Str("fetchOHLCV".into()), Value::Str("timeframes".into()), &[]);
         let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
         if isStockOrUta {
-            timeframes = self.safe_dict_k(timeframesOption.clone(), "uta", &[]);
-            request.insert("interval".into(), self.safe_string(timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+            timeframes = self.safe_dict_k(timeframesOption.clone(), "uta", &[]).into_opt_dict();
+            request.insert("interval".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }  else {
             marketType = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
-            timeframes = self.safe_dict(timeframesOption, marketType, &[]);
-            request.insert("granularity".into(), self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]));
+            timeframes = self.safe_dict(timeframesOption, marketType, &[]).into_opt_dict();
+            request.insert("granularity".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }
         let mut msInDay: Value = Value::Int(86400000);
         let mut now: Value = self.milliseconds();

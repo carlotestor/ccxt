@@ -5089,9 +5089,9 @@ impl Xt {
         //     }
         //
         let mut orders: Value = Value::from(vec![]);
-        let mut resultDict: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        if (resultDict != Value::Null) {
-            orders = self.safe_list_k(resultDict, "items", &[Value::from(vec![])]);
+        let mut resultDict: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "result", &[]).into_opt_dict();
+        if (resultDict.is_some()) {
+            orders = self.safe_list_k(&resultDict, "items", &[Value::from(vec![])]);
         }  else {
             orders = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         }
@@ -7333,12 +7333,12 @@ impl Xt {
  * @param {object} breakBySymbolSide the result of indexPositionBreakList()
  */
     pub fn merge_position_break_info(&self, mut entry: Value, mut breakBySymbolSide: Value) -> Value {
-        let mut breakEntry: Value = self.safe_dict(breakBySymbolSide, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(entry.clone(), "positionSide", &[Value::Str("".into())])).into()), &[]);
-        if (breakEntry == Value::Null) {
+        let mut breakEntry: Option<crate::value::Dict> = self.safe_dict(breakBySymbolSide, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(entry.clone(), "positionSide", &[Value::Str("".into())])).into()), &[]).into_opt_dict();
+        if (breakEntry.is_none()) {
             return entry;
         }
-        let __ws_arg_97 = self.safe_string_k(breakEntry.clone(), "breakPrice", &[]);
-        let __ws_arg_98 = self.safe_string_k(breakEntry, "calMarkPrice", &[]);
+        let __ws_arg_97 = self.safe_string_k(&breakEntry, "breakPrice", &[]);
+        let __ws_arg_98 = self.safe_string_k(&breakEntry, "calMarkPrice", &[]);
         return self.extend(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("breakPrice".to_string(), __ws_arg_97);

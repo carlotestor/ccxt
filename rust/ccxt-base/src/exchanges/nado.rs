@@ -2500,12 +2500,12 @@ impl Nado {
             if (assetCode == Value::Null) {
                 continue;
             }
-            let mut previous: Value = self.safe_dict(Value::Map(assetsByCode.clone()), assetCode.clone(), &[]);
-            if (previous == Value::Null) {
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(assetsByCode.clone()), assetCode.clone(), &[]).into_opt_dict();
+            if (previous.is_none()) {
                 assetsByCode.insert(crate::runtime::stringify_param(&assetCode), rawAsset.clone());
             }  else {
-                let mut previousDeposit: bool = self.safe_bool_k(previous.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                let mut previousWithdraw: bool = self.safe_bool_k(previous, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut previousDeposit: bool = self.safe_bool_k(&previous, "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut previousWithdraw: bool = self.safe_bool_k(&previous, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut currentDeposit: bool = self.safe_bool_k(rawAsset.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut currentWithdraw: bool = self.safe_bool_k(rawAsset.clone(), "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if (!previousDeposit) && (!previousWithdraw) && (currentDeposit || currentWithdraw) {
@@ -2676,14 +2676,14 @@ impl Nado {
             if (code.is_none()) {
                 continue;
             }
-            let mut previous: Value = self.safe_dict(Value::Map(result.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             let mut canDeposit: bool = self.safe_bool_k(currency.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut canWithdraw: bool = self.safe_bool_k(currency, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            if (previous == Value::Null) {
+            if (previous.is_none()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), parsed.clone());
             }  else {
-                let mut previousDeposit: bool = self.safe_bool_k(previous.clone(), "deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                let mut previousWithdraw: bool = self.safe_bool_k(previous, "withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut previousDeposit: bool = self.safe_bool_k(&previous, "deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut previousWithdraw: bool = self.safe_bool_k(&previous, "withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if (!previousDeposit) && (!previousWithdraw) && (canDeposit || canWithdraw) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
                 }
@@ -4018,9 +4018,9 @@ impl Nado {
                 side = (if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
                 amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut triggerStatus: Value = self.safe_dict_k(order.clone(), "status", &[]);
-            if (triggerStatus != Value::Null) {
-                let mut triggered: Value = self.safe_dict_k(triggerStatus, "triggered", &[]);
+            let mut triggerStatus: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "status", &[]).into_opt_dict();
+            if (triggerStatus.is_some()) {
+                let mut triggered: Value = self.safe_dict_k(&triggerStatus, "triggered", &[]);
                 if (triggered != Value::Null) {
                     status = Some("closed".to_string());
                 }  else {

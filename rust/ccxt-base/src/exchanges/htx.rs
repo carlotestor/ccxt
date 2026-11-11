@@ -8072,16 +8072,16 @@ impl Htx {
             if (timeInForce != Value::Null) {
                 request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
             }
-            let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
-            let mut stopLossTriggerPriceAttached: Option<f64> = self.safe_number_k(stopLoss.clone(), "triggerPrice", &[]).as_f64();
-            let mut stopLossOrderPrice: Option<f64> = self.safe_number_k(stopLoss.clone(), "price", &[]).as_f64();
-            let mut stopLossType: Option<String> = self.safe_string_k(stopLoss.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut takeProfitTriggerPriceAttached: Option<f64> = self.safe_number_k(takeProfit.clone(), "triggerPrice", &[]).as_f64();
-            let mut takeProfitOrderPrice: Option<f64> = self.safe_number_k(takeProfit.clone(), "price", &[]).as_f64();
-            let mut takeProfitType: Option<String> = self.safe_string_k(takeProfit.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "stopLoss", &[]).into_opt_dict();
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "takeProfit", &[]).into_opt_dict();
+            let mut stopLossTriggerPriceAttached: Option<f64> = self.safe_number_k(&stopLoss, "triggerPrice", &[]).as_f64();
+            let mut stopLossOrderPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
+            let mut stopLossType: Option<String> = self.safe_string_k(&stopLoss, "type", &[]).as_str().map(str::to_owned);
+            let mut takeProfitTriggerPriceAttached: Option<f64> = self.safe_number_k(&takeProfit, "triggerPrice", &[]).as_f64();
+            let mut takeProfitOrderPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
+            let mut takeProfitType: Option<String> = self.safe_string_k(&takeProfit, "type", &[]).as_str().map(str::to_owned);
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
-            if (stopLoss != Value::Null) {
+            if (stopLoss.is_some()) {
                 if (stopLossTriggerPriceAttached.is_some()) {
                     request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPriceAttached)));
                 }
@@ -8093,7 +8093,7 @@ impl Htx {
                 }
                 query = self.omit(query.clone(), Value::Str("stopLoss".into()), &[]);
             }
-            if (takeProfit != Value::Null) {
+            if (takeProfit.is_some()) {
                 if (takeProfitTriggerPriceAttached.is_some()) {
                     request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPriceAttached)));
                 }

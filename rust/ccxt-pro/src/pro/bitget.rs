@@ -2030,12 +2030,12 @@ impl Bitget {
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { instId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, Value::Null, defaultType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]).as_i64();
         let mut feeDetail: Value = self.safe_list_k(trade.clone(), "feeDetail", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(feeDetail, Value::Int(0), &[]);
+        let mut first: Option<crate::value::Dict> = self.safe_dict(feeDetail, Value::Int(0), &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
-        if (first != Value::Null) {
-            let mut feeCurrencyId: Option<String> = self.safe_string_k(first.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
+        if (first.is_some()) {
+            let mut feeCurrencyId: Option<String> = self.safe_string_k(&first, "feeCoin", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut feeCost: Option<String> = self.safe_string2(first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
+            let mut feeCost: Option<String> = self.safe_string2(&first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost.clone().map(Value::from).unwrap_or(Value::Null)));

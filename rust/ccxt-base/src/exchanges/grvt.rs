@@ -4408,14 +4408,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut filledAmounts: crate::value::List = self.safe_list_k(&stateObj, "traded_size", &[Value::from(vec![])]).into_list();
         let mut avgPrices: crate::value::List = self.safe_list_k(&stateObj, "avg_fill_price", &[Value::from(vec![])]).into_list();
         let mut primaryOrderIndex: i64 = 0;
-        let mut firstLeg: Value = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]);
-        let mut legMarketId: Option<String> = self.safe_string_k(firstLeg.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (firstLeg != Value::Null) { self.safe_market(&[legMarketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
-        if (firstLeg != Value::Null) {
-            size = self.safe_string_k(firstLeg.clone(), "size", &[]).as_str().map(str::to_owned);
-            let mut isBuyingAsset: bool = self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]).into_opt_dict();
+        let mut legMarketId: Option<String> = self.safe_string_k(&firstLeg, "instrument", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: Value = (if (firstLeg.is_some()) { self.safe_market(&[legMarketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
+        if (firstLeg.is_some()) {
+            size = self.safe_string_k(&firstLeg, "size", &[]).as_str().map(str::to_owned);
+            let mut isBuyingAsset: bool = self.safe_bool_k(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             side = (if isBuyingAsset { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
-            price = self.safe_string_k(firstLeg, "limit_price", &[]).as_str().map(str::to_owned);
+            price = self.safe_string_k(&firstLeg, "limit_price", &[]).as_str().map(str::to_owned);
             filled = self.safe_string(&filledAmounts, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
             avgPrice = self.safe_string(&avgPrices, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
         }

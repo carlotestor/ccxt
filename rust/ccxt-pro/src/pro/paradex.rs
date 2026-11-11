@@ -3198,9 +3198,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_request_reply(client.clone(), message.clone());
             return;
         }
-        let mut data: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (data != Value::Null) {
-            let mut channel: Option<String> = self.safe_string_k_opt(data, "channel", &[]);
+        let mut data: Option<crate::value::Dict> = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (data.is_some()) {
+            let mut channel: Option<String> = self.safe_string_k_opt(&data, "channel", &[]);
             let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut name: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut methods: indexmap::IndexMap<String, Value> = ({

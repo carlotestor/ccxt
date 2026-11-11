@@ -4997,10 +4997,10 @@ impl Bingx {
             let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
             let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
             let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
-            let mut stopLossDict: Value = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]);
-            let mut takeProfitDict: Value = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]);
-            let mut hasStopLoss: bool = stopLossDict != Value::Null;
-            let mut hasTakeProfit: bool = takeProfitDict != Value::Null;
+            let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]).into_opt_dict();
+            let mut takeProfitDict: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]).into_opt_dict();
+            let mut hasStopLoss: bool = stopLossDict.is_some();
+            let mut hasTakeProfit: bool = takeProfitDict.is_some();
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
             let mut paramsStopLoss: Value = paramsPostOnly.clone();
             if hasStopLoss {
@@ -5062,11 +5062,11 @@ impl Bingx {
                 }
                 let mut stringifiedAmount: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                 if hasStopLoss {
-                    let mut slTriggerPrice: Option<String> = self.safe_string2(stopLossDict.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                    let mut slWorkingType: String = self.safe_string2(stopLossDict.clone(), Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[Value::Str("MARK_PRICE".into())]).as_str().unwrap_or("MARK_PRICE").to_string();
-                    let mut slPrice: Option<String> = self.safe_string_k(stopLossDict.clone(), "price", &[]).as_str().map(str::to_owned);
+                    let mut slTriggerPrice: Option<String> = self.safe_string2(&stopLossDict, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                    let mut slWorkingType: String = self.safe_string2(&stopLossDict, Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[Value::Str("MARK_PRICE".into())]).as_str().unwrap_or("MARK_PRICE").to_string();
+                    let mut slPrice: Option<String> = self.safe_string_k(&stopLossDict, "price", &[]).as_str().map(str::to_owned);
                     let mut slDefaultType: Value = (if (slPrice.is_some()) { Value::Str("STOP".into()) } else { Value::Str("STOP_MARKET".into()) });
-                    let mut slType: Value = self.safe_string_k(stopLossDict.clone(), "type", &[slDefaultType]);
+                    let mut slType: Value = self.safe_string_k(&stopLossDict, "type", &[slDefaultType]);
                     let mut slRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -5077,7 +5077,7 @@ impl Bingx {
                     if (slPrice.is_some()) {
                         slRequest.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.clone().map(Value::from).unwrap_or(Value::Null))));
                     }
-                    let mut slQuantity: Value = self.safe_string_k(stopLossDict, "quantity", &[stringifiedAmount.clone().map(Value::from).unwrap_or(Value::Null)]);
+                    let mut slQuantity: Value = self.safe_string_k(&stopLossDict, "quantity", &[stringifiedAmount.clone().map(Value::from).unwrap_or(Value::Null)]);
                     let mut slQuantityRequest: Value = self.parse_to_numeric(slQuantity.clone());
                     if !((market).inverse == Some(true)) {
                         slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity));
@@ -5086,11 +5086,11 @@ impl Bingx {
                     request.insert("stopLoss".into(), json_stringify(&Value::Map(slRequest)));
                 }
                 if hasTakeProfit {
-                    let mut tkTriggerPrice: Option<String> = self.safe_string2(takeProfitDict.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                    let mut tkWorkingType: String = self.safe_string2(takeProfitDict.clone(), Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[Value::Str("MARK_PRICE".into())]).as_str().unwrap_or("MARK_PRICE").to_string();
-                    let mut tpPrice: Option<String> = self.safe_string_k(takeProfitDict.clone(), "price", &[]).as_str().map(str::to_owned);
+                    let mut tkTriggerPrice: Option<String> = self.safe_string2(&takeProfitDict, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                    let mut tkWorkingType: String = self.safe_string2(&takeProfitDict, Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[Value::Str("MARK_PRICE".into())]).as_str().unwrap_or("MARK_PRICE").to_string();
+                    let mut tpPrice: Option<String> = self.safe_string_k(&takeProfitDict, "price", &[]).as_str().map(str::to_owned);
                     let mut tpDefaultType: Value = (if (tpPrice.is_some()) { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("TAKE_PROFIT_MARKET".into()) });
-                    let mut tpType: Value = self.safe_string_k(takeProfitDict.clone(), "type", &[tpDefaultType]);
+                    let mut tpType: Value = self.safe_string_k(&takeProfitDict, "type", &[tpDefaultType]);
                     let mut tpRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), tkTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -5101,7 +5101,7 @@ impl Bingx {
                     if (tpPrice.is_some()) {
                         tpRequest.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), tpPrice.clone().map(Value::from).unwrap_or(Value::Null))));
                     }
-                    let mut tkQuantity: Value = self.safe_string_k(takeProfitDict, "quantity", &[stringifiedAmount.clone().map(Value::from).unwrap_or(Value::Null)]);
+                    let mut tkQuantity: Value = self.safe_string_k(&takeProfitDict, "quantity", &[stringifiedAmount.clone().map(Value::from).unwrap_or(Value::Null)]);
                     let mut tkQuantityRequest: Value = self.parse_to_numeric(tkQuantity.clone());
                     if !((market).inverse == Some(true)) {
                         tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity));
@@ -7425,8 +7425,8 @@ impl Bingx {
         //
         // parse withdraw-type output first...
         //
-        let mut data: Value = self.safe_dict_k(transaction.clone(), "data", &[]);
-        let mut dataId: Value = (if (data == Value::Null) { Value::Null } else { self.safe_string_k(data, "id", &[]) });
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(transaction.clone(), "data", &[]).into_opt_dict();
+        let mut dataId: Value = (if (data.is_none()) { Value::Null } else { self.safe_string_k(&data, "id", &[]) });
         let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[dataId]);
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "addressTag", &[]).as_str().map(str::to_owned);

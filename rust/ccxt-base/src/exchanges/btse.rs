@@ -1228,15 +1228,15 @@ impl Btse {
                 type_var = "swap".to_string();
             }
         }
-        let mut fees: Value = self.safe_dict_k(self.fees.clone(), "contract", &[Value::Map({
+        let mut fees: Option<crate::value::Dict> = self.safe_dict_k(self.fees.clone(), "contract", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         if isSpot {
             fees = self.safe_dict_k(self.fees.clone(), "spot", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1258,8 +1258,8 @@ impl Btse {
         m.insert("contract".to_string(), Value::Bool(isSwap || isFuture));
         m.insert("linear".to_string(), (if isSpot { Value::Null } else { Value::Bool(true) }));
         m.insert("inverse".to_string(), (if isSpot { Value::Null } else { Value::Bool(false) }));
-        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(fees, "maker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
@@ -3041,21 +3041,21 @@ impl Btse {
             }
         }
         // here we handling with attached take profit and stop loss orders
-        let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
-        let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
-        if (takeProfit != Value::Null) || (stopLoss != Value::Null) {
-            let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-            let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "stopLoss", &[]).into_opt_dict();
+        if (takeProfit.is_some()) || (stopLoss.is_some()) {
+            let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
+            let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
             if (takeProfitTriggerPrice.is_some()) {
                 request.insert("takeProfitTriggerPrice".into(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k(takeProfit, "priceType", &[]).as_str().map(str::to_owned);
+                let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k(&takeProfit, "priceType", &[]).as_str().map(str::to_owned);
                 if (takeProfitTriggerPriceType.is_some()) {
                     request.insert("takeProfitTriggerType".into(), self.encode_trigger_price_type(takeProfitTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                 }
             }
             if (stopLossTriggerPrice.is_some()) {
                 request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k(stopLoss, "priceType", &[]).as_str().map(str::to_owned);
+                let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k(&stopLoss, "priceType", &[]).as_str().map(str::to_owned);
                 if (stopLossTriggerPriceType.is_some()) {
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(stopLossTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                 }

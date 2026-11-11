@@ -1695,11 +1695,11 @@ impl Hashkey {
             }
         }
         let mut tradingFees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "trading", &[]).into_dict();
-        let mut fees: Value = Value::Null;
+        let mut fees: Option<crate::value::Dict> = None;
         if isSpot {
-            fees = self.safe_dict_k(&tradingFees, "spot", &[]);
+            fees = self.safe_dict_k(&tradingFees, "spot", &[]).into_opt_dict();
         }  else {
-            fees = self.safe_dict_k(&tradingFees, "swap", &[]);
+            fees = self.safe_dict_k(&tradingFees, "swap", &[]).into_opt_dict();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1723,11 +1723,11 @@ impl Hashkey {
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
-        m.insert("percentage".to_string(), self.safe_bool_k(fees.clone(), "percentage", &[]));
-        m.insert("tierBased".to_string(), self.safe_bool_k(fees.clone(), "tierBased", &[]));
-        m.insert("feeSide".to_string(), self.safe_string_k(fees, "feeSide", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
+        m.insert("percentage".to_string(), self.safe_bool_k(&fees, "percentage", &[]));
+        m.insert("tierBased".to_string(), self.safe_bool_k(&fees, "tierBased", &[]));
+        m.insert("feeSide".to_string(), self.safe_string_k(&fees, "feeSide", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2158,11 +2158,11 @@ impl Hashkey {
         }
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut feeCurrncyId: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);
-        let mut feeInfo: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
+        let mut feeInfo: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "fee", &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
-        if (feeInfo != Value::Null) {
-            feeCost = self.safe_string_k(feeInfo.clone(), "fee", &[]).as_str().map(str::to_owned);
-            feeCurrncyId = self.safe_string_k(feeInfo, "feeCoinId", &[]).as_str().map(str::to_owned);
+        if (feeInfo.is_some()) {
+            feeCost = self.safe_string_k(&feeInfo, "fee", &[]).as_str().map(str::to_owned);
+            feeCurrncyId = self.safe_string_k(&feeInfo, "feeCoinId", &[]).as_str().map(str::to_owned);
         }
         if (feeCost.is_some()) {
             fee = Value::Map({

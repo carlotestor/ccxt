@@ -1176,12 +1176,12 @@ impl Hyperliquid {
         let mut levels: Value = self.safe_list_k(raw.clone(), "levels", &[Value::from(vec![])]);
         let mut rawBids: Value = self.safe_list(levels.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut rawAsks: Value = self.safe_list(levels, Value::Int(1), &[Value::from(vec![])]);
-        let mut topBid: Value = self.safe_dict(rawBids, Value::Int(0), &[]);
-        let mut topAsk: Value = self.safe_dict(rawAsks, Value::Int(0), &[]);
-        let mut bid: Value = (if (topBid != Value::Null) { self.safe_number_k(topBid.clone(), "px", &[]) } else { Value::Null });
-        let mut ask: Value = (if (topAsk != Value::Null) { self.safe_number_k(topAsk.clone(), "px", &[]) } else { Value::Null });
-        let mut bidVolume: Value = (if (topBid != Value::Null) { self.safe_number_k(topBid, "sz", &[]) } else { Value::Null });
-        let mut askVolume: Value = (if (topAsk != Value::Null) { self.safe_number_k(topAsk, "sz", &[]) } else { Value::Null });
+        let mut topBid: Option<crate::value::Dict> = self.safe_dict(rawBids, Value::Int(0), &[]).into_opt_dict();
+        let mut topAsk: Option<crate::value::Dict> = self.safe_dict(rawAsks, Value::Int(0), &[]).into_opt_dict();
+        let mut bid: Value = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]) } else { Value::Null });
+        let mut ask: Value = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]) } else { Value::Null });
+        let mut bidVolume: Value = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]) } else { Value::Null });
+        let mut askVolume: Value = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]) } else { Value::Null });
         // Use synthetic mid if no l2Book
         let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
         if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
@@ -2432,7 +2432,7 @@ impl Hyperliquid {
         //   "statusTimestamp": 1704346468838
         // }
         //
-        let mut entry: crate::value::Dict = self.safe_dict_k(order.clone(), "order", &[order.clone()]).into_dict(); // eslint-disable-line
+        let mut entry: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]); // eslint-disable-line
         let mut status: Value = self.parse_order_status(self.safe_string2(order.clone(), Value::Str("ccxtStatus".into()), Value::Str("status".into()), &[])).map(Value::from).unwrap_or(Value::Null);
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: Value = self.safe_outcome(coin.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
@@ -2456,8 +2456,8 @@ impl Hyperliquid {
         let mut tifRaw: Option<String> = self.safe_string_k(&entry, "tif", &[]).as_str().map(str::to_owned);
         let mut tif: Value = self.parse_time_in_force(tifRaw.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
-        let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]) } else { Value::Null });
+        let mut isTrigger: bool = self.safe_bool_k(entry.clone(), "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(entry.clone(), "triggerPx", &[]) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&entry, "oid", &[]));
@@ -2474,13 +2474,13 @@ impl Hyperliquid {
         m.insert("type".to_string(), self.parse_order_type(self.safe_string_k(&entry, "orderType", &[Value::Str("limit".into())])).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), tif);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(&entry, "reduceOnly", &[Value::Bool(false)]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(entry.clone(), "reduceOnly", &[Value::Bool(false)]));
         m.insert("side".to_string(), Value::from(side));
-        m.insert("price".to_string(), self.safe_number_k(&entry, "limitPx", &[]));
+        m.insert("price".to_string(), self.safe_number_k(entry.clone(), "limitPx", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), self.parse_number(totalAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(&entry, "avgPx", &[]));
+        m.insert("average".to_string(), self.safe_number_k(entry, "avgPx", &[]));
         m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), self.parse_number(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), Value::Null);

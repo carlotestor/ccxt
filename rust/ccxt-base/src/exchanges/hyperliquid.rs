@@ -3532,20 +3532,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.clone()]);
             if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("slippage".into(), slippage); }
-            let mut stopLoss: Value = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]);
-            let mut hasStopLoss: bool = stopLoss != Value::Null;
-            let mut hasTakeProfit: bool = takeProfit != Value::Null;
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]).into_opt_dict();
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
+            let mut hasStopLoss: bool = stopLoss.is_some();
+            let mut hasTakeProfit: bool = takeProfit.is_some();
             orderParams = self.omit(orderParams.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
             let mut mainOrderObj: Value = self.create_order_request(symbol.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), side.clone().map(Value::from).unwrap_or(Value::Null), amount.clone().map(Value::from).unwrap_or(Value::Null), &[price.clone().map(Value::from).unwrap_or(Value::Null), orderParams.clone()]);
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
-                let mut stopLossOrderTriggerPrice: Option<String> = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                let mut stopLossOrderType: String = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-                let mut stopLossOrderLimitPrice: Value = self.safe_string2(stopLoss, Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[stopLossOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
-                let mut takeProfitOrderTriggerPrice: Option<String> = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                let mut takeProfitOrderType: String = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-                let mut takeProfitOrderLimitPrice: Value = self.safe_string2(takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[takeProfitOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut stopLossOrderTriggerPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut stopLossOrderType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
+                let mut stopLossOrderLimitPrice: Value = self.safe_string2(&stopLoss, Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[stopLossOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut takeProfitOrderTriggerPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut takeProfitOrderType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
+                let mut takeProfitOrderLimitPrice: Value = self.safe_string2(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[takeProfitOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
                 grouping = self.safe_string_k(orderParams.clone(), "grouping", &[Value::Str("normalTpsl".into())]).as_str().unwrap_or("normalTpsl").to_string();
                 if (grouping == "positionTpsl") {
                     amount = Some("0".to_string());
@@ -7137,10 +7137,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut hip3Dict: Value = self.safe_dict(hi3TokensByname, coin.clone(), &[]);
-        if (hip3Dict != Value::Null) {
-            let mut quote: String = self.safe_string_k(hip3Dict.clone(), "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
-            let mut code: Value = self.safe_string_k(hip3Dict, "code", &[coin.clone()]);
+        let mut hip3Dict: Option<crate::value::Dict> = self.safe_dict(hi3TokensByname, coin.clone(), &[]).into_opt_dict();
+        if (hip3Dict.is_some()) {
+            let mut quote: String = self.safe_string_k(&hip3Dict, "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
+            let mut code: Value = self.safe_string_k(&hip3Dict, "code", &[coin.clone()]);
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);
         }
         if coin.as_str().unwrap_or("").contains("/") || coin.as_str().unwrap_or("").contains("@") {
@@ -7198,12 +7198,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             if (matches!(&data, Value::Dict(__d) if __d.contains_key("status"))) {
-                let mut errorStatus: Value = self.safe_dict_k(data, "status", &[Value::Map({
+                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(data, "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut errorMsg: Option<String> = self.safe_string_k(errorStatus.clone(), "error", &[]).as_str().map(str::to_owned);
-                if (errorStatus != Value::Null) {
+})]).into_opt_dict();
+                let mut errorMsg: Option<String> = self.safe_string_k(&errorStatus, "error", &[]).as_str().map(str::to_owned);
+                if (errorStatus.is_some()) {
                     message = errorMsg;
                 }
             }

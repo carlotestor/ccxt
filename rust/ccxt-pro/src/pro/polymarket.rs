@@ -1728,10 +1728,10 @@ impl Polymarket {
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
                 let mut postKey: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
-                let mut postPending: Value = self.safe_dict(__ch.subscriptions.clone(), postKey.clone(), &[]);
-                if (postPending != Value::Null) {
+                let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), postKey.clone(), &[]).into_opt_dict();
+                if (postPending.is_some()) {
                     __ch.remove_subscription(&postKey);
-                    let mut postAction: Option<String> = self.safe_string_k(postPending, "method", &[]).as_str().map(str::to_owned);
+                    let mut postAction: Option<String> = self.safe_string_k(&postPending, "method", &[]).as_str().map(str::to_owned);
                     if (postAction.as_deref() == Some("auth")) {
                         let mut authStatus: Option<String> = self.safe_string_k(data.clone(), "status", &[]).as_str().map(str::to_owned);
                         if (authStatus.as_deref() == Some("ok")) {
@@ -1760,14 +1760,14 @@ impl Polymarket {
             return;
         }
         let mut key: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
-        let mut pending: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), key.clone(), &[]);
-        if (pending == Value::Null) {
+        let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), key.clone(), &[]).into_opt_dict();
+        if (pending.is_none()) {
             return;
         }
         __ch.remove_subscription(&key);
-        let mut messageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut action: Option<String> = self.safe_string_k(pending.clone(), "method", &[]).as_str().map(str::to_owned);
+        let mut messageHashes: Vec<Value> = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subMessageHashes: Vec<Value> = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut action: Option<String> = self.safe_string_k(&pending, "method", &[]).as_str().map(str::to_owned);
         let mut errorMessage: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -1809,8 +1809,8 @@ impl Polymarket {
             return;
         }
         if (action.as_deref() == Some("unsub")) {
-            let mut topic: Option<String> = self.safe_string_k(pending.clone(), "topic", &[]).as_str().map(str::to_owned);
-            let mut symbol: Option<String> = self.safe_string_k_opt(pending.clone(), "symbol", &[]);
+            let mut topic: Option<String> = self.safe_string_k(&pending, "topic", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&pending, "symbol", &[]);
             if (symbol.is_some()) {
                 if (topic.as_deref() == Some("orderbook")) {
                     if (matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1825,7 +1825,7 @@ impl Polymarket {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol.clone().map(Value::from).unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                 }  else if (topic.as_deref() == Some("ohlcv")) {
-                    let mut timeframe: Value = self.safe_string_k(pending, "timeframe", &[]);
+                    let mut timeframe: Value = self.safe_string_k(&pending, "timeframe", &[]);
                     if (timeframe != Value::Null) && (matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                             remove(&mut get_value(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), &timeframe);

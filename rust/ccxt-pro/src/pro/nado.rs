@@ -2824,9 +2824,9 @@ impl Nado {
         if (id.is_none()) {
             return;
         }
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]);
-        if (subscription != Value::Null) {
-            let mut subscribeHash: Option<String> = self.safe_string_k_opt(subscription, "subscribeHash", &[]);
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]).into_opt_dict();
+        if (subscription.is_some()) {
+            let mut subscribeHash: Option<String> = self.safe_string_k_opt(&subscription, "subscribeHash", &[]);
             __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             client.resolve(&[message, subscribeHash.map(Value::from).unwrap_or(Value::Null)]);
         }
@@ -2853,10 +2853,10 @@ impl Nado {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut id: String = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut unsubscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()), &[]);
-        if (unsubscription != Value::Null) {
-            let mut messageHash: Option<String> = self.safe_string_k_opt(unsubscription.clone(), "messageHash", &[]);
-            let mut unsubscribeHash: Option<String> = self.safe_string_k_opt(unsubscription, "unsubscribeHash", &[]);
+        let mut unsubscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()), &[]).into_opt_dict();
+        if (unsubscription.is_some()) {
+            let mut messageHash: Option<String> = self.safe_string_k_opt(&unsubscription, "messageHash", &[]);
+            let mut unsubscribeHash: Option<String> = self.safe_string_k_opt(&unsubscription, "unsubscribeHash", &[]);
             __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()));
             if (messageHash.is_some()) {
                 self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3004,9 +3004,9 @@ impl Nado {
                 return Value::Bool(true);
             }
         }
-        let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()), &[]);
-        if (subscription != Value::Null) {
-            let mut subscribeHash: Option<String> = self.safe_string_k_opt(subscription, "subscribeHash", &[]);
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()), &[]).into_opt_dict();
+        if (subscription.is_some()) {
+            let mut subscribeHash: Option<String> = self.safe_string_k_opt(&subscription, "subscribeHash", &[]);
             __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()));
             client.reject(&[feedback.clone(), subscribeHash.map(Value::from).unwrap_or(Value::Null)]);
         }  else {
@@ -3026,8 +3026,8 @@ impl Nado {
         }
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut hasResult: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("result"));
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut method: Option<String> = self.safe_string_k(result.clone(), "method", &[]).as_str().map(str::to_owned);
+        let mut result: Option<crate::value::Dict> = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut method: Option<String> = self.safe_string_k(&result, "method", &[]).as_str().map(str::to_owned);
         if (method.as_deref() == Some("pong")) {
             // pong replies carry both 'id' and 'result' so they must be routed
             // before the subscription-ack branch below swallows them
@@ -3051,7 +3051,7 @@ impl Nado {
                 self.handle_subscription(client.clone(), message.clone());
                 return;
             }
-            if (result == Value::Null) {
+            if (result.is_none()) {
                 self.handle_unsubscription(client.clone(), message.clone());
                 return;
             }
