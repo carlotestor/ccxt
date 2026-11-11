@@ -759,6 +759,7 @@ impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
 /// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
 impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
+impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
 /// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
 impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
 
