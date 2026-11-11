@@ -439,12 +439,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".into()), Value::Str("fetchDepositWithdrawFees".into())]));
             m
         });
-        let mut objectNames: Vec<Value> = Value::Array(objectSkips.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut objectNames: Value = Value::Array(objectSkips.keys().map(|__k| Value::Str(__k.clone().into())).collect());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1619: bool = true;
             while { if !__for_first_1619 { i += 1; } __for_first_1619 = false; i < (objectNames.len() as i64) } {
-            let mut objectName: Value = objectNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut objectName: Value = objectNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut objectMethods: Value = objectSkips.get(objectName.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
@@ -4482,7 +4482,7 @@ if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::from(id.clone());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("htx - spot clientOrderId ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut swapOrderRequest: Value = Value::Map({
@@ -4532,7 +4532,7 @@ if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::from(id.clone());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woo - broker_id: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut stopOrderRequest: Value = Value::Map({
@@ -4600,7 +4600,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::from(id.clone());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("phemex - clOrdID: ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
@@ -4624,7 +4624,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::from(id.clone());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("blofin - brokerId: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
