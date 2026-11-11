@@ -853,8 +853,8 @@ impl Sxbet {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1498: bool = true;
             while { if !__for_first_1498 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1498 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
-            let mut fixtureId: Value = order.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut event: Value = self.parse_event(fixtureId.clone(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+            let mut fixtureId: Option<String> = order.get((i).as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut event: Value = self.parse_event(fixtureId.clone().map(Value::from).unwrap_or(Value::Null), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             let mut evMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut evMarketsLength: f64 = ((evMarkets.len() as i64) as f64);
             {

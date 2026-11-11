@@ -1807,10 +1807,10 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_848: bool = true;
             while { if !__for_first_848 { i += 1; } __for_first_848 = false; i < (ids.len() as i64) } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[id.clone()]);
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = tickers.get(id.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = tickers.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
         }
         }

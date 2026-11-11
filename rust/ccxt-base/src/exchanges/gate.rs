@@ -4981,10 +4981,10 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_693: bool = true;
                     while { if !__for_first_693 { j += 1; } __for_first_693 = false; j < (networkIds.len() as i64) } {
-                    let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+                    let mut networkId: Option<String> = networkIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                     if (networkCode != Value::Null) {
-                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), networkId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
+                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), networkId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
                     }
                 }
                 }

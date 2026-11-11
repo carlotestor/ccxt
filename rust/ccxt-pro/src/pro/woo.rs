@@ -2156,9 +2156,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_705: bool = true;
             while { if !__for_first_705 { i += 1; } __for_first_705 = false; i < (postitionsIds.len() as i64) } {
-            let mut marketId: Value = postitionsIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut rawPosition: Value = rawPositions.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = postitionsIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut rawPosition: Value = rawPositions.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[market.clone()]);
             newPositions.push(position.clone());
             cache.append(position.clone());

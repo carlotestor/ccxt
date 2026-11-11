@@ -1412,12 +1412,12 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_528: bool = true;
             while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = Value::Null;
             if useKeyAsId.as_bool() == Some(true) {
-                market = self.safe_market(&[key.clone()]);
+                market = self.safe_market(&[key.clone().map(Value::from).unwrap_or(Value::Null)]);
             }
-            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market.clone()]);
+            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market.clone()]);
             let mut parsedSymbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
             if (parsedSymbol.is_some()) {
                 result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed);

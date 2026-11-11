@@ -6282,8 +6282,8 @@ impl Htx {
                                                 let mut j: i64 = 0;
                         let mut __for_first_777: bool = true;
                         while { if !__for_first_777 { j += 1; } __for_first_777 = false; j < (subCodes.len() as i64) } {
-                        let mut subCode: Value = subCodes.get(j as usize).cloned().unwrap_or(Value::Null);
-                        result = self.merge_balance_account(result.clone(), subCode.clone(), subResult.get(subCode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                        let mut subCode: Option<String> = subCodes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                        result = self.merge_balance_account(result.clone(), subCode.clone().map(Value::from).unwrap_or(Value::Null), subResult.get(subCode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
                     }
                     }
                 }
