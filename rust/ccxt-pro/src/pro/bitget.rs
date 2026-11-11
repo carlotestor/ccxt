@@ -671,7 +671,7 @@ impl Bitget {
         //
         self.handle_bid_ask(client.clone(), message.clone());
         let mut ticker: Value = self.parse_ws_ticker(message, &[]);
-        let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         }
@@ -907,7 +907,7 @@ impl Bitget {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut ticker: Value = self.parse_ws_bid_ask(message, &[]);
-        let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         }

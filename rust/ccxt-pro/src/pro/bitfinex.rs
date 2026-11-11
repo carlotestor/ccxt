@@ -1034,11 +1034,11 @@ impl Bitfinex {
         let mut ticker: Value = self.safe_list(message, Value::Int(1), &[]);
         let mut marketId: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: Value = self.safe_market(&[Value::from(marketId.clone())]);
-        let mut symbol: Value = self.safe_symbol(Value::from(marketId.clone()), &[]);
+        let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.clone()), &[]).as_str().map(str::to_owned);
         let mut parsed: Value = self.parse_ws_ticker(ticker, &[market]);
         let mut channel: String = "ticker".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
         client.resolve(&[parsed, messageHash]);
 }
 

@@ -499,19 +499,19 @@ impl Bullish {
     m
 }) }).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (symbol.is_none()) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
         let mut rawTrades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
-        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArrayCache); }
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArrayCache); }
         }
-        let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut tradesList: Value = self.to_array(trades.clone());
         {
                         let mut i: i64 = 0;
@@ -520,7 +520,7 @@ impl Bullish {
             tradesArray.append(tradesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArray.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
         client.resolve(&[tradesArray, messageHash]);
 }

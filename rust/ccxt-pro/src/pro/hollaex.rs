@@ -815,16 +815,16 @@ impl Hollaex {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Value = Value::Array(if let Some(__s) = key.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut currencyId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: Value = self.account();
-            if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                account = (if let (Some(__m), Some(__k)) = (self.balance.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                account = (if let (Some(__m), Some(__k)) = (self.balance.as_map(), code.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             let mut second: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut freeOrTotal: Value = (if (second.as_deref() == Some("available")) { Value::Str("free".into()) } else { Value::Str("total".into()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key, &[]));
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
             }
         }
         }

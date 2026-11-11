@@ -2198,13 +2198,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }) });
         let mut currencyId: Option<String> = self.safe_string2(data.clone(), Value::Str("c".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(data.clone(), "availableBalance", &[]));
         account.insert("used".into(), self.safe_string_k(data.clone(), "f", &[]));
         account.insert("total".into(), self.safe_string2(data.clone(), Value::Str("b".into()), Value::Str("walletBalance".into()), &[]));
-        if (code != Value::Null) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+        if (code.is_some()) {
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut tradeType: String = "spot".to_string();

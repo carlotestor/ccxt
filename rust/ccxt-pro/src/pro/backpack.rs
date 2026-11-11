@@ -907,7 +907,7 @@ impl Backpack {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1145,7 +1145,7 @@ impl Backpack {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 continue;
             }

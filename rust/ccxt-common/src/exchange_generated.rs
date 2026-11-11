@@ -2372,12 +2372,12 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_81: bool = true;
             while { if !__for_first_81 { i += 1; } __for_first_81 = false; i < (targets.len() as i64) } {
-            let mut target: Value = targets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut source: Value = fallbacks.get(target.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut target: Option<String> = targets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut source: Value = fallbacks.get(target.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut sourceDefined: bool = (matches!((&self.has, &source), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
-            let mut targetDefined: bool = (matches!((&self.has, &target), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), target.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
+            let mut targetDefined: bool = (matches!((&self.has, target.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), target.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
             if sourceDefined && !targetDefined {
-                { let __be_tmp = (if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }); if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&target), __be_tmp); } }
+                { let __be_tmp = (if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }); if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert(target.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             }
         }
         }

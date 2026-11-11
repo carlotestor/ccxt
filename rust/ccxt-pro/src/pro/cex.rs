@@ -446,9 +446,9 @@ impl Cex {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
             account.insert("used".into(), self.safe_string(&usedBalance, currencyId.clone(), &[]));
-            let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
@@ -598,11 +598,11 @@ impl Cex {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut symbol: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+        let mut symbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
-        if !(matches!((&self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ArrayCache::new(limit)); }
         }

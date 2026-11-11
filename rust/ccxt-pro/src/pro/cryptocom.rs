@@ -1298,9 +1298,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker, &[]);
-        let mut symbol: Value = self.safe_string_k(parsedTicker.clone(), "symbol", &[Value::Str("".into())]);
-        if (symbol.as_str() != Some("")) {
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
+        let mut symbol: String = self.safe_string_k(parsedTicker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (symbol != "") {
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), parsedTicker.clone()); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask.".into()), symbol).into());
         client.resolve(&[parsedTicker, messageHash]);
@@ -1818,12 +1818,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_282 { i += 1; } __for_first_282 = false; i < (positionBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(positionBalances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "quantity", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved_qty", &[]));
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }

@@ -1488,8 +1488,8 @@ impl Bitvavo {
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
         let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".into()), Value::Str("market".into()), &[(match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
-        let mut snapshotSymbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".into())]);
-        if !(matches!((&self.orderbooks, &snapshotSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        let mut snapshotSymbol: Option<String> = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".into())]).as_str().map(str::to_owned);
+        if !(matches!((&self.orderbooks, snapshotSymbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             return Value::Null;
         }
         let mut name: String = "getBook".to_string();
@@ -1596,9 +1596,9 @@ impl Bitvavo {
             let mut __for_first_158: bool = true;
             while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string(marketIds.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
-            let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]));
-            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!((&self.orderbooks, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash), &[]);
                 let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
                 if (method != Value::Null) {
@@ -1610,7 +1610,7 @@ impl Bitvavo {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
                 }
             }
         }
