@@ -314,7 +314,7 @@ impl Independentreserve {
         let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?subscribe=ticker-".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
-        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -347,7 +347,7 @@ impl Independentreserve {
 }) });
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "Pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -357,7 +357,7 @@ impl Independentreserve {
         let mut trade: Value = self.parse_ws_trade(data, &[]);
         stored.append(trade);
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -439,7 +439,7 @@ impl Independentreserve {
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
             m
         });
-        let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -554,12 +554,12 @@ impl Independentreserve {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
                 __ch.remove_subscription(&messageHash);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
-                client.reject(&[Value::from(error), messageHash.clone()]);
+                client.reject(error, &messageHash);
                 return;
             }
         }
         if receivedSnapshot {
-            client.resolve(&[orderbook, messageHash]);
+            client.resolve(orderbook, &messageHash);
         }
 }
 

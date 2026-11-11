@@ -4454,7 +4454,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        if !(client.has_subscription(&Value::Str("connect".into()))) {
+        if !(client.has_subscription("connect")) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut requestId: Value = self.request_id(url.clone());
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -4474,7 +4474,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if matches!(self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Null;
         }
-        return crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("centrifugoConnected".into())])).await;
+        return crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("centrifugoConnected".into()))).await;
 
     Value::Null
 }
@@ -4506,7 +4506,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[Value::Map(subscribeMsg), channel]).await;
+        return self.watch(url.as_deref(), messageHash, &[Value::Map(subscribeMsg), channel]).await;
 
     Value::Null
 }
@@ -4546,7 +4546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (connectReply != Value::Null) {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
-            client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
+            client.resolve(Value::Bool(true), "centrifugoConnected");
             return;
         }
         let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
@@ -4610,13 +4610,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj]);
-        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), networkId).into()), Value::Str(":".into())).into()), marketId).into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
-        let mut isNewSubscription: bool = !(client.has_subscription(&channel));
+        let mut isNewSubscription: bool = !(client.has_subscription(channel.as_str()));
         if isNewSubscription {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -4627,16 +4627,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), channel]).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(&[self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash]);
+            client.resolve(self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -4701,7 +4701,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1377: bool = true;
             while { if !__for_first_1377 { k += 1; } __for_first_1377 = false; (k as f64) < updatedLength } {
             let mut sym: Value = updatedSymbols.get(k as usize).cloned().unwrap_or(Value::Null);
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
+            client.resolve((if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
         }
         }
 }
@@ -4860,7 +4860,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(trade.clone());
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
+        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         let mut myWallet: Option<String> = self.wallet_address_or_undefined();
         if (myWallet.is_some()) {
@@ -4928,7 +4928,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     myStored.append(myLegs.get((k).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                client.resolve(&[myStored, Value::Str("myTrades".into())]);
+                client.resolve(myStored, "myTrades");
             }
         }
 }
@@ -5027,11 +5027,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("id".to_string(), requestId);
                     m
                 });
-                self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("tickers".into()), &[Value::Map(subscribeMsg), channel.clone()]).await;
+                self.watch(url.as_deref(), Value::Str("tickers".into()), &[Value::Map(subscribeMsg), channel.clone()]).await;
             }
         }
         }
-        let mut tickers: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("tickers".into())])).await;
+        let mut tickers: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("tickers".into()))).await;
         return self.filter_by_array(tickers, Value::Str("outcome".into()), &[Value::from(resolvedSymbols), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -5135,11 +5135,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }), &[market]);
             cachedTickers.insert(crate::runtime::stringify_param(&sym), ticker.clone());
-            client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())]);
+            client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())));
         }
         }
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
-        client.resolve(&[Value::Map(cachedTickers), Value::Str("tickers".into())]);
+        client.resolve(Value::Map(cachedTickers), "tickers");
 }
 
 /*
@@ -5232,9 +5232,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }), &[]);
         let mut stored: Value = self.orders.clone();
         stored.append(parsed);
-        client.resolve(&[stored.clone(), Value::Str("orders".into())]);
+        client.resolve(stored.clone(), "orders");
         if (sym != Value::Null) {
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("orders::".into()), sym).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym).into())));
         }
 }
 
@@ -5267,12 +5267,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut trader: Value = self.wallet_address_from_keys().map(Value::from).unwrap_or(Value::Null);
         let mut networkId: String = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())]).as_str().unwrap_or("56").to_string();
-        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("positions:".into()), networkId).into()), Value::Str(":".into())).into()), trader).into());
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("positions:".into()), networkId).into()), Value::Str(":".into())).into()), trader);
         let mut messageHash: String = "positions".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
-        let mut isNewSubscription: bool = !(client.has_subscription(&channel));
+        let mut isNewSubscription: bool = !(client.has_subscription(channel.as_str()));
         if isNewSubscription {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -5283,13 +5283,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut positions: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[Value::Map(subscribeMsg), channel]).await;
+        let mut positions: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
@@ -5384,7 +5384,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }));
         let mut stored: Value = self.positions.clone();
         stored.append(parsed);
-        client.resolve(&[stored, Value::Str("positions".into())]);
+        client.resolve(stored, "positions");
 }
 
     pub fn wallet_address_from_keys(&self) -> Option<String> {

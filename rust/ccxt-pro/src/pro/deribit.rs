@@ -398,7 +398,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[request.clone(), Value::from(messageHash), request]).await;
+        return self.watch(url, &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
         Value::Null
         }).await?))
     }
@@ -465,7 +465,7 @@ impl Deribit {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), balance.clone()); }
         }
         let mut messageHash: String = "balance".to_string();
-        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
+        client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
 /*
@@ -517,7 +517,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        return self.watch(url, Value::from(channel.clone()), &[request.clone(), Value::from(channel), request]).await;
+        return self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
         Value::Null
         }).await?))
     }
@@ -638,9 +638,9 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut ticker: Value = self.parse_ticker(data, &[]);
-        let mut messageHash: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-        client.resolve(&[ticker, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(ticker, messageHash.as_deref());
 }
 
 /*
@@ -738,8 +738,8 @@ impl Deribit {
         let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
         let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-        let mut messageHash: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        client.resolve(&[ticker, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
+        client.resolve(ticker, messageHash.as_deref());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -887,8 +887,8 @@ impl Deribit {
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         let mut interval: String = self.safe_string(parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades|".into()), symbol).into()), Value::Str("|".into())).into()), interval).into());
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades|".into()), symbol).into()), Value::Str("|".into())).into()), interval);
+        client.resolve((if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*
@@ -938,7 +938,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut trades: Value = self.watch(url, Value::from(channel.clone()), &[request.clone(), Value::from(channel), request]).await;
+        let mut trades: Value = self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -983,7 +983,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
+        let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut trades: Value = self.safe_list_k(&params, "data", &[Value::from(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
@@ -1005,7 +1005,7 @@ impl Deribit {
             marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
-        client.resolve(&[cachedTrades, channel]);
+        client.resolve(cachedTrades, channel.as_str());
 }
 
 /*
@@ -1172,8 +1172,8 @@ impl Deribit {
         storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         storedOrderBook.set_book_meta("symbol", symbol.clone());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), storedOrderBook.clone()); }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book|".into()), symbol).into()), Value::Str("|".into())).into()), descriptor).into());
-        client.resolve(&[storedOrderBook, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book|".into()), symbol).into()), Value::Str("|".into())).into()), descriptor);
+        client.resolve(storedOrderBook, messageHash.as_str());
 }
 
     pub fn clean_order_book(&self, mut data: Value) -> Value {
@@ -1275,7 +1275,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut orders: Value = self.watch(url, Value::from(channel.clone()), &[request.clone(), Value::from(channel), request]).await;
+        let mut orders: Value = self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1330,7 +1330,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
+        let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: Value = self.safe_value_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1350,7 +1350,7 @@ impl Deribit {
             cachedOrders.append(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        client.resolve(&[self.orders.clone(), channel]);
+        client.resolve(self.orders.clone(), channel.as_str());
 }
 
 /*
@@ -1489,8 +1489,8 @@ impl Deribit {
         stored.append(parsed);
         if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&unifiedTimeframe), stored.clone()); } }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe, stored]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".into()), symbol).into()), Value::Str("|".into())).into()), self.safe_string(parts, Value::Int(3), &[Value::Str("".into())])).into());
-        client.resolve(&[resolveData, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".into()), symbol).into()), Value::Str("|".into())).into()), self.safe_string(parts, Value::Int(3), &[Value::Str("".into())]));
+        client.resolve(resolveData, messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -1688,7 +1688,7 @@ impl Deribit {
         //     }
         //
         let mut messageHash: String = "authenticated".to_string();
-        client.resolve(&[message.clone(), Value::from(messageHash)]);
+        client.resolve(message.clone(), messageHash.as_str());
         return message;
 
     Value::Null

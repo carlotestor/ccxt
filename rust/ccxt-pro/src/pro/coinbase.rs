@@ -426,7 +426,7 @@ impl Coinbase {
             message = self.extend(message.clone(), &[__ws_arg_1]);
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Map(subscription.clone())); }
-        let mut res: Value = self.watch(url, Value::from(unWatchMessageHash.clone()), &[message, Value::from(unWatchMessageHash), Value::Map(subscription)]).await;
+        let mut res: Value = self.watch(url, &unWatchMessageHash[..], &[message, Value::from(unWatchMessageHash.clone()), Value::Map(subscription)]).await;
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(false)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Null); }
         return res;
@@ -847,7 +847,7 @@ impl Coinbase {
                 newTickers.push(result.clone());
                 if (channel.is_some()) {
                     let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
-                    client.resolve(&[result.clone(), Value::from(messageHash.clone())]);
+                    client.resolve(result.clone(), messageHash.as_str());
                     self.try_resolve_usdc(client.clone(), Value::from(messageHash), result);
                 }
             }
@@ -1004,7 +1004,7 @@ impl Coinbase {
                 }
                 stored.append(parsed);
                 let mut messageHash: String = format!("{}{}", Value::Str("candles::".into()), symbol);
-                client.resolve(&[stored.clone(), Value::from(messageHash.clone())]);
+                client.resolve(stored.clone(), messageHash.as_str());
                 self.try_resolve_usdc(client.clone(), Value::from(messageHash), stored);
             }
             }
@@ -1376,7 +1376,7 @@ impl Coinbase {
             }
         }
         }
-        client.resolve(&[tradesArray.clone(), Value::from(messageHash.clone())]);
+        client.resolve(tradesArray.clone(), messageHash.as_str());
         self.try_resolve_usdc(client, Value::from(messageHash), tradesArray);
 }
 
@@ -1454,11 +1454,11 @@ impl Coinbase {
             let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Option<String> = self.safe_symbol(marketId, &[]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", Value::Str("user::".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-            client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
+            client.resolve(self.orders.clone(), messageHash.as_str());
             self.try_resolve_usdc(client.clone(), Value::from(messageHash), self.orders.clone());
         }
         }
-        client.resolve(&[self.orders.clone(), Value::Str("user".into())]);
+        client.resolve(self.orders.clone(), "user");
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1611,7 +1611,7 @@ impl Coinbase {
             orderbook.set_book_meta("timestamp", self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", symbol);
-            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
+            client.resolve(orderbook.clone(), messageHash.as_str());
             self.try_resolve_usdc(client.clone(), Value::from(messageHash), orderbook);
         }
         }
@@ -1619,7 +1619,7 @@ impl Coinbase {
 
     pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, mut result: Value) {
         if (messageHash.as_str().unwrap_or("").ends_with("/USD")) || (messageHash.as_str().unwrap_or("").ends_with("-USD")) {
-            client.resolve(&[result, Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into())]); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
+            client.resolve(result, &(Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
 }
 

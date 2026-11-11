@@ -296,12 +296,12 @@ impl Upbit {
         let mut symbolsRequested: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-        let mut url: Value = self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("hostname".to_string(), self.hostname.clone());
-            m
-        }));
-        let mut client: Value = self.client(&[url.clone()]);
+        let mut url: Option<String> = self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("hostname".to_string(), self.hostname.clone());
+    m
+})).as_str().map(str::to_owned);
+        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
         if !(__ch.has_subscription(&subscriptionsKey)) {
@@ -344,7 +344,7 @@ impl Upbit {
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
         }
-        return self.watch_multiple(url, messageHashes.clone(), &[Value::from(finalMessage), messageHashes]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[Value::from(finalMessage), messageHashes]).await;
 
     Value::Null
 }
@@ -582,8 +582,8 @@ impl Upbit {
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-        client.resolve(&[ticker, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+        client.resolve(ticker, messageHash.as_str());
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
@@ -655,8 +655,8 @@ impl Upbit {
             m
         }), symbol.clone(), &[Value::from(timestamp)]);
         orderbook.reset(snapshot);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        client.resolve(&[orderbook, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
@@ -686,8 +686,8 @@ impl Upbit {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         stored.append(trade);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
@@ -709,9 +709,9 @@ impl Upbit {
         //   }
         let mut marketId: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("candle.1s:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("candle.1s:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         let mut ohlcv: Value = self.parse_ohlcv(message, &[]);
-        client.resolve(&[ohlcv, messageHash]);
+        client.resolve(ohlcv, messageHash.as_str());
 }
 
     pub fn authenticate(&mut self, optional_args: &[Value]) {
@@ -803,7 +803,7 @@ impl Upbit {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
-        return self.watch(Value::from(url), messageHashResolved.clone(), &[Value::from(message), messageHashResolved]).await;
+        return self.watch(url.as_str(), messageHashResolved.clone(), &[Value::from(message), messageHashResolved]).await;
 
     Value::Null
 }
@@ -1071,8 +1071,8 @@ impl Upbit {
         let mut trade: Value = self.parse_ws_trade(message, &[]);
         myTrades.append(trade.clone());
         let mut messageHash: String = "myTrades".to_string();
-        client.resolve(&[myTrades.clone(), Value::from(messageHash)]);
-        client.resolve(&[myTrades, Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(myTrades.clone(), messageHash.as_str());
+        client.resolve(myTrades, &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -1132,8 +1132,8 @@ impl Upbit {
         }
         cachedOrders.append(parsed.clone());
         let mut messageHash: String = "myOrder".to_string();
-        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
-        client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(self.orders.clone(), messageHash.as_str());
+        client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())));
 }
 
 /*
@@ -1205,8 +1205,8 @@ impl Upbit {
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
         }
-        let mut messageHash: Option<String> = match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        client.resolve(&[self.balance.clone(), messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        client.resolve(self.balance.clone(), messageHash.as_deref());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

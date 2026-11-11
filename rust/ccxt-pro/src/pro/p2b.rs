@@ -663,8 +663,8 @@ impl P2b {
             }
             stored.append(parsed);
             if (channel.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
-                client.resolve(&[stored, messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+                client.resolve(stored, messageHash.as_str());
             }
         }
         return message;
@@ -714,8 +714,8 @@ impl P2b {
             tradesArray.append(trade);
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("deals::".into()), symbol).into());
-        client.resolve(&[tradesArray, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("deals::".into()), symbol);
+        client.resolve(tradesArray, messageHash.as_str());
         return message;
 
     Value::Null
@@ -779,8 +779,8 @@ impl P2b {
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         if (messageHashStart.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol).into());
-            client.resolve(&[ticker, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashStart.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
+            client.resolve(ticker, messageHash.as_str());
         }
         return message;
 
@@ -868,7 +868,7 @@ impl P2b {
             }
         }
         orderbook.set_book_meta("symbol", symbol);
-        client.resolve(&[orderbook, Value::from(messageHash)]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

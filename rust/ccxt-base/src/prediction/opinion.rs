@@ -2672,7 +2672,7 @@ if _try_result.is_err() {
  */
     pub async fn subscribe_opinion_channel(&mut self, mut messageHash: Value, mut channel: Value, mut marketId: Value) -> Value {
         self.load_api_key().await;
-        let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.opinion_ws_url();
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2681,7 +2681,7 @@ if _try_result.is_err() {
             m
         });
         let mut subscriptionKey: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string(Value::Map(subscribeMsg.clone()), Value::Str("marketId".into()), &[Value::Str("".into())]));
-        return self.watch(url, messageHash, &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
+        return self.watch(url.as_deref(), messageHash, &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
 
     Value::Null
 }
@@ -2774,7 +2774,7 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj]);
         let mut channel: String = "market.depth.diff".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym);
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
@@ -2790,10 +2790,10 @@ if _try_result.is_err() {
         if isNewSubscription {
             self.seed_order_book(outcome, sym.clone(), &[limit.clone()]).await;
         }
-        let mut future: Value = self.watch(url, messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
+        let mut future: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
-            client.resolve(&[self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash]);
+            client.resolve(self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -2846,7 +2846,7 @@ if _try_result.is_err() {
         bookSide.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
         orderbook.set_book_meta("timestamp", Value::Null);
         orderbook.set_book_meta("datetime", Value::Null);
-        client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+        client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
 /*
@@ -2920,7 +2920,7 @@ if _try_result.is_err() {
 })]).as_map().cloned().unwrap_or_default();
         cachedTickers.insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone());
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
 /*
@@ -3011,7 +3011,7 @@ if _try_result.is_err() {
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(trade);
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
 /*
@@ -3158,7 +3158,7 @@ if _try_result.is_err() {
         }
         let mut stored: Value = self.orders.clone();
         stored.append(order);
-        client.resolve(&[stored, Value::Str("orders".into())]);
+        client.resolve(stored, "orders");
 }
 
 /*
@@ -3264,7 +3264,7 @@ if _try_result.is_err() {
         }
         let mut stored: Value = self.myTrades.clone();
         stored.append(trade);
-        client.resolve(&[stored, Value::Str("myTrades".into())]);
+        client.resolve(stored, "myTrades");
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {

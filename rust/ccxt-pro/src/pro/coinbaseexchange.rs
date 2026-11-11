@@ -364,7 +364,7 @@ impl Coinbaseexchange {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.clone(), &[request, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -413,7 +413,7 @@ impl Coinbaseexchange {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone()]).await;
 
     Value::Null
 }
@@ -859,7 +859,7 @@ impl Coinbaseexchange {
         });
         let mut authentication: Value = self.authenticate();
         let __ws_arg_5 = self.extend(request, &[authentication]);
-        let mut orderbook: Value = self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_5, Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url, &messageHash[..], &[__ws_arg_5, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -890,7 +890,7 @@ impl Coinbaseexchange {
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
             let mut type_var: String = "matches".to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (tradesArray == Value::Null) {
                 let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -900,7 +900,7 @@ impl Coinbaseexchange {
                 }
             }
             tradesArray.append(trade);
-            client.resolve(&[tradesArray, messageHash]);
+            client.resolve(tradesArray, messageHash.as_str());
         }
         return message;
 
@@ -914,14 +914,14 @@ impl Coinbaseexchange {
         if (marketId.is_some()) {
             let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
             let mut type_var: String = "myTrades".to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
             if (self.myTrades.clone() == Value::Null) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut tradesArray: Value = self.myTrades.clone();
             tradesArray.append(trade);
-            client.resolve(&[tradesArray, messageHash]);
+            client.resolve(tradesArray, messageHash.as_str());
         }
         return message;
 
@@ -1144,7 +1144,7 @@ impl Coinbaseexchange {
             if (previousOrder == Value::Null) {
                 let mut parsed: Value = self.parse_ws_order(message.clone(), &[]);
                 orders.append(parsed);
-                client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
+                client.resolve(orders.clone(), messageHash.as_str());
             }  else {
                 let mut sequence: Value = (match __pro_message.get("sequence").cloned() {
                     Some(Value::Int(__n)) => Value::Int(__n),
@@ -1206,7 +1206,7 @@ impl Coinbaseexchange {
                         }
                         // update the newUpdates count
                         orders.append(previousOrder.clone());
-                        client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
+                        client.resolve(orders.clone(), messageHash.as_str());
                     }  else if (type_var.as_deref() == Some("received")) || (type_var.as_deref() == Some("done")) {
                         let mut info: Value = self.extend(previousInfo, &[message]);
                         let mut order: indexmap::IndexMap<String, Value> = self.parse_ws_order(info, &[]).as_map().cloned().unwrap_or_default();
@@ -1226,7 +1226,7 @@ impl Coinbaseexchange {
                             return;
                         }
                         orders.append(previousOrder);
-                        client.resolve(&[orders, Value::from(messageHash)]);
+                        client.resolve(orders, messageHash.as_str());
                     }
                 }
             }
@@ -1317,10 +1317,10 @@ impl Coinbaseexchange {
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())])).into());
-            let mut idMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
-            client.resolve(&[ticker.clone(), messageHash]);
-            client.resolve(&[ticker, idMessageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]));
+            let mut idMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(ticker.clone(), messageHash.as_str());
+            client.resolve(ticker, idMessageHash.as_str());
         }
         return message;
 
@@ -1454,7 +1454,7 @@ impl Coinbaseexchange {
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut snapshot: Value = self.parse_order_book(message, symbol.clone(), &[]);
             orderbook.reset(snapshot);
-            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
+            client.resolve(orderbook.clone(), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut timestamp: Value = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
@@ -1480,7 +1480,7 @@ impl Coinbaseexchange {
             }
             orderbook.set_book_meta("timestamp", timestamp.clone());
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-            client.resolve(&[orderbook, Value::from(messageHash)]);
+            client.resolve(orderbook, messageHash.as_str());
         }
 }
 
@@ -1518,7 +1518,7 @@ impl Coinbaseexchange {
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            client.reject(&[Value::from(error)]);
+            client.reject(error, None);
             return Value::Bool(true);
         }
 

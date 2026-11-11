@@ -675,8 +675,8 @@ impl Bitget {
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[ticker, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]));
+        client.resolve(ticker, messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, optional_args: &[Value]) -> Value {
@@ -911,8 +911,8 @@ impl Bitget {
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[ticker, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]));
+        client.resolve(ticker, messageHash.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
@@ -1219,7 +1219,7 @@ impl Bitget {
         }  else {
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol));
         }
-        client.resolve(&[stored, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(stored, messageHash.as_deref());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -1656,13 +1656,13 @@ impl Bitget {
             let mut parsedOrderbook: Value = self.parse_order_book(rawOrderBook, symbol.clone(), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
             orderbook.reset(parsedOrderbook);
         }
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(messageHash)]);
+        client.resolve((if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
     pub async fn handle_check_sum_error(&mut self, mut client: Value, mut symbol: Value, mut messageHash: Value) -> Value {
         if let Err(__e) = self.un_watch_order_book(symbol.as_str().unwrap_or_default(), Value::Null).await { panic!("{}", __e) }
         let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol))));
-        client.reject(&[Value::from(error), messageHash]);
+        client.reject(error, &messageHash);
 
     Value::Null
 }
@@ -1918,8 +1918,8 @@ impl Bitget {
             stored.append(parsed);
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2268,11 +2268,11 @@ impl Bitget {
             let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(&[positions, messageHash]);
+                client.resolve(positions, &messageHash);
             }
         }
         }
-        client.resolve(&[newPositions, Value::Str(format!("{}{}", instType, Value::Str(":positions".into())).into())]);
+        client.resolve(newPositions, &(Value::Str(format!("{}{}", instType, Value::Str(":positions".into())).into())));
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -2689,18 +2689,18 @@ impl Bitget {
             }  else if (channel.as_deref() == Some("orders-isolated")) {
                 innerMessageHash = format!("{}{}", innerMessageHash, Value::Str(":isolated".into()));
             }
-            client.resolve(&[stored.clone(), Value::from(innerMessageHash)]);
+            client.resolve(stored.clone(), innerMessageHash.as_str());
         }
         }
-        client.resolve(&[stored.clone(), Value::from(messageHash)]);
+        client.resolve(stored.clone(), messageHash.as_str());
         if isLinearSwap {
-            client.resolve(&[stored.clone(), Value::Str("order:linear".into())]);
+            client.resolve(stored.clone(), "order:linear");
         }
         if isInverseSwap {
-            client.resolve(&[stored.clone(), Value::Str("order:inverse".into())]);
+            client.resolve(stored.clone(), "order:inverse");
         }
         if isUSDCFutures {
-            client.resolve(&[stored, Value::Str("order:usdcfutures".into())]);
+            client.resolve(stored, "order:usdcfutures");
         }
 }
 
@@ -3217,11 +3217,11 @@ impl Bitget {
             let mut parsed: Value = self.parse_ws_trade(trade, &[market]);
             stored.append(parsed.clone());
             let mut symbol: String = self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into());
-            client.resolve(&[stored.clone(), symbolSpecificMessageHash]);
+            let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbol);
+            client.resolve(stored.clone(), symbolSpecificMessageHash.as_str());
         }
         }
-        client.resolve(&[stored, Value::from(messageHash.clone())]);
+        client.resolve(stored, messageHash.as_str());
 }
 
 /*
@@ -3472,8 +3472,8 @@ impl Bitget {
         // see https://github.com/ccxt/ccxt/issues/21973
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), instType.clone().map(Value::from).unwrap_or(Value::Null)).into());
-        client.resolve(&[self.balance.clone(), messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), instType.clone().map(Value::from).unwrap_or(Value::Null));
+        client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
     pub async fn watch_public(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
@@ -3612,7 +3612,7 @@ impl Bitget {
         let mut url: String = self.safe_string_k(params.clone(), "url", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = Value::Str(format!("{}", self.seconds()).into());
@@ -3633,7 +3633,7 @@ impl Bitget {
                 m
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(Value::from(url), Value::from(messageHash.clone()), &[message, Value::from(messageHash.clone())]).await;
+            self.watch(url.as_str(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -3682,7 +3682,7 @@ impl Bitget {
         //
         let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash), &[]);
-        future.resolve(&[Value::Bool(true)]);
+        future.resolve(Value::Bool(true), None);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -3706,14 +3706,14 @@ impl Bitget {
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
-                let mut messageHash: Value = Value::Str("authenticated".into());
-                client.reject(&[e.clone(), messageHash.clone()]);
-                if (__ch.has_subscription(&messageHash)) {
-                    __ch.remove_subscription(&messageHash);
+                let mut messageHash: String = "authenticated".to_string();
+                client.reject(e.clone(), messageHash.as_str());
+                if (__ch.has_subscription(messageHash.as_str())) {
+                    __ch.remove_subscription(messageHash.as_str());
                 }
             }  else {
                 // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
-                client.reject(&[e]);
+                client.reject(e, None);
             }
             return Value::Bool(true);
          } }
@@ -3911,21 +3911,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (__ch.has_subscription(&subMessageHash)) {
-            __ch.remove_subscription(&subMessageHash);
+        if (__ch.has_subscription(subMessageHash.as_str())) {
+            __ch.remove_subscription(subMessageHash.as_str());
         }
         if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             __ch.remove_subscription(&messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
-        if (__ch.has_future(&subMessageHash)) {
-            client.reject(&[Value::from(error), subMessageHash.clone()]);
+        if (__ch.has_future(subMessageHash.as_str())) {
+            client.reject(error, subMessageHash.as_str());
         }
-        client.resolve(&[Value::Bool(true), messageHash]);
+        client.resolve(Value::Bool(true), &messageHash);
 }
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut message: Value) {
@@ -3948,21 +3948,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
+        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (__ch.has_subscription(&subMessageHash)) {
-            __ch.remove_subscription(&subMessageHash);
+        if (__ch.has_subscription(subMessageHash.as_str())) {
+            __ch.remove_subscription(subMessageHash.as_str());
         }
         if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             __ch.remove_subscription(&messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".into())).into()), symbol)));
-        if (__ch.has_future(&subMessageHash)) {
-            client.reject(&[Value::from(error), subMessageHash.clone()]);
+        if (__ch.has_future(subMessageHash.as_str())) {
+            client.reject(error, subMessageHash.as_str());
         }
-        client.resolve(&[Value::Bool(true), messageHash]);
+        client.resolve(Value::Bool(true), &messageHash);
 }
 
     pub fn handle_ticker_un_subscription(&mut self, mut client: Value, mut message: Value) {
@@ -3985,21 +3985,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
+        let mut subMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-        if (__ch.has_subscription(&subMessageHash)) {
-            __ch.remove_subscription(&subMessageHash);
+        if (__ch.has_subscription(subMessageHash.as_str())) {
+            __ch.remove_subscription(subMessageHash.as_str());
         }
         if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             __ch.remove_subscription(&messageHash);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ticker ".into())).into()), symbol)));
-        if (__ch.has_future(&subMessageHash)) {
-            client.reject(&[Value::from(error), subMessageHash.clone()]);
+        if (__ch.has_future(subMessageHash.as_str())) {
+            client.reject(error, subMessageHash.as_str());
         }
-        client.resolve(&[Value::Bool(true), messageHash]);
+        client.resolve(Value::Bool(true), &messageHash);
 }
 
     pub fn handle_ohlcv_un_subscription(&mut self, mut client: Value, mut message: Value) {

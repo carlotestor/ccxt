@@ -404,7 +404,7 @@ impl Woofipro {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(Value::from(url), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
 }
@@ -482,7 +482,7 @@ impl Woofipro {
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
@@ -490,7 +490,7 @@ impl Woofipro {
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut snapshot: Value = self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
-        client.resolve(&[orderbook, topic]);
+        client.resolve(orderbook, topic.as_deref());
 }
 
 /*
@@ -585,7 +585,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let mut topic: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut topic: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string(Value::Map(data.clone()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut timestamp: Option<i64> = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
@@ -594,7 +594,7 @@ impl Woofipro {
         let mut ticker: Value = self.parse_ws_ticker(Value::Map(data), &[market.clone()]);
         if let Value::Dict(__rda) = &mut ticker { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); }
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
-        client.resolve(&[ticker, topic.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(ticker, topic.as_deref());
         return message;
 
     Value::Null
@@ -661,7 +661,7 @@ impl Woofipro {
         //         ]
         //     }
         //
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut result: Vec<Value> = vec![];
@@ -681,7 +681,7 @@ impl Woofipro {
             result.push(ticker);
         }
         }
-        client.resolve(&[Value::Array(result), topic]);
+        client.resolve(Value::Array(result), topic.as_deref());
 }
 
 /*
@@ -741,7 +741,7 @@ impl Woofipro {
         //       ]
         //     }
         //
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut result: Vec<Value> = vec![];
@@ -762,7 +762,7 @@ impl Woofipro {
             result.push(ticker);
         }
         }
-        client.resolve(&[Value::Array(result), topic]);
+        client.resolve(Value::Array(result), topic.as_deref());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -866,7 +866,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
@@ -886,7 +886,7 @@ impl Woofipro {
             }
         }
         stored.append(parsed);
-        client.resolve(&[stored, topic]);
+        client.resolve(stored, topic.as_deref());
 }
 
 /*
@@ -952,7 +952,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -975,7 +975,7 @@ impl Woofipro {
         let mut trades: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         trades.append(trade);
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), trades.clone()); }
-        client.resolve(&[trades, topic]);
+        client.resolve(trades, topic.as_deref());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1071,18 +1071,18 @@ impl Woofipro {
         //         "ts": 1657463158812
         //     }
         //
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         if success {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-            future.resolve(&[Value::Bool(true)]);
+            future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
-            client.reject(&[Value::from(error), messageHash.clone()]);
+            client.reject(error, messageHash.as_str());
             // allows further authentication attempts
-            if (__ch.has_subscription(&messageHash)) {
-                __ch.remove_subscription(&Value::Str("authenticated".into()));
+            if (__ch.has_subscription(messageHash.as_str())) {
+                __ch.remove_subscription("authenticated");
             }
         }
 }
@@ -1103,7 +1103,7 @@ impl Woofipro {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
@@ -1127,7 +1127,7 @@ impl Woofipro {
                 m
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(Value::from(url), Value::from(messageHash.clone()), &[message, Value::from(messageHash.clone())]).await;
+            self.watch(url.as_str(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1154,7 +1154,7 @@ impl Woofipro {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(Value::from(url), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
 }
@@ -1179,7 +1179,7 @@ impl Woofipro {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch_multiple(Value::from(url), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscribe)]).await;
+        return self.watch_multiple(url.as_str(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
 }
@@ -1519,9 +1519,9 @@ impl Woofipro {
                 if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(&order, "datetime", &[])); }
             }
             cachedOrders.append(parsed);
-            client.resolve(&[self.orders.clone(), topic.clone()]);
-            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
-            client.resolve(&[self.orders.clone(), messageHashSymbol]);
+            client.resolve(self.orders.clone(), &topic);
+            let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(self.orders.clone(), messageHashSymbol.as_str());
         }
 }
 
@@ -1565,9 +1565,9 @@ impl Woofipro {
         }
         let mut trades: Value = self.myTrades.clone();
         trades.append(trade);
-        client.resolve(&[trades.clone(), Value::from(messageHash.clone())]);
-        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[trades, symbolSpecificMessageHash]);
+        client.resolve(trades.clone(), messageHash.as_str());
+        let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol);
+        client.resolve(trades, symbolSpecificMessageHash.as_str());
 }
 
 /*
@@ -1631,7 +1631,7 @@ impl Woofipro {
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && (self.positions.clone() == Value::Null) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1654,10 +1654,10 @@ impl Woofipro {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone()]);
+            let mut messageHash: String = "fetchPositionsSnapshot".to_string();
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, Value::from(messageHash)]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1683,8 +1683,8 @@ impl Woofipro {
         // don't remove the future from the .futures cache
         let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash, &[]);
         if (future != Value::Null) {
-            future.resolve(&[cache.clone()]);
-            client.resolve(&[cache, Value::Str("positions".into())]);
+            future.resolve(cache.clone(), None);
+            client.resolve(cache, "positions");
         }
 
     Value::Null
@@ -1746,11 +1746,11 @@ impl Woofipro {
             newPositions.push(position.clone());
             cache.append(position.clone());
             let mut positionSymbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("positions::".into()), positionSymbol).into());
-            client.resolve(&[position, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("positions::".into()), positionSymbol);
+            client.resolve(position, messageHash.as_str());
         }
         }
-        client.resolve(&[Value::Array(newPositions), Value::Str("positions".into())]);
+        client.resolve(Value::Array(newPositions), "positions");
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -1937,7 +1937,7 @@ impl Woofipro {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
+        client.resolve(self.balance.clone(), "balance");
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -1964,13 +1964,13 @@ impl Woofipro {
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
-                let mut messageHash: Value = Value::Str("authenticated".into());
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (__ch.has_subscription(&messageHash)) {
-                    __ch.remove_subscription(&messageHash);
+                let mut messageHash: String = "authenticated".to_string();
+                client.reject(error.clone(), messageHash.as_str());
+                if (__ch.has_subscription(messageHash.as_str())) {
+                    __ch.remove_subscription(messageHash.as_str());
                 }
             }  else {
-                client.reject(&[Value::from(error)]);
+                client.reject(error, None);
             }
             return Value::Bool(true);
          } }

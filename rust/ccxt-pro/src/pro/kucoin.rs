@@ -536,7 +536,7 @@ impl Kucoin {
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             let mut future: Value = self.safe_value(self.options.as_map().and_then(|__m| __m.get("urls")).cloned().unwrap_or(Value::Null), connectId.clone(), &[]);
-            future.reject(&[e]);
+            future.reject(e, None);
             remove(&mut crate::value::get_value_k(&self.options, "urls"), &connectId);
          } }
         return Value::Null;
@@ -607,12 +607,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         if !(client.has_subscription(&messageHash)) {
             client.add_subscription(&requestId, messageHash.clone());
         }
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        return self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -672,16 +672,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut now: Value = self.milliseconds();
         let mut expired: bool = ((match (&(now), &(lastUpdate)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= refreshInterval.as_f64().unwrap_or(f64::NAN);
-        let mut messageHash: Value = Value::Str("utaToken".into());
+        let mut messageHash: String = "utaToken".to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
         if (utaToken.is_none()) || expired {
-            if (client.has_future(&messageHash)) {
+            if (client.has_future(messageHash.as_str())) {
                 // wait the existing future if it's already being fetched by another call
-                crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
+                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             }  else {
                 // fetch new token and store the future to the .futures to prevent concurrent fetches
-                client.future(&[messageHash.clone()]);
+                client.future(messageHash.as_str());
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                     let mut response: crate::value::Dict = self.parent.private_post_bullet_private(&[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -695,11 +695,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut utaTokenString: Option<String> = self.safe_string_k_opt(&data, "token", &[]);
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaTokenLastUpdate".into(), now); }
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaToken".into(), utaTokenString.clone().map(Value::from).unwrap_or(Value::Null)); }
-                    client.resolve(&[utaTokenString.map(Value::from).unwrap_or(Value::Null), messageHash.clone()]);
+                    client.resolve(utaTokenString.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaToken".into(), Value::Null); }
-                    client.reject(&[e, messageHash]);
+                    client.reject(e, messageHash.as_str());
                 }
             }
         }
@@ -1023,13 +1023,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut messageHashWithSymbols: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), join(&symbols, &Value::Str(",".into()))).into());
         if !(client.has_subscription(&messageHashWithSymbols)) {
             client.add_subscription(&requestId, messageHashWithSymbols.clone());
         }
-        return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[message, messageHashes.clone(), subscription]).await;
+        return self.watch_multiple(url.map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[message, messageHashes.clone(), subscription]).await;
 
     Value::Null
 }
@@ -1163,14 +1163,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ticker: Value = self.parent.parse_spot_or_uta_ticker(rawTicker, &[market]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
+            client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())));
             // watchTickers
             let mut allTickers: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
             };
             allTickers.insert(crate::runtime::stringify_param(&symbol), ticker);
-            client.resolve(&[Value::Map(allTickers), Value::Str("tickers".into())]);
+            client.resolve(Value::Map(allTickers), "tickers");
         }  else {
             self.handle_contract_ticker(client, message);
         }
@@ -1208,7 +1208,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into())]);
         let mut ticker: Value = self.parse_ticker(data, &[market.clone()]);
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn handle_uta_ticker(&mut self, mut client: Value, mut message: Value) {
@@ -1254,7 +1254,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut ticker: Value = self.parse_ws_uta_ticker(data, &[market.clone()]);
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("uta:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("uta:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_uta_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1417,8 +1417,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parsedTicker: Value = self.parse_ws_bid_ask(message, &[]);
         let mut symbol: Value = self.safe_string_k(parsedTicker.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask@".into()), symbol).into());
-        client.resolve(&[parsedTicker, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("bidask@".into()), symbol);
+        client.resolve(parsedTicker, messageHash.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1677,7 +1677,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1695,7 +1695,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut parsed: Value = Value::from(vec![self.safe_timestamp(candles.clone(), Value::Int(0), &[]), self.safe_number(candles.clone(), Value::Int(1), &[]), self.safe_number(candles.clone(), Value::Int(3), &[]), self.safe_number(candles.clone(), Value::Int(4), &[]), self.safe_number(candles.clone(), Value::Int(2), &[]), self.safe_number(candles, Value::from(baseVolumeIndex), &[])]);
         stored.append(parsed);
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn handle_uta_ohlcv(&mut self, mut client: Value, mut message: Value) {
@@ -1729,7 +1729,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut interval: Option<String> = self.safe_string_k(&data, "i", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("uta:candles:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("uta:candles:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1742,7 +1742,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut parsed: Value = Value::from(vec![self.safe_integer_product_k(&data, "O", Value::Int(1000), &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         stored.append(parsed);
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
 /*
@@ -2006,7 +2006,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut trade: Value = self.parse_trade(data, &[market]);
         let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored = ArrayCache::new(limit);
@@ -2014,7 +2014,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         cache.append(trade);
-        client.resolve(&[cache, messageHash]);
+        client.resolve(cache, messageHash.as_str());
 }
 
     pub fn handle_uta_trade(&mut self, mut client: Value, mut message: Value) {
@@ -2043,7 +2043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut trade: Value = self.parse_ws_uta_trade(data, &[market]);
         let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("uta:trades:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("uta:trades:".into()), symbol);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored = ArrayCache::new(limit);
@@ -2051,7 +2051,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         cache.append(trade);
-        client.resolve(&[cache, messageHash]);
+        client.resolve(cache, messageHash.as_str());
 }
 
     pub fn parse_ws_uta_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2542,7 +2542,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut book: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         self.handle_book_delta(book.clone(), data);
-        client.resolve(&[book, Value::from(messageHash)]);
+        client.resolve(book, messageHash.as_str());
 }
 
     pub fn handle_uta_order_book(&mut self, mut client: Value, mut message: Value) {
@@ -2613,7 +2613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut book: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         self.handle_book_delta(book.clone(), data);
-        client.resolve(&[book, Value::from(messageHash)]);
+        client.resolve(book, messageHash.as_str());
 }
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
@@ -2752,12 +2752,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut id: Option<String> = match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        if !(__ch.has_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null))) {
+        if !(__ch.has_subscription(&(id.clone().map(Value::from).unwrap_or(Value::Null)))) {
             return;
         }
         let mut subscriptionHash: Option<String> = self.safe_string(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        __ch.remove_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null));
+        __ch.remove_subscription(&(id.clone().map(Value::from).unwrap_or(Value::Null)));
         let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message, subscription.clone()]);
@@ -3238,10 +3238,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = "orders".to_string();
         let mut topic: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut suffix: Value = self.get_orders_message_hash_suffix(topic.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut typeSpecificMessageHash: Value = Value::Str(format!("{}{}", messageHash, suffix).into());
-        client.resolve(&[cachedOrders.clone(), typeSpecificMessageHash]);
-        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[cachedOrders, symbolSpecificMessageHash]);
+        let mut typeSpecificMessageHash: String = format!("{}{}", messageHash, suffix);
+        client.resolve(cachedOrders.clone(), typeSpecificMessageHash.as_str());
+        let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]));
+        client.resolve(cachedOrders, symbolSpecificMessageHash.as_str());
 }
 
     pub fn handle_uta_order(&mut self, mut client: Value, mut message: Value) {
@@ -3305,8 +3305,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cachedOrders: Value = self.orders.clone();
         cachedOrders.append(parsed.clone());
         let mut messageHash: String = "uta:orders".to_string();
-        client.resolve(&[cachedOrders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())]);
-        client.resolve(&[cachedOrders, Value::from(messageHash)]);
+        client.resolve(cachedOrders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(cachedOrders, messageHash.as_str());
 }
 
 /*
@@ -3456,10 +3456,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = "myTrades".to_string();
         let mut topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut suffix: Value = self.get_my_trades_message_hash_suffix(Value::from(topic));
-        let mut typeSpecificMessageHash: Value = Value::Str(format!("{}{}", messageHash, suffix).into());
-        client.resolve(&[self.myTrades.clone(), typeSpecificMessageHash]);
-        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[self.myTrades.clone(), symbolSpecificMessageHash]);
+        let mut typeSpecificMessageHash: String = format!("{}{}", messageHash, suffix);
+        client.resolve(self.myTrades.clone(), typeSpecificMessageHash.as_str());
+        let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]));
+        client.resolve(self.myTrades.clone(), symbolSpecificMessageHash.as_str());
 }
 
     pub fn handle_uta_my_trade(&mut self, mut client: Value, mut message: Value) {
@@ -3496,8 +3496,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Value = self.myTrades.clone();
         cache.append(trade.clone());
         let mut messageHash: String = "uta:myTrades".to_string();
-        client.resolve(&[self.myTrades.clone(), Value::from(messageHash.clone())]);
-        client.resolve(&[cache, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(self.myTrades.clone(), messageHash.as_str());
+        client.resolve(cache, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -3649,7 +3649,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", uniformType, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", uniformType, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
         let mut messageHash: String = format!("{}{}", uniformType, Value::Str(":balance".into()));
         if utaOption {
@@ -3676,7 +3676,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !(client.has_subscription(&subscriptionHash)) {
                 client.add_subscription(&requestId, subscriptionHash.clone());
             }
-            return self.watch(url, Value::from(messageHash), &[message, uniformType]).await;
+            return self.watch(url, messageHash.as_str(), &[message, uniformType]).await;
         }
         Value::Null
         }).await?))
@@ -3690,10 +3690,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fetchBalanceSnapshot {
-            let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, messageHash.clone(), type_var.clone()]);
+            let mut messageHash: String = format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into()));
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, Value::from(messageHash), type_var.clone()]);
             }
         }  else {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
@@ -3721,8 +3721,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[]);
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
+            future.resolve(Value::Null, None);
+            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())));
         }
 
     Value::Null
@@ -3840,7 +3840,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&uniformType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
             }
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), uniformType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniformType), __be_tmp); } }
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), uniformType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", uniformType, Value::Str(":balance".into())).into())]);
+            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), uniformType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", uniformType, Value::Str(":balance".into())).into())));
         }
 }
 
@@ -3887,8 +3887,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
         }
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
-        let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into());
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        let mut messageHash: String = format!("{}{}", type_var, Value::Str(":balance".into()));
+        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*
@@ -3932,7 +3932,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut awaitPositionSnapshot: Value = self.handle_option(Value::Str("watchPosition".into()), Value::Str("awaitPositionSnapshot".into()), &[Value::Bool(true)]);
         let mut currentPosition: Value = self.get_current_position(symbol.clone());
         if (fetchPositionSnapshot.as_bool() == Some(true)) && (awaitPositionSnapshot.as_bool() == Some(true)) && (currentPosition == Value::Null) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", Value::Str("fetchPositionSnapshot:".into()), symbol).into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", Value::Str("fetchPositionSnapshot:".into()), symbol).into()))).await;
             return snapshot;
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -3999,7 +3999,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut awaitPositionSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut cache: Value = self.positions.clone();
         if (fetchPositionSnapshot.as_bool() == Some(true)) && (awaitPositionSnapshot.as_bool() == Some(true)) && (cache == Value::Null) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut channel: String = "positionAll".to_string();
@@ -4039,10 +4039,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) {
-            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone(), uta]);
+            let mut messageHash: String = "fetchPositionsSnapshot".to_string();
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, Value::from(messageHash), uta]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolById::new(Value::Null);
@@ -4072,8 +4072,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[cache.clone()]);
-            client.resolve(&[cache, Value::Str("positions".into())]);
+            future.resolve(cache.clone(), None);
+            client.resolve(cache, "positions");
         }
 
     Value::Null
@@ -4083,10 +4083,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut fetchPositionSnapshot: Value = self.handle_option(Value::Str("watchPosition".into()), Value::Str("fetchPositionSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionSnapshot.as_bool() == Some(true)) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fetchPositionSnapshot:".into()), symbol).into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_position_snapshot".into()).clone(), client, messageHash.clone(), symbol]);
+            let mut messageHash: String = format!("{}{}", Value::Str("fetchPositionSnapshot:".into()), symbol);
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_position_snapshot".into()).clone(), client, Value::from(messageHash), symbol]);
             }
         }
 }
@@ -4100,8 +4100,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[cache]);
-            client.resolve(&[crate::types::IntoRaw::into_raw(position), Value::Str(format!("{}{}", Value::Str("position:".into()), symbol).into())]);
+            future.resolve(cache, None);
+            client.resolve(crate::types::IntoRaw::into_raw(position), &(Value::Str(format!("{}{}", Value::Str("position:".into()), symbol).into())));
         }
 
     Value::Null
@@ -4208,7 +4208,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("".into())]).as_str().map(str::to_owned);
         let mut cache: Value = self.positions.clone();
         let mut currentPosition: Value = self.get_current_position(symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("position:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("position:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4227,7 +4227,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut position: Value = self.extend(currentPosition, &[newPosition]);
         cache.append(position.clone());
-        client.resolve(&[position, messageHash]);
+        client.resolve(position, messageHash.as_str());
 }
 
     pub fn handle_uta_position(&mut self, mut client: Value, mut message: Value) {
@@ -4284,9 +4284,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut position: Value = self.extend(currentPosition, &[newPosition]);
         cache.append(position);
         let mut messageHash: String = "positions".to_string();
-        let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
-        client.resolve(&[self.positions.clone(), Value::from(messageHash)]);
-        client.resolve(&[self.positions.clone(), symbolMessageHash]);
+        let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        client.resolve(self.positions.clone(), messageHash.as_str());
+        client.resolve(self.positions.clone(), symbolMessageHash.as_str());
 }
 
     pub fn parse_ws_uta_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -4456,8 +4456,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), fundingRate.clone()); }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[fundingRate, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())]));
+        client.resolve(fundingRate, messageHash.as_str());
 }
 
     pub fn parse_ws_funding_rate(&self, mut data: Value, optional_args: &[Value]) -> Value {

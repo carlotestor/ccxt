@@ -3911,9 +3911,9 @@ impl Predictfun {
                 m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.clone().map(Value::from).unwrap_or(Value::Null)));
             m
         });
-        let mut url: Value = self.socket_url().map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.socket_url();
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url, Value::from(messageHash), &[__ws_arg_17, Value::from(topic), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), messageHash.as_str(), &[__ws_arg_17, Value::from(topic), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -3989,9 +3989,9 @@ impl Predictfun {
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::orderbook::".into()), self.safe_outcome_symbol(Value::Null, &[outcomeObj]));
-        let mut url: Value = self.socket_url().map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.socket_url();
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_18, Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_18, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -4046,9 +4046,9 @@ impl Predictfun {
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
-        let mut subscribeHash: Value = (match subscription.get("subscribeHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (subscribeHash != Value::Null) && (__ch.has_subscription(&subscribeHash)) {
-            __ch.remove_subscription(&subscribeHash);
+        let mut subscribeHash: Option<String> = (match subscription.get("subscribeHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (subscribeHash.is_some()) && (__ch.has_subscription((&subscribeHash).as_deref())) {
+            __ch.remove_subscription(subscribeHash.as_deref());
         }
         let mut messageHashes: Value = (match subscription.get("messageHashes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         if ((match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("walletEvents")) {
@@ -4066,7 +4066,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1481: bool = true;
             while { if !__for_first_1481 { i += 1; } __for_first_1481 = false; (i as f64) < messageHashesLength } {
-            client.reject(&[Value::from(error.clone()), self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())])]);
+            client.reject(error.clone(), &self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]));
         }
         }
 }
@@ -4101,9 +4101,9 @@ impl Predictfun {
         self.clean_cache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
-        let mut subscribeHash: Option<String> = match __pro_message.get("subscribeHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        if (subscribeHash.is_some()) && (__ch.has_subscription(&subscribeHash.clone().map(Value::from).unwrap_or(Value::Null))) {
-            __ch.remove_subscription(&subscribeHash.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut subscribeHash: Option<String> = (match __pro_message.get("subscribeHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (subscribeHash.is_some()) && (__ch.has_subscription((&subscribeHash).as_deref())) {
+            __ch.remove_subscription(subscribeHash.as_deref());
         }
         // cleanCache drops a cache only when the subscription names that one topic, and the wallet
         // topic backs two of them - so the caches it cannot reach are dropped here by the hashes
@@ -4405,9 +4405,9 @@ impl Predictfun {
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), channel);
-        let mut url: Value = self.socket_url().map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.socket_url();
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_20, Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_20, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -4631,7 +4631,7 @@ impl Predictfun {
                         m.insert("nonce".to_string(), self.safe_integer_k(&data, "version", &[]));
                     m
                 }));
-                client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())]);
+                client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())));
             }
         }
         }
@@ -4720,10 +4720,10 @@ impl Predictfun {
         }
         let mut stored: Value = self.orders.clone();
         stored.append(order);
-        client.resolve(&[stored.clone(), Value::Str("orders".into())]);
+        client.resolve(stored.clone(), "orders");
         let mut outcomeHandle: Option<String> = (match __pro_message.get("outcome").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (outcomeHandle.is_some()) {
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("orders::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
@@ -4744,10 +4744,10 @@ impl Predictfun {
         }
         let mut stored: Value = self.myTrades.clone();
         stored.append(trade.clone());
-        client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
+        client.resolve(stored.clone(), "myTrades");
         let mut outcomeHandle: Option<String> = self.safe_string_k(trade, "outcome", &[]).as_str().map(str::to_owned);
         if (outcomeHandle.is_some()) {
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 

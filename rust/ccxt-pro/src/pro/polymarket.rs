@@ -448,7 +448,7 @@ impl Polymarket {
     m
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -488,7 +488,7 @@ impl Polymarket {
         });
         let mut request: Value = self.send_subscription(Value::Str("unsub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[Value::Map(context), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -528,8 +528,8 @@ impl Polymarket {
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.reset(snapshot);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        client.resolve(&[orderbook, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
 /*
@@ -561,7 +561,7 @@ impl Polymarket {
     m
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -600,7 +600,7 @@ impl Polymarket {
         });
         let mut request: Value = self.send_subscription(Value::Str("unsub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[Value::Map(context), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -648,7 +648,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params]);
-        let mut newTicker: Value = self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut newTicker: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -704,8 +704,8 @@ impl Polymarket {
             m
         }), &[market]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
-        client.resolve(&[ticker, Value::Str("tickers".into())]);
+        client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())));
+        client.resolve(ticker, "tickers");
 }
 
 /*
@@ -746,7 +746,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params]);
-        let mut ticker: Value = self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -799,7 +799,7 @@ impl Polymarket {
             m
         }), &[market]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())));
 }
 
 /*
@@ -835,7 +835,7 @@ impl Polymarket {
     m
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limitResolved.clone());
@@ -879,7 +879,7 @@ impl Polymarket {
         });
         let mut request: Value = self.send_subscription(Value::Str("unsub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[Value::Map(context), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -943,8 +943,8 @@ impl Polymarket {
             trades.append(trade);
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
-        client.resolve(&[trades, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        client.resolve(trades, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1034,7 +1034,7 @@ impl Polymarket {
     m
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut ohlcv: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolResolved, limitResolved.clone());
@@ -1086,7 +1086,7 @@ impl Polymarket {
         });
         let mut request: Value = self.send_subscription(Value::Str("unsub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[Value::Map(context), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1142,8 +1142,8 @@ impl Polymarket {
             ohlcv.append(parsed);
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[ohlcv, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);
+        client.resolve(ohlcv, messageHash.as_str());
 }
 
 /*
@@ -1163,7 +1163,7 @@ impl Polymarket {
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut id: Value = self.request_id();
@@ -1193,7 +1193,7 @@ impl Polymarket {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash.clone())]).await;
+            self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1240,7 +1240,7 @@ impl Polymarket {
     m
 }), params, subscribeHashes]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut orders: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[request, Value::Str("orders".into())]).await;
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request, Value::Str("orders".into())]).await;
         let mut limitResolved: Value = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limitResolved.clone());
@@ -1311,14 +1311,14 @@ impl Polymarket {
             }
         }
         }
-        client.resolve(&[stored.clone(), Value::Str("orders".into())]);
+        client.resolve(stored.clone(), "orders");
         let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (symbolKeys.len() as i64) } {
             let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
+            client.resolve(stored.clone(), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())));
         }
         }
 }
@@ -1363,7 +1363,7 @@ impl Polymarket {
     m
 }), params, subscribeHashes]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[request, Value::Str("fills".into())]).await;
+        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request, Value::Str("fills".into())]).await;
         let mut limitResolved: Value = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limitResolved.clone());
@@ -1438,14 +1438,14 @@ impl Polymarket {
             }
         }
         }
-        client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
+        client.resolve(stored.clone(), "myTrades");
         let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (symbolKeys.len() as i64) } {
             let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
+            client.resolve(stored.clone(), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())));
         }
         }
 }
@@ -1487,7 +1487,7 @@ impl Polymarket {
             Some(__y) if __y == 1.0) })) && (self.positions.clone() == Value::Null) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("portfolio".into())]);
@@ -1495,7 +1495,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params, subscribeHashes]);
-        let mut newPositions: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("positions".into()), &[request, Value::Str("portfolio".into())]).await;
+        let mut newPositions: Value = self.watch(url.as_deref(), Value::Str("positions".into()), &[request, Value::Str("portfolio".into())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_symbols_since_limit(newPositions, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -1512,10 +1512,10 @@ impl Polymarket {
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone()]);
+            let mut messageHash: String = "fetchPositionsSnapshot".to_string();
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, Value::from(messageHash)]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1537,9 +1537,9 @@ impl Polymarket {
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[cache.clone()]);
+            future.resolve(cache.clone(), None);
         }
-        client.resolve(&[cache, Value::Str("positions".into())]);
+        client.resolve(cache, "positions");
 
     Value::Null
 }
@@ -1574,7 +1574,7 @@ impl Polymarket {
             Some(__y) if __y == 1.0) })) && !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchBalanceSnapshot".into()))).await;
             return snapshot;
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("portfolio".into())]);
@@ -1582,7 +1582,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params, subscribeHashes]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("balance".into()), &[request, Value::Str("portfolio".into())]).await;
+        return self.watch(url.as_deref(), Value::Str("balance".into()), &[request, Value::Str("portfolio".into())]).await;
         Value::Null
         }).await?))
     }
@@ -1594,10 +1594,10 @@ impl Polymarket {
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchBalanceSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, messageHash.clone()]);
+            let mut messageHash: String = "fetchBalanceSnapshot".to_string();
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, Value::from(messageHash)]);
             }
         }
 }
@@ -1609,9 +1609,9 @@ impl Polymarket {
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[self.balance.clone()]);
+            future.resolve(self.balance.clone(), None);
         }
-        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
+        client.resolve(self.balance.clone(), "balance");
 
     Value::Null
 }
@@ -1685,7 +1685,7 @@ impl Polymarket {
             cache.append(position);
         }
         }
-        client.resolve(&[Value::Array(newPositions), Value::Str("positions".into())]);
+        client.resolve(Value::Array(newPositions), "positions");
         let mut margin: crate::value::Dict = self.safe_dict_k(data.clone(), "margin", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1704,7 +1704,7 @@ impl Polymarket {
         // pUSD is the only collateral asset on the venue
         result.insert("PUSD".into(), Value::Map(account));
         { let __t = self.safe_balance(Value::Map(result)); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
+        client.resolve(self.balance.clone(), "balance");
 }
 
     pub fn handle_ack(&mut self, mut client: Value, mut message: Value) {
@@ -1725,10 +1725,10 @@ impl Polymarket {
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
-                let mut postKey: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
-                let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), postKey.clone(), &[]).into_opt_dict();
+                let mut postKey: String = format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::from(postKey.clone()), &[]).into_opt_dict();
                 if (postPending.is_some()) {
-                    __ch.remove_subscription(&postKey);
+                    __ch.remove_subscription(postKey.as_str());
                     let mut postAction: Option<String> = self.safe_string_k(&postPending, "method", &[]).as_str().map(str::to_owned);
                     if (postAction.as_deref() == Some("auth")) {
                         let mut authStatus: Option<String> = self.safe_string_k(data.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1737,13 +1737,13 @@ impl Polymarket {
                             // cached and later authenticate calls reuse it
                             let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
                             if (future != Value::Null) {
-                                future.resolve(&[Value::Bool(true)]);
+                                future.resolve(Value::Bool(true), None);
                             }
                         }  else {
                             let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authentication failed ".into())).into()), json_stringify(&data))));
-                            client.reject(&[authError, Value::Str("authenticated".into())]);
+                            client.reject(authError, "authenticated");
                             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                                __ch.remove_subscription(&Value::Str("authenticated".into()));
+                                __ch.remove_subscription("authenticated");
                             }
                         }
                         return;
@@ -1757,12 +1757,12 @@ impl Polymarket {
         if (id.is_none()) {
             return;
         }
-        let mut key: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
-        let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), key.clone(), &[]).into_opt_dict();
+        let mut key: String = format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()), &[]).into_opt_dict();
         if (pending.is_none()) {
             return;
         }
-        __ch.remove_subscription(&key);
+        __ch.remove_subscription(key.as_str());
         let mut messageHashes: Vec<Value> = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut action: Option<String> = self.safe_string_k(&pending, "method", &[]).as_str().map(str::to_owned);
@@ -1787,7 +1787,7 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_647: bool = true;
                 while { if !__for_first_647 { i += 1; } __for_first_647 = false; i < (messageHashes.len() as i64) } {
-                client.reject(&[Value::from(error.clone()), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null)]);
+                client.reject(error.clone(), &messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live

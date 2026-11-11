@@ -334,7 +334,7 @@ impl Coinone {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -393,9 +393,9 @@ impl Coinone {
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -442,7 +442,7 @@ impl Coinone {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -489,8 +489,8 @@ impl Coinone {
             return;
         }
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -601,7 +601,7 @@ impl Coinone {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
@@ -642,8 +642,8 @@ impl Coinone {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         stored.append(trade);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {

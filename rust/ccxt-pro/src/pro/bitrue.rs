@@ -388,7 +388,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -444,7 +444,7 @@ impl Bitrue {
         let mut balances: Value = (match message.get("B") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         self.parse_ws_balances(balances);
         let mut messageHash: String = "balance".to_string();
-        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
+        client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
     pub fn parse_ws_balances(&mut self, mut balances: Value) {
@@ -540,7 +540,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut orders: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -582,7 +582,7 @@ impl Bitrue {
         let mut orders: Value = self.orders.clone();
         orders.append(parsed);
         let mut messageHash: String = "orders".to_string();
-        client.resolve(&[self.orders.clone(), Value::from(messageHash)]);
+        client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -704,7 +704,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -782,8 +782,8 @@ impl Bitrue {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut snapshot: Value = self.parse_order_book(parseable, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
-        client.resolve(&[orderbook, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn find_swap_market_by_ws_base_quote(&self, mut wsBaseQuote: Value) -> Value {
@@ -905,7 +905,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -968,8 +968,8 @@ impl Bitrue {
         }
         }
         if appended {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(stored, messageHash.as_str());
         }
 }
 
@@ -1065,7 +1065,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut ohlcv: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
@@ -1130,8 +1130,8 @@ impl Bitrue {
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut tick: Value, optional_args: &[Value]) -> Value {
@@ -1198,7 +1198,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1237,8 +1237,8 @@ impl Bitrue {
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut parsed: Value = self.parse_ws_ticker(tick, market, &[Value::from(timestamp)]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
-        client.resolve(&[parsed, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(parsed, messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut tick: Value, mut market: Value, optional_args: &[Value]) -> Value {
@@ -1373,17 +1373,17 @@ impl Bitrue {
             // client.futures and settled through client.resolve/client.reject,
             // so every mutation of that map happens under the ws client's own
             // lock rather than through an unsynchronized map write
-            let mut messageHash: Value = Value::Str("authenticateFlight".into());
+            let mut messageHash: String = "authenticateFlight".to_string();
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
-            if (client.has_future(&messageHash)) {
+            if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
-                crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
+                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
                 return self.safe_string_k(self.options.clone(), "listenKeyUrl", &[]);
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
-            let mut future: Value = client.reusable_future(messageHash.clone());
+            let mut future: Value = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut response: crate::value::Dict = self.parent.open_v1_private_post_poseidon_api_v1_listen_key(&[params]).await.into_dict();
                 //
@@ -1413,12 +1413,12 @@ impl Bitrue {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() has no private websocket url".into()))));
                 }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/stream?listenKey=".into())).into()), key.clone().map(Value::from).unwrap_or(Value::Null)).into())); }
-                client.resolve(&[key.map(Value::from).unwrap_or(Value::Null), messageHash.clone()]);
+                client.resolve(key.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // reject the flight - all waiters throw and the next caller
                 // re-leads instead of deadlocking on a dead flight
-                client.reject(&[e, messageHash]);
+                client.reject(e, messageHash.as_str());
             }
             // rethrows to the leader on failure and attaches the handler that
             // keeps an alone leader's rejection from crashing the process

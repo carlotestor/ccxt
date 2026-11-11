@@ -462,7 +462,7 @@ impl Pacifica {
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".into()))));
         }
-        let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
         //
         // market order
         // {
@@ -579,7 +579,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(batchOperationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
         // {
         //   "code": 200,
         //   "data": {
@@ -675,7 +675,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(batchOperationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
         //
         // {
         //   "code": 200,
@@ -792,7 +792,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(operationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
         //
         //  {
         //   "code": 200,
@@ -884,7 +884,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(operationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -956,7 +956,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
-        let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1022,7 +1022,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1083,14 +1083,14 @@ impl Pacifica {
         if (nonce.is_some()) && (nonce != Some(0)) {
             snapshot.set_book_meta("nonce", Value::from(nonce));
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.reset(snapshot);
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
 /*
@@ -1173,7 +1173,7 @@ impl Pacifica {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut tickers: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash)]).await;
+        let mut tickers: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         }
@@ -1236,7 +1236,7 @@ impl Pacifica {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1307,7 +1307,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -1377,7 +1377,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1421,7 +1421,7 @@ impl Pacifica {
         }
         }
         let mut tickers: Value = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into()));
-        client.resolve(&[tickers, Value::Str("tickers".into())]);
+        client.resolve(tickers, "tickers");
         return Value::Bool(true);
 
     Value::Null
@@ -1493,13 +1493,13 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_577: bool = true;
             while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())])).into());
-            client.resolve(&[trades.clone(), currentMessageHash]);
+            let mut currentMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())]));
+            client.resolve(trades.clone(), currentMessageHash.as_str());
         }
         }
         // non-symbol specific
         let mut messageHash: String = "myTrades".to_string();
-        client.resolve(&[trades, Value::from(messageHash)]);
+        client.resolve(trades, messageHash.as_str());
 }
 
 /*
@@ -1561,7 +1561,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -1627,7 +1627,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1660,7 +1660,7 @@ impl Pacifica {
         let mut marketId: Option<String> = self.safe_string_k(&first, "s", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored = ArrayCache::new(limit);
@@ -1679,7 +1679,7 @@ impl Pacifica {
             trades.append(trade);
         }
         }
-        client.resolve(&[trades, messageHash]);
+        client.resolve(trades, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1835,7 +1835,7 @@ impl Pacifica {
         });
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf).into()), Value::Str(":".into())).into()), symbolValue);
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -1904,7 +1904,7 @@ impl Pacifica {
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
         let mut messagehash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messagehash.clone()), &[message, Value::from(messagehash)]).await;
+        return self.watch(url.as_deref(), &messagehash[..], &[message, Value::from(messagehash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1940,7 +1940,7 @@ impl Pacifica {
         if (timeframe.is_none()) {
             return;
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol);
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1959,7 +1959,7 @@ impl Pacifica {
         }
         let mut parsed: Value = self.parse_ohlcv(data, &[]);
         ohlcv.append(parsed);
-        client.resolve(&[ohlcv, messageHash]);
+        client.resolve(ohlcv, messageHash.as_str());
 }
 
 /*
@@ -2030,7 +2030,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut orders: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2100,7 +2100,7 @@ impl Pacifica {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -2169,11 +2169,11 @@ impl Pacifica {
             let mut __for_first_580: bool = true;
             while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
             let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut innerMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
-            client.resolve(&[stored.clone(), innerMessageHash]);
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol);
+            client.resolve(stored.clone(), innerMessageHash.as_str());
         }
         }
-        client.resolve(&[stored, Value::from(messageHash)]);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -2212,7 +2212,7 @@ impl Pacifica {
             }), Value::Str("".into()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            client.reject(&[e, id.map(Value::from).unwrap_or(Value::Null)]);
+            client.reject(e, id.as_deref());
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -2491,7 +2491,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //   "type": "create_order"
         // }
         //
-        let mut id: Option<String> = match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        client.resolve(&[message.clone(), id.map(Value::from).unwrap_or(Value::Null)]);
+        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        client.resolve(message.clone(), id.as_deref());
 }
 }

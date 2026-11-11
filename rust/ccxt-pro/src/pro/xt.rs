@@ -399,7 +399,7 @@ impl Xt {
             if (__ch.has_future(&messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
-                crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
+                crate::exchange_stubs::ws_await_flight(&client.future(messageHash.clone())).await;
                 return __ch.subscriptions.clone().as_map().and_then(|__m| __m.get("token")).cloned().unwrap_or(Value::Null);
             }
             // client.futures is the same registry Exchange.watch () dedupes on, so registering
@@ -438,13 +438,13 @@ impl Xt {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" getListenKey() received an empty listen key".into()))));
                 }
                 __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
-                client.resolve(&[listenKey, messageHash.clone()]);
+                client.resolve(listenKey, &messageHash);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // hand the failure to every waiter so the next caller re-leads instead of
                 // deadlocking on a dead flight. no throw here: the trailing future rethrows
                 // to this caller and keeps a waiterless rejection from crashing the process
-                client.reject(&[e, messageHash]);
+                client.reject(e, &messageHash);
             }
             crate::exchange_stubs::ws_await_flight(&future).await;
         }
@@ -577,7 +577,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]).into_dict();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&apiUrls, Value::from(tradeType), &[Value::Str("".into())]), Value::Str("/".into())).into()), tail);
-        return self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url.as_str(), &messageHash[..], &[request, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -669,7 +669,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionParamsOmitted: crate::value::Dict = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         let __ws_arg_0 = self.extend(request, &[&paramsMarketType]);
         let __ws_arg_1 = self.extend(Value::Map(subscription), &[&subscriptionParamsOmitted]);
-        return self.watch(Value::from(url), messageHash.clone(), &[__ws_arg_0, messageHash.clone(), __ws_arg_1]).await;
+        return self.watch(url.as_str(), messageHash.clone(), &[__ws_arg_0, messageHash.clone(), __ws_arg_1]).await;
 
     Value::Null
 }
@@ -1225,7 +1225,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && self.is_empty(cache.clone()).as_bool() == Some(true) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
+            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut name: String = "position".to_string();
@@ -1335,8 +1335,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
             let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (event.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::contract".into())).into());
-                client.resolve(&[fundingRate, messageHash]);
+                let mut messageHash: String = format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::contract".into()));
+                client.resolve(fundingRate, messageHash.as_str());
             }
         }
         return message;
@@ -1351,10 +1351,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(__ch.has_future(&messageHash)) {
-                client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone()]);
+            let mut messageHash: String = "fetchPositionsSnapshot".to_string();
+            if !(__ch.has_future(messageHash.as_str())) {
+                client.future(messageHash.as_str());
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, Value::from(messageHash)]);
             }
         }
 }
@@ -1378,8 +1378,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: Value = __ch.get_future(&messageHash);
-            future.resolve(&[cache.clone()]);
-            client.resolve(&[cache, Value::Str("position::contract".into())]);
+            future.resolve(cache.clone(), None);
+            client.resolve(cache, "position::contract");
         }
 
     Value::Null
@@ -1439,11 +1439,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut positions: Value = self.filter_by_array(Value::from(vec![position.clone()]), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(&[positions, messageHash]);
+                client.resolve(positions, &messageHash);
             }
         }
         }
-        client.resolve(&[Value::from(vec![position]), Value::Str("position::contract".into())]);
+        client.resolve(Value::from(vec![position]), "position::contract");
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -1528,8 +1528,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 messageHashTail = "spot".to_string();
             }
             if (event.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), messageHashTail).into());
-                client.resolve(&[ticker, messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), messageHashTail);
+                client.resolve(ticker, messageHash.as_str());
             }
         }
         return message;
@@ -1642,11 +1642,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut tickersSymbols: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
             let mut numTickers: f64 = ((tickersSymbols.len() as i64) as f64);
             if numTickers > ((0i64) as f64) {
-                client.resolve(&[tickers.clone(), messageHash]);
+                client.resolve(tickers.clone(), &messageHash);
             }
         }
         }
-        client.resolve(&[self.tickers.clone(), Value::from(messageHashStart)]);
+        client.resolve(self.tickers.clone(), messageHashStart.as_str());
         return message;
 
     Value::Null
@@ -1719,8 +1719,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored.append(parsed);
             let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (event.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), tradeType).into());
-                client.resolve(&[stored, messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), tradeType);
+                client.resolve(stored, messageHash.as_str());
             }
         }
         return message;
@@ -1784,8 +1784,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             tradesArray.append(trade);
             if (event.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), tradeType).into());
-                client.resolve(&[tradesArray, messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), tradeType);
+                client.resolve(tradesArray, messageHash.as_str());
             }
         }
         return message;
@@ -1927,7 +1927,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
             orderbook.set_book_meta("symbol", symbol);
-            client.resolve(&[orderbook, Value::from(messageHash)]);
+            client.resolve(orderbook, messageHash.as_str());
         }
 }
 
@@ -2149,7 +2149,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]);
             let mut parsed: Value = self.parse_ws_order(order, &[market]);
             orders.append(parsed);
-            client.resolve(&[orders, Value::Str(format!("{}{}", Value::Str("order::".into()), tradeType).into())]);
+            client.resolve(orders, &(Value::Str(format!("{}{}", Value::Str("order::".into()), tradeType).into())));
         }
         return message;
 
@@ -2211,7 +2211,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!(&data, Value::Dict(__d) if __d.contains_key("coin"))) {
             tradeType = "contract".to_string();
         }
-        client.resolve(&[self.balance.clone(), Value::Str(format!("{}{}", Value::Str("balance::".into()), tradeType).into())]);
+        client.resolve(self.balance.clone(), &(Value::Str(format!("{}{}", Value::Str("balance::".into()), tradeType).into())));
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
@@ -2271,7 +2271,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market).contract {
             tradeType = "contract".to_string();
         }
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), tradeType).into())]);
+        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trade::".into()), tradeType).into())));
 }
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
@@ -2393,13 +2393,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut msg: Option<String> = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (msg.as_deref() == Some("invalid_listen_key")) || (msg.as_deref() == Some("token expire")) {
-            if (__ch.has_subscription(&Value::Str("token".into()))) {
-                __ch.remove_subscription(&Value::Str("token".into()));
+            if (__ch.has_subscription("token")) {
+                __ch.remove_subscription("token");
             }
             self.get_listen_key(true).await;
             return;
         }
         let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
-        client.reject(&[Value::from(error)]);
+        client.reject(error, None);
 }
 }

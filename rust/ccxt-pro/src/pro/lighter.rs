@@ -548,8 +548,8 @@ impl Lighter {
         }  else if (type_var.as_deref() == Some("update/order_book")) {
             self.handle_order_book_message(client.clone(), message, orderbook.clone());
         }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
-        client.resolve(&[orderbook, messageHash]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[symbol]);
+        client.resolve(orderbook, messageHash.as_deref());
 }
 
 /*
@@ -700,8 +700,8 @@ impl Lighter {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = self.parse_ticker(data.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-                client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]).map(Value::from).unwrap_or(Value::Null)]);
-                client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null)]);
+                client.resolve(ticker.clone(), &self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]).map(Value::from).unwrap_or(Value::Null));
+                client.resolve(ticker.clone(), &self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null));
             }
             }
         }  else {
@@ -710,7 +710,7 @@ impl Lighter {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(Value::Map(data), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            client.resolve(&[ticker, self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(ticker, &self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null));
         }
 }
 
@@ -1131,8 +1131,8 @@ impl Lighter {
             stored.append(trade);
         }
         }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[symbol]);
+        client.resolve(stored, messageHash.as_deref());
 }
 
 /*
@@ -1364,7 +1364,7 @@ impl Lighter {
             self.myTrades = ArrayCache::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();
-        let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[]).map(Value::from).unwrap_or(Value::Null);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("myTrades".into()), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_473: bool = true;
@@ -1388,14 +1388,14 @@ impl Lighter {
                 stored.append(trade.clone());
                 let mut symbol: Option<String> = self.safe_string_k(trade, "symbol", &[]).as_str().map(str::to_owned);
                 if (symbol.is_some()) {
-                    let mut symbolSpecificMessageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
-                    client.resolve(&[stored.clone(), symbolSpecificMessageHash]);
+                    let mut symbolSpecificMessageHash: Option<String> = self.get_message_hash(Value::Str("myTrades".into()), &[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+                    client.resolve(stored.clone(), symbolSpecificMessageHash.as_deref());
                 }
             }
             }
         }
         }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_deref());
         return Value::Bool(true);
 
     Value::Null
@@ -1618,8 +1618,8 @@ impl Lighter {
             stored.append(liquidation);
         }
         }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("liquidations".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("liquidations".into()), &[symbol]);
+        client.resolve(stored, messageHash.as_deref());
 }
 
 /*
@@ -1812,8 +1812,8 @@ impl Lighter {
         balance.insert("timestamp".into(), Value::from(timestamp));
         balance.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
         { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.clone(), __be_tmp); } }
-        let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, Value::from(type_var.clone())]).map(Value::from).unwrap_or(Value::Null);
-        client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, Value::from(type_var.clone())]);
+        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_deref());
         return Value::Bool(true);
 
     Value::Null
@@ -1990,7 +1990,7 @@ impl Lighter {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, Value::from(messageHash.clone()), &[Value::Map(message), Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut rawMessage: Value = self.watch(url, &messageHash[..], &[Value::Map(message), Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return self.parse_order(self.deep_extend(rawMessage, &[order]), &[market]);
         Value::Null
         }).await?))
@@ -2045,7 +2045,7 @@ impl Lighter {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, Value::from(messageHash.clone()), &[Value::Map(message), Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut rawMessage: Value = self.watch(url, &messageHash[..], &[Value::Map(message), Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return self.parse_order(rawMessage, &[market]);
         Value::Null
         }).await?))
@@ -2097,7 +2097,7 @@ impl Lighter {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut rawMessage: Value = self.watch(url, Value::from(messageHash.clone()), &[Value::Map(message), Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut rawMessage: Value = self.watch(url, &messageHash[..], &[Value::Map(message), Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return self.parse_orders(Value::from(vec![rawMessage]), &[]);
         Value::Null
         }).await?))
@@ -2110,7 +2110,7 @@ impl Lighter {
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(&[message, Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".into()), id.map(Value::from).unwrap_or(Value::Null)).into())]);
+        client.resolve(message, &(Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".into()), id.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -2149,7 +2149,7 @@ impl Lighter {
             self.orders = ArrayCache::new(limit);
         }
         let mut stored: Value = self.orders.clone();
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[]).map(Value::from).unwrap_or(Value::Null);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_477: bool = true;
@@ -2165,14 +2165,14 @@ impl Lighter {
                 stored.append(order.clone());
                 let mut symbol: Value = order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
-                    let mut symbolSpecificMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
-                    client.resolve(&[stored.clone(), symbolSpecificMessageHash]);
+                    let mut symbolSpecificMessageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[symbol]);
+                    client.resolve(stored.clone(), symbolSpecificMessageHash.as_deref());
                 }
             }
             }
         }
         }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_deref());
         return Value::Bool(true);
 
     Value::Null
@@ -2246,21 +2246,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_478: bool = true;
                     while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (subscriptionKeys.len() as i64) } {
-                    let mut subscriptionHash: Value = subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut subscriptionId: Option<String> = self.safe_string_k(__ch.get_subscription(&subscriptionHash), "id", &[]).as_str().map(str::to_owned);
-                    let mut subscription: Option<String> = self.safe_string_k_opt(__ch.get_subscription(&subscriptionHash), "subscription", &[]);
+                    let mut subscriptionHash: Option<String> = subscriptionKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut subscriptionId: Option<String> = self.safe_string(__ch.get_subscription(subscriptionHash.as_deref()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
+                    let mut subscription: Option<String> = self.safe_string(__ch.get_subscription(subscriptionHash.as_deref()), Value::Str("subscription".into()), &[]).as_str().map(str::to_owned);
                     if (id == subscriptionId) {
-                        client.reject(&[e.clone(), subscriptionHash]);
+                        client.reject(e.clone(), subscriptionHash.as_deref());
                         handled = true;
                         if (subscription.is_some()) {
-                            __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
+                            __ch.remove_subscription(subscription.as_deref());
                         }
                     }
                 }
                 }
             }
             if !handled {
-                client.reject(&[e]);
+                client.reject(e, None);
             }
         }
         return Value::Bool(true);
@@ -2387,16 +2387,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_479: bool = true;
                 while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (subscriptionHashes.len() as i64) } {
-                let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-                if (subscriptionHash.as_str().unwrap_or("").starts_with("ticker")) {
-                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]).into_dict();
+                let mut subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if (subscriptionHash.as_deref().unwrap_or_default().starts_with("ticker")) {
+                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
                     let mut subscriptionParams: crate::value::Dict = self.safe_dict_k(&subscription, "params", &[]).into_dict();
                     let mut subscribedChannel: Option<String> = self.safe_string_k(&subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
-                        __ch.remove_subscription(&subscriptionHash);
-                        if (__ch.has_future(&subscriptionHash)) {
-                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash)));
-                            client.reject(&[Value::from(error.clone()), subscriptionHash.clone()]);
+                        __ch.remove_subscription(subscriptionHash.as_deref());
+                        if (__ch.has_future(subscriptionHash.as_deref())) {
+                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null))));
+                            client.reject(error.clone(), subscriptionHash.as_deref());
                         }
                     }
                 }
@@ -2406,7 +2406,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 __ch.remove_subscription(&allMessageHash);
             }
-            client.resolve(&[Value::Bool(true), allMessageHash]);
+            client.resolve(Value::Bool(true), &allMessageHash);
             let mut tickersStructure: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("ticker".into()));

@@ -1872,7 +1872,7 @@ impl Nado {
         // request id and its response is correlated by the echoed id
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("gateway".into()), &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("execute:".into()), requestIdString);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }
@@ -1913,9 +1913,9 @@ impl Nado {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
+            self.watch_multiple(url.as_deref(), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
         }
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[]).await;
+        return self.watch(url.as_deref(), messageHash, &[]).await;
 
     Value::Null
 }
@@ -1929,7 +1929,7 @@ impl Nado {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut clientSubscription: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (clientSubscription != Value::Null) {
-            return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[]).await;
+            return self.watch(url.as_deref(), messageHash.clone(), &[]).await;
         }
         let mut id: Value = self.request_id();
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), messageHash).into());
@@ -1950,8 +1950,8 @@ impl Nado {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-        self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash]), &[Value::Map(request), Value::from(vec![messageHash.clone()]), Value::Map(subscription)]).await;
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[]).await;
+        self.watch_multiple(url.as_deref(), Value::from(vec![subscribeHash]), &[Value::Map(request), Value::from(vec![messageHash.clone()]), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), messageHash, &[]).await;
 
     Value::Null
 }
@@ -1984,7 +1984,7 @@ impl Nado {
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[Value::Map(request), unsubscribeHash, Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), unsubscribeHash.clone(), &[Value::Map(request), unsubscribeHash, Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2038,7 +2038,7 @@ impl Nado {
         });
         client.add_subscription(&Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::from(messageHash.clone()));
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_17, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_deref(), Value::from(messageHash.clone()), &[__ws_arg_17, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }
@@ -2132,12 +2132,12 @@ impl Nado {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-                    self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
+                    self.watch_multiple(url.as_deref(), Value::from(vec![subscribeHash.clone()]), &[Value::Map(request), Value::from(vec![subscribeHash]), Value::Map(subscription)]).await;
                 }
             }
         }
         }
-        return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[Value::Null, messageHashes.clone()]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[Value::Null, messageHashes.clone()]).await;
 
     Value::Null
 }
@@ -2164,7 +2164,7 @@ impl Nado {
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[request, unsubscribeHash.clone(), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), unsubscribeHash.clone(), &[request, unsubscribeHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -2200,7 +2200,7 @@ impl Nado {
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-            self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![unsubscribeHash.clone()]), &[request, Value::from(vec![unsubscribeHash]), Value::Map(subscription)]).await;
+            self.watch_multiple(url.as_deref(), Value::from(vec![unsubscribeHash.clone()]), &[request, Value::from(vec![unsubscribeHash]), Value::Map(subscription)]).await;
         }
         }
         return Value::Bool(true);
@@ -2341,7 +2341,7 @@ impl Nado {
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         let mut trades: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (trades == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2350,7 +2350,7 @@ impl Nado {
         }
         let mut trade: Value = self.parse_ws_trade(message, &[market]);
         trades.append(trade);
-        client.resolve(&[trades, messageHash]);
+        client.resolve(trades, messageHash.as_str());
 }
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
@@ -2361,8 +2361,8 @@ impl Nado {
         }
         let mut trades: Value = self.myTrades.clone();
         trades.append(trade.clone());
-        client.resolve(&[trades.clone(), Value::Str("myTrades".into())]);
-        client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(trades.clone(), "myTrades");
+        client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
@@ -2404,8 +2404,8 @@ impl Nado {
         }
         let mut parsed: Value = self.parse_ohlcv(message, &[market]);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[Value::from(vec![symbol, timeframe, stored]), messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);
+        client.resolve(Value::from(vec![symbol, timeframe, stored]), messageHash.as_str());
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2485,8 +2485,8 @@ impl Nado {
         }
         let mut orders: Value = self.orders.clone();
         orders.append(order.clone());
-        client.resolve(&[orders.clone(), Value::Str("orders".into())]);
-        client.resolve(&[orders, Value::Str(format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(orders.clone(), "orders");
+        client.resolve(orders, &(Value::Str(format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -2585,8 +2585,8 @@ impl Nado {
         }  else {
             positions.append(position.clone());
         }
-        client.resolve(&[positions.clone(), Value::Str("positions".into())]);
-        client.resolve(&[positions, Value::Str(format!("{}{}", Value::Str("positions:".into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(positions.clone(), "positions");
+        client.resolve(positions, &(Value::Str(format!("{}{}", Value::Str("positions:".into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
@@ -2634,10 +2634,10 @@ impl Nado {
             m
         });
         if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-        client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())]);
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
-        client.resolve(&[tickers.clone(), Value::Str("bidask".into())]);
-        client.resolve(&[tickers, Value::Str("ticker".into())]);
+        client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(tickers.clone(), "bidask");
+        client.resolve(tickers, "ticker");
 }
 
     pub fn parse_ws_all_bids_asks(&self, mut message: Value) -> Value {
@@ -2708,12 +2708,12 @@ impl Nado {
             let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
-            client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
+            client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())));
+            client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())));
         }
         }
-        client.resolve(&[tickers.clone(), Value::Str("bidask".into())]);
-        client.resolve(&[tickers, Value::Str("ticker".into())]);
+        client.resolve(tickers.clone(), "bidask");
+        client.resolve(tickers, "ticker");
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -2743,7 +2743,7 @@ impl Nado {
             return;
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut maxTimestamp: Option<String> = self.safe_string_k(orderbook.clone(), "maxTimestamp", &[]).as_str().map(str::to_owned);
         let mut lastMaxTimestamp: Option<String> = (match __pro_message.get("last_max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (maxTimestamp.is_some()) && (lastMaxTimestamp.is_some()) && (maxTimestamp != lastMaxTimestamp) {
@@ -2752,22 +2752,22 @@ impl Nado {
                                 let mut i: i64 = 0;
                 let mut __for_first_515: bool = true;
                 while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (subscriptions.len() as i64) } {
-                let mut subscriptionHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]).into_dict();
+                let mut subscriptionHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
                 let mut streamType: Option<String> = self.safe_string_k(&subscription, "streamType", &[]).as_str().map(str::to_owned);
                 let mut subscriptionSymbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
                 if (streamType.as_deref() == Some("book_depth")) && (subscriptionSymbol.as_deref() == symbol.as_str()) {
-                    __ch.remove_subscription(&subscriptionHash);
+                    __ch.remove_subscription(subscriptionHash.as_deref());
                 }
             }
             }
-            let mut subscriptionMsg: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
+            let mut subscriptionMsg: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), Value::from(messageHash.clone()), &[]);
             if (subscriptionMsg != Value::Null) {
-                __ch.remove_subscription(&messageHash);
+                __ch.remove_subscription(messageHash.as_str());
             }
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".into()))));
-            client.reject(&[Value::from(error), messageHash.clone()]);
+            client.reject(error, messageHash.as_str());
             return;
         }
         let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -2779,7 +2779,7 @@ impl Nado {
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut orderbook, &Value::Str("maxTimestamp".into()), (match __pro_message.get("max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_execute_response(&self, mut client: Value, mut message: Value) {
@@ -2801,12 +2801,12 @@ impl Nado {
         if (id.is_none()) {
             return;
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
-        let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = format!("{}{}", Value::Str("execute:".into()), id.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (subscription != Value::Null) {
-            __ch.remove_subscription(&messageHash);
+            __ch.remove_subscription(messageHash.as_str());
         }
-        client.resolve(&[message, messageHash]);
+        client.resolve(message, messageHash.as_str());
 }
 
     pub fn handle_subscription(&self, mut client: Value, mut message: Value) {
@@ -2819,9 +2819,9 @@ impl Nado {
         }
         let mut subscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]).into_opt_dict();
         if (subscription.is_some()) {
-            let mut subscribeHash: Option<String> = self.safe_string_k_opt(&subscription, "subscribeHash", &[]);
-            __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-            client.resolve(&[message, subscribeHash.map(Value::from).unwrap_or(Value::Null)]);
+            let mut subscribeHash: Option<String> = self.safe_string_k(&subscription, "subscribeHash", &[]).as_str().map(str::to_owned);
+            __ch.remove_subscription(&(Value::Str(format!("{}{}", Value::Str("subscription:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(message, subscribeHash.as_deref());
         }
 }
 
@@ -2835,9 +2835,9 @@ impl Nado {
         }
         let mut messageHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("authentication:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()), &[]);
         if (messageHash.is_some()) {
-            __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("authentication:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+            __ch.remove_subscription(&(Value::Str(format!("{}{}", Value::Str("authentication:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into())));
             __ch.add_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(true));
-            client.resolve(&[message, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(message, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
         }
 }
 
@@ -2850,12 +2850,12 @@ impl Nado {
         if (unsubscription.is_some()) {
             let mut messageHash: Option<String> = self.safe_string_k_opt(&unsubscription, "messageHash", &[]);
             let mut unsubscribeHash: Option<String> = self.safe_string_k_opt(&unsubscription, "unsubscribeHash", &[]);
-            __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()));
+            __ch.remove_subscription(&(Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into())));
             if (messageHash.is_some()) {
                 self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
             }
-            client.resolve(&[Value::Bool(true), unsubscribeHash.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(Value::Bool(true), &unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null));
             return;
         }
         let mut subscriptions: Vec<Value> = object_keys(&get_value(&client, &Value::Str("subscriptions".into()))).as_array().cloned().unwrap_or_default();
@@ -2874,7 +2874,7 @@ impl Nado {
                 self.clean_unsubscription(client.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), unsubscribeHash.clone(), &[]);
                 self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
             }
-            client.resolve(&[Value::Bool(true), unsubscribeHash]);
+            client.resolve(Value::Bool(true), &unsubscribeHash);
             return;
         }
         }
@@ -2989,21 +2989,21 @@ impl Nado {
         let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
         let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         if (id != Value::Null) {
-            let mut executeHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".into()), id).into());
-            let mut executeSubscription: Value = self.safe_value(__ch.subscriptions.clone(), executeHash.clone(), &[]);
+            let mut executeHash: String = format!("{}{}", Value::Str("execute:".into()), id);
+            let mut executeSubscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(executeHash.clone()), &[]);
             if (executeSubscription != Value::Null) {
-                __ch.remove_subscription(&executeHash);
-                client.reject(&[feedback.clone(), executeHash]);
+                __ch.remove_subscription(executeHash.as_str());
+                client.reject(feedback.clone(), executeHash.as_str());
                 return Value::Bool(true);
             }
         }
         let mut subscription: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()), &[]).into_opt_dict();
         if (subscription.is_some()) {
-            let mut subscribeHash: Option<String> = self.safe_string_k_opt(&subscription, "subscribeHash", &[]);
-            __ch.remove_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into()));
-            client.reject(&[feedback.clone(), subscribeHash.map(Value::from).unwrap_or(Value::Null)]);
+            let mut subscribeHash: Option<String> = self.safe_string_k(&subscription, "subscribeHash", &[]).as_str().map(str::to_owned);
+            __ch.remove_subscription(&(Value::Str(format!("{}{}", Value::Str("subscription:".into()), id).into())));
+            client.reject(feedback.clone(), subscribeHash.as_deref());
         }  else {
-            client.reject(&[feedback]);
+            client.reject(feedback, None);
         }
         return Value::Bool(true);
 

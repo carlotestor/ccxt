@@ -398,7 +398,7 @@ impl Bitfinex {
             m
         });
         let __ws_arg_1 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url, &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -459,7 +459,7 @@ impl Bitfinex {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         // not using subscribe here because this message has a different format
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -522,7 +522,7 @@ impl Bitfinex {
             m
         });
         let __ws_arg_3 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_3, Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url, &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -593,7 +593,7 @@ impl Bitfinex {
         let mut market: Value = self.safe_market(&[Value::from(marketId.clone())]);
         let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), marketId).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), marketId);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -614,7 +614,7 @@ impl Bitfinex {
             stored.append(parsed);
         }
         }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
 /*
@@ -800,7 +800,7 @@ impl Bitfinex {
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
@@ -809,9 +809,9 @@ impl Bitfinex {
         tradesArray.append(trade);
         self.myTrades = tradesArray.clone();
         // generic subscription
-        client.resolve(&[tradesArray.clone(), Value::from(name)]);
+        client.resolve(tradesArray.clone(), name.as_str());
         // specific subscription
-        client.resolve(&[tradesArray, messageHash]);
+        client.resolve(tradesArray, messageHash.as_str());
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
@@ -890,8 +890,8 @@ impl Bitfinex {
             stored.append(parsed);
         }
         if (channel.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId);
+            client.resolve(stored, messageHash.as_str());
         }
 }
 
@@ -1037,9 +1037,9 @@ impl Bitfinex {
         let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.clone()), &[]).as_str().map(str::to_owned);
         let mut parsed: Value = self.parse_ws_ticker(ticker, &[market]);
         let mut channel: String = "ticker".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
-        client.resolve(&[parsed, messageHash]);
+        client.resolve(parsed, messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1224,7 +1224,7 @@ impl Bitfinex {
                 }
             }
             orderbook.set_book_meta("symbol", symbol.clone());
-            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
+            client.resolve(orderbook.clone(), messageHash.as_str());
         }  else {
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut deltas: Value = self.safe_value(message, Value::Int(1), &[]);
@@ -1248,7 +1248,7 @@ impl Bitfinex {
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 bookside.store_array(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(size, &[]), self.parse_number(counter.map(Value::from).unwrap_or(Value::Null), &[])]));
             }
-            client.resolve(&[orderbook, Value::from(messageHash)]);
+            client.resolve(orderbook, messageHash.as_str());
         }
 }
 
@@ -1260,7 +1260,7 @@ impl Bitfinex {
         let mut marketId: String = self.safe_string_k(subscription.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut symbol: Value = self.safe_symbol(Value::from(marketId.clone()), &[]);
         let mut channel: String = "book".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId);
         let mut book: Option<crate::value::Dict> = self.safe_dict(self.orderbooks.clone(), symbol.clone(), &[]).into_opt_dict();
         if (book.is_none()) {
             return;
@@ -1295,12 +1295,12 @@ impl Bitfinex {
         let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
         let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
-            __ch.remove_subscription(&messageHash);
+            __ch.remove_subscription(messageHash.as_str());
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
             if (match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol))));
-                client.reject(&[Value::from(error), messageHash]);
+                client.reject(error, messageHash.as_str());
             }
         }
 }
@@ -1436,8 +1436,8 @@ impl Bitfinex {
             let mut __for_first_107: bool = true;
             while { if !__for_first_107 { i += 1; } __for_first_107 = false; i < (updatesKeys.len() as i64) } {
             let mut type_var: Value = updatesKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into());
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), type_var);
+            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
         }
         }
 }
@@ -1484,10 +1484,10 @@ impl Bitfinex {
         // }
         //
         let mut channelId: String = (match message.get("chanId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut unSubChannel: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
-        let mut subMessageHash: String = self.safe_string(__ch.subscriptions.clone(), unSubChannel.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut unSubChannel: String = format!("{}{}", Value::Str("unsubscribe:".into()), channelId);
+        let mut subMessageHash: String = self.safe_string(__ch.subscriptions.clone(), Value::from(unSubChannel.clone()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
-        __ch.remove_subscription(&unSubChannel);
+        __ch.remove_subscription(unSubChannel.as_str());
         let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
@@ -1566,7 +1566,7 @@ impl Bitfinex {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
@@ -1584,7 +1584,7 @@ impl Bitfinex {
                 m
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash.clone())]).await;
+            self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1595,18 +1595,18 @@ impl Bitfinex {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut status: Option<String> = (match __pro_message.get("status").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (status.as_deref() == Some("OK")) {
             // we resolve the future here permanently so authentication only happens once
-            let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone(), &[]);
-            future.resolve(&[Value::Bool(true)]);
+            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
+            future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
-            client.reject(&[Value::from(error), messageHash.clone()]);
+            client.reject(error, messageHash.as_str());
             // allows further authentication attempts
-            if (__ch.has_subscription(&messageHash)) {
-                __ch.remove_subscription(&messageHash);
+            if (__ch.has_subscription(messageHash.as_str())) {
+                __ch.remove_subscription(messageHash.as_str());
             }
         }
 }
@@ -1728,7 +1728,7 @@ impl Bitfinex {
             if let Value::Dict(__d) = &mut symbolIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
         }
         let mut name: String = "orders".to_string();
-        client.resolve(&[self.orders.clone(), Value::from(name.clone())]);
+        client.resolve(self.orders.clone(), name.as_str());
         let mut keys: Vec<Value> = Value::Array(symbolIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1737,8 +1737,8 @@ impl Bitfinex {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
-            client.resolve(&[self.orders.clone(), messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
+            client.resolve(self.orders.clone(), messageHash.as_str());
         }
         }
 }

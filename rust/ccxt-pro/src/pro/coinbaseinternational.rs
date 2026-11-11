@@ -696,7 +696,7 @@ impl Coinbaseinternational {
         })]);
         let mut parsed: Value = self.parent.parse_balance_list(data);
         { let __t = self.deep_extend(self.balance.clone(), &[parsed]); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
+        client.resolve(self.balance.clone(), "balance");
 }
 
 /*
@@ -791,7 +791,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(&params, "data", &[Value::from(vec![])]);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -806,7 +806,7 @@ impl Coinbaseinternational {
             self.myTrades.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        client.resolve(&[self.myTrades.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.myTrades.clone(), channel.as_deref());
 }
 
 /*
@@ -964,7 +964,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_value_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -983,7 +983,7 @@ impl Coinbaseinternational {
             self.orders.append(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        client.resolve(&[self.orders.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.orders.clone(), channel.as_deref());
 }
 
 /*
@@ -1109,7 +1109,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1124,7 +1124,7 @@ impl Coinbaseinternational {
             self.positions.append(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        client.resolve(&[self.positions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.positions.clone(), channel.as_deref());
 }
 
 /*
@@ -1650,10 +1650,10 @@ impl Coinbaseinternational {
             m
         })]);
         let mut ticker: Value = self.parse_ticker(data, &[]);
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(&[ticker, channel.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(ticker, channel.as_deref());
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
@@ -1670,8 +1670,8 @@ impl Coinbaseinternational {
         let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
         let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        client.resolve(&[ticker, channel.map(Value::from).unwrap_or(Value::Null)]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
+        client.resolve(ticker, channel.as_deref());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1910,7 +1910,7 @@ impl Coinbaseinternational {
         let mut parsed: Value = self.parse_ws_ohlcv(data, &[market]);
         stored.append(parsed);
         let mut resolved: Value = Value::from(vec![symbol, timeframe, stored]);
-        client.resolve(&[resolved, messageHash]);
+        client.resolve(resolved, &messageHash);
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -2111,7 +2111,7 @@ impl Coinbaseinternational {
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
-        client.resolve(&[tradesArray, channel]);
+        client.resolve(tradesArray, &channel);
         return message;
 
     Value::Null
@@ -2340,10 +2340,10 @@ impl Coinbaseinternational {
             if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
-                if (__ch.has_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null))) {
-                    __ch.remove_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null));
+                if (__ch.has_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)))) {
+                    __ch.remove_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
-                client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into())))), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+                client.reject(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into()))), &channel.clone().map(Value::from).unwrap_or(Value::Null));
                 self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
                 return;
             }
@@ -2356,7 +2356,7 @@ impl Coinbaseinternational {
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         if (channel.is_some()) {
-            client.resolve(&[orderbook, channel.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(orderbook, &channel.clone().map(Value::from).unwrap_or(Value::Null));
         }
 }
 
@@ -2433,12 +2433,12 @@ impl Coinbaseinternational {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestId: Option<String> = self.safe_string_k(message, "id", &[]).as_str().map(str::to_owned);
             let mut authRequestId: Option<String> = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]).as_str().map(str::to_owned);
-            let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId.clone().map(Value::from).unwrap_or(Value::Null) });
-            if (messageHash.as_str() == Some("authenticated")) && (__ch.has_subscription(&messageHash)) {
+            let mut messageHash: Option<String> = (if (requestId == authRequestId) { Some("authenticated".to_string()) } else { requestId });
+            if (messageHash.as_deref() == Some("authenticated")) && (__ch.has_subscription((&messageHash).as_deref())) {
                 // allow the next authenticate () call to retry
-                __ch.remove_subscription(&messageHash);
+                __ch.remove_subscription(messageHash.as_deref());
             }
-            client.reject(&[e, messageHash]);
+            client.reject(e, messageHash.as_deref());
         }
         return Value::Bool(true);
 
@@ -2524,7 +2524,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.handle_authentication_message(client.clone(), message.clone());
                 return;
             }
-            client.resolve(&[self.safe_value_k(message.clone(), "result", &[message.clone()]), requestId.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(self.safe_value_k(message.clone(), "result", &[message.clone()]), requestId.as_deref());
         }
 }
 
@@ -2555,7 +2555,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(refreshRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null }))]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
         crate::set_value(&mut client, &Value::Str("lastPong".into()), now);
-        client.resolve(&[result, Value::Str("authenticated".into())]);
+        client.resolve(result, "authenticated");
 }
 
 /*

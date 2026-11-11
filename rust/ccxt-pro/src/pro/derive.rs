@@ -446,10 +446,10 @@ impl Derive {
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { __ch.get_subscription(&topic.clone().map(Value::from).unwrap_or(Value::Null)) });
+            let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { __ch.get_subscription((&topic).as_deref()) });
             let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::from(defaultLimit)]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -460,7 +460,7 @@ impl Derive {
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         let mut snapshot: Value = self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
-        client.resolve(&[orderbook, topic.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(orderbook, topic.as_deref());
 }
 
 /*
@@ -695,9 +695,9 @@ impl Derive {
                 m
             }), &[market]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
-            client.resolve(&[bidAsk, Value::Str(format!("{}{}", Value::Str("bidask:".into()), tickerSymbol.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(bidAsk, &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), tickerSymbol.map(Value::from).unwrap_or(Value::Null)).into())));
         }
-        client.resolve(&[ticker, topic]);
+        client.resolve(ticker, &topic);
         return message;
 
     Value::Null
@@ -854,10 +854,10 @@ impl Derive {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
-        let mut bidAskHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
-        if (__ch.has_future(&bidAskHash)) {
+        let mut bidAskHash: String = format!("{}{}", Value::Str("bidask:".into()), symbol);
+        if (__ch.has_future(bidAskHash.as_str())) {
             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), bidAskHash)));
-            client.reject(&[Value::from(error), bidAskHash.clone()]);
+            client.reject(error, bidAskHash.as_str());
         }
         self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[]);
 }
@@ -1000,7 +1000,7 @@ impl Derive {
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
-        client.resolve(&[tradesArray, topic]);
+        client.resolve(tradesArray, &topic);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -1012,7 +1012,7 @@ impl Derive {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
@@ -1040,7 +1040,7 @@ impl Derive {
             //     'params': params,
             // }
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, Value::from(messageHash.clone()), &[message.clone(), Value::from(messageHash.clone()), message.clone()]).await;
+            self.watch(url, &messageHash[..], &[message.clone(), Value::from(messageHash.clone()), message]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1214,13 +1214,13 @@ impl Derive {
                 }
                 cachedOrders.append(parsed);
                 if (topic.is_some()) {
-                    let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
-                    client.resolve(&[self.orders.clone(), messageHashSymbol]);
+                    let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                    client.resolve(self.orders.clone(), messageHashSymbol.as_str());
                 }
             }
         }
         }
-        client.resolve(&[self.orders.clone(), topic.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.orders.clone(), topic.as_deref());
 }
 
 /*
@@ -1360,10 +1360,10 @@ impl Derive {
             while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (rawTrades.len() as i64) } {
             let mut trade: Value = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             myTrades.append(trade.clone());
-            client.resolve(&[myTrades.clone(), topic.clone().map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(myTrades.clone(), topic.as_deref());
             if (topic.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into());
-                client.resolve(&[myTrades.clone(), messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())]));
+                client.resolve(myTrades.clone(), messageHash.as_str());
             }
         }
         }
@@ -1726,11 +1726,11 @@ impl Derive {
         }
         if updated {
             { let __be_tmp = self.safe_balance(subBalance); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), __be_tmp); } }
-            client.resolve(&[self.safe_value(self.balance.clone(), subaccountIdKey, &[]), topic.clone()]);
+            client.resolve(self.safe_value(self.balance.clone(), subaccountIdKey, &[]), &topic);
         }
         let mut positionUpdatesLength: f64 = ((positionUpdates.len() as i64) as f64);
         if positionUpdatesLength > ((0i64) as f64) {
-            client.resolve(&[Value::Array(positionUpdates), Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())]);
+            client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())));
         }
 }
 
@@ -1759,13 +1759,13 @@ impl Derive {
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
-                let mut messageHash: Value = Value::Str("authenticated".into());
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (__ch.has_subscription(&messageHash)) {
-                    __ch.remove_subscription(&messageHash);
+                let mut messageHash: String = "authenticated".to_string();
+                client.reject(error.clone(), messageHash.as_str());
+                if (__ch.has_subscription(messageHash.as_str())) {
+                    __ch.remove_subscription(messageHash.as_str());
                 }
             }  else {
-                client.reject(&[Value::from(error)]);
+                client.reject(error, None);
             }
             return Value::Bool(true);
          } }
@@ -1860,19 +1860,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     result: [ 130837 ]
         // }
         //
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut ids: Vec<Value> = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut idsLength: f64 = ((ids.len() as i64) as f64);
         if idsLength > ((0i64) as f64) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-            future.resolve(&[Value::Bool(true)]);
+            future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
-            client.reject(&[Value::from(error), messageHash.clone()]);
+            client.reject(error, messageHash.as_str());
             // allows further authentication attempts
-            if (__ch.has_subscription(&messageHash)) {
-                __ch.remove_subscription(&Value::Str("authenticated".into()));
+            if (__ch.has_subscription(messageHash.as_str())) {
+                __ch.remove_subscription("authenticated");
             }
         }
 }

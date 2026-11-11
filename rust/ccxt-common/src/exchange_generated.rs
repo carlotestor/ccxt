@@ -10371,7 +10371,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 if (matches!((&get_value(&client, &Value::Str("futures".into())), &subHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subHash));
-                    client.reject(&[Value::from(error.clone()), subHash.clone()]);
+                    client.reject(error.clone(), &subHash);
                 }
             }  else {
                 let mut clientSubscriptions: Vec<Value> = object_keys(&get_value(&client, &Value::Str("subscriptions".into()))).as_array().cloned().unwrap_or_default();
@@ -10393,13 +10393,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut future: Value = clientFutures.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (future.as_str().zip(subHash.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                         let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), future));
-                        client.reject(&[Value::from(error), future]);
+                        client.reject(error, &future);
                     }
                 }
                 }
             }
         }
-        client.resolve(&[Value::Bool(true), unsubHash]);
+        client.resolve(Value::Bool(true), &unsubHash);
 }
 
     fn clean_cache(&mut self, mut subscription: Value) {

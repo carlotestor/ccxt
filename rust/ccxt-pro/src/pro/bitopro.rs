@@ -297,7 +297,7 @@ impl Bitopro {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("/".into())).into()), marketId);
-        return self.watch(Value::from(url), messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
+        return self.watch(url.as_str(), messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -387,8 +387,8 @@ impl Bitopro {
         let mut snapshot: Value = self.parse_order_book(message, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         orderbook.reset(snapshot);
         if (event.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
-            client.resolve(&[orderbook, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            client.resolve(orderbook, messageHash.as_str());
         }
 }
 
@@ -475,8 +475,8 @@ impl Bitopro {
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesCache.clone()); }
         if (event.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
-            client.resolve(&[tradesCache, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            client.resolve(tradesCache, messageHash.as_str());
         }
 }
 
@@ -520,7 +520,7 @@ impl Bitopro {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("user-trades".into()));
         self.authenticate(Value::from(url.clone()));
-        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
@@ -576,9 +576,9 @@ impl Bitopro {
         let mut trades: Value = self.myTrades.clone();
         let mut parsed: Value = self.parse_ws_trade(data, &[]);
         trades.append(parsed);
-        client.resolve(&[trades.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(trades.clone(), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into())]);
+            client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into())));
         }
 }
 
@@ -734,8 +734,8 @@ impl Bitopro {
         if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); } // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
         if (event.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
-            client.resolve(&[result, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            client.resolve(result, messageHash.as_str());
         }
 }
 
@@ -823,7 +823,7 @@ impl Bitopro {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("account-balance".into()));
         self.authenticate(Value::from(url.clone()));
-        return self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash)]).await;
+        return self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -847,7 +847,7 @@ impl Bitopro {
         //         }
         //     }
         //
-        let mut event: Option<String> = match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -890,7 +890,7 @@ impl Bitopro {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), event.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.balance.clone(), event.as_deref());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

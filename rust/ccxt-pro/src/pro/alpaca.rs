@@ -369,7 +369,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -389,11 +389,11 @@ impl Alpaca {
         let mut ticker: Value = self.parse_ticker(message, &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut tickerSymbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), tickerSymbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), tickerSymbol);
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
-        client.resolve(&[ticker, messageHash]);
+        client.resolve(ticker, messageHash.as_str());
 }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -480,7 +480,7 @@ impl Alpaca {
         });
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -517,8 +517,8 @@ impl Alpaca {
         }
         let mut parsed: Value = self.parse_ohlcv(message, &[]);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
 /*
@@ -558,7 +558,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -608,9 +608,9 @@ impl Alpaca {
             orderbook.set_book_meta("timestamp", timestamp);
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -657,7 +657,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_3, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -691,8 +691,8 @@ impl Alpaca {
         }
         let mut parsed: Value = self.parse_trade(message, &[]);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
 /*
@@ -744,7 +744,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_4, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_4, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limit);
@@ -801,7 +801,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_5, Value::from(messageHash)]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_5, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -880,10 +880,10 @@ impl Alpaca {
         let mut order: Value = self.parse_order(rawOrder, &[]);
         orders.append(order.clone());
         let mut messageHash: String = "orders".to_string();
-        client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
+        client.resolve(orders.clone(), messageHash.as_str());
         let mut orderSymbol: String = self.safe_string_k(order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         messageHash = format!("{}{}", Value::Str("orders:".into()), orderSymbol);
-        client.resolve(&[orders, Value::from(messageHash)]);
+        client.resolve(orders, messageHash.as_str());
 }
 
     pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
@@ -958,9 +958,9 @@ impl Alpaca {
         myTrades.append(trade.clone());
         let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol);
-        client.resolve(&[myTrades.clone(), Value::from(messageHash.clone())]);
+        client.resolve(myTrades.clone(), messageHash.as_str());
         messageHash = "myTrades".to_string();
-        client.resolve(&[myTrades, Value::from(messageHash)]);
+        client.resolve(myTrades, messageHash.as_str());
 }
 
     pub fn parse_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1041,7 +1041,7 @@ impl Alpaca {
         self.check_required_credentials(&[]);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1065,7 +1065,7 @@ impl Alpaca {
                     m
                 });
             }
-            self.watch(url, Value::from(messageHash.clone()), &[Value::Map(request), Value::from(messageHash), future.clone()]).await;
+            self.watch(url, &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone()), future.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1201,7 +1201,7 @@ impl Alpaca {
         let mut status: Option<String> = self.safe_string_k(&data, "status", &[]).as_str().map(str::to_owned);
         if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
             let mut promise: Value = __ch.futures.clone().as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
-            promise.resolve(&[message]);
+            promise.resolve(message, None);
             return;
         }
         panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" failed to authenticate.".into()))));

@@ -3283,7 +3283,7 @@ impl Sxbet {
         if matches!(self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Null;
         }
-        return crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("centrifugoConnected".into())])).await;
+        return crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("centrifugoConnected".into()))).await;
 
     Value::Null
 }
@@ -3312,7 +3312,7 @@ impl Sxbet {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[Value::Map(subscribeMsg), channel]).await;
+        return self.watch(url.as_deref(), messageHash, &[Value::Map(subscribeMsg), channel]).await;
 
     Value::Null
 }
@@ -3363,19 +3363,19 @@ impl Sxbet {
             // of waiting forever behind a marker that will never be served
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&msg))));
             if (pendingEntry.is_some()) {
-                let mut failedHash: Option<String> = self.safe_string_k_opt(&pendingEntry, "messageHash", &[]);
-                let mut subscription: Option<String> = self.safe_string_k_opt(&pendingEntry, "subscription", &[]);
+                let mut failedHash: Option<String> = self.safe_string_k(&pendingEntry, "messageHash", &[]).as_str().map(str::to_owned);
+                let mut subscription: Option<String> = self.safe_string_k(&pendingEntry, "subscription", &[]).as_str().map(str::to_owned);
                 if (subscription.as_deref() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
-                if (subscription.is_some()) && (__ch.has_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null))) {
-                    __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
+                if (subscription.is_some()) && (__ch.has_subscription((&subscription).as_deref())) {
+                    __ch.remove_subscription(subscription.as_deref());
                 }
                 { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
-                client.reject(&[Value::from(error.clone()), failedHash.map(Value::from).unwrap_or(Value::Null)]);
+                client.reject(error.clone(), failedHash.as_deref());
             }  else {
                 // an error that cannot be correlated to one command fails the whole connection
-                client.reject(&[Value::from(error)]);
+                client.reject(error, None);
             }
             return;
         }
@@ -3387,7 +3387,7 @@ impl Sxbet {
         if (connectReply != Value::Null) {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
-            client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
+            client.resolve(Value::Bool(true), "centrifugoConnected");
             return;
         }
         let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
@@ -3458,7 +3458,7 @@ impl Sxbet {
         let mut sym: Value = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]);
         let mut marketHash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("orderbook_v3:".into()), marketHash);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
@@ -3477,7 +3477,7 @@ impl Sxbet {
             }
         }
         let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), Value::from(channel.clone()));
+        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3488,10 +3488,10 @@ impl Sxbet {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next publication
-            client.resolve(&[self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash]);
+            client.resolve(self.safe_value(self.orderbooks.clone(), sym, &[]), messageHash.as_str());
         }
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return orderbook.limit();
@@ -3591,7 +3591,7 @@ impl Sxbet {
                 let mut __for_first_1525: bool = true;
                 while { if !__for_first_1525 { j += 1; } __for_first_1525 = false; (j as f64) < refreshedLength } {
                 let mut sym: Value = refreshed.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                client.resolve(&[self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
+                client.resolve(self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())));
             }
             }
         }
@@ -3622,7 +3622,7 @@ impl Sxbet {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut sym: String = self.safe_string_k(outcomeObj.clone(), "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketHash: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym);
         self.set_ws_option(Value::Str("wsWatchedTickers".into()), Value::from(sym.clone()), marketHash.clone().map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
@@ -3643,7 +3643,7 @@ impl Sxbet {
             hydrated = true;
         }
         let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), Value::from(channel.clone()));
+        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3654,13 +3654,13 @@ impl Sxbet {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
         if hydrated {
             let __ws_arg_20 = self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            client.resolve(&[self.safe_dict(__ws_arg_20, Value::from(sym), &[]), messageHash]);
+            client.resolve(self.safe_dict(__ws_arg_20, Value::from(sym), &[]), messageHash.as_str());
         }
         let mut tickerResult: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         return tickerResult;
@@ -3728,7 +3728,7 @@ impl Sxbet {
                 let mut outcomeObj: Value = self.outcome(sym.clone());
                 let mut ticker: Value = self.parse_prediction_ticker(Value::Map(raw.clone()), &[outcomeObj]);
                 self.set_ws_option(Value::Str("wsTickers".into()), sym.clone(), ticker.clone());
-                client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())]);
+                client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym).into())));
             }
             }
         }
@@ -3847,7 +3847,7 @@ impl Sxbet {
             }
             let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             stored.append(trade);
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         }
 }
@@ -3917,8 +3917,8 @@ impl Sxbet {
             }
             let mut stored: Value = self.myTrades.clone();
             stored.append(trade);
-            client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("myTrades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored.clone(), "myTrades");
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         }
 }
@@ -3984,10 +3984,10 @@ impl Sxbet {
             }
             let mut stored: Value = self.orders.clone();
             stored.append(order.clone());
-            client.resolve(&[stored.clone(), Value::Str("orders".into())]);
+            client.resolve(stored.clone(), "orders");
             let mut sym: Option<String> = self.safe_string_k(order, "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
-                client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("orders::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())]);
+                client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
             }
         }
         }

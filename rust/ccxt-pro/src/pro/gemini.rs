@@ -341,7 +341,7 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
         let mut url: String = format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
-        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, Value::from(subscribeHash)]).await;
+        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscribeHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
@@ -472,8 +472,8 @@ impl Gemini {
             }
         }
         stored.append(trade);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
@@ -535,8 +535,8 @@ impl Gemini {
                 stored.append(trade);
             }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
+            client.resolve(stored, messageHash.as_str());
         }
 }
 
@@ -573,8 +573,8 @@ impl Gemini {
             while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut stored: Value = (if let (Some(__m), Some(__k)) = (storesForSymbols.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
+            client.resolve(stored, messageHash.as_str());
         }
         }
 }
@@ -627,7 +627,7 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() has no websocket url".into()))));
         }
         let mut url: String = format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
-        let mut ohlcv: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
@@ -703,8 +703,8 @@ impl Gemini {
             stored.append(parsed);
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId);
+        client.resolve(stored, messageHash.as_str());
         return message;
 
     Value::Null
@@ -758,7 +758,7 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
         let mut url: String = format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
-        let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, Value::from(subscribeHash)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscribeHash)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -801,7 +801,7 @@ impl Gemini {
                 m
             }), symbol.clone(), &[]);
             orderbook.reset(snapshot);
-            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
+            client.resolve(orderbook.clone(), messageHash.as_str());
             return;
         }
         {
@@ -822,7 +822,7 @@ impl Gemini {
         }
         orderbook.set_book_meta("symbol", symbol.clone());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, Value::from(messageHash)]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
 /*
@@ -929,7 +929,7 @@ impl Gemini {
             currentBidAsk = self.extend(__ws_arg_0, &[]);
             add_element_to_object(&mut currentBidAsk, &Value::Str("symbol".into()), symbol.clone());
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("bidsasks:".into()), symbol);
         {
                         let mut i: i64 = 0;
             let mut __for_first_348: bool = true;
@@ -960,7 +960,7 @@ impl Gemini {
         };
         bidsAsksDict.insert(crate::runtime::stringify_param(&symbol), currentBidAsk.clone());
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentBidAsk); }
-        client.resolve(&[Value::Map(bidsAsksDict), messageHash]);
+        client.resolve(Value::Map(bidsAsksDict), messageHash.as_str());
 }
 
     pub async fn helper_for_watch_multiple_construct(&mut self, mut itemHashName: Value, optional_args: &[Value]) -> Value {
@@ -1006,7 +1006,7 @@ impl Gemini {
         }  else if (itemHashName.as_str() == Some("trades")) {
             url.push_str("trades=true&bids=false&offers=false");
         }
-        return self.watch_multiple(Value::from(url), Value::from(messageHashes), &[Value::Null]).await;
+        return self.watch_multiple(url.as_str(), Value::from(messageHashes), &[Value::Null]).await;
 
     Value::Null
 }
@@ -1031,7 +1031,7 @@ impl Gemini {
         let mut marketId: Value = (self.safe_string_k(firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::value::Dict = self.safe_market(&[marketId]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
@@ -1059,7 +1059,7 @@ impl Gemini {
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_l2_updates(&mut self, mut client: Value, mut message: Value) {
@@ -1148,7 +1148,7 @@ impl Gemini {
         }
         let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { Value::Null });
         let mut messageHash: String = "orders".to_string();
-        let mut orders: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash)]).await;
+        let mut orders: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1218,7 +1218,7 @@ impl Gemini {
             orders.append(order);
         }
         }
-        client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
+        client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

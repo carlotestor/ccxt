@@ -406,7 +406,7 @@ impl Hitbtc {
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "private", &[]).as_str().map(str::to_owned);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
-        let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
+        let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Option<i64> = self.milliseconds().as_i64();
@@ -429,7 +429,7 @@ impl Hitbtc {
 }));
                 m
             });
-            self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[Value::Map(request), Value::from(messageHash)]).await;
+            self.watch(url.as_deref(), &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -485,7 +485,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscription)]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -583,7 +583,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[Value::Map(subscribe), Value::from(messageHash), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[Value::Map(subscribe), Value::from(messageHash.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -614,7 +614,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(subscribe), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        return self.watch(url.as_deref(), (&messageHash).as_deref(), &[Value::Map(subscribe), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]).await;
 
     Value::Null
 }
@@ -766,7 +766,7 @@ impl Hitbtc {
             orderbook.set_book_meta("nonce", Value::from(nonce));
             orderbook.set_book_meta("symbol", symbol.clone());
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-            client.resolve(&[orderbook, Value::from(messageHash)]);
+            client.resolve(orderbook, messageHash.as_str());
         }
         }
 }
@@ -956,11 +956,11 @@ impl Hitbtc {
             let mut ticker: Value = self.parse_ws_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
-            client.resolve(&[ticker, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol);
+            client.resolve(ticker, messageHash.as_str());
         }
         }
-        client.resolve(&[Value::Array(result), Value::from(topic)]);
+        client.resolve(Value::Array(result), topic.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1123,11 +1123,11 @@ impl Hitbtc {
             let mut ticker: Value = self.parse_ws_bid_ask(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
-            client.resolve(&[ticker, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol);
+            client.resolve(ticker, messageHash.as_str());
         }
         }
-        client.resolve(&[Value::Array(result), Value::from(topic)]);
+        client.resolve(Value::Array(result), topic.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1303,8 +1303,8 @@ impl Hitbtc {
                 stored.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), symbol).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), symbol);
+            client.resolve(stored, messageHash.as_str());
         }
         }
         return message;
@@ -1535,8 +1535,8 @@ impl Hitbtc {
                 stored.append(parsed);
             }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
-            client.resolve(&[stored, messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol);
+            client.resolve(stored, messageHash.as_str());
         }
         }
         return message;
@@ -1705,9 +1705,9 @@ impl Hitbtc {
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut parsed: Value = self.parse_order(order, &[]);
         orders.append(parsed);
-        client.resolve(&[orders.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(orders.clone(), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(&[orders, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(orders, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
@@ -2128,7 +2128,7 @@ impl Hitbtc {
         //        ]
         //    }
         //
-        let mut messageHash: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut messageHash: Option<String> = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
@@ -2158,7 +2158,7 @@ impl Hitbtc {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), messageHash]);
+        client.resolve(self.balance.clone(), messageHash.as_deref());
 }
 
     pub fn handle_notification(&self, mut client: Value, mut message: Value) -> Value {
@@ -2215,10 +2215,10 @@ impl Hitbtc {
                 parsedOrders.push(parsedOrder.clone());
             }
             }
-            client.resolve(&[Value::Array(parsedOrders), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(Value::Array(parsedOrders), messageHash.as_deref());
         }  else {
             let mut parsedOrder: Value = self.parse_ws_order(result, &[]);
-            client.resolve(&[parsedOrder, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(parsedOrder, messageHash.as_deref());
         }
         return message;
 
@@ -2344,15 +2344,15 @@ impl Hitbtc {
         //    }
         //
         let mut success: bool = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         if success {
-            let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone(), &[]);
-            future.resolve(&[Value::Bool(true)]);
+            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
+            future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
-            client.reject(&[Value::from(error), messageHash.clone()]);
-            if (__ch.has_subscription(&messageHash)) {
-                __ch.remove_subscription(&messageHash);
+            client.reject(error, messageHash.as_str());
+            if (__ch.has_subscription(messageHash.as_str())) {
+                __ch.remove_subscription(messageHash.as_str());
             }
         }
         return message;
@@ -2389,13 +2389,13 @@ impl Hitbtc {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {
-                    let mut messageHash: Value = Value::Str("authenticated".into());
-                    client.reject(&[e.clone(), messageHash.clone()]);
-                    if (__ch.has_subscription(&messageHash)) {
-                        __ch.remove_subscription(&messageHash);
+                    let mut messageHash: String = "authenticated".to_string();
+                    client.reject(e.clone(), messageHash.as_str());
+                    if (__ch.has_subscription(messageHash.as_str())) {
+                        __ch.remove_subscription(messageHash.as_str());
                     }
                 }  else {
-                    client.reject(&[e.clone(), id.clone().map(Value::from).unwrap_or(Value::Null)]); // trade requests use the request id as the message hash
+                    client.reject(e.clone(), id.as_deref()); // trade requests use the request id as the message hash
                 }
                 // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
                 // authentication errors included: a private channel the api key has no access to is refused with 1003
@@ -2408,7 +2408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut subscriptionId: Option<String> = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
                     if (subscriptionId.is_some()) && (subscriptionId == id) {
-                        client.reject(&[e.clone(), subscriptionHash.clone()]);
+                        client.reject(e.clone(), &subscriptionHash);
                         __ch.remove_subscription(&subscriptionHash); // so a retry sends the subscribe request again
                     }
                 }

@@ -317,7 +317,7 @@ impl Dydx {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
@@ -361,7 +361,7 @@ impl Dydx {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -410,8 +410,8 @@ impl Dydx {
             stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol).into());
-        client.resolve(&[stored, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -485,7 +485,7 @@ impl Dydx {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -525,7 +525,7 @@ impl Dydx {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_3, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -570,9 +570,9 @@ impl Dydx {
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -627,7 +627,7 @@ impl Dydx {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_4, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_4, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
@@ -675,7 +675,7 @@ impl Dydx {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_5, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_5, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -743,7 +743,7 @@ impl Dydx {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut candles: Value = self.safe_list_k(content.clone(), "candles", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
         let mut ohlcv: Value = self.safe_dict(candles, Value::Int(0), &[content]);
         let mut parsed: Value = self.parse_ohlcv(ohlcv, &[market]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -757,7 +757,7 @@ impl Dydx {
             if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
         }
         stored.append(parsed);
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -768,7 +768,7 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            client.reject(&[e]);
+            client.reject(e, None);
         }
         return Value::Bool(true);
 

@@ -4803,8 +4803,8 @@ if _try_result.is_err() {
                 m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
             m
         }));
-        client.resolve(&[orderbook.clone(), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())]);
-        client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())]);
+        client.resolve(orderbook.clone(), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())));
+        client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())));
 }
 
     pub fn handle_order_book_delta(&self, mut client: Value, mut event: Value) {
@@ -4846,8 +4846,8 @@ if _try_result.is_err() {
             while { if !__for_first_1455 { k += 1; } __for_first_1455 = false; k < (updatedSymbols.len() as i64) } {
             let mut outcome: Value = updatedSymbols.get(k as usize).cloned().unwrap_or(Value::Null);
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            client.resolve(&[orderbook.clone(), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())]);
-            client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())]);
+            client.resolve(orderbook.clone(), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())));
+            client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())));
         }
         }
 }
@@ -4897,7 +4897,7 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), stored.clone()); }
         }
         stored.append(trade);
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), outcome).into())]);
+        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), outcome).into())));
 }
 
 /*
@@ -4933,7 +4933,7 @@ if _try_result.is_err() {
             m
         });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut orderbook: Value = self.watch(url, Value::from(messageHash), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
+        let mut orderbook: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -4974,7 +4974,7 @@ if _try_result.is_err() {
             m
         });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut trades: Value = self.watch(url, Value::from(messageHash), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
+        let mut trades: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -5023,7 +5023,7 @@ if _try_result.is_err() {
             }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut orderbook: Value = self.watch(url, Value::from(messageHash), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
+        let mut orderbook: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
         let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bestBid: Value = Value::Null;
@@ -5218,10 +5218,10 @@ if _try_result.is_err() {
         let mut stored: Value = self.orders.clone();
         let mut parsed: Value = self.parse_prediction_order(event, &[]);
         stored.append(parsed.clone());
-        client.resolve(&[stored.clone(), Value::Str("orders".into())]);
+        client.resolve(stored.clone(), "orders");
         let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
@@ -5233,10 +5233,10 @@ if _try_result.is_err() {
         let mut stored: Value = self.myTrades.clone();
         let mut parsed: Value = self.parse_prediction_trade(event, &[]);
         stored.append(parsed.clone());
-        client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
+        client.resolve(stored.clone(), "myTrades");
         let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
-            client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 

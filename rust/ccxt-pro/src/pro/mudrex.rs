@@ -343,7 +343,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -451,7 +451,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut ohlcv: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -533,7 +533,7 @@ impl Mudrex {
         }
         stored.append(parsed);
         let mut messageHash: Value = stream;
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, &messageHash);
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
@@ -564,9 +564,9 @@ impl Mudrex {
                 m
             }), &[]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-            client.resolve(&[result.clone(), messageHash]);
-            client.resolve(&[result, Value::Str("tickers".into())]);
+            let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+            client.resolve(result.clone(), messageHash.as_str());
+            client.resolve(result, "tickers");
         }
         }
 }

@@ -318,7 +318,7 @@ impl Ndax {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -363,8 +363,8 @@ impl Ndax {
         }
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = "SubscribeLevel1".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
-        client.resolve(&[ticker, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
+        client.resolve(ticker, messageHash.as_str());
 }
 
 /*
@@ -421,7 +421,7 @@ impl Ndax {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -487,9 +487,9 @@ impl Ndax {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol, &[]);
-            client.resolve(&[tradesArray, messageHash]);
+            client.resolve(tradesArray, messageHash.as_str());
         }
         }
 }
@@ -551,7 +551,7 @@ impl Ndax {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -688,11 +688,11 @@ impl Ndax {
                 let mut __for_first_523: bool = true;
                 while { if !__for_first_523 { j += 1; } __for_first_523 = false; j < (timeframes.len() as i64) } {
                 let mut timeframe: Value = timeframes.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
                 let mut stored: Value = self.safe_list(self.safe_value(self.ohlcvs.clone(), symbol, &[]), timeframe, &[Value::from(vec![])]);
-                client.resolve(&[stored, messageHash]);
+                client.resolve(stored, messageHash.as_str());
             }
             }
         }
@@ -764,7 +764,7 @@ impl Ndax {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -852,9 +852,9 @@ impl Ndax {
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         let mut name: String = "SubscribeLevel2".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
@@ -902,8 +902,8 @@ impl Ndax {
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         orderbook.reset(snapshot);
-        let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
-        client.resolve(&[orderbook, messageHash.map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
+        client.resolve(orderbook, messageHash.as_deref());
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {

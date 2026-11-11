@@ -610,7 +610,7 @@ impl Grvt {
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ticker: Value = self.parse_ws_ticker(data, &[market]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
-        client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())]);
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())));
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, optional_args: &[Value]) -> Value {
@@ -751,7 +751,7 @@ impl Grvt {
         let mut parsed: Value = self.parse_ws_trade(data, &[]);
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(parsed);
-        client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())]);
+        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())));
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -899,7 +899,7 @@ impl Grvt {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -912,7 +912,7 @@ impl Grvt {
         let mut parsed: Value = self.parse_ws_ohlcv(data, &[market]);
         stored.append(parsed);
         let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
-        client.resolve(&[resolveData, messageHash]);
+        client.resolve(resolveData, messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -1071,7 +1071,7 @@ impl Grvt {
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut timestamp: Value = self.safe_integer_product_k(data.clone(), "event_time", Value::Float(0.000001), &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
@@ -1101,7 +1101,7 @@ impl Grvt {
         orderbook.set_book_meta("symbol", symbol.clone());
         orderbook.set_book_meta("nonce", sequenceNumber);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
@@ -1253,8 +1253,8 @@ impl Grvt {
         }
         let mut trade: Value = self.parse_ws_my_trade(data, &[]);
         self.myTrades.append(trade.clone());
-        client.resolve(&[self.myTrades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades::".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())]);
-        client.resolve(&[self.myTrades.clone(), Value::Str("myTrades".into())]);
+        client.resolve(self.myTrades.clone(), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(self.myTrades.clone(), "myTrades");
 }
 
     pub fn parse_ws_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1366,8 +1366,8 @@ impl Grvt {
         self.positions.append(position.clone());
         let mut newPositions: Value = Value::from(vec![]);
         if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
-        client.resolve(&[newPositions.clone(), Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())]);
-        client.resolve(&[newPositions, Value::Str("positions".into())]);
+        client.resolve(newPositions.clone(), &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(newPositions, "positions");
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -1507,8 +1507,8 @@ impl Grvt {
         }
         let mut order: Value = self.parse_ws_order(data, &[]);
         self.orders.append(order.clone());
-        client.resolve(&[self.orders.clone(), Value::Str("orders".into())]);
-        client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("order::".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())]);
+        client.resolve(self.orders.clone(), "orders");
+        client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str("order::".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

@@ -330,7 +330,7 @@ impl Luno {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
+        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -366,7 +366,7 @@ impl Luno {
         let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbolValue.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -383,7 +383,7 @@ impl Luno {
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolValue), stored.clone()); }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(stored, messageHash.as_str());
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -475,7 +475,7 @@ impl Luno {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -517,7 +517,7 @@ impl Luno {
         //     }
         //
         let mut symbol: Value = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({
@@ -544,7 +544,7 @@ impl Luno {
         let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         orderbook.set_book_meta("nonce", Value::from(nonce));
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(orderbook, messageHash.as_str());
 }
 
     pub fn custom_parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -770,9 +770,9 @@ impl Luno {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), marketId).into());
-            if (__ch.has_subscription(&subscriptionHash)) {
-                __ch.remove_subscription(&subscriptionHash);
+            let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
+            if (__ch.has_subscription(subscriptionHash.as_str())) {
+                __ch.remove_subscription(subscriptionHash.as_str());
             }
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() received an out-of-sequence update for ".into())).into()), symbolValue).into()),
                 Value::Str(", expected ".into())).into()), Value::Str(format!("{}", expectedSequence).into())).into()), Value::Str(" but got ".into())).into()), Value::Str(format!("{}", messageSequence).into()))));

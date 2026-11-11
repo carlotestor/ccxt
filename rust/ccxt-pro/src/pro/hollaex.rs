@@ -388,8 +388,8 @@ impl Hollaex {
                 orderbook.reset(snapshot);
             }
             if (channel.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue).into());
-                client.resolve(&[orderbook, messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue);
+                client.resolve(orderbook, messageHash.as_str());
             }
         }
 }
@@ -474,10 +474,10 @@ impl Hollaex {
         }
         }
         if (channel.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue).into());
-            client.resolve(&[stored.clone(), messageHash]);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue);
+            client.resolve(stored.clone(), messageHash.as_str());
         }
-        client.resolve(&[stored, channel.map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(stored, channel.as_deref());
 }
 
 /*
@@ -584,7 +584,7 @@ impl Hollaex {
         }
         }
         // non-symbol specific
-        client.resolve(&[self.myTrades.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.myTrades.clone(), channel.as_deref());
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -592,8 +592,8 @@ impl Hollaex {
             while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if (channel.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId).into());
-                client.resolve(&[self.myTrades.clone(), messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId);
+                client.resolve(self.myTrades.clone(), messageHash.as_str());
             }
         }
         }
@@ -740,7 +740,7 @@ impl Hollaex {
         }
         }
         // non-symbol specific
-        client.resolve(&[self.orders.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.orders.clone(), channel.as_deref());
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -748,8 +748,8 @@ impl Hollaex {
             while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if (channel.is_some()) {
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId).into());
-                client.resolve(&[self.orders.clone(), messageHash]);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId);
+                client.resolve(self.orders.clone(), messageHash.as_str());
             }
         }
         }
@@ -798,7 +798,7 @@ impl Hollaex {
         //         "time": 1649687396
         //     }
         //
-        let mut messageHash: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut messageHash: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -829,7 +829,7 @@ impl Hollaex {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(&[self.balance.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(self.balance.clone(), messageHash.as_deref());
 }
 
     pub async fn watch_public(&mut self, mut messageHash: Value, optional_args: &[Value]) -> Value {
@@ -845,7 +845,7 @@ impl Hollaex {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -883,7 +883,7 @@ impl Hollaex {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(Value::from(signedUrl), messageHash.clone(), &[message, messageHash.clone()]).await;
+        return self.watch(signedUrl.as_str(), messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
 }
