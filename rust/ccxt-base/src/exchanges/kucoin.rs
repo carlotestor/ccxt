@@ -3410,11 +3410,11 @@ impl Kucoin {
         }  else {
             response = self.public_get_status(&[paramsMarketType]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut status: Option<String> = self.safe_string2(data, Value::Str("status".into()), Value::Str("serverStatus".into()), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut status: Option<String> = self.safe_string2(&data, Value::Str("status".into()), Value::Str("serverStatus".into()), &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (status.as_deref() == Some("open")) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
@@ -5675,11 +5675,11 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut swapTimeframes: Value = self.safe_dict_k(&timeframeOptions, "swap", &[Value::Map({
+        let mut swapTimeframes: crate::value::Dict = self.safe_dict_k(&timeframeOptions, "swap", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut parsedTimeframe: Option<i64> = self.safe_integer(swapTimeframes, timeframe.clone(), &[]).as_i64();
+        })]).into_dict();
+        let mut parsedTimeframe: Option<i64> = self.safe_integer(&swapTimeframes, timeframe.clone(), &[]).as_i64();
         if (parsedTimeframe.is_some()) {
             request.insert("granularity".into(), Value::from(parsedTimeframe));
         }  else {
@@ -5814,11 +5814,11 @@ impl Kucoin {
         let mut accountType: Value = Value::Str("main".into());
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchDepositAddress".into()), Value::Str("accountType".into()), &[accountType.clone()]).as_array().cloned().unwrap_or_default(); accountType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        accountType = self.safe_string(accountsByType, accountType.clone(), &[accountType.clone()]);
+})]).into_dict();
+        accountType = self.safe_string(&accountsByType, accountType.clone(), &[accountType.clone()]);
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("fetchDepositAddress".into()), Value::Str("uta".into()), &[uta.clone()]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (accountType.as_str() == Some("contract")) {
@@ -8092,11 +8092,11 @@ impl Kucoin {
                 marketType = type_var.clone().map(Value::from).unwrap_or(Value::Null);
                 paramsRequest = self.omit(paramsRequest.clone(), Value::Str("type".into()), &[]);
             }  else {
-                let mut methodOptions: Value = self.safe_dict_k(self.options.clone(), "fetchOrdersByStatus", &[Value::Map({
+                let mut methodOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOrdersByStatus", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut methodDefaultType: Option<String> = self.safe_string2(methodOptions, Value::Str("defaultType".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                let mut methodDefaultType: Option<String> = self.safe_string2(&methodOptions, Value::Str("defaultType".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
                 if (methodDefaultType.is_none()) {
                     marketType = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("type".into()), &[Value::Str("spot".into())]);
                 }  else {
@@ -10870,11 +10870,11 @@ impl Kucoin {
         let mut accountType: Value = Value::Str("main".into());
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("accountType".into()), &[accountType.clone()]).as_array().cloned().unwrap_or_default(); accountType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        accountType = self.safe_string(accountsByType, accountType.clone(), &[accountType.clone()]);
+})]).into_dict();
+        accountType = self.safe_string(&accountsByType, accountType.clone(), &[accountType.clone()]);
         if (accountType.as_str() == Some("contract")) {
             return self.fetch_contract_deposits(&[code.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }
@@ -11078,11 +11078,11 @@ impl Kucoin {
         let mut accountType: Value = Value::Str("main".into());
         let mut paramsRequest: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("accountType".into()), &[accountType.clone()]).as_array().cloned().unwrap_or_default(); accountType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        accountType = self.safe_string(accountsByType, accountType.clone(), &[accountType.clone()]);
+})]).into_dict();
+        accountType = self.safe_string(&accountsByType, accountType.clone(), &[accountType.clone()]);
         if (accountType.as_str() == Some("contract")) {
             return self.fetch_contract_withdrawals(&[code.clone(), since.clone(), limit.clone(), paramsRequest.clone()]).await;
         }
@@ -11317,11 +11317,11 @@ impl Kucoin {
         let requestedTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsUta]).as_array().cloned().unwrap_or_default();
         let mut requestedType: Value = requestedTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = requestedTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut type_var: Value = self.safe_string(accountsByType, requestedType.clone(), &[requestedType.clone()]);
+})]).into_dict();
+        let mut type_var: Value = self.safe_string(&accountsByType, requestedType.clone(), &[requestedType.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::Str("type".into()), &[]);
         if (type_var.as_str() == Some("contract")) {
             return self.fetch_contract_balance(&[paramsOmitted.clone()]).await;
@@ -11612,12 +11612,12 @@ impl Kucoin {
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsRequest.clone(), Value::Str("fetchUtaBalance".into()), Value::Str("marginMode".into()), &[marginMode.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             requestedType = marginMode;
         }
-        let mut utaAccountsByType: Value = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
+        let mut utaAccountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut type_var: Value = Value::Null;
-        type_var = self.safe_string(utaAccountsByType, requestedType.clone(), &[requestedType.clone()]);
+        type_var = self.safe_string(&utaAccountsByType, requestedType.clone(), &[requestedType.clone()]);
         let mut isIsolated: bool = type_var.as_str() == Some("ISOLATED");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -11878,12 +11878,12 @@ impl Kucoin {
             request.insert("toAccountSymbol".into(), toId.clone());
             toId = Value::Str("ISOLATED".into());
         }
-        let mut utaAccountsByType: Value = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
+        let mut utaAccountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        fromId = self.safe_string(utaAccountsByType.clone(), fromId.clone(), &[fromId.clone()]);
-        toId = self.safe_string(utaAccountsByType, toId.clone(), &[toId.clone()]);
+})]).into_dict();
+        fromId = self.safe_string(&utaAccountsByType, fromId.clone(), &[fromId.clone()]);
+        toId = self.safe_string(&utaAccountsByType, toId.clone(), &[toId.clone()]);
         request.insert("fromAccountType".into(), (if let Some(__s) = (fromId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         request.insert("toAccountType".into(), (if let Some(__s) = (toId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         let mut types: indexmap::IndexMap<String, Value> = ({
@@ -12115,9 +12115,9 @@ impl Kucoin {
             accountFromRaw = self.safe_string_lower_k(transfer.clone(), "payAccountType", &[]).as_str().map(str::to_owned);
             accountToRaw = self.safe_string_lower_k(transfer.clone(), "recAccountType", &[]).as_str().map(str::to_owned);
         }
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
-        let mut accountFrom: Value = (if (accountFromRaw.is_none()) { Value::Null } else { self.safe_string(accountsByType.clone(), accountFromRaw.clone().map(Value::from).unwrap_or(Value::Null), &[accountFromRaw.clone().map(Value::from).unwrap_or(Value::Null)]) });
-        let mut accountTo: Value = (if (accountToRaw.is_none()) { Value::Null } else { self.safe_string(accountsByType, accountToRaw.clone().map(Value::from).unwrap_or(Value::Null), &[accountToRaw.clone().map(Value::from).unwrap_or(Value::Null)]) });
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[]).into_dict();
+        let mut accountFrom: Value = (if (accountFromRaw.is_none()) { Value::Null } else { self.safe_string(&accountsByType, accountFromRaw.clone().map(Value::from).unwrap_or(Value::Null), &[accountFromRaw.clone().map(Value::from).unwrap_or(Value::Null)]) });
+        let mut accountTo: Value = (if (accountToRaw.is_none()) { Value::Null } else { self.safe_string(&accountsByType, accountToRaw.clone().map(Value::from).unwrap_or(Value::Null), &[accountToRaw.clone().map(Value::from).unwrap_or(Value::Null)]) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_n(transfer.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("applyId".into()), Value::Str("orderId".into())]), &[]));
@@ -12560,11 +12560,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodVersions: Value = self.safe_dict(apiVersions, method, &[Value::Map({
+        let mut methodVersions: crate::value::Dict = self.safe_dict(apiVersions, method, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
+})]).into_dict();
+        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion]).as_str().map(str::to_owned);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("utaV2")) && (path.as_str() == Some("market/orderbook")) {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
@@ -14782,7 +14782,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for uta endpoint".into()))));
         }
         let mut ordersRequests: Value = Value::from(vec![]);
-        let mut clientOrderIds: Value = self.safe_list2(paramsRequest.clone(), Value::Str("clientOrderIds".into()), Value::Str("clientOids".into()), &[Value::from(vec![])]);
+        let mut clientOrderIds: crate::value::List = self.safe_list2(paramsRequest.clone(), Value::Str("clientOrderIds".into()), Value::Str("clientOids".into()), &[Value::from(vec![])]).into_list();
         paramsRequest = self.omit(paramsRequest.clone(), Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOids".into())]), &[]);
         let mut useClientorderId: bool = false;
         {
@@ -14796,7 +14796,7 @@ if _try_result.is_err() {
             if let Value::Arr(__a) = &mut ordersRequests { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
-                    m.insert("clientOid".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
+                    m.insert("clientOid".to_string(), self.safe_string(&clientOrderIds, Value::Int(i), &[]));
                 m
             })); }
         }
@@ -15836,11 +15836,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodVersions: Value = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
+        let mut methodVersions: crate::value::Dict = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
+})]).into_dict();
+        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone()));

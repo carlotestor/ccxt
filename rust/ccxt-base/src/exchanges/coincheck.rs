@@ -993,12 +993,12 @@ impl Coincheck {
             }  else if (liquidity.as_deref() == Some("M")) {
                 takerOrMaker = Some("maker".to_string());
             }
-            let mut funds: Value = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({
+            let mut funds: crate::value::Dict = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            amountString = self.safe_string(funds.clone(), baseId, &[]).as_str().map(str::to_owned);
-            costString = self.safe_string(funds, quoteId, &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            amountString = self.safe_string(&funds, baseId, &[]).as_str().map(str::to_owned);
+            costString = self.safe_string(&funds, quoteId, &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "fee_currency", &[]));

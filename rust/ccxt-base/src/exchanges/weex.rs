@@ -2424,15 +2424,15 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut contractTimeframes: Value = self.safe_dict_k(&timeframeOption, "contract", &[Value::Map({
+        let mut contractTimeframes: crate::value::Dict = self.safe_dict_k(&timeframeOption, "contract", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("interval".to_string(), self.safe_string(contractTimeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("interval".to_string(), self.safe_string(&contractTimeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut priceType: Option<String> = self.safe_string_upper_k(paramsHistorical.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -3013,16 +3013,16 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_1147: bool = true;
             while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (balances.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "asset", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {
                 currencyId = Some("USDT".to_string()); // demo trading balances are denominated in the demo asset SUSDT
             }
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string2(entry.clone(), Value::Str("availableBalance".into()), Value::Str("free".into()), &[]));
-            account.insert("used".into(), self.safe_string2(entry.clone(), Value::Str("frozen".into()), Value::Str("locked".into()), &[]));
-            account.insert("total".into(), self.safe_string_k(entry, "balance", &[]));
+            account.insert("free".into(), self.safe_string2(&entry, Value::Str("availableBalance".into()), Value::Str("free".into()), &[]));
+            account.insert("used".into(), self.safe_string2(&entry, Value::Str("frozen".into()), Value::Str("locked".into()), &[]));
+            account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -4636,11 +4636,11 @@ impl Weex {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut accountType: Option<String> = self.safe_string(accountsByType, marketType.clone(), &[marketType.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut accountType: Option<String> = self.safe_string(&accountsByType, marketType.clone(), &[marketType.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

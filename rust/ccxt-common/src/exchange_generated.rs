@@ -3034,17 +3034,17 @@ pub trait ExchangeBase:
                 while { if !__for_first_88 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_88 = false; i.as_f64().unwrap_or(f64::NAN) < ((values.len() as i64) as f64) } {
                 let mut market: Value = values.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut defaultCurrencyPrecision: Value = (if (self.precisionMode.as_f64() == Value::Int(crate::runtime::DECIMAL_PLACES).as_f64()) { Value::Int(8) } else { self.parse_number(Value::Str("1e-8".into()), &[]) });
-                let mut marketPrecision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
+                let mut marketPrecision: crate::value::Dict = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                 if (matches!(&market, Value::Dict(__d) if __d.contains_key("base"))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("baseId".into()), Value::Str("base".into()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "baseNumericId", &[]));
                             m.insert("code".to_string(), self.safe_string_k(market.clone(), "base", &[]));
-                            m.insert("precision".to_string(), self.safe_value2(marketPrecision.clone(), Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
+                            m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
                         m
                     }));
                     if let Value::Arr(__a) = &mut baseCurrencies { std::sync::Arc::make_mut(__a).push(currency.clone()); }
@@ -3055,7 +3055,7 @@ pub trait ExchangeBase:
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("quoteId".into()), Value::Str("quote".into()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "quoteNumericId", &[]));
                             m.insert("code".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
-                            m.insert("precision".to_string(), self.safe_value2(marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
+                            m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
                         m
                     }));
                     if let Value::Arr(__a) = &mut quoteCurrencies { std::sync::Arc::make_mut(__a).push(currency); }
@@ -3075,7 +3075,7 @@ pub trait ExchangeBase:
                 while { if !__for_first_90 { i += 1; } __for_first_90 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut groupedCurrenciesCode: Vec<Value> = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone().into(), Value::Int(0), &[]);
+                let mut highestPrecisionCurrency: Value = self.safe_value(&groupedCurrenciesCode, Value::Int(0), &[]);
                 {
                                         let mut j: i64 = 1;
                     let mut __for_first_89: bool = true;
@@ -4346,17 +4346,17 @@ pub trait ExchangeBase:
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let mut result: Vec<Value> = Vec::new();
         let mut timestamps: Vec<Value> = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut opens: Value = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]);
-        let mut highs: Value = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]);
-        let mut lows: Value = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]);
-        let mut closes: Value = self.safe_list(ohlcvs.clone(), close, &[Value::from(vec![])]);
-        let mut volumes: Value = self.safe_list(ohlcvs, volume, &[Value::from(vec![])]);
+        let mut opens: crate::value::List = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]).into_list();
+        let mut highs: crate::value::List = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]).into_list();
+        let mut lows: crate::value::List = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]).into_list();
+        let mut closes: crate::value::List = self.safe_list(ohlcvs.clone(), close, &[Value::from(vec![])]).into_list();
+        let mut volumes: crate::value::List = self.safe_list(ohlcvs, volume, &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
             while { if !__for_first_106 { i += 1; } __for_first_106 = false; i < (timestamps.len() as i64) } {
-            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(timestamps.clone().into(), Value::Int(i), &[]) } else { self.safe_timestamp(timestamps.clone().into(), Value::Int(i), &[]) }), self.safe_value(opens.clone(), Value::Int(i), &[]), self.safe_value(highs.clone(), Value::Int(i), &[]), self.safe_value(lows.clone(),
-                Value::Int(i), &[]), self.safe_value(closes.clone(), Value::Int(i), &[]), self.safe_value(volumes.clone(), Value::Int(i), &[])]));
+            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(&timestamps, Value::Int(i), &[]) } else { self.safe_timestamp(&timestamps, Value::Int(i), &[]) }), self.safe_value(&opens, Value::Int(i), &[]), self.safe_value(&highs, Value::Int(i), &[]), self.safe_value(&lows, Value::Int(i), &[]), self.safe_value(&closes,
+                Value::Int(i), &[]), self.safe_value(&volumes, Value::Int(i), &[])]));
         }
         }
         return Value::from(result);
@@ -4824,11 +4824,11 @@ pub trait ExchangeBase:
         if (networkId == Value::Null) {
             return Value::Null;
         }
-        let mut networkCodesByIds: Value = self.safe_dict_k(self.options.clone(), "networksById", &[Value::Map({
+        let mut networkCodesByIds: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networksById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut mappedCode: Option<String> = self.safe_string(networkCodesByIds, networkId.clone(), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut mappedCode: Option<String> = self.safe_string(&networkCodesByIds, networkId.clone(), &[]).as_str().map(str::to_owned);
         let mut networkCode: Value = (if (mappedCode.is_none()) { networkId } else { mappedCode.clone().map(Value::from).unwrap_or(Value::Null) });
         return self.safe_string(self.networkAliases.clone(), networkCode.clone(), &[networkCode.clone()]);
 
@@ -9317,8 +9317,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     errors = Value::Int(0);
                     result = self.array_concat(result.clone(), response.clone());
-                    let mut firstElement: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
-                    paginationTimestamp = self.safe_integer2(firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
+                    let mut firstElement: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[]).into_dict();
+                    paginationTimestamp = self.safe_integer2(&firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
                     if (paginationTimestamp == Value::Null) {
                         shouldBreak = true;
                         break;
@@ -9589,9 +9589,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                             &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                         let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
-                        let mut info: Value = self.safe_dict_k(&entry, "info", &[]);
+                        let mut info: crate::value::Dict = self.safe_dict_k(&entry, "info", &[]).into_dict();
                         if (cursorReceived != Value::Null) {
-                            cursorValue = self.safe_value(info, cursorReceived.clone(), &[]);
+                            cursorValue = self.safe_value(&info, cursorReceived.clone(), &[]);
                         }
                     }
                 }
@@ -10416,7 +10416,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_182: bool = true;
                 while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = self.safe_string(symbols.clone().into(), Value::Int(i), &[Value::Str("".into())]);
+                let mut symbol: Value = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]);
                 if (topic.as_deref() == Some("trades")) {
                     if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

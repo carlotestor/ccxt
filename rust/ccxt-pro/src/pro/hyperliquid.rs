@@ -1407,7 +1407,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_402: bool = true;
             while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (keys.len() as i64) } {
-            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into())]);
+            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())])).into())]);
         }
         }
         // non-symbol specific

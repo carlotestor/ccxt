@@ -3286,8 +3286,8 @@ impl Bitvavo {
 }));
             m
         });
-        let mut networks: Value = self.safe_list_k(fee, "networks", &[]);
-        let mut networkId: Option<String> = self.safe_string(networks, Value::Int(0), &[]).as_str().map(str::to_owned); // Bitvavo currently only supports one network per currency
+        let mut networks: crate::value::List = self.safe_list_k(fee, "networks", &[]).into_list();
+        let mut networkId: Option<String> = self.safe_string(&networks, Value::Int(0), &[]).as_str().map(str::to_owned); // Bitvavo currently only supports one network per currency
         let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (networkId.as_deref() == Some("Mainnet")) {
             networkId = currencyCode.clone();

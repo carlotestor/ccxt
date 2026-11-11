@@ -1386,15 +1386,15 @@ impl Okx {
         let mut bidVolume: Option<String> = self.safe_string_k(ticker.clone(), "bidSz", &[]).as_str().map(str::to_owned);
         if (ask.is_none()) {
             let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::from(vec![])]);
-            let mut firstAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
-            ask = self.safe_string(firstAsk.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            askVolume = self.safe_string(firstAsk, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstAsk: crate::value::List = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]).into_list();
+            ask = self.safe_string(&firstAsk, Value::Int(0), &[]).as_str().map(str::to_owned);
+            askVolume = self.safe_string(&firstAsk, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         if (bid.is_none()) {
             let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::from(vec![])]);
-            let mut firstBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
-            bid = self.safe_string(firstBid.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            bidVolume = self.safe_string(firstBid, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstBid: crate::value::List = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]).into_list();
+            bid = self.safe_string(&firstBid, Value::Int(0), &[]).as_str().map(str::to_owned);
+            bidVolume = self.safe_string(&firstBid, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

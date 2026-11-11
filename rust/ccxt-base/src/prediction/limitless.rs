@@ -721,7 +721,7 @@ impl Limitless {
                     if (matches!(&response, Value::Arr(_))) {
                         responseRows = response.clone();
                     }
-                    let mut page_markets: Value = self.safe_list_k(response, "data", &[responseRows]);
+                    let mut page_markets: crate::value::List = self.safe_list_k(response, "data", &[responseRows]).into_list();
                     let mut pageMarketsLength: f64 = ((page_markets.len() as i64) as f64);
                     if (pageMarketsLength == 0.0) {
                         break;
@@ -730,7 +730,7 @@ impl Limitless {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_1303: bool = true;
                         while { if !__for_first_1303 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1303 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
-                        let mut raw: Value = self.safe_value(page_markets.clone(), i.clone(), &[]);
+                        let mut raw: Value = self.safe_value(&page_markets, i.clone(), &[]);
                         allRaw.push(raw.clone());
                     }
                     }
@@ -1700,9 +1700,9 @@ impl Limitless {
         let mut pricesLength: f64 = ((prices.len() as i64) as f64);
         if (lastStr.is_none()) && (pricesLength > ((0i64) as f64)) {
             if isYes {
-                lastStr = self.safe_string(prices.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                lastStr = self.safe_string(&prices, Value::Int(0), &[]).as_str().map(str::to_owned);
             }  else {
-                lastStr = self.safe_string(prices.clone().into(), Value::Int(1), &[]).as_str().map(str::to_owned);
+                lastStr = self.safe_string(&prices, Value::Int(1), &[]).as_str().map(str::to_owned);
             }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
@@ -3895,8 +3895,8 @@ if _try_result.is_err() {
         if (entry == Value::Null) {
             return Value::Null;
         }
-        let mut tokensBalance: Value = self.safe_dict_k(entry.clone(), "tokensBalance", &[]);
-        let mut contracts: Option<String> = self.omit_zero(self.safe_string(tokensBalance, label.clone(), &[])).as_str().map(str::to_owned);
+        let mut tokensBalance: crate::value::Dict = self.safe_dict_k(entry.clone(), "tokensBalance", &[]).into_dict();
+        let mut contracts: Option<String> = self.omit_zero(self.safe_string(&tokensBalance, label.clone(), &[])).as_str().map(str::to_owned);
         if (contracts.is_none()) {
             return Value::Null;
         }

@@ -690,7 +690,7 @@ impl Hyperliquid {
                                 let mut ni: i64 = 0;
                 let mut __for_first_1231: bool = true;
                 while { if !__for_first_1231 { ni += 1; } __for_first_1231 = false; ni < (namedOutcomes.len() as i64) } {
-                let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone().into(), Value::Int(ni), &[]);
+                let mut namedOutcomeId: Value = self.safe_integer(&namedOutcomes, Value::Int(ni), &[]);
                 if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = Value::Str(format!("{}", namedOutcomeId).into());
                     outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), question.clone());
@@ -1560,7 +1560,7 @@ impl Hyperliquid {
         if (!matches!(&midsResponse, Value::Str(_))) && !(matches!(&midsResponse, Value::Arr(_))) {
             allMids = midsResponse.clone();
         }
-        let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
+        let mut mids: crate::value::Dict = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]).into_dict();
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1588,7 +1588,7 @@ impl Hyperliquid {
                     continue;
                 }
             }
-            let __ws_arg_7 = self.safe_string(mids.clone(), Value::from(tradeCoin), &[]);
+            let __ws_arg_7 = self.safe_string(&mids, Value::from(tradeCoin), &[]);
             let mut enriched: Value = self.extend(balance, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("markPx".to_string(), __ws_arg_7);
@@ -3269,17 +3269,17 @@ if _try_result.is_err() {
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut baseUrl: Value = Value::Null;
         if sandboxMode {
-            let mut testUrls: Value = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
+            let mut testUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            baseUrl = self.safe_string(testUrls.clone(), apiGroup.clone(), &[self.safe_string_k(testUrls.clone(), "public", &[Value::Str("".into())])]);
+})]).into_dict();
+            baseUrl = self.safe_string(&testUrls, apiGroup.clone(), &[self.safe_string_k(&testUrls, "public", &[Value::Str("".into())])]);
         }  else {
-            let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            baseUrl = self.safe_string(apiUrls.clone(), apiGroup, &[self.safe_string_k(apiUrls.clone(), "public", &[Value::Str("".into())])]);
+})]).into_dict();
+            baseUrl = self.safe_string(&apiUrls, apiGroup, &[self.safe_string_k(&apiUrls, "public", &[Value::Str("".into())])]);
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), path);
         let mut headersValue: Value = Value::Null;

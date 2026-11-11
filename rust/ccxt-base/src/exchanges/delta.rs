@@ -937,11 +937,11 @@ impl Delta {
 }));
         let mut response: crate::value::Dict = self.public_get_settings(&[params]).await.into_dict();
         // full response sample under `fetchStatus`
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.safe_integer_product_k(result, "server_time", Value::Float(0.001), &[]);
+        })]).into_dict();
+        return self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[]);
         Value::Null
         }).await?))
     }
@@ -1017,16 +1017,16 @@ impl Delta {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut underMaintenance: Option<String> = self.safe_string_k(result.clone(), "under_maintenance", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut underMaintenance: Option<String> = self.safe_string_k(&result, "under_maintenance", &[]).as_str().map(str::to_owned);
         let mut status: String = "ok".to_string();
         if (underMaintenance.as_deref() == Some("true")) {
             status = "maintenance".to_string();
         }
-        let mut updated: Value = self.safe_integer_product_k(result, "server_time", Value::Float(0.001), &[self.milliseconds()]);
+        let mut updated: Value = self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
@@ -2739,11 +2739,11 @@ impl Delta {
             }
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketsByNumericId: Value = self.safe_dict_k(self.options.clone(), "marketsByNumericId", &[Value::Map({
+        let mut marketsByNumericId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "marketsByNumericId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut marketValue: Value = self.safe_value(marketsByNumericId, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+})]).into_dict();
+        let mut marketValue: Value = self.safe_value(&marketsByNumericId, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
         let mut symbol: Value = Value::Null;
         if (marketValue == Value::Null) {
             symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -3508,8 +3508,8 @@ impl Delta {
         }
         type_var = self.parse_ledger_entry_type(type_var.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "asset_id", &[]).as_str().map(str::to_owned);
-        let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        let mut currencyValue: Value = self.safe_value(currenciesByNumericId, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut currenciesByNumericId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]).into_dict();
+        let mut currencyValue: Value = self.safe_value(&currenciesByNumericId, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut code: Option<String> = self.safe_string_k(currencyValue.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));

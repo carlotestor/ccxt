@@ -815,11 +815,11 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut channel: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut channel: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         if (channel == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
@@ -858,11 +858,11 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut channel: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut channel: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         if (channel == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
@@ -2157,7 +2157,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
             while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (marketIds.len() as i64) } {
-            let mut symbol: Option<String> = self.safe_symbol(self.safe_string(marketIds.clone().into(), Value::Int(i), &[]), &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(self.safe_string(&marketIds, Value::Int(i), &[]), &[]).as_str().map(str::to_owned);
             let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
             if (channel == "trades") {
                 self.clean_cache(Value::Map({

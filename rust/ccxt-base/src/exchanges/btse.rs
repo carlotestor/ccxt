@@ -1677,12 +1677,12 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_481: bool = true;
             while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (response.len() as i64) } {
-            let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
-            let mut assets: Value = self.safe_list_k(row.clone(), "assets", &[]);
+            let mut row: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut assets: Value = self.safe_list_k(&row, "assets", &[]);
             if (assets != Value::Null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                let mut inUse: Vec<Value> = self.safe_list_k(row.clone(), "assetsInUse", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut inUse: Vec<Value> = self.safe_list_k(&row, "assetsInUse", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_479: bool = true;
@@ -1711,12 +1711,12 @@ impl Btse {
             }  else {
                 // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
                 // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-                let mut code: Value = self.safe_currency_code(self.safe_string2(row.clone(), Value::Str("asset".into()), Value::Str("currency".into()), &[]), &[]);
+                let mut code: Value = self.safe_currency_code(self.safe_string2(&row, Value::Str("asset".into()), Value::Str("currency".into()), &[]), &[]);
                 if (code == Value::Null) {
                     continue;
                 }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(totals.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(row.clone(), Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(frees.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(totals.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(frees.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
             }
         }
         }
@@ -3923,7 +3923,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (typesList.len() as i64) } {
-            let mut historyType: String = self.safe_string(typesList.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut historyType: String = self.safe_string(&typesList, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut allowed { std::sync::Arc::make_mut(__d).insert(historyType.clone(), Value::Bool(true)); }
             add_element_to_object(&mut allowed, &self.capitalize(Value::from(historyType.to_lowercase())), Value::Bool(true));
         }

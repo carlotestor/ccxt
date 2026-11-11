@@ -1656,9 +1656,9 @@ impl Bithumb {
                     response = self.safe_value_k(response.clone(), "data", &[]);
                 }
                 let mut expectedMarketId: Value = Value::Null;
-                let mut requestedMarketIds: Value = self.safe_list(marketIdsChunks.clone(), i.clone(), &[Value::from(vec![])]);
-                let mut firstMarketId: Option<String> = self.safe_string(requestedMarketIds.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                if (firstMarketId.is_some()) && (self.safe_string(requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
+                let mut requestedMarketIds: crate::value::List = self.safe_list(marketIdsChunks.clone(), i.clone(), &[Value::from(vec![])]).into_list();
+                let mut firstMarketId: Option<String> = self.safe_string(&requestedMarketIds, Value::Int(0), &[]).as_str().map(str::to_owned);
+                if (firstMarketId.is_some()) && (self.safe_string(&requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
                     expectedMarketId = firstMarketId.clone().map(Value::from).unwrap_or(Value::Null);
                 }
                 let mut tickers: Value = Value::from(vec![]);
@@ -3791,11 +3791,11 @@ impl Bithumb {
 }));
             m
         });
-        let mut statuses: Value = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*

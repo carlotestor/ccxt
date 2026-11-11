@@ -1950,11 +1950,11 @@ impl Gemini {
         //         "ask":"9115.87"
         //     }
         //
-        let mut volume: Value = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
+        let mut volume: crate::value::Dict = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(volume.clone(), "timestamp", &[]).as_i64();
+})]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&volume, "timestamp", &[]).as_i64();
         let mut symbol: Value = Value::Null;
         let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
@@ -1986,8 +1986,8 @@ impl Gemini {
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "percentChange24h", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open", &[]).as_str().map(str::to_owned);
-        let mut baseVolume: Option<String> = self.safe_string(volume.clone(), baseId, &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = self.safe_string(volume, quoteId, &[]).as_str().map(str::to_owned);
+        let mut baseVolume: Option<String> = self.safe_string(&volume, baseId, &[]).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = self.safe_string(&volume, quoteId, &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2441,8 +2441,8 @@ impl Gemini {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
-        let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
-        let mut option: Option<String> = self.safe_string(optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut optionsArray: crate::value::List = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]).into_list();
+        let mut option: Option<String> = self.safe_string(&optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: bool = false;
         if (option.is_some()) {

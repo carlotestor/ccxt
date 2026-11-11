@@ -1568,13 +1568,13 @@ impl Sxbet {
     m
 })]).into_dict();
         let mut results: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(results, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut status: Option<String> = self.safe_string_upper_k(first.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut status: Option<String> = self.safe_string_upper_k(&first, "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("FAILED")) {
-            let mut reason: Value = self.safe_string_k(first.clone(), "reason", &[Value::Str("FAILED".into())]);
+            let mut reason: Value = self.safe_string_k(&first, "reason", &[Value::Str("FAILED".into())]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() rejected: ".into())).into()), reason);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), reason.clone(), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::invalid_order(feedback));
@@ -1583,7 +1583,7 @@ impl Sxbet {
         //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
         // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
         // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
-        let mut matchOutcome: Value = self.safe_dict_k(first.clone(), "outcome", &[]);
+        let mut matchOutcome: Value = self.safe_dict_k(&first, "outcome", &[]);
         let mut usdcDecimals: String = "1000000".to_string();
         let mut filled: Value = Value::Null;
         let mut remaining: Value = Value::Null;
@@ -1614,8 +1614,8 @@ impl Sxbet {
         let mut now: Option<i64> = self.milliseconds().as_i64();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string2(first.clone(), Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(first, "clientOrderId", &[clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("id".to_string(), self.safe_string2(&first, Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&first, "clientOrderId", &[clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("info".to_string(), response);
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
@@ -2673,15 +2673,15 @@ impl Sxbet {
         if isVoid {
             resultLabel = Value::Str("VOID".into());
         }  else if (winner.is_some()) {
-            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut labelKey: String = "outcomeTwoName".to_string();
             if (winner == Some(1)) {
                 labelKey = "outcomeOneName".to_string();
             }
-            resultLabel = self.safe_string(info, Value::from(labelKey), &[self.number_to_string(Value::from(winner))]);
+            resultLabel = self.safe_string(&info, Value::from(labelKey), &[self.number_to_string(Value::from(winner))]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(&settlement, "settleDate", &[]));
         let mut settlePrice: Value = Value::Null;
@@ -3247,11 +3247,11 @@ impl Sxbet {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header".into()))));
         }
         let mut response: crate::value::Dict = self.sxbet_private_get_user_realtime_token_v3_api_key(&[]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.safe_string2(data, Value::Str("token".into()), Value::Str("realtimeToken".into()), &[self.safe_string_k(&response, "token", &[])]);
+        })]).into_dict();
+        return self.safe_string2(&data, Value::Str("token".into()), Value::Str("realtimeToken".into()), &[self.safe_string_k(&response, "token", &[])]);
 
     Value::Null
 }

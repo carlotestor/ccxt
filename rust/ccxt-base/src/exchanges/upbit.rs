@@ -1456,7 +1456,7 @@ impl Upbit {
                 while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("markets".to_string(), self.safe_string(queries.clone().into(), Value::Int(i), &[Value::Str("".into())]));
+                        m.insert("markets".to_string(), self.safe_string(&queries, Value::Int(i), &[Value::Str("".into())]));
                     m
                 }), &[params.clone()]);
                 promises.push(self.public_get_ticker(&[__ws_arg_4]).await);

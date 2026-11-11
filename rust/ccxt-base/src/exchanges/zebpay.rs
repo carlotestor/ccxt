@@ -787,12 +787,12 @@ impl Zebpay {
         let mut promisesUnresolved: Vec<Value> = Vec::new();
         let mut fetchMarketsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_dict();
         let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        let mut types: Value = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultMarkets]);
+        let mut types: crate::value::List = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultMarkets]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1201: bool = true;
             while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (types.len() as i64) } {
-            let mut type_var: String = self.safe_string(types.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
                 promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
             }  else if (type_var == "swap") {

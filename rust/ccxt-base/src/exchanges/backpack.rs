@@ -4989,11 +4989,11 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut optionPathInstructions: Value = self.safe_dict(optionInstructions, path.clone(), &[Value::Map({
+            let mut optionPathInstructions: crate::value::Dict = self.safe_dict(optionInstructions, path.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut instruction: String = self.safe_string(optionPathInstructions, method.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+            let mut instruction: String = self.safe_string(&optionPathInstructions, method.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut payload: Value = Value::Str("".into());
             if (path.as_str() == Some("api/v1/orders")) && (method.as_str() == Some("POST")) {
                 payload = self.generate_batch_payload(sortedParams.clone(), ts.clone().map(Value::from).unwrap_or(Value::Null), Value::from(recvWindow.clone()), Value::from(instruction.clone()));

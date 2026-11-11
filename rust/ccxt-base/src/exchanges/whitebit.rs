@@ -6121,7 +6121,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut errorKeys: Vec<Value> = Value::Array(errorObject.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut errorsLength: f64 = ((errorKeys.len() as i64) as f64);
                     if errorsLength > ((0i64) as f64) {
-                        let mut errorKey: Value = self.safe_string(errorKeys.clone().into(), Value::Int(0), &[Value::Str("".into())]);
+                        let mut errorKey: Value = self.safe_string(&errorKeys, Value::Int(0), &[Value::Str("".into())]);
                         let mut errorMessageArray: Value = self.safe_list(errorObject, errorKey.clone(), &[Value::from(vec![])]);
                         errorInfo = self.safe_string(errorMessageArray.clone(), Value::Int(0), &[body.clone()]);
                     }
@@ -6141,7 +6141,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut errKeysLength: f64 = ((errKeys.len() as i64) as f64);
                 let mut errorInfo: Value = body.clone();
                 if errKeysLength > ((0i64) as f64) {
-                    let mut errorKey: Value = self.safe_string(errKeys.clone().into(), Value::Int(0), &[Value::Str("".into())]);
+                    let mut errorKey: Value = self.safe_string(&errKeys, Value::Int(0), &[Value::Str("".into())]);
                     let mut errorMessageArray: Value = self.safe_list(errMsg, errorKey, &[Value::from(vec![])]);
                     errorInfo = self.safe_string(errorMessageArray, Value::Int(0), &[body.clone()]);
                 }

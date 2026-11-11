@@ -3041,7 +3041,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if length > ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".into())).into()), json_stringify(&subAccountIds.clone().into()))));
             }
-            let mut subAccountId: Option<String> = self.safe_string_opt(subAccountIds.clone().into(), Value::Int(0), &[]);
+            let mut subAccountId: Option<String> = self.safe_string_opt(&subAccountIds, Value::Int(0), &[]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), subAccountId.map(Value::from).unwrap_or(Value::Null)); }
         }
         return Value::Bool(true);
@@ -4397,16 +4397,16 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut filled: Option<String> = None;
         let mut avgPrice: Option<String> = None;
         let mut legs: Value = self.safe_list_k(order.clone(), "legs", &[Value::from(vec![])]);
-        let mut metadata: Value = self.safe_dict_k(order.clone(), "metadata", &[Value::Map({
+        let mut metadata: crate::value::Dict = self.safe_dict_k(order.clone(), "metadata", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut stateObj: Value = self.safe_dict_k(order.clone(), "state", &[Value::Map({
+})]).into_dict();
+        let mut stateObj: crate::value::Dict = self.safe_dict_k(order.clone(), "state", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut filledAmounts: Value = self.safe_list_k(stateObj.clone(), "traded_size", &[Value::from(vec![])]);
-        let mut avgPrices: Value = self.safe_list_k(stateObj.clone(), "avg_fill_price", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut filledAmounts: crate::value::List = self.safe_list_k(&stateObj, "traded_size", &[Value::from(vec![])]).into_list();
+        let mut avgPrices: crate::value::List = self.safe_list_k(&stateObj, "avg_fill_price", &[Value::from(vec![])]).into_list();
         let mut primaryOrderIndex: i64 = 0;
         let mut firstLeg: Value = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]);
         let mut legMarketId: Option<String> = self.safe_string_k(firstLeg.clone(), "instrument", &[]).as_str().map(str::to_owned);
@@ -4416,19 +4416,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut isBuyingAsset: bool = self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             side = (if isBuyingAsset { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
             price = self.safe_string_k(firstLeg, "limit_price", &[]).as_str().map(str::to_owned);
-            filled = self.safe_string(filledAmounts, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
-            avgPrice = self.safe_string(avgPrices, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
+            filled = self.safe_string(&filledAmounts, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
+            avgPrice = self.safe_string(&avgPrices, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
         }
-        let mut timestamp: Value = self.safe_integer_product_k(metadata.clone(), "create_time", Value::Float(0.000001), &[]);
+        let mut timestamp: Value = self.safe_integer_product_k(&metadata, "create_time", Value::Float(0.000001), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(metadata, "client_order_id", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&metadata, "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product_k(stateObj.clone(), "update_time", Value::Float(0.000001), &[]));
-        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(stateObj, "status", &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product_k(&stateObj, "update_time", Value::Float(0.000001), &[]));
+        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(&stateObj, "status", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_string_k(marketResolved.clone(), "symbol", &[]));
         m.insert("type".to_string(), Value::from(orderType));
         m.insert("timeInForce".to_string(), timeInForce);

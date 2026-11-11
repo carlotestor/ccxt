@@ -1174,15 +1174,15 @@ impl Kraken {
                 continue;
             }
             let mut makerFees: Value = self.safe_list_k(market.clone(), "fees_maker", &[Value::from(vec![])]);
-            let mut firstMakerFee: Value = self.safe_list(makerFees, Value::Int(0), &[Value::from(vec![])]);
-            let mut firstMakerFeeRate: Option<String> = self.safe_string(firstMakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstMakerFee: crate::value::List = self.safe_list(makerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut firstMakerFeeRate: Option<String> = self.safe_string(&firstMakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut maker: Value = Value::Null;
             if (firstMakerFeeRate.is_some()) {
                 maker = self.parse_number(crate::precise::Precise::stringDiv(&firstMakerFeeRate.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             }
             let mut takerFees: Value = self.safe_list_k(market.clone(), "fees", &[Value::from(vec![])]);
-            let mut firstTakerFee: Value = self.safe_list(takerFees, Value::Int(0), &[Value::from(vec![])]);
-            let mut firstTakerFeeRate: Option<String> = self.safe_string(firstTakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstTakerFee: crate::value::List = self.safe_list(takerFees, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut firstTakerFeeRate: Option<String> = self.safe_string(&firstTakerFee, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut taker: Value = Value::Null;
             if (firstTakerFeeRate.is_some()) {
                 taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
@@ -1710,28 +1710,28 @@ impl Kraken {
         //     }
         //
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
-        let mut v: Value = self.safe_list_k(ticker.clone(), "v", &[Value::from(vec![])]);
-        let mut baseVolume: Option<String> = self.safe_string(v, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut p: Value = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]);
-        let mut vwap: Option<String> = self.safe_string(p, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut v: crate::value::List = self.safe_list_k(ticker.clone(), "v", &[Value::from(vec![])]).into_list();
+        let mut baseVolume: Option<String> = self.safe_string(&v, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut p: crate::value::List = self.safe_list_k(ticker.clone(), "p", &[Value::from(vec![])]).into_list();
+        let mut vwap: Option<String> = self.safe_string(&p, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Value = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut c: Value = self.safe_list_k(ticker.clone(), "c", &[Value::from(vec![])]);
-        let mut last: Option<String> = self.safe_string(c, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut high: Value = self.safe_list_k(ticker.clone(), "h", &[Value::from(vec![])]);
-        let mut low: Value = self.safe_list_k(ticker.clone(), "l", &[Value::from(vec![])]);
-        let mut bid: Value = self.safe_list_k(ticker.clone(), "b", &[Value::from(vec![])]);
-        let mut ask: Value = self.safe_list_k(ticker.clone(), "a", &[Value::from(vec![])]);
+        let mut c: crate::value::List = self.safe_list_k(ticker.clone(), "c", &[Value::from(vec![])]).into_list();
+        let mut last: Option<String> = self.safe_string(&c, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut high: crate::value::List = self.safe_list_k(ticker.clone(), "h", &[Value::from(vec![])]).into_list();
+        let mut low: crate::value::List = self.safe_list_k(ticker.clone(), "l", &[Value::from(vec![])]).into_list();
+        let mut bid: crate::value::List = self.safe_list_k(ticker.clone(), "b", &[Value::from(vec![])]).into_list();
+        let mut ask: crate::value::List = self.safe_list_k(ticker.clone(), "a", &[Value::from(vec![])]).into_list();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string(high, Value::Int(1), &[]));
-        m.insert("low".to_string(), self.safe_string(low, Value::Int(1), &[]));
-        m.insert("bid".to_string(), self.safe_string(bid.clone(), Value::Int(0), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string(bid, Value::Int(2), &[]));
-        m.insert("ask".to_string(), self.safe_string(ask.clone(), Value::Int(0), &[]));
-        m.insert("askVolume".to_string(), self.safe_string(ask, Value::Int(2), &[]));
+        m.insert("high".to_string(), self.safe_string(&high, Value::Int(1), &[]));
+        m.insert("low".to_string(), self.safe_string(&low, Value::Int(1), &[]));
+        m.insert("bid".to_string(), self.safe_string(&bid, Value::Int(0), &[]));
+        m.insert("bidVolume".to_string(), self.safe_string(&bid, Value::Int(2), &[]));
+        m.insert("ask".to_string(), self.safe_string(&ask, Value::Int(0), &[]));
+        m.insert("askVolume".to_string(), self.safe_string(&ask, Value::Int(2), &[]));
         m.insert("vwap".to_string(), vwap.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "o", &[]));
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1850,11 +1850,11 @@ impl Kraken {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_3]).await.into_dict();
-        let mut tickerResult: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut tickerResult: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut ticker: Value = self.safe_value(tickerResult, Value::from((market).id.clone()), &[]);
+        })]).into_dict();
+        let mut ticker: Value = self.safe_value(&tickerResult, Value::from((market).id.clone()), &[]);
         return self.parse_ticker(ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -3015,8 +3015,8 @@ impl Kraken {
         let mut status: Value = self.parse_order_status(self.safe_string_k(orderOmitted.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut id: Option<String> = self.safe_string_n(orderOmitted.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("txid".into()), Value::Str("order_id".into()), Value::Str("amend_id".into())]), &[]).as_str().map(str::to_owned);
         if (id.is_none()) || (id.as_deref().unwrap_or_default().starts_with("[")) {
-            let mut txid: Value = self.safe_list_k(orderOmitted.clone(), "txid", &[]);
-            id = self.safe_string(txid, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut txid: crate::value::List = self.safe_list_k(orderOmitted.clone(), "txid", &[]).into_list();
+            id = self.safe_string(&txid, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         let mut userref: Option<String> = self.safe_string_k(orderOmitted.clone(), "userref", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Value = self.safe_string_k(orderOmitted.clone(), "cl_ord_id", &[userref.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -4138,11 +4138,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_network(&self, mut network: Value) -> Option<String> {
-        let mut withdrawMethods: Value = self.safe_dict_k(self.options.clone(), "withdrawMethods", &[Value::Map({
+        let mut withdrawMethods: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdrawMethods", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(withdrawMethods, network.clone(), &[network.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&withdrawMethods, network.clone(), &[network.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -4633,11 +4633,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {
             codeResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("-".into())).into()), network).into());
         }
-        let mut defaultDepositMethods: Value = self.safe_dict_k(self.options.clone(), "depositMethods", &[Value::Map({
+        let mut defaultDepositMethods: crate::value::Dict = self.safe_dict_k(self.options.clone(), "depositMethods", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultDepositMethod: Option<String> = self.safe_string(defaultDepositMethods, codeResolved.clone(), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut defaultDepositMethod: Option<String> = self.safe_string(&defaultDepositMethods, codeResolved.clone(), &[]).as_str().map(str::to_owned);
         let mut depositMethod: Value = self.safe_string_k(paramsOmitted.clone(), "method", &[defaultDepositMethod.clone().map(Value::from).unwrap_or(Value::Null)]);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param

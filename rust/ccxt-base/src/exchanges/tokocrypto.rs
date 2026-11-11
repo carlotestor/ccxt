@@ -1175,7 +1175,7 @@ impl Tokocrypto {
                                 let mut j: i64 = 0;
                 let mut __for_first_1125: bool = true;
                 while { if !__for_first_1125 { j += 1; } __for_first_1125 = false; j < (permissions.len() as i64) } {
-                if (self.safe_string(permissions.clone().into(), Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
+                if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = false;
                     break;
                 }
@@ -2991,12 +2991,12 @@ impl Tokocrypto {
                 m.insert("asset".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
+        network = self.safe_string(&networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         if (network != Value::Null) {
             request.insert("network".into(), network);
@@ -3232,11 +3232,11 @@ impl Tokocrypto {
 }));
             m
         });
-        let mut statuses: Value = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {

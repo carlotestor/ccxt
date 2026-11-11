@@ -749,10 +749,10 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut used: Value = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
+        let mut used: crate::value::Dict = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&balances, "server_time", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -770,7 +770,7 @@ impl Indodax {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[]));
-            account.insert("used".into(), self.safe_string(used.clone(), currencyId, &[]));
+            account.insert("used".into(), self.safe_string(&used, currencyId, &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }

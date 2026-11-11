@@ -6676,7 +6676,7 @@ impl Woo {
             }
         }
         }
-        return self.safe_string(networkKeys.clone().into(), Value::Int(0), &[]);
+        return self.safe_string(&networkKeys, Value::Int(0), &[]);
 
     Value::Null
 }

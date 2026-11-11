@@ -3530,7 +3530,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (types.len() as i64) } {
-            let mut marketType: Option<String> = self.safe_string(types.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut marketType: Option<String> = self.safe_string(&types, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
@@ -7852,20 +7852,20 @@ if _try_result.is_err() {
     m
 }), &[]);
         }
-        let mut put: Value = self.safe_dict2(order.clone(), Value::Str("put".into()), Value::Str("initial".into()), &[Value::Map({
+        let mut put: crate::value::Dict = self.safe_dict2(order.clone(), Value::Str("put".into()), Value::Str("initial".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut trigger: crate::value::Dict = self.safe_dict_k(order.clone(), "trigger", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut contract: Value = self.safe_string_k(put.clone(), "contract", &[]);
-        let mut type_var: Value = self.safe_string_k(put.clone(), "type", &[]);
-        let mut timeInForce: Value = self.safe_string_upper2(put.clone(), Value::Str("time_in_force".into()), Value::Str("tif".into()), &[]);
-        let mut amount: Value = self.safe_string2(put.clone(), Value::Str("amount".into()), Value::Str("size".into()), &[]);
-        let mut side: Value = self.safe_string_k(put.clone(), "side", &[]);
-        let mut price: Value = self.safe_string_k(put, "price", &[]);
+        let mut contract: Value = self.safe_string_k(&put, "contract", &[]);
+        let mut type_var: Value = self.safe_string_k(&put, "type", &[]);
+        let mut timeInForce: Value = self.safe_string_upper2(&put, Value::Str("time_in_force".into()), Value::Str("tif".into()), &[]);
+        let mut amount: Value = self.safe_string2(&put, Value::Str("amount".into()), Value::Str("size".into()), &[]);
+        let mut side: Value = self.safe_string_k(&put, "side", &[]);
+        let mut price: Value = self.safe_string_k(&put, "price", &[]);
         contract = self.safe_string_k(order.clone(), "contract", &[contract.clone()]);
         type_var = self.safe_string_k(order.clone(), "type", &[type_var.clone()]);
         timeInForce = self.safe_string_upper2(order.clone(), Value::Str("time_in_force".into()), Value::Str("tif".into()), &[timeInForce.clone()]);

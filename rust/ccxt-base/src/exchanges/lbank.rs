@@ -1984,10 +1984,10 @@ impl Lbank {
         // from spotPrivatePostUserInfo
         let mut toBtc: Value = self.safe_dict_k(data.clone(), "toBtc", &[]);
         if (toBtc != Value::Null) {
-            let mut used: Value = self.safe_dict_k(data.clone(), "freeze", &[Value::Map({
+            let mut used: crate::value::Dict = self.safe_dict_k(data.clone(), "freeze", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut free: Value = self.safe_dict_k(data.clone(), "free", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2000,7 +2000,7 @@ impl Lbank {
                 let mut currencyId: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(used.clone(), currencyId.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(&used, currencyId.clone(), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
                 if (code != Value::Null) {
                     result.insert(crate::runtime::stringify_param(&code), account.clone());
@@ -3222,15 +3222,15 @@ impl Lbank {
     }
 
     pub fn get_network_code_for_currency(&self, mut currencyCode: Value, mut params: Value) -> Option<String> {
-        let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
-        let mut defaultNetwork: Option<String> = self.safe_string_upper(defaultNetworks, currencyCode, &[]).as_str().map(str::to_owned);
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
+        let mut defaultNetwork: Option<String> = self.safe_string_upper(&defaultNetworks, currencyCode, &[]).as_str().map(str::to_owned);
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut networkParam: Value = self.safe_string_upper_k(params, "network", &[defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null)]); // accepts unified codes and aliases
         let mut networkCode: Value = (if (networkParam != Value::Null) { self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]) } else { Value::Null });
-        return self.safe_string(networks, networkCode.clone(), &[networkCode.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&networks, networkCode.clone(), &[networkCode.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3340,12 +3340,12 @@ impl Lbank {
                 m.insert("coin".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
-        network = self.safe_string(networks, network.clone(), &[network.clone()]);
+        network = self.safe_string(&networks, network.clone(), &[network.clone()]);
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         if (network != Value::Null) {
             request.insert("networkName".into(), network);
@@ -3433,8 +3433,8 @@ impl Lbank {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("network".into()), Value::Str("networkName".into())]), &[]);
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
-        let mut networkId: Value = self.safe_string(networks, network.clone(), &[network.clone()]);
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
+        let mut networkId: Value = self.safe_string(&networks, network.clone(), &[network.clone()]);
         if (networkId != Value::Null) {
             request.insert("networkName".into(), networkId);
         }

@@ -1620,11 +1620,11 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (rows.len() as i64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut free: Option<String> = self.safe_string2(balance.clone(), Value::Str("free".into()), Value::Str("avail_balance".into()), &[]).as_str().map(str::to_owned);
-            let mut total: Option<String> = self.safe_string2(balance, Value::Str("total".into()), Value::Str("equity".into()), &[]).as_str().map(str::to_owned);
+            let mut free: Option<String> = self.safe_string2(&balance, Value::Str("free".into()), Value::Str("avail_balance".into()), &[]).as_str().map(str::to_owned);
+            let mut total: Option<String> = self.safe_string2(&balance, Value::Str("total".into()), Value::Str("equity".into()), &[]).as_str().map(str::to_owned);
             account.insert("free".into(), free.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null)));
             account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1923,13 +1923,13 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         };
-        let mut tickers: Value = self.safe_list2(response.clone(), Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]);
+        let mut tickers: crate::value::List = self.safe_list2(response.clone(), Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
         let mut date: Option<i64> = self.safe_integer_k(response, "date", &[]).as_i64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_642: bool = true;
             while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (tickers.len() as i64) } {
-            let __ws_arg_4 = self.safe_value(tickers.clone(), Value::Int(i), &[]);
+            let __ws_arg_4 = self.safe_value(&tickers, Value::Int(i), &[]);
             let mut rawTicker: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), Value::from(date));
@@ -4580,12 +4580,12 @@ impl Digifinex {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

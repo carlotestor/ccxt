@@ -2317,10 +2317,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }), &[paramsOmitted.clone()]);
             fetched = self.myriad_public_get_orders_hash(&[__ws_arg_14]).await;
         }
-        let mut fetchedInfo: Value = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
+        let mut fetchedInfo: crate::value::Dict = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut rawOrder: Value = self.safe_dict_k(fetched.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2328,14 +2328,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawOrderKeys: Vec<Value> = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
         if (rawOrderKeysLength == 0.0) {
-            rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            rawOrder = self.safe_dict_k(&fetchedInfo, "order", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
         }
         let mut networkId: Option<String> = self.safe_string_n(fetched.clone(), Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
-            networkId = self.safe_string_n(fetchedInfo, Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
+            networkId = self.safe_string_n(&fetchedInfo, Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
         }
         if (networkId.is_none()) {
             networkId = networkIdParam;
@@ -2491,10 +2491,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]).await;
             }
-            let mut fetchedInfo: Value = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
+            let mut fetchedInfo: crate::value::Dict = self.safe_dict_k(fetched.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut rawOrder: Value = self.safe_dict_k(fetched.clone(), "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2502,14 +2502,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut rawOrderKeys: Vec<Value> = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
             if (rawOrderKeysLength == 0.0) {
-                rawOrder = self.safe_dict_k(fetchedInfo.clone(), "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+                rawOrder = self.safe_dict_k(&fetchedInfo, "order", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
             }
             let mut fetchedNetworkId: Option<String> = self.safe_string_n(fetched.clone(), Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
             if (fetchedNetworkId.is_none()) {
-                fetchedNetworkId = self.safe_string_n(fetchedInfo, Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
+                fetchedNetworkId = self.safe_string_n(&fetchedInfo, Value::from(vec![Value::Str("networkId".into()), Value::Str("network_id".into())]), &[]).as_str().map(str::to_owned);
             }
             if (fetchedNetworkId.is_none()) {
                 fetchedNetworkId = networkIdParam.clone();

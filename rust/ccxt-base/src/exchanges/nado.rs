@@ -3778,11 +3778,11 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut risk: Value = self.safe_dict_k(&product, "risk", &[Value::Map({
+        let mut risk: crate::value::Dict = self.safe_dict_k(&product, "risk", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut markPriceX18: Option<String> = self.safe_string2(risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut markPriceX18: Option<String> = self.safe_string2(&risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]).as_str().map(str::to_owned);
         let mut vQuoteBalance: Option<String> = self.safe_string_k(&balance, "v_quote_balance", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut contracts: Value = Value::Null;

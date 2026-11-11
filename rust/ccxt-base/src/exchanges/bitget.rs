@@ -9152,11 +9152,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut maxLimitPerTimeframe: Value = self.safe_dict_k(&ohlcOptions, "maxLimitPerTimeframe", &[Value::Map({
+        let mut maxLimitPerTimeframe: crate::value::Dict = self.safe_dict_k(&ohlcOptions, "maxLimitPerTimeframe", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeLimitValue: Option<i64> = self.safe_integer(maxLimitPerTimeframe, timeframe.clone(), &[]).as_i64();
+        })]).into_dict();
+        let mut timeframeLimitValue: Option<i64> = self.safe_integer(&maxLimitPerTimeframe, timeframe.clone(), &[]).as_i64();
         // the per-timeframe cap only applies to a user-supplied limit
         let mut timeframeLimit: Value = (if (timeframeLimitValue.is_none()) { maxLimitForRecentEndpoint.clone() } else { Value::from(timeframeLimitValue) });
         let mut requestedLimit: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
@@ -9165,11 +9165,11 @@ if _try_result.is_err() {
         let mut recentLimit: Value = (if ((limit != Value::Null) && (limitCapped.as_f64().unwrap_or(f64::NAN) > timeframeLimit.as_f64().unwrap_or(f64::NAN))) { timeframeLimit } else { limitCapped });
         let mut limitResolved: Value = recentLimit.clone();
         let mut recentDuration: Value = (match (&(recentLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut recentEndpointDaysMap: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()), &[Value::Map({
+        let mut recentEndpointDaysMap: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut recentEndpointAvailableDays: Value = self.safe_integer(recentEndpointDaysMap, timeframe.clone(), &[]);
+})]).into_dict();
+        let mut recentEndpointAvailableDays: Value = self.safe_integer(&recentEndpointDaysMap, timeframe.clone(), &[]);
         let mut historicalEndpointNeeded: bool = useHistoryEndpoint == true;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
@@ -9503,14 +9503,14 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_378: bool = true;
             while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (balance.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
+            let mut entry: crate::value::Dict = self.safe_dict(balance.clone(), Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "coin", &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            account.insert("debt".into(), self.safe_string_k(entry.clone(), "debt", &[]));
-            account.insert("used".into(), self.safe_string2(entry.clone(), Value::Str("locked".into()), Value::Str("frozen".into()), &[]));
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
-            account.insert("total".into(), self.safe_string2(entry, Value::Str("equity".into()), Value::Str("balance".into()), &[]));
+            account.insert("debt".into(), self.safe_string_k(&entry, "debt", &[]));
+            account.insert("used".into(), self.safe_string2(&entry, Value::Str("locked".into()), Value::Str("frozen".into()), &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
+            account.insert("total".into(), self.safe_string2(&entry, Value::Str("equity".into()), Value::Str("balance".into()), &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -9531,27 +9531,27 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_379: bool = true;
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (balance.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
+            let mut entry: crate::value::Dict = self.safe_dict(balance.clone(), Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut currencyId: Option<String> = self.safe_string2(entry.clone(), Value::Str("marginCoin".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string2(&entry, Value::Str("marginCoin".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut borrow: Option<String> = self.safe_string_k(entry.clone(), "borrow", &[]).as_str().map(str::to_owned);
+            let mut borrow: Option<String> = self.safe_string_k(&entry, "borrow", &[]).as_str().map(str::to_owned);
             if (borrow.is_some()) {
-                let mut interest: Option<String> = self.safe_string_k(entry.clone(), "interest", &[]).as_str().map(str::to_owned);
-                account.insert("free".into(), self.safe_string_k(entry.clone(), "transferable", &[]));
-                account.insert("total".into(), self.safe_string_k(entry.clone(), "totalAmount", &[]));
+                let mut interest: Option<String> = self.safe_string_k(&entry, "interest", &[]).as_str().map(str::to_owned);
+                account.insert("free".into(), self.safe_string_k(&entry, "transferable", &[]));
+                account.insert("total".into(), self.safe_string_k(&entry, "totalAmount", &[]));
                 account.insert("debt".into(), crate::precise::Precise::stringAdd(&borrow.clone().map(Value::from).unwrap_or(Value::Null), &interest.clone().map(Value::from).unwrap_or(Value::Null)));
             }  else {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
-                let mut spotAccountFree: Option<String> = self.safe_string_k(entry.clone(), "available", &[]).as_str().map(str::to_owned);
-                let mut contractAccountFree: Option<String> = self.safe_string_k(entry.clone(), "maxTransferOut", &[]).as_str().map(str::to_owned);
+                let mut spotAccountFree: Option<String> = self.safe_string_k(&entry, "available", &[]).as_str().map(str::to_owned);
+                let mut contractAccountFree: Option<String> = self.safe_string_k(&entry, "maxTransferOut", &[]).as_str().map(str::to_owned);
                 if (contractAccountFree.is_some()) {
                     account.insert("free".into(), contractAccountFree.clone().map(Value::from).unwrap_or(Value::Null));
-                    account.insert("total".into(), self.safe_string_k(entry.clone(), "accountEquity", &[]));
+                    account.insert("total".into(), self.safe_string_k(&entry, "accountEquity", &[]));
                 }  else {
                     account.insert("free".into(), spotAccountFree.clone().map(Value::from).unwrap_or(Value::Null));
-                    let mut frozen: Option<String> = self.safe_string_k(entry.clone(), "frozen", &[]).as_str().map(str::to_owned);
-                    let mut locked: Option<String> = self.safe_string_k(entry, "locked", &[]).as_str().map(str::to_owned);
+                    let mut frozen: Option<String> = self.safe_string_k(&entry, "frozen", &[]).as_str().map(str::to_owned);
+                    let mut locked: Option<String> = self.safe_string_k(&entry, "locked", &[]).as_str().map(str::to_owned);
                     account.insert("used".into(), crate::precise::Precise::stringAdd(&frozen.clone().map(Value::from).unwrap_or(Value::Null), &locked.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
             }
@@ -15268,11 +15268,11 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTransfers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut fromAccount: Value = self.safe_string_k(paramsMarketType.clone(), "fromAccount", &[type_var.clone()]);
         paramsMarketType = self.omit(paramsMarketType.clone(), Value::Str("fromAccount".into()), &[]);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        type_var = self.safe_string(accountsByType, fromAccount, &[]);
+})]).into_dict();
+        type_var = self.safe_string(&accountsByType, fromAccount, &[]);
         let mut currency: Value = self.currency(code);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -15353,12 +15353,12 @@ if _try_result.is_err() {
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut currency: Value = self.currency(code);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromType: Option<String> = self.safe_string(accountsByType.clone(), fromAccount, &[]).as_str().map(str::to_owned);
-        let mut toType: Option<String> = self.safe_string(accountsByType, toAccount, &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut fromType: Option<String> = self.safe_string(&accountsByType, fromAccount, &[]).as_str().map(str::to_owned);
+        let mut toType: Option<String> = self.safe_string(&accountsByType, toAccount, &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromType".to_string(), fromType.clone().map(Value::from).unwrap_or(Value::Null));
@@ -15433,13 +15433,13 @@ if _try_result.is_err() {
         let mut status: Option<String> = self.safe_string_lower_k(transfer.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut fromAccountRaw: Option<String> = self.safe_string_k(transfer.clone(), "fromType", &[]).as_str().map(str::to_owned);
-        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+        let mut accountsById: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
+})]).into_dict();
+        let mut fromAccount: Value = self.safe_string(&accountsById, fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut toAccountRaw: Option<String> = self.safe_string_k(transfer.clone(), "toType", &[]).as_str().map(str::to_owned);
-        let mut toAccount: Value = self.safe_string(accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut toAccount: Value = self.safe_string(&accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());

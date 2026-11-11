@@ -1400,7 +1400,7 @@ impl Polymarket {
         if requestedTagsLength > ((0i64) as f64) {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".into()), self.tag_to_slug(self.safe_string(requestedTags.clone().into(), Value::Int(0), &[])));
+            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".into()), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[])));
         }
         if (status.as_deref() == Some("active")) {
             add_element_to_object(&mut baseRequest, &Value::Str("active".into()), Value::Bool(true));
@@ -3826,11 +3826,11 @@ impl Polymarket {
         let mut response: Value = self.clob_private_delete_order(&[__ws_arg_14]).await;
         // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
-        let mut notCanceled: Value = self.safe_dict_k(response.clone(), "not_canceled", &[Value::Map({
+        let mut notCanceled: crate::value::Dict = self.safe_dict_k(response.clone(), "not_canceled", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut failureReason: Option<String> = self.safe_string(notCanceled, id.clone(), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut failureReason: Option<String> = self.safe_string(&notCanceled, id.clone(), &[]).as_str().map(str::to_owned);
         let mut status: String = "open".to_string();
         if (failureReason.is_none()) {
             status = "canceled".to_string();
@@ -3879,7 +3879,7 @@ impl Polymarket {
             while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (canceled.len() as i64) } {
             if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string(canceled.clone().into(), Value::Int(i), &[]));
+        m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
@@ -3936,7 +3936,7 @@ impl Polymarket {
             while { if !__for_first_1444 { i += 1; } __for_first_1444 = false; i < (canceled.len() as i64) } {
             if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string(canceled.clone().into(), Value::Int(i), &[]));
+        m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
@@ -5251,8 +5251,8 @@ if _try_result.is_err() {
         }
         // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-        let mut market: Value = self.safe_dict(self.markets_by_id.clone(), tokenId, &[]);
-        return self.safe_string2(market, Value::Str("market".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: crate::value::Dict = self.safe_dict(self.markets_by_id.clone(), tokenId, &[]).into_dict();
+        return self.safe_string2(&market, Value::Str("market".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
 }
 
     pub fn parse_poly_timestamp(&self, mut raw: Value) -> Value {

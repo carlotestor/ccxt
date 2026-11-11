@@ -759,7 +759,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.parse_ws_ticker(self.safe_value(data.clone().into(), Value::Int(i), &[]), &[]);
+            let mut ticker: Value = self.parse_ws_ticker(self.safe_value(&data, Value::Int(i), &[]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
             if (channelName.is_some()) {
@@ -855,7 +855,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.parse_ws_bid_ask(self.safe_value(data.clone().into(), Value::Int(i), &[]), &[]);
+            let mut ticker: Value = self.parse_ws_bid_ask(self.safe_value(&data, Value::Int(i), &[]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -1062,7 +1062,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.len() as i64) } {
-            let mut candle: Value = self.safe_value(data.clone().into(), Value::Int(i), &[]);
+            let mut candle: Value = self.safe_value(&data, Value::Int(i), &[]);
             let mut parsed: Value = self.parse_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1273,7 +1273,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_171: bool = true;
             while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.parse_ws_order(self.safe_value(data.clone().into(), Value::Int(i), &[]), &[]);
+            let mut order: Value = self.parse_ws_order(self.safe_value(&data, Value::Int(i), &[]), &[]);
             orders.append(order.clone());
             if (channelName.is_some()) {
                 client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())]);
@@ -1350,7 +1350,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_172: bool = true;
             while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (data.len() as i64) } {
-            let mut position: Value = self.parse_ws_position(self.safe_value(data.clone().into(), Value::Int(i), &[]), &[]);
+            let mut position: Value = self.parse_ws_position(self.safe_value(&data, Value::Int(i), &[]), &[]);
             newPositions.push(position.clone());
             cache.append(position.clone());
             if (channelName.is_some()) {
@@ -1520,11 +1520,11 @@ impl Blofin {
         if (isPublic.as_bool() == Some(true)) {
             privateOrPublic = "public".to_string();
         }
-        let mut typeUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string(typeUrls, Value::from(privateOrPublic), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string(&typeUrls, Value::from(privateOrPublic), &[]).as_str().map(str::to_owned);
         let __ws_arg_3 = self.deep_extend(request, &[paramsMarketType]);
         return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
 

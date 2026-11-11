@@ -941,11 +941,11 @@ impl Deepcoin {
 }
 
     pub fn convert_to_instrument_type(&self, mut type_var: Value) -> Option<String> {
-        let mut exchangeTypes: Value = self.safe_dict_k(self.options.clone(), "exchangeType", &[Value::Map({
+        let mut exchangeTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "exchangeType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(exchangeTypes, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&exchangeTypes, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2056,11 +2056,11 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
+        let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultNetwork: Option<String> = self.safe_string_opt(defaultNetworks, code.clone(), &[]);
+})]).into_dict();
+        let mut defaultNetwork: Option<String> = self.safe_string_opt(&defaultNetworks, code.clone(), &[]);
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null);
         }
@@ -2322,12 +2322,12 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_id".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

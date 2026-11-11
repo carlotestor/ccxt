@@ -874,7 +874,7 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (currencies.len() as i64) } {
-            let mut currency: Option<String> = self.safe_string(currencies.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut currency: Option<String> = self.safe_string(&currencies, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut balance: crate::value::Dict = self.safe_dict(data.clone(), currency.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

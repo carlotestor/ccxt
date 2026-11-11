@@ -3853,12 +3853,12 @@ impl Extended {
         let mut nonce: Value = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]);
         let mut positionId: Value = self.safe_string2(params.clone(), Value::Str("positionId".into()), Value::Str("l2Vault".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         let mut recipient: Value = self.safe_string_k(params.clone(), "recipient", &[address]);
-        let mut currencyInfo: Value = (match currency.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut currencyInfo: crate::value::Dict = (match currency.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut collateralId: Value = self.safe_string_k(params.clone(), "collateralId", &[self.safe_string2(currencyInfo.clone(), Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
-        let mut resolution: Value = self.safe_integer_k(params, "resolution", &[self.safe_integer2(currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]);
+}) }).into_dict();
+        let mut collateralId: Value = self.safe_string_k(params.clone(), "collateralId", &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
+        let mut resolution: Value = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]);
         let mut starkKey: Option<String> = (match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (positionId == Value::Null) || (collateralId == Value::Null) || (resolution == Value::Null) || (starkKey.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key".into()))));
@@ -3907,12 +3907,12 @@ impl Extended {
         let mut nonce: Value = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]);
         let mut fromVault: Value = self.safe_string2(params.clone(), Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         let mut fromL2Key: Value = self.safe_string2(params.clone(), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), &[(match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
-        let mut currencyInfo: Value = (match currency.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut currencyInfo: crate::value::Dict = (match currency.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut collateralId: Value = self.safe_string2(params.clone(), Value::Str("assetId".into()), Value::Str("collateralId".into()), &[self.safe_string2(currencyInfo.clone(), Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
-        let mut resolution: Value = self.safe_integer_k(params, "resolution", &[self.safe_integer2(currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]);
+}) }).into_dict();
+        let mut collateralId: Value = self.safe_string2(params.clone(), Value::Str("assetId".into()), Value::Str("collateralId".into()), &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
+        let mut resolution: Value = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]);
         if (fromVault == Value::Null) || (fromL2Key == Value::Null) || (collateralId == Value::Null) || (resolution == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key".into()))));
         }

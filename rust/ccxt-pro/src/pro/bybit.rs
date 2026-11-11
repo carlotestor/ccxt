@@ -3889,13 +3889,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     continue;
                 }
                 let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
+                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_214: bool = true;
                     while { if !__for_first_214 { j += 1; } __for_first_214 = false; j < (messageHashes.len() as i64) } {
                     let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut subHash: Option<String> = self.safe_string(subMessageHashes.clone(), Value::Int(j), &[]).as_str().map(str::to_owned);
+                    let mut subHash: Option<String> = self.safe_string(&subMessageHashes, Value::Int(j), &[]).as_str().map(str::to_owned);
                     let mut usePrefix: Value = Value::Bool((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades")) || (subHash.as_deref() == Some("positions")));
                     self.clean_unsubscription(client.clone(), subHash.clone().map(Value::from).unwrap_or(Value::Null), unsubHash, &[usePrefix]);
                 }

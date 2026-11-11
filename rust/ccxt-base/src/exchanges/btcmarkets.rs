@@ -1472,7 +1472,7 @@ impl Btcmarkets {
             m
         });
         let mut lowercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut orderTypes: Value = self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
+        let mut orderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Str("Limit".into()));
         m.insert("market".to_string(), Value::Str("Market".into()));
@@ -1480,8 +1480,8 @@ impl Btcmarkets {
         m.insert("stop limit".to_string(), Value::Str("Stop Limit".into()));
         m.insert("take profit".to_string(), Value::Str("Take Profit".into()));
     m
-})]);
-        request.insert("type".into(), self.safe_string(orderTypes, lowercaseType.clone(), &[type_var.clone()]));
+})]).into_dict();
+        request.insert("type".into(), self.safe_string(&orderTypes, lowercaseType.clone(), &[type_var.clone()]));
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
         if (lowercaseType.as_str() == Some("limit")) {

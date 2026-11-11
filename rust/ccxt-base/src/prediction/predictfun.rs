@@ -1763,9 +1763,9 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1467: bool = true;
                 while { if !__for_first_1467 { i += 1; } __for_first_1467 = false; i < (bids.len() as i64) } {
-                let mut bid: Value = self.safe_list(bids.clone().into(), Value::Int(i), &[]);
-                let mut bidPrice: Option<String> = self.safe_string(bid.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                let mut bidSize: Value = self.parse_number(self.safe_string(bid, Value::Int(1), &[]), &[]);
+                let mut bid: crate::value::List = self.safe_list(bids.clone().into(), Value::Int(i), &[]).into_list();
+                let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
                 noAsks.push(Value::from(vec![complementPrice.clone(), bidSize]));
             }
@@ -1774,9 +1774,9 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1468: bool = true;
                 while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (asks.len() as i64) } {
-                let mut ask: Value = self.safe_list(asks.clone().into(), Value::Int(i), &[]);
-                let mut askPrice: Option<String> = self.safe_string(ask.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                let mut askSize: Value = self.parse_number(self.safe_string(ask, Value::Int(1), &[]), &[]);
+                let mut ask: crate::value::List = self.safe_list(asks.clone().into(), Value::Int(i), &[]).into_list();
+                let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
                 noBids.push(Value::from(vec![complementPrice, askSize]));
             }
@@ -2790,13 +2790,13 @@ impl Predictfun {
         //         "success ": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string2(result, Value::Str("orderHash".into()), Value::Str("hash".into()), &[]));
+        m.insert("id".to_string(), self.safe_string2(&result, Value::Str("orderHash".into()), Value::Str("hash".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("info".to_string(), response);
         m.insert("timestamp".to_string(), Value::Null);
@@ -3620,10 +3620,10 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut byChain: Value = self.safe_dict(exchanges, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+        let mut byChain: crate::value::Dict = self.safe_dict(exchanges, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut identifier: String = "CTF_EXCHANGE".to_string();
         if isNegRisk && isYieldBearing {
             identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE".to_string();
@@ -3632,7 +3632,7 @@ impl Predictfun {
         }  else if isYieldBearing {
             identifier = "YIELD_BEARING_CTF_EXCHANGE".to_string();
         }
-        return self.safe_string(byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
+        return self.safe_string(&byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3650,10 +3650,10 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut byChain: Value = self.safe_dict(tokens, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+        let mut byChain: crate::value::Dict = self.safe_dict(tokens, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut identifier: String = "CONDITIONAL_TOKENS".to_string();
         if isNegRisk && isYieldBearing {
             identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS".to_string();
@@ -3662,7 +3662,7 @@ impl Predictfun {
         }  else if isYieldBearing {
             identifier = "YIELD_BEARING_CONDITIONAL_TOKENS".to_string();
         }
-        return self.safe_string(byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
+        return self.safe_string(&byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3679,15 +3679,15 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut byChain: Value = self.safe_dict(adapters, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+        let mut byChain: crate::value::Dict = self.safe_dict(adapters, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut identifier: String = "NEG_RISK_ADAPTER".to_string();
         if isYieldBearing {
             identifier = "YIELD_BEARING_NEG_RISK_ADAPTER".to_string();
         }
-        return self.safe_string(byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
+        return self.safe_string(&byChain, Value::from(identifier), &[]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3747,11 +3747,11 @@ impl Predictfun {
         let mut side: Option<String> = self.safe_string_lower_k(params.clone(), "side", &[Value::Str("buy".into())]).as_str().map(str::to_owned);
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]).as_i64().unwrap_or(56);
         let mut chainKey: Option<String> = self.number_to_string(Value::from(chainId)).as_str().map(str::to_owned);
-        let mut rpcUrls: Value = self.safe_dict_k(self.options.clone(), "rpcUrls", &[Value::Map({
+        let mut rpcUrls: crate::value::Dict = self.safe_dict_k(self.options.clone(), "rpcUrls", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(rpcUrls, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]);
+})]).into_dict();
+        let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(&rpcUrls, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]);
         let mut owner: Value = self.safe_string_k(params.clone(), "owner", &[self.walletAddress.clone()]);
         if (owner == Value::Null) {
             owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
@@ -3821,11 +3821,11 @@ impl Predictfun {
             }
             return Value::from(receipts);
         }
-        let mut collaterals: Value = self.safe_dict_k(self.options.clone(), "collateral", &[Value::Map({
+        let mut collaterals: crate::value::Dict = self.safe_dict_k(self.options.clone(), "collateral", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut token: Value = self.safe_string_k(params.clone(), "token", &[self.safe_string(collaterals, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]);
+})]).into_dict();
+        let mut token: Value = self.safe_string_k(params.clone(), "token", &[self.safe_string(&collaterals, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]);
         let mut spender: Value = self.safe_string_k(params.clone(), "spender", &[]);
         if (spender == Value::Null) {
             if (outcome == Value::Null) {
@@ -4117,7 +4117,7 @@ impl Predictfun {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1483: bool = true;
             while { if !__for_first_1483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < subMessageHashesLength } {
-            let mut subHash: Option<String> = self.safe_string(subMessageHashes.clone().into(), i.clone(), &[]).as_str().map(str::to_owned);
+            let mut subHash: Option<String> = self.safe_string(&subMessageHashes, i.clone(), &[]).as_str().map(str::to_owned);
             if (subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades")) {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4572,9 +4572,9 @@ impl Predictfun {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1486: bool = true;
             while { if !__for_first_1486 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1486 = false; i.as_f64().unwrap_or(f64::NAN) < bidsLength } {
-            let mut bid: Value = self.safe_list(rawBids.clone().into(), i.clone(), &[]);
-            let mut bidPrice: Option<String> = self.safe_string(bid.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut bidSize: Value = self.parse_number(self.safe_string(bid, Value::Int(1), &[]), &[]);
+            let mut bid: crate::value::List = self.safe_list(rawBids.clone().into(), i.clone(), &[]).into_list();
+            let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(bidPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), bidSize.clone()])); }
             // a bid for yes at p is an offer of no at 1 - p
             if let Value::Arr(__a) = &mut noAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]), bidSize])); }
@@ -4585,9 +4585,9 @@ impl Predictfun {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1487: bool = true;
             while { if !__for_first_1487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1487 = false; i.as_f64().unwrap_or(f64::NAN) < asksLength } {
-            let mut ask: Value = self.safe_list(rawAsks.clone().into(), i.clone(), &[]);
-            let mut askPrice: Option<String> = self.safe_string(ask.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut askSize: Value = self.parse_number(self.safe_string(ask, Value::Int(1), &[]), &[]);
+            let mut ask: crate::value::List = self.safe_list(rawAsks.clone().into(), i.clone(), &[]).into_list();
+            let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(askPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), askSize.clone()])); }
             if let Value::Arr(__a) = &mut noBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]), askSize])); }
         }

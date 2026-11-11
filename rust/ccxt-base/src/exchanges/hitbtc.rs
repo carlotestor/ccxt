@@ -1728,8 +1728,8 @@ impl Hitbtc {
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
-            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
-            let mut parsedNetwork: Option<String> = self.safe_string(networks, network.clone(), &[]).as_str().map(str::to_owned);
+            let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -1789,8 +1789,8 @@ impl Hitbtc {
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
-            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
-            let mut parsedNetwork: Option<String> = self.safe_string(networks, network.clone(), &[]).as_str().map(str::to_owned);
+            let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -2408,8 +2408,8 @@ impl Hitbtc {
         let mut addressTo: Value = address.clone().map(Value::from).unwrap_or(Value::Null);
         let mut tag: Option<String> = self.safe_string_k(&native, "payment_id", &[]).as_str().map(str::to_owned);
         let mut tagTo: Value = tag.clone().map(Value::from).unwrap_or(Value::Null);
-        let mut sender: Value = self.safe_list_k(&native, "senders", &[]);
-        let mut addressFrom: Option<String> = self.safe_string(sender, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut sender: crate::value::List = self.safe_list_k(&native, "senders", &[]).into_list();
+        let mut addressFrom: Option<String> = self.safe_string(&sender, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(&native, "amount", &[]).as_f64();
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
         let mut internal: Value = Value::Bool(subType.as_deref() == Some("OFFCHAIN"));
@@ -3850,14 +3850,14 @@ impl Hitbtc {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut requestAmount: Value = self.currency_to_precision(code, amount, &[]);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut fromAccountValue: String = fromAccount.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut toAccountValue: String = toAccount.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), Value::from(fromAccountValue.clone()), &[Value::from(fromAccountValue)]);
-        let mut toId: Value = self.safe_string(accountsByType, Value::from(toAccountValue.clone()), &[Value::from(toAccountValue)]);
+        let mut fromId: Value = self.safe_string(&accountsByType, Value::from(fromAccountValue.clone()), &[Value::from(fromAccountValue)]);
+        let mut toId: Value = self.safe_string(&accountsByType, Value::from(toAccountValue.clone()), &[Value::from(toAccountValue)]);
         if (fromId.as_str() == toId.as_str()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount and toAccount arguments cannot be the same account".into()))));
         }
@@ -3985,14 +3985,14 @@ impl Hitbtc {
         if (tagWithdrawTag != Value::Null) {
             request.insert("payment_id".into(), tagWithdrawTag);
         }
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut networkInput: Option<String> = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
-            let mut parsedNetwork: Option<String> = self.safe_string(networks, network.clone(), &[]).as_str().map(str::to_owned);
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("network_code".into(), parsedNetwork.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -4084,7 +4084,7 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_751: bool = true;
             while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = self.safe_string(marketIds.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string(&marketIds, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
                 continue;
             }
@@ -5197,11 +5197,11 @@ impl Hitbtc {
         //       }
         //     }
         //
-        let mut error: Value = self.safe_dict_k(response, "error", &[]);
-        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut error: crate::value::Dict = self.safe_dict_k(response, "error", &[]).into_dict();
+        let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-            let mut message: Option<String> = self.safe_string2(error, Value::Str("message".into()), Value::Str("description".into()), &[]).as_str().map(str::to_owned);
+            let mut message: Option<String> = self.safe_string2(&error, Value::Str("message".into()), Value::Str("description".into()), &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

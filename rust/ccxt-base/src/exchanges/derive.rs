@@ -1347,7 +1347,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_629: bool = true;
             while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (subaccountIds.len() as i64) } {
-            let mut subaccountId: Option<String> = self.safe_string(subaccountIds.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut subaccountId: Option<String> = self.safe_string(&subaccountIds, Value::Int(i), &[]).as_str().map(str::to_owned);
             accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), subaccountId.clone().map(Value::from).unwrap_or(Value::Null));

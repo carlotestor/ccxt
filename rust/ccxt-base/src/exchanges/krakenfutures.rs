@@ -1074,7 +1074,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_867: bool = true;
             while { if !__for_first_867 { i += 1; } __for_first_867 = false; i < (settlementCurrencies.len() as i64) } {
-            let mut code: String = self.safe_string(settlementCurrencies.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut code: String = self.safe_string(&settlementCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(code.to_lowercase()));
@@ -5113,22 +5113,22 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodVersions: Value = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
+        let mut methodVersions: crate::value::Dict = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.version.clone()]);
+})]).into_dict();
+        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.version.clone()]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut apiAccess: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null), apiName.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodAccess: Value = self.safe_dict(apiAccess, method.clone(), &[Value::Map({
+        let mut methodAccess: crate::value::Dict = self.safe_dict(apiAccess, method.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut access: Option<String> = self.safe_string(methodAccess, path.clone(), &[Value::Str("public".into())]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut access: Option<String> = self.safe_string(&methodAccess, path.clone(), &[Value::Str("public".into())]).as_str().map(str::to_owned);
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version, Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, self.extract_params(path.clone()), &[]);
         let mut query: String = endpoint.clone();

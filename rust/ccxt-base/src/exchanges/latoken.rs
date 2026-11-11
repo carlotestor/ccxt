@@ -1227,11 +1227,11 @@ impl Latoken {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut types: Value = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
+        let mut types: crate::value::Dict = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut accountType: Value = self.safe_string(types, type_var.clone(), &[type_var.clone()]);
+})]).into_dict();
+        let mut accountType: Value = self.safe_string(&types, type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response, Value::Str("type".into()), &[]);
         let mut balances: Vec<Value> = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut firstBalance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(0), &[]).into_dict();

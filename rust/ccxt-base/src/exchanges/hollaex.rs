@@ -1405,14 +1405,14 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut makerFees: Value = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
+        let mut makerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut takerFees: Value = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
+})]).into_dict();
+        let mut takerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1424,8 +1424,8 @@ impl Hollaex {
             while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut makerString: Option<String> = self.safe_string(makerFees.clone(), Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
-            let mut takerString: Option<String> = self.safe_string(takerFees.clone(), Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
+            let mut makerString: Option<String> = self.safe_string(&makerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
+            let mut takerString: Option<String> = self.safe_string(&takerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
@@ -1533,7 +1533,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_764: bool = true;
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: String = self.safe_string(currencyIds.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Value = self.safe_currency_code(Value::from(currencyId.clone()), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[]));

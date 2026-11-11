@@ -381,7 +381,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_288: bool = true;
             while { if !__for_first_288 { i += 1; } __for_first_288 = false; i < (currencies.len() as i64) } {
-            let mut currencyCode: String = self.safe_string(currencies.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut currencyCode: String = self.safe_string(&currencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channels.push(Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
         }
         }
@@ -1528,9 +1528,9 @@ impl Deribit {
             let mut market: Option<crate::types::Market> = None;
             let mut currentDescriptor: Value = Value::Null;
             if isOHLCV {
-                let mut currentPair: Value = self.safe_list(symbolsArray.clone(), i.clone(), &[Value::from(vec![])]);
-                market = Some(match self.market((self.safe_string(currentPair.clone(), Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut unifiedTf: Option<String> = self.safe_string(currentPair, Value::Int(1), &[]).as_str().map(str::to_owned);
+                let mut currentPair: crate::value::List = self.safe_list(symbolsArray.clone(), i.clone(), &[Value::from(vec![])]).into_list();
+                market = Some(match self.market((self.safe_string(&currentPair, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut unifiedTf: Option<String> = self.safe_string(&currentPair, Value::Int(1), &[]).as_str().map(str::to_owned);
                 currentDescriptor = self.safe_string(self.timeframes.clone(), unifiedTf.clone().map(Value::from).unwrap_or(Value::Null), &[unifiedTf.clone().map(Value::from).unwrap_or(Value::Null)]);
             }  else {
                 market = Some(match self.market((self.safe_string(symbolsArray.clone(), i.clone(), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

@@ -3095,8 +3095,8 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_1078: bool = true;
             while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (data.len() as i64) } {
-            let mut balance: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3104,14 +3104,14 @@ impl Phemex {
 })]).into_dict();
             let mut scale: i64 = self.safe_integer_k(&currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut balanceEv: Option<String> = self.safe_string_k(balance.clone(), "balanceEv", &[]).as_str().map(str::to_owned);
-            let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(balance.clone(), "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
-            let mut lockedWithdrawEv: Option<String> = self.safe_string_k(balance.clone(), "lockedWithdrawEv", &[]).as_str().map(str::to_owned);
+            let mut balanceEv: Option<String> = self.safe_string_k(&balance, "balanceEv", &[]).as_str().map(str::to_owned);
+            let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(&balance, "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
+            let mut lockedWithdrawEv: Option<String> = self.safe_string_k(&balance, "lockedWithdrawEv", &[]).as_str().map(str::to_owned);
             let mut total: Value = self.from_en(balanceEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(scale)).map(Value::from).unwrap_or(Value::Null);
             let mut lockedTradingBalance: Value = self.from_en(lockedTradingBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(scale)).map(Value::from).unwrap_or(Value::Null);
             let mut lockedWithdraw: Value = self.from_en(lockedWithdrawEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(scale)).map(Value::from).unwrap_or(Value::Null);
             let mut used: Value = crate::precise::Precise::stringAdd(&lockedTradingBalance, &lockedWithdraw);
-            let mut lastUpdateTimeNs: Value = self.safe_integer_product_k(balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]);
+            let mut lastUpdateTimeNs: Value = self.safe_integer_product_k(&balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]);
             if (timestamp == Value::Null) || (lastUpdateTimeNs == Value::Null) {
                 timestamp = lastUpdateTimeNs.clone();
             }  else {
@@ -3169,17 +3169,17 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balance: Value = self.safe_dict_k(&data, "account", &[Value::Map({
+        let mut balance: crate::value::Dict = self.safe_dict_k(&data, "account", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut currency: Value = self.currency(code.clone());
         let mut valueScale: i64 = self.safe_integer_k(currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        let mut accountBalanceEv: Option<String> = self.safe_string2(balance.clone(), Value::Str("accountBalanceEv".into()), Value::Str("accountBalanceRv".into()), &[]).as_str().map(str::to_owned);
-        let mut totalUsedBalanceEv: Option<String> = self.safe_string2(balance, Value::Str("totalUsedBalanceEv".into()), Value::Str("totalUsedBalanceRv".into()), &[]).as_str().map(str::to_owned);
+        let mut accountBalanceEv: Option<String> = self.safe_string2(&balance, Value::Str("accountBalanceEv".into()), Value::Str("accountBalanceRv".into()), &[]).as_str().map(str::to_owned);
+        let mut totalUsedBalanceEv: Option<String> = self.safe_string2(&balance, Value::Str("totalUsedBalanceEv".into()), Value::Str("totalUsedBalanceRv".into()), &[]).as_str().map(str::to_owned);
         let mut needsConversion: bool = code.as_str() != Some("USDT");
         account.insert("total".into(), (if needsConversion { self.from_en(accountBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { accountBalanceEv.clone().map(Value::from).unwrap_or(Value::Null) }));
         account.insert("used".into(), (if needsConversion { self.from_en(totalUsedBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { totalUsedBalanceEv.clone().map(Value::from).unwrap_or(Value::Null) }));
@@ -4888,16 +4888,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let mut defaultNetworks: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
-        let mut defaultNetwork: Option<String> = self.safe_string_upper(defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
+        let mut defaultNetwork: Option<String> = self.safe_string_upper(&defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut network: Value = self.safe_string_upper2(params.clone(), Value::Str("network".into()), Value::Str("chainName".into()), &[defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
         if (network != Value::Null) {
-            network = self.safe_string(networks, self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]), &[network.clone()]);
+            network = self.safe_string(&networks, self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]), &[network.clone()]);
         }
         if (network == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter".into()))));
@@ -6427,12 +6427,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut scaledAmmount: Value = self.to_ev(amount.clone(), &[currency.clone()]);
         let mut direction: Option<i64> = None;
         let mut transfer: Value = Value::Null;

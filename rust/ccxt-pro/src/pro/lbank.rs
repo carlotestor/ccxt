@@ -418,11 +418,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeId: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut timeframeId: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".into()), Value::from((market).symbol.clone())).into()), Value::Str(":".into())).into()), timeframeId);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -481,11 +481,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeId: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut timeframeId: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.clone())).into()), Value::Str(":".into())).into()), timeframeId);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -538,11 +538,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeId: Option<String> = self.safe_string(timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut timeframeId: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV() does not support the ".into())).into()), timeframe).into()), Value::Str(" timeframe".into()))));
         }
@@ -1233,11 +1233,11 @@ if _try_result.is_err() {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        let mut orderUpdate: Value = self.safe_dict_k(order.clone(), "orderUpdate", &[Value::Map({
+        let mut orderUpdate: crate::value::Dict = self.safe_dict_k(order.clone(), "orderUpdate", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawType: Value = self.safe_string_k(orderUpdate.clone(), "type", &[Value::Str("".into())]);
+        })]).into_dict();
+        let mut rawType: Value = self.safe_string_k(&orderUpdate, "type", &[Value::Str("".into())]);
         let mut typeParts: Value = Value::Array(if let Some(__s) = rawType.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut side: Option<String> = self.safe_string(typeParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut exchangeType: Option<String> = self.safe_string(typeParts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1247,9 +1247,9 @@ if _try_result.is_err() {
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.safe_integer_k(orderUpdate.clone(), "updateTime", &[]).as_i64();
-        let mut status: Option<String> = self.safe_string_k(orderUpdate.clone(), "orderStatus", &[]).as_str().map(str::to_owned);
-        let mut orderAmount: Option<String> = self.safe_string_k_opt(orderUpdate.clone(), "orderAmt", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&orderUpdate, "updateTime", &[]).as_i64();
+        let mut status: Option<String> = self.safe_string_k(&orderUpdate, "orderStatus", &[]).as_str().map(str::to_owned);
+        let mut orderAmount: Option<String> = self.safe_string_k_opt(&orderUpdate, "orderAmt", &[]);
         let mut cost: Value = Value::Null;
         if (type_var.as_deref() == Some("market")) && (side.as_deref() == Some("buy")) {
             cost = orderAmount.map(Value::from).unwrap_or(Value::Null);
@@ -1257,21 +1257,21 @@ if _try_result.is_err() {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
-        m.insert("id".to_string(), self.safe_string_k(orderUpdate.clone(), "uuid", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(orderUpdate.clone(), "customerID", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&orderUpdate, "uuid", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&orderUpdate, "customerID", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(orderUpdate.clone(), "updateTime", &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&orderUpdate, "updateTime", &[]));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_string2(orderUpdate.clone(), Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
+        m.insert("price".to_string(), self.safe_string2(&orderUpdate, Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
         m.insert("stopPrice".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string_k(orderUpdate.clone(), "avgPrice", &[]));
-        m.insert("amount".to_string(), self.safe_string2(orderUpdate.clone(), Value::Str("amount".into()), Value::Str("orderAmt".into()), &[]));
-        m.insert("remaining".to_string(), self.safe_string_k(orderUpdate.clone(), "remainAmt", &[]));
-        m.insert("filled".to_string(), self.safe_string_k(orderUpdate, "accAmt", &[]));
+        m.insert("average".to_string(), self.safe_string_k(&orderUpdate, "avgPrice", &[]));
+        m.insert("amount".to_string(), self.safe_string2(&orderUpdate, Value::Str("amount".into()), Value::Str("orderAmt".into()), &[]));
+        m.insert("remaining".to_string(), self.safe_string_k(&orderUpdate, "remainAmt", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(&orderUpdate, "accAmt", &[]));
         m.insert("status".to_string(), self.parse_ws_order_status(status.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("cost".to_string(), cost);

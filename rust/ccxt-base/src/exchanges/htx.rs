@@ -4173,10 +4173,10 @@ impl Htx {
                 let mut createdArray: Vec<Value> = self.string_to_chars_array(createdDate.clone().map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
                 let mut createdLength: f64 = ((createdArray.len() as i64) as f64);
                 if createdLength >= ((8i64) as f64) {
-                    let mut yearPart: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(0), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(1), &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone().into(),
-                        Value::Int(2), &[Value::Str("".into())])).into()), self.safe_string(createdArray.clone().into(), Value::Int(3), &[Value::Str("".into())]));
-                    let mut monthPart: String = format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(4), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(5), &[Value::Str("".into())]));
-                    let mut dayPart: String = format!("{}{}", self.safe_string(createdArray.clone().into(), Value::Int(6), &[Value::Str("".into())]), self.safe_string(createdArray.clone().into(), Value::Int(7), &[Value::Str("".into())]));
+                    let mut yearPart: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&createdArray, Value::Int(0), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(1), &[Value::Str("".into())])).into()), self.safe_string(&createdArray, Value::Int(2), &[Value::Str("".into())])).into()),
+                        self.safe_string(&createdArray, Value::Int(3), &[Value::Str("".into())]));
+                    let mut monthPart: String = format!("{}{}", self.safe_string(&createdArray, Value::Int(4), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(5), &[Value::Str("".into())]));
+                    let mut dayPart: String = format!("{}{}", self.safe_string(&createdArray, Value::Int(6), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(7), &[Value::Str("".into())]));
                     createdDate = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", yearPart, Value::Str("-".into())).into()), monthPart).into()), Value::Str("-".into())).into()), dayPart).into()), Value::Str(" 00:00:00".into())));
                     created = self.parse8601(createdDate.clone().map(Value::from).unwrap_or(Value::Null));
                 }
@@ -5686,11 +5686,11 @@ impl Htx {
         //     }
         //
         let mut typeId: Option<String> = self.safe_string_k(account.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+        let mut accountsById: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut type_var: Value = self.safe_string(accountsById, typeId.clone().map(Value::from).unwrap_or(Value::Null), &[typeId.clone().map(Value::from).unwrap_or(Value::Null)]);
+})]).into_dict();
+        let mut type_var: Value = self.safe_string(&accountsById, typeId.clone().map(Value::from).unwrap_or(Value::Null), &[typeId.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), account.clone());
@@ -9912,10 +9912,10 @@ impl Htx {
         //         "transfer_time": 1770357494000
         //     }
         //
-        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+        let mut accountsById: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut id: Option<String> = self.safe_string2(transfer.clone(), Value::Str("transfer_id".into()), Value::Str("data".into()), &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
@@ -9923,8 +9923,8 @@ impl Htx {
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "transfer_time", &[]).as_i64();
         let mut fromAccountRaw: Option<String> = self.safe_string_k(transfer.clone(), "from_account_type", &[]).as_str().map(str::to_owned);
         let mut toAccountRaw: Option<String> = self.safe_string_k(transfer.clone(), "to_account_type", &[]).as_str().map(str::to_owned);
-        let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut toAccount: Value = self.safe_string(accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut fromAccount: Value = self.safe_string(&accountsById, fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut toAccount: Value = self.safe_string(&accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut statusRaw: Option<String> = self.safe_string_k(transfer.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = None;
         if (statusRaw.as_deref() == Some("success")) {

@@ -1493,7 +1493,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_577: bool = true;
             while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into());
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())])).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
         }
