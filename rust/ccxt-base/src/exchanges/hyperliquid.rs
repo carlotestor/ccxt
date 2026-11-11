@@ -4445,7 +4445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("startTime".into(), since.clone());
         }  else {
             let mut maxLimit: i64 = limit.as_i64().unwrap_or(500);
-            request.insert("startTime".into(), (match (&(self.milliseconds()), &(Value::Int((((((maxLimit * 60)) * 60)) * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::Int(((self.milliseconds().as_i64().unwrap_or_default()) - ((((((maxLimit * 60)) * 60)) * 1000)))));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();

@@ -2076,7 +2076,7 @@ impl Bitvavo {
     }
 
     pub fn request_id(&self) -> Value {
-        let mut ts: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut randomNumber: Value = self.rand_number(Value::Int(4));
         let mut randomPart: Value = Value::Str(format!("{}", randomNumber).into());
         return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into()));
@@ -2841,7 +2841,7 @@ impl Bitvavo {
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
-            let mut timestamp: Value = self.milliseconds();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut stringTimestamp: Value = Value::Str(format!("{}", timestamp).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", stringTimestamp, Value::Str("GET/".into())).into()), self.version.clone()).into()), Value::Str("/websocket".into()));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
@@ -2851,7 +2851,7 @@ impl Bitvavo {
                     m.insert("action".to_string(), Value::from(action));
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("signature".to_string(), signature);
-                    m.insert("timestamp".to_string(), timestamp);
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);

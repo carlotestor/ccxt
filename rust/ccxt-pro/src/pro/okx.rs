@@ -3353,7 +3353,7 @@ impl Okx {
 }
 
     pub fn request_id(&self) -> Option<String> {
-        let mut ts: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut randomNumber: Value = self.rand_number(Value::Int(4));
         let mut randomPart: Value = Value::Str(format!("{}", randomNumber).into());
         return Value::Str(format!("{}{}", ts, randomPart).into()).as_str().map(str::to_owned);

@@ -13989,7 +13989,7 @@ if _try_result.is_err() {
             start = Value::Int(0);
         }
         if (until.is_none()) {
-            end = self.milliseconds().as_i64();
+            end = Some(self.milliseconds().as_i64().unwrap_or_default());
         }
         let mut response: Value = Value::Null;
         let mut resultKey: String = "data".to_string();

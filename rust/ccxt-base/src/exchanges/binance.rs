@@ -12151,7 +12151,7 @@ impl Binance {
             request.insert("endTime".into(), Value::from(until));
         }
         if stock.as_bool() == Some(true) {
-            let mut nowMs: Option<i64> = self.milliseconds().as_i64();
+            let mut nowMs: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut untilResolved: Value = (if (until.is_some()) { Value::from(until) } else { Value::from(nowMs) });
             if (until.is_none()) {
                 request.insert("endTime".into(), untilResolved.clone());
@@ -20511,15 +20511,15 @@ if _try_result.is_err() {
         });
         let mut response: Value = Value::Null;
         if (code.as_str() == Some("BUSD")) {
-            let mut msInDay: Value = Value::Int(86400000);
-            let mut now: Value = self.milliseconds();
+            let mut msInDay: i64 = 86400000;
+            let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
             if (code != Value::Null) {
                 let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
                 request.insert("asset".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             }
             request.insert("tranId".into(), id.clone());
-            request.insert("startTime".into(), (match (&(now), &(msInDay)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-            request.insert("endTime".into(), now);
+            request.insert("startTime".into(), Value::Int((now - msInDay)));
+            request.insert("endTime".into(), Value::from(now));
             let __ws_arg_227 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_227]).await;
         }  else {

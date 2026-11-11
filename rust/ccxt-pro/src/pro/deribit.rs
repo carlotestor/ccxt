@@ -1701,7 +1701,7 @@ impl Deribit {
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut time: Option<i64> = self.milliseconds().as_i64();
+        let mut time: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut timeString: Option<String> = self.number_to_string(Value::from(time)).as_str().map(str::to_owned);
         let mut nonce: Option<String> = timeString.clone();
         let mut messageHash: Value = Value::Str("authenticated".into());

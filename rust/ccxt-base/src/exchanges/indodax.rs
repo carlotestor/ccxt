@@ -1891,7 +1891,7 @@ impl Indodax {
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
-        let mut requestId: Value = self.milliseconds();
+        let mut requestId: i64 = self.milliseconds().as_i64().unwrap_or_default();
         // Alternatively:
         // let requestId = this.uuid ();
         let mut request: indexmap::IndexMap<String, Value> = ({

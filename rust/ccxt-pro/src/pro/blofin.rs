@@ -1717,7 +1717,7 @@ impl Blofin {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut milliseconds: Value = self.milliseconds();
+        let mut milliseconds: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut messageHash: String = "authenticate_hash".to_string();
         let mut timestamp: Value = Value::Str(format!("{}", milliseconds).into());
         let mut nonce: String = format!("{}{}", Value::Str("n_".into()), timestamp);
