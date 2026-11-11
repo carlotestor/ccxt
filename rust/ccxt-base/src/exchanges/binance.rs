@@ -8872,17 +8872,17 @@ impl Binance {
             self.check_no_stock_symbols(symbolsNormalized.clone().map_or(Value::Null, Value::Arr), Value::Str("fetchTickers".into()));
         }
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut subType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchTickers".into()), &[market, paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
-        if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
+        if self.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool() == Some(true) {
             response = self.fapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
-        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
+        }  else if self.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType]).as_bool() == Some(true) {
             response = self.dapi_public_get_ticker24hr(&[paramsMarketType.clone()]).await;
-        }  else if (type_var.as_str() == Some("spot")) {
+        }  else if (type_var.as_deref() == Some("spot")) {
             let mut rolling: bool = self.safe_bool_k(paramsMarketType.clone(), "rolling", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             paramsMarketType = self.omit(paramsMarketType.clone(), Value::Str("rolling".into()), &[]);
             if rolling {
@@ -8906,10 +8906,10 @@ impl Binance {
                 let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
                 response = self.public_get_ticker24hr(&[__ws_arg_26]).await;
             }
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             response = self.eapi_public_get_ticker(&[paramsMarketType]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".into())).into()), type_var).into()), Value::Str(" markets yet".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".into())).into()), type_var.as_deref().unwrap_or("null")).into()), Value::Str(" markets yet".into()))));
         }
         return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -18118,17 +18118,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 query = self.urlencode(extendedParams, &[]);
             }
-            let mut signature: Value = Value::Null;
+            let mut signature: Option<String> = None;
             if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
                 if ((self.secret.len() as i64) as f64) > ((120i64) as f64) {
-                    signature = self.encode_uri_component(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into())));
+                    signature = self.encode_uri_component(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into()))).as_str().map(str::to_owned);
                 }  else {
-                    signature = self.encode_uri_component(eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into())));
+                    signature = self.encode_uri_component(eddsa(self.encode(query.clone()), self.secret.clone(), Value::Str("ed25519".into()))).as_str().map(str::to_owned);
                 }
             }  else {
-                signature = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                signature = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             }
-            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature).into())).into());
+            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature.as_deref().unwrap_or("null")).into())).into());
             signedHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());

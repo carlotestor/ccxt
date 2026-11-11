@@ -5420,7 +5420,7 @@ impl Delta {
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) {
             if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
@@ -5443,15 +5443,15 @@ impl Delta {
                     url.push_str(&queryString);
                 }
             }  else {
-                requestBody = json_stringify(&query);
-                auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), requestBody);
+                requestBody = json_stringify(&query).as_str().map(str::to_owned);
+                auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), requestBody.as_deref().unwrap_or("null"));
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
             requestHeaders = privateHeaders;
         }
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Value = requestBody.map(Value::from).unwrap_or(Value::Null);
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

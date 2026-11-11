@@ -6661,9 +6661,9 @@ impl Mexc {
             m
         });
         let mut currency: Value = Value::Null;
-        let mut rawNetwork: Value = Value::Null;
+        let mut rawNetwork: Option<String> = None;
         if (code != Value::Null) {
-            rawNetwork = self.safe_string_k(params.clone(), "network", &[]);
+            rawNetwork = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         }
         if (code != Value::Null) {
             currency = self.currency(code);
@@ -6671,8 +6671,8 @@ impl Mexc {
             request.insert("coin".into(), currencyId.clone());
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
-            if (rawNetwork != Value::Null) {
-                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, Value::Str("-".into())).into()), rawNetwork).into()));
+            if (rawNetwork.is_some()) {
+                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, Value::Str("-".into())).into()), rawNetwork.as_deref().unwrap_or("null")).into()));
             }
         }
         if (since != Value::Null) {
@@ -6684,7 +6684,7 @@ impl Mexc {
             }
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: crate::value::Dict = (if (rawNetwork != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (rawNetwork.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
         return self.parse_transactions(response, &[currency, since, limit]);

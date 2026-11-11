@@ -1095,7 +1095,7 @@ impl Deepcoin {
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCcy", &[]).as_str().map(str::to_owned);
         let mut quoteId: String = self.safe_string_k(market.clone(), "quoteCcy", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut settleId: Value = Value::Null;
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), &[]).as_str().map(str::to_owned);
         if (base.is_none()) || (quote.is_none()) {
@@ -1106,11 +1106,11 @@ impl Deepcoin {
         if swap {
             isLinear = Some(quoteId != "USD");
             settleId = (if (isLinear == Some(true)) { Value::from(quoteId.clone()) } else { baseId.clone().map(Value::from).unwrap_or(Value::Null) });
-            settle = self.safe_currency_code(settleId.clone(), &[]);
-            if (settle == Value::Null) {
+            settle = self.safe_currency_code(settleId.clone(), &[]).as_str().map(str::to_owned);
+            if (settle.is_none()) {
                 return Value::Null;
             }
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
         }
         let mut fees: crate::value::Dict = self.safe_dict2(self.fees.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1136,7 +1136,7 @@ impl Deepcoin {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), settleId);

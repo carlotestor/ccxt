@@ -981,8 +981,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         }), Value::Str("gameTime".into()), &[]);
-        let mut teamOneName: Value = Value::Null;
-        let mut teamTwoName: Value = Value::Null;
+        let mut teamOneName: Option<String> = None;
+        let mut teamTwoName: Option<String> = None;
         let mut leagueLabel: Option<String> = None;
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
@@ -998,9 +998,9 @@ impl Sxbet {
             if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = true;
             }
-            if (teamOneName == Value::Null) {
-                teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]);
-                teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]);
+            if (teamOneName.is_none()) {
+                teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]).as_str().map(str::to_owned);
+                teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]).as_str().map(str::to_owned);
                 leagueLabel = self.safe_string_k(raw.clone(), "leagueLabel", &[]).as_str().map(str::to_owned);
             }
             let mut gameTime: Value = self.safe_integer_k(raw, "gameTime", &[]);
@@ -1019,9 +1019,9 @@ impl Sxbet {
         // so the unified event handle is never empty or built from stringified nulls
         let mut title: Option<String> = None;
         let mut eventSlug: Value = Value::Null;
-        if (teamOneName != Value::Null) && (teamTwoName != Value::Null) {
-            title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" vs ".into())).into()), teamTwoName));
-            eventSlug = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" ".into())).into()), teamTwoName).into()));
+        if (teamOneName.is_some()) && (teamTwoName.is_some()) {
+            title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), Value::Str(" vs ".into())).into()), teamTwoName.as_deref().unwrap_or("null")));
+            eventSlug = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), Value::Str(" ".into())).into()), teamTwoName.as_deref().unwrap_or("null")).into()));
         }  else {
             eventSlug = self.shorten_slug(fixtureId.clone());
         }

@@ -1101,10 +1101,10 @@ impl Derive {
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
         let mut messageHash: String = topic.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1126,9 +1126,9 @@ impl Derive {
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1308,10 +1308,10 @@ impl Derive {
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
         let mut messageHash: String = topic.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1333,9 +1333,9 @@ impl Derive {
         let mut trades: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

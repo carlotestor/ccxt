@@ -2913,7 +2913,7 @@ impl Apex {
             m
         });
         let mut signPath: String = format!("{}{}", Value::Str("/api/".into()), path);
-        let mut signBody: Value = Value::Null;
+        let mut signBody: Option<String> = None;
         if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 signPath.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
@@ -2921,14 +2921,14 @@ impl Apex {
             }
         }  else {
             let mut sortedQuery: Value = self.keysort(params, &[]);
-            signBody = self.rawencode(sortedQuery, &[]);
+            signBody = self.rawencode(sortedQuery, &[]).as_str().map(str::to_owned);
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), signPath);
-            if (signBody != Value::Null) {
-                messageString = format!("{}{}", messageString, signBody);
+            if (signBody.is_some()) {
+                messageString = format!("{}{}", messageString, signBody.as_deref().unwrap_or("null"));
             }
             let mut signature: Value = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue.insert("APEX-SIGNATURE".into(), signature);
@@ -2940,7 +2940,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), signBody);
+        m.insert("body".to_string(), signBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });

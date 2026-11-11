@@ -3979,15 +3979,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     pub fn handle_tickers_and_bids_asks(&mut self, mut client: Value, mut message: Value, mut methodType: Value) {
         let mut isBidAsk: bool = methodType.as_str() == Some("bidasks");
         let mut isMarkPrice: bool = methodType.as_str() == Some("markPrices");
-        let mut unifiedPrefix: Value = Value::Null;
+        let mut unifiedPrefix: Option<String> = None;
         if isBidAsk {
-            unifiedPrefix = Value::Str("bidask".into());
+            unifiedPrefix = Some("bidask".to_string());
         }  else if isMarkPrice {
-            unifiedPrefix = Value::Str("markPrice".into());
+            unifiedPrefix = Some("markPrice".to_string());
         }  else {
-            unifiedPrefix = Value::Str("ticker".into());
+            unifiedPrefix = Some("ticker".to_string());
         }
-        let mut channelName: Value = Value::Null;
+        let mut channelName: Option<String> = None;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
         let mut rawTickers: Value = Value::from(vec![]);
         let mut newTickers: indexmap::IndexMap<String, Value> = {
@@ -4008,8 +4008,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if isBidAsk {
                 event = Some("bookTicker".to_string()); // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
-            channelName = self.safe_string(self.options.as_map().and_then(|__m| __m.get("tickerChannelsMap")).cloned().unwrap_or(Value::Null), event.clone().map(Value::from).unwrap_or(Value::Null), &[event.clone().map(Value::from).unwrap_or(Value::Null)]);
-            if (channelName == Value::Null) {
+            channelName = self.safe_string(self.options.as_map().and_then(|__m| __m.get("tickerChannelsMap")).cloned().unwrap_or(Value::Null), event.clone().map(Value::from).unwrap_or(Value::Null), &[event.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            if (channelName.is_none()) {
                 continue;
             }
             let mut tickerMarketId: Option<String> = self.safe_string_k(ticker.clone(), "s", &[]).as_str().map(str::to_owned);
@@ -4039,7 +4039,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
                 }
             }
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".into())).into()), channelName).into()), Value::Str("@".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), channelName.as_deref().unwrap_or("null")).into()), Value::Str("@".into())).into()), symbol);
             resolvedMessageHashes.push(Value::from(messageHash.clone()));
             client.resolve(parsedTicker, messageHash.as_str());
         }
@@ -4047,7 +4047,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // resolve batch endpoint
         let mut length: f64 = ((resolvedMessageHashes.len() as i64) as f64);
         if length > ((0i64) as f64) {
-            let mut batchMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".into())).into()), channelName);
+            let mut batchMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), Value::Str("s:".into())).into()), channelName.as_deref().unwrap_or("null"));
             client.resolve(Value::Map(newTickers), batchMessageHash.as_str());
         }
 }

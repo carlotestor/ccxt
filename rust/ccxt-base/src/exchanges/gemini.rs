@@ -1960,8 +1960,8 @@ impl Gemini {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
         let mut baseId: Value = Value::Null;
         let mut quoteId: Value = Value::Null;
-        let mut base: Value = Value::Null;
-        let mut quote: Value = Value::Null;
+        let mut base: Option<String> = None;
+        let mut quote: Option<String> = None;
         if (marketId != Value::Null) && (marketResolved == Value::Null) {
             let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if (idLength.as_f64() == Some(7.0)) {
@@ -1971,10 +1971,10 @@ impl Gemini {
                 baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 quoteId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
-            base = self.safe_currency_code(baseId.clone(), &[]);
-            quote = self.safe_currency_code(quoteId.clone(), &[]);
-            if (base != Value::Null) && (quote != Value::Null) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+            base = self.safe_currency_code(baseId.clone(), &[]).as_str().map(str::to_owned);
+            quote = self.safe_currency_code(quoteId.clone(), &[]).as_str().map(str::to_owned);
+            if (base.is_some()) && (quote.is_some()) {
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
             }
         }
         if (symbol == Value::Null) && (marketResolved != Value::Null) {

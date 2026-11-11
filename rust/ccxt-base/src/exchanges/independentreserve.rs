@@ -1032,18 +1032,18 @@ impl Independentreserve {
         let mut symbol: Option<String> = None;
         let mut baseId: Option<String> = self.safe_string_k(order.clone(), "PrimaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(order.clone(), "SecondaryCurrencyCode", &[]).as_str().map(str::to_owned);
-        let mut base: Value = Value::Null;
-        let mut quote: Value = Value::Null;
+        let mut base: Option<String> = None;
+        let mut quote: Option<String> = None;
         if (baseId.is_some()) && (quoteId.is_some()) {
-            base = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
-            quote = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (base != Value::Null) && (quote != Value::Null) {
-                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
+            base = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            quote = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (base.is_some()) && (quote.is_some()) {
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
             }
         }  else if (market != Value::Null) {
             symbol = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            base = self.safe_string_k(market.clone(), "base", &[]);
-            quote = self.safe_string_k(market.clone(), "quote", &[]);
+            base = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
+            quote = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         }
         let mut orderType: Option<String> = self.safe_string2(order.clone(), Value::Str("Type".into()), Value::Str("OrderType".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -1091,7 +1091,7 @@ impl Independentreserve {
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), feeRate.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), feeCost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), base);
+        m.insert("currency".to_string(), base.map(Value::from).unwrap_or(Value::Null));
     m
 }));
         m.insert("trades".to_string(), Value::Null);

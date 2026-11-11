@@ -4371,14 +4371,14 @@ impl Polymarket {
                 }
             }
             }
-            let mut querystring: Value = Value::Null;
+            let mut querystring: Option<String> = None;
             if hasArrayParam {
-                querystring = self.urlencode_with_array_repeat(query.clone());
+                querystring = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
             }  else {
-                querystring = self.urlencode(query.clone(), &[]);
+                querystring = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
             }
-            if (querystring.as_str() != Some("")) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
+            if (querystring.as_deref() != Some("")) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.as_deref().unwrap_or("null")));
             }
         }  else if isArrayBody {
             bodyValue = json_stringify(&params);

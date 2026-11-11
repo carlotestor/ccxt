@@ -4614,11 +4614,11 @@ impl Bybit {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut settle: Value = Value::Null;
+            let mut settle: Option<String> = None;
             if linearPerpetual && (settleId.as_str() == Some("USD")) {
-                settle = Value::Str("USDC".into());
+                settle = Some("USDC".to_string());
             }  else {
-                settle = self.safe_currency_code(settleId.clone(), &[]);
+                settle = self.safe_currency_code(settleId.clone(), &[]).as_str().map(str::to_owned);
             }
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k(market.clone(), "lotSizeFilter", &[Value::Map({
@@ -4651,7 +4651,7 @@ impl Bybit {
                 }
             }
             let mut expiryDatetime: Option<String> = self.iso8601(expiry.clone()).as_str().map(str::to_owned);
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             if (expiry != Value::Null) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[]));
             }
@@ -4662,7 +4662,7 @@ impl Bybit {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);

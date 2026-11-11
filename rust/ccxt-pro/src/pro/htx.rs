@@ -1500,9 +1500,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut orderType: Value = self.safe_string_k(self.options.clone(), "orderType", &[Value::Str("orders".into())]); // orders or matchOrders
         orderType = self.safe_string_k(params.clone(), "orderType", &[orderType.clone()]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("orderType".into()), &[]).into_dict();
-        let mut marketCode: Value = Value::Null;
+        let mut marketCode: Option<String> = None;
         if (market != Value::Null) {
-            marketCode = self.safe_string_lower_k(market.clone(), "lowercaseId", &[]);
+            marketCode = self.safe_string_lower_k(market.clone(), "lowercaseId", &[]).as_str().map(str::to_owned);
         }
         let mut baseId: Value = Value::Null;
         if (market != Value::Null) {
@@ -1518,8 +1518,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 marginPrefix = Value::Str(format!("{}{}", prefix, Value::Str("_cross".into())).into());
             }
             messageHash = marginPrefix.clone();
-            if (marketCode != Value::Null) {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix, Value::Str(".".into())).into()), marketCode).into());
+            if (marketCode.is_some()) {
+                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix, Value::Str(".".into())).into()), marketCode.as_deref().unwrap_or("null")).into());
                 channel = messageHash.clone();
             }  else {
                 channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginPrefix, Value::Str(".".into())).into()), Value::Str("*".into())).into());
@@ -1534,8 +1534,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }  else {
             // inverse swaps: Example: BTC/USD:BTC
-            if (marketCode != Value::Null) {
-                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), marketCode).into());
+            if (marketCode.is_some()) {
+                channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), marketCode.as_deref().unwrap_or("null")).into());
                 messageHash = channel.clone();
             }  else {
                 channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), Value::Str("*".into())).into());

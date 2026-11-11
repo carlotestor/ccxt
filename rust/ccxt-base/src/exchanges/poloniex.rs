@@ -5357,7 +5357,7 @@ impl Poloniex {
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
-        let mut bodyJson: Value = Value::Null;
+        let mut bodyJson: Option<String> = None;
         let mut signedHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("swapPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -5371,8 +5371,8 @@ impl Poloniex {
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                 auth.push_str("\n"); // eslint-disable-line quotes
                 if isArray || ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    bodyJson = json_stringify(&query);
-                    auth.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("requestBody=".into()), bodyJson).into()), Value::Str("&".into())));
+                    bodyJson = json_stringify(&query).as_str().map(str::to_owned);
+                    auth.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("requestBody=".into()), bodyJson.as_deref().unwrap_or("null")).into()), Value::Str("&".into())));
                 }
                 auth.push_str(&format!("{}{}", Value::Str("signTimestamp=".into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null)));
             }  else {
@@ -5396,7 +5396,7 @@ impl Poloniex {
                 m
             });
         }
-        let mut bodyResolved: Value = bodyJson;
+        let mut bodyResolved: Value = bodyJson.map(Value::from).unwrap_or(Value::Null);
         let mut headersResolved: Value = signedHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

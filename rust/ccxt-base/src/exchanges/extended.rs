@@ -1121,7 +1121,7 @@ impl Extended {
         let mut maxCost: Option<f64> = self.safe_number_k(&tradingConfig, "maxLimitOrderValue", &[]).as_f64();
         let mut created: Option<i64> = self.safe_integer_k(market.clone(), "createdAt", &[]).as_i64();
         let mut settleId: Value = Value::Null;
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isSpot: bool = false;
         let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1136,8 +1136,8 @@ impl Extended {
         }  else {
             type_var = Some("swap".to_string());
             settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
-            settle = quote.clone().map(Value::from).unwrap_or(Value::Null);
-            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle));
+            settle = quote.clone();
+            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
             contractSize = self.parse_number(Value::Str("1".into()), &[]);
             linear = Some(true);
             inverse = Some(false);
@@ -1148,7 +1148,7 @@ impl Extended {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), Value::from(baseId));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);
