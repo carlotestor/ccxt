@@ -614,13 +614,13 @@ impl Coinbaseinternational {
             method = "private/unsubscribe".to_string();
             self.authenticate(&[]).await;
         }
-        let mut unWatchMessageHashes: Value = Value::from(vec![]);
+        let mut unWatchMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channelsLength: f64 = ((channels.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_243: bool = true;
             while { if !__for_first_243 { i += 1; } __for_first_243 = false; (i as f64) < channelsLength } {
-            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(channels.clone(), Value::Int(i), &[Value::Str("".into())])).into())); }
+            std::sync::Arc::make_mut(&mut unWatchMessageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(channels.clone(), Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -637,13 +637,13 @@ impl Coinbaseinternational {
         });
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[paramsResolved]);
-        self.watch_multiple(url, unWatchMessageHashes.clone(), &[__ws_arg_2, unWatchMessageHashes.clone()]).await;
+        self.watch_multiple(url, &unWatchMessageHashes, &[__ws_arg_2, Value::Arr(unWatchMessageHashes.clone())]).await;
         {
                         let mut i: i64 = 0;
             let mut __for_first_244: bool = true;
             while { if !__for_first_244 { i += 1; } __for_first_244 = false; (i as f64) < channelsLength } {
             let __ws_arg_3 = self.safe_string(channels.clone(), Value::Int(i), &[Value::Str("".into())]);
-            let __ws_arg_4 = self.safe_string(unWatchMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let __ws_arg_4 = self.safe_string(&unWatchMessageHashes, Value::Int(i), &[Value::Str("".into())]);
             self.clean_unsubscription(client.as_value(), __ws_arg_3, __ws_arg_4, &[]);
         }
         }

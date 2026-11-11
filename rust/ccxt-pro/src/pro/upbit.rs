@@ -311,7 +311,7 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_663: bool = true;
@@ -319,7 +319,7 @@ impl Upbit {
             let mut marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             if !(matches!((&subscriptions, &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -344,7 +344,7 @@ impl Upbit {
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
         }
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[Value::from(finalMessage), messageHashes]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &[Value::from(finalMessage), Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }

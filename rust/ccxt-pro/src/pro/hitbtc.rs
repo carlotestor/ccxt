@@ -458,18 +458,18 @@ impl Hitbtc {
         let mut resolvedPerSymbol: bool = !isBatch || (messageHashPrefix.as_str() == Some("orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) && resolvedPerSymbol {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_361: bool = true;
                 while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbolId: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into())); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into()));
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHashPrefix); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(messageHashPrefix);
         }
         let mut requestId: Value = self.incrementing_nonce();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -485,7 +485,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscription)]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
