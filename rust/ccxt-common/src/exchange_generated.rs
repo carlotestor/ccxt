@@ -3148,7 +3148,7 @@ pub trait ExchangeBase:
 }
 
     fn get_describe_for_extended_ws_exchange(&self, mut currentRestInstance: Value, mut parentRestInstance: Value, mut wsBaseDescribe: Value) -> Value {
-        let mut extendedRestDescribe: Value = self.deep_extend(parentRestInstance.describe(), &[currentRestInstance.describe()]);
+        let mut extendedRestDescribe: crate::value::Dict = self.deep_extend(parentRestInstance.describe(), &[currentRestInstance.describe()]).into_dict();
         let mut superWithRestDescribe: Value = self.deep_extend(extendedRestDescribe, &[wsBaseDescribe]);
         return superWithRestDescribe;
 

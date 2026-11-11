@@ -3609,7 +3609,7 @@ if _try_result.is_err() {
     m
 })]);
             let mut id: Option<String> = self.safe_string_k_opt(spotMarket.clone(), "id", &[]);
-            let mut marginMarket: Value = self.safe_dict(marginMarkets.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut marginMarket: crate::value::Dict = self.safe_dict(marginMarkets.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut market: Value = self.deep_extend(marginMarket, &[spotMarket.clone()]);
             let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: Option<String> = self.safe_string(idParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);

@@ -813,14 +813,14 @@ impl Blofin {
             m
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&typeUrls, "public", &[]).as_str().map(str::to_owned);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_167: bool = true;
             while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (symbolsList.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into()));
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::from(channel.clone()));
@@ -831,7 +831,7 @@ impl Blofin {
         }
         let mut request: Value = self.get_subscription_request(Value::from(args));
         let __ws_arg_0 = self.deep_extend(request, &[&paramsMarketType]);
-        let mut ticker: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1474,7 +1474,7 @@ impl Blofin {
                 marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets yet".into()))));
         }
         let mut rawSubscriptions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbols.is_some()) && (((symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64) > ((0i64) as f64)) {
             {
                                 let mut i: i64 = 0;
@@ -1498,7 +1498,7 @@ impl Blofin {
                     m
                 });
                 std::sync::Arc::make_mut(&mut rawSubscriptions).push(topic);
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()));
             }
             }
         }  else {
@@ -1507,7 +1507,7 @@ impl Blofin {
                     m.insert("channel".to_string(), channelName.clone());
                 m
             }));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channelName.clone()); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(channelName.clone());
         }
         // private channel are difference, they only need plural channel name for multiple symbols
         if self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())])).as_bool() == Some(true) {
@@ -1528,7 +1528,7 @@ impl Blofin {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string(&typeUrls, Value::from(privateOrPublic), &[]).as_str().map(str::to_owned);
         let __ws_arg_3 = self.deep_extend(request, &[&paramsMarketType]);
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_3, Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }
@@ -1560,7 +1560,7 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
         }
         let mut topics: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_174: bool = true;
@@ -1580,7 +1580,7 @@ impl Blofin {
                 m
             });
             topics.push(topic);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1591,7 +1591,7 @@ impl Blofin {
         });
         let mut url: Value = crate::value::get_value_k(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "public");
         let __ws_arg_4 = self.deep_extend(Value::Map(request), &[&paramsMarketType]);
-        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
+        return self.watch_multiple(url, &messageHashes, &[__ws_arg_4, Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }

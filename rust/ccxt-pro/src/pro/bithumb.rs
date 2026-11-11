@@ -442,7 +442,7 @@ impl Bithumb {
         })]).into_dict();
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut streamMarketIds: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_127: bool = true;
@@ -456,7 +456,7 @@ impl Bithumb {
                 streamMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "base", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k((market).raw.clone(), "quote", &[Value::Str("".into())])).into());
             }
             streamMarketIds.push(streamMarketId);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
         }
         }
         let mut tickTypes: String = self.safe_string_k(&paramsGeneration, "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
@@ -482,7 +482,7 @@ impl Bithumb {
         }  else {
             message = self.extend(message.clone(), &[&paramsOmitted]);
         }
-        let mut newTicker: Value = self.watch_multiple(url.as_str(), messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        let mut newTicker: Value = self.watch_multiple(url.as_str(), &messageHashes, &[message, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

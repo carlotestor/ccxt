@@ -2142,7 +2142,7 @@ impl Paradex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut channel: String = "funding_data".to_string();
         let mut url: Value = self.get_ws_url();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if symbolsLength > ((0i64) as f64) {
@@ -2151,14 +2151,14 @@ impl Paradex {
                     let mut __for_first_597: bool = true;
                     while { if !__for_first_597 { i += 1; } __for_first_597 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into());
-                    if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
+                    std::sync::Arc::make_mut(&mut messageHashes).push(messageHash);
                 }
                 }
             }  else {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }; // if an empty array is passed, subscribe to all funding rates
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone())); // if an empty array is passed, subscribe to all funding rates
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone()));
         }
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel)).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -2167,7 +2167,7 @@ impl Paradex {
             m
         });
         let __ws_arg_11 = self.deep_extend(Value::Map(request), &[params]);
-        let mut newFundingRates: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_11, messageHashes.clone(), Value::Map(subscription)]).await;
+        let mut newFundingRates: Value = self.watch_multiple(url, &messageHashes, &[__ws_arg_11, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
