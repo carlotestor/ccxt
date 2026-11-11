@@ -4074,19 +4074,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //  or
         // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
-        let mut argsList: Value = (match __pro_message.get("args").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
-        if (argsList == Value::Null) {
+        let mut argsList: Option<crate::value::List> = (match __pro_message.get("args").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        if (argsList.is_none()) {
             let mut arg: Value = (match __pro_message.get("arg").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            argsList = Value::from(vec![arg.clone()]);
+            argsList = Value::from(vec![arg.clone()]).into_opt_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.len() as i64) } {
-            let mut arg: Value = self.safe_dict(argsList.clone(), Value::Int(i), &[]);
+            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut arg: Value = self.safe_dict(argsList.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
             let mut channel: String = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if channel.contains("books") {
                 // for now only unWatchOrderBook is supported

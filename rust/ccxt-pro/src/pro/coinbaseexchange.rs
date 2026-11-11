@@ -778,20 +778,20 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
+        let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone()]).into_opt_list();
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_238: bool = true;
             while { if !__for_first_238 { i += 1; } __for_first_238 = false; (i as f64) < symbolsLength } {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())])).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())])).into())); }
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
-                m.insert("product_ids".to_string(), marketIds.clone());
+                m.insert("product_ids".to_string(), marketIds.clone().map_or(Value::Null, Value::Arr));
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name.clone())]));
             m
         });
@@ -800,7 +800,7 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(name));
                 m.insert("symbols".to_string(), symbolsNormalized);
-                m.insert("marketIds".to_string(), marketIds);
+                m.insert("marketIds".to_string(), marketIds.map_or(Value::Null, Value::Arr));
                 m.insert("limit".to_string(), limit.clone());
             m
         });
