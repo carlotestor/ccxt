@@ -1463,15 +1463,15 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_869: bool = true;
             while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut uid: Option<String> = self.safe_string_opt(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("feeScheduleUid".into()), &[]);
             let mut schedule: Value = self.safe_dict(Value::Map(schedulesByUid.clone()), uid.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (schedule == Value::Null) {
                 continue;
             }
             let mut volume: String = self.safe_string(Value::Map(volumes.clone()), uid.map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(schedule, &[market, Value::from(volume)]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(schedule, &[market, Value::from(volume)]));
         }
         }
         return Value::Map(result);

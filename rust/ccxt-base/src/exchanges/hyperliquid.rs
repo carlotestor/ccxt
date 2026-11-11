@@ -1402,7 +1402,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut tokenIndex: Option<String> = self.safe_string_k_opt(token.clone(), "index", &[]);
+            let mut tokenIndex: Option<String> = self.safe_string_k(token.clone(), "index", &[]).as_str().map(str::to_owned);
             if (tokenIndex.is_some()) {
                 tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), token);
             }

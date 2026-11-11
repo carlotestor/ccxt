@@ -3165,14 +3165,14 @@ impl Alpaca {
             m
         });
         let mut currencyId: Option<String> = self.safe_string_k(&account, "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (code != Value::Null) {
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (code.is_some()) {
             let mut cashAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             cashAccount.insert("free".into(), self.safe_string_k(&account, "cash", &[])); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             let mut equity: Option<String> = self.safe_string_k(&account, "equity", &[]).as_str().map(str::to_owned);
             let mut positionsValue: Option<String> = self.safe_string_k(&account, "position_market_value", &[]).as_str().map(str::to_owned);
             cashAccount.insert("total".into(), crate::precise::Precise::stringSub(&equity.clone().map(Value::from).unwrap_or(Value::Null), &positionsValue.clone().map(Value::from).unwrap_or(Value::Null))); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(cashAccount));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(cashAccount));
         }
         {
                         let mut i: i64 = 0;

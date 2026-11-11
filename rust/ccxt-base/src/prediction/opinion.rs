@@ -1250,7 +1250,7 @@ impl Opinion {
                 m
             });
             let mut ticker: Value = self.parse_prediction_ticker(Value::Map(response), &[outcomeObj]);
-            let mut symbolKey: Option<String> = self.safe_string_k_opt(ticker.clone(), "outcome", &[]);
+            let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (symbolKey.is_some()) {
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1455,7 +1455,7 @@ impl Opinion {
             let mut __for_first_1396: bool = true;
             while { if !__for_first_1396 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1396 = false; i.as_f64().unwrap_or(f64::NAN) < listLength } {
             let mut entry: Value = list.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut address: Option<String> = self.safe_string_lower_k_opt(entry.clone(), "quoteTokenAddress", &[]);
+            let mut address: Option<String> = self.safe_string_lower_k(entry.clone(), "quoteTokenAddress", &[]).as_str().map(str::to_owned);
             if (address.is_some()) {
                 quoteTokens.insert(address.as_deref().unwrap_or("null").to_string(), entry);
             }

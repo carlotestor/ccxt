@@ -1369,8 +1369,8 @@ impl Revolutx {
     m
 })]).into_dict();
             let mut currency: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (code == Value::Null) {
+            let mut code: Option<String> = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (code.is_none()) {
                 continue;
             }
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1383,7 +1383,7 @@ impl Revolutx {
             }
             account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), self.safe_string_k(&balance, "total", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));

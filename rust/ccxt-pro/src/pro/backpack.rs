@@ -2309,7 +2309,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut assetId: Option<String> = self.safe_string_k_opt(&data, "a", &[]);
+        let mut assetId: Option<String> = self.safe_string_k(&data, "a", &[]).as_str().map(str::to_owned);
         if (assetId.is_none()) {
             return Value::Bool(false);
         }

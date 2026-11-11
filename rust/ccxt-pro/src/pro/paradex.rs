@@ -1319,7 +1319,7 @@ impl Paradex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
                 result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
@@ -2044,13 +2044,13 @@ impl Paradex {
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m
         });
-        let mut code: Value = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]);
+        let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]).as_str().map(str::to_owned);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("total".into(), self.safe_string_k(data.clone(), "account_value", &[]));
         account.insert("free".into(), self.safe_string_k(data.clone(), "free_collateral", &[]));
         account.insert("used".into(), self.safe_string_k(data, "initial_margin_requirement", &[]));
-        if (code != Value::Null) {
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+        if (code.is_some()) {
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         return self.safe_balance(Value::Map(result));
 
@@ -2197,7 +2197,7 @@ impl Paradex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newFundingRatesSymbol: Option<String> = self.safe_string_k_opt(newFundingRates.clone(), "symbol", &[]);
+            let mut newFundingRatesSymbol: Option<String> = self.safe_string_k(newFundingRates.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newFundingRatesSymbol.is_some()) {
                 result.insert(newFundingRatesSymbol.as_deref().unwrap_or("null").to_string(), newFundingRates);
             }

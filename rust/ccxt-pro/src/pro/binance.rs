@@ -3737,7 +3737,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut resultSymbol: Option<String> = self.safe_string_k_opt(result.clone(), "symbol", &[]);
+            let mut resultSymbol: Option<String> = self.safe_string_k(result.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (resultSymbol.is_some()) {
                 newDict.insert(resultSymbol.as_deref().unwrap_or("null").to_string(), result);
             }

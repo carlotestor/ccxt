@@ -1418,7 +1418,7 @@ impl Cex {
                 market = self.safe_market(&[key.clone()]);
             }
             let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market.clone()]);
-            let mut parsedSymbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+            let mut parsedSymbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (parsedSymbol.is_some()) {
                 result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed);
             }
@@ -1612,15 +1612,15 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut code: Value = self.safe_currency_code(key, &[]);
+            let mut code: Option<String> = self.safe_currency_code(key, &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("used".to_string(), self.safe_string_k(&balance, "balanceOnHold", &[]));
                     m.insert("total".to_string(), self.safe_string_k(&balance, "balance", &[]));
                 m
             });
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

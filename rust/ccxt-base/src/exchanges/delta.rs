@@ -1240,7 +1240,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut numericIdString: Option<String> = self.safe_string_k_opt(item.clone(), "numericId", &[]);
+            let mut numericIdString: Option<String> = self.safe_string_k(item.clone(), "numericId", &[]).as_str().map(str::to_owned);
             if (numericIdString.is_none()) {
                 continue;
             }

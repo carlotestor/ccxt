@@ -2927,7 +2927,7 @@ impl Sxbet {
                 let mut __for_first_1518: bool = true;
                 while { if !__for_first_1518 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1518 = false; j.as_f64().unwrap_or(f64::NAN) < rowsLength } {
                 let mut row: Value = rows.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut rowHash: Option<String> = self.safe_string_k_opt(row.clone(), "marketHash", &[]);
+                let mut rowHash: Option<String> = self.safe_string_k(row.clone(), "marketHash", &[]).as_str().map(str::to_owned);
                 if (rowHash.is_some()) {
                     rowsByHash.insert(rowHash.as_deref().unwrap_or("null").to_string(), row);
                 }
@@ -2968,7 +2968,7 @@ impl Sxbet {
                 continue;
             }
             let mut ticker: Value = self.parse_prediction_ticker(raw, &[outcomeObj]);
-            let mut sym: Option<String> = self.safe_string_k_opt(ticker.clone(), "outcome", &[]);
+            let mut sym: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (sym.is_some()) {
                 result.insert(sym.as_deref().unwrap_or("null").to_string(), ticker);
             }

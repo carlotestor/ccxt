@@ -1143,12 +1143,12 @@ impl Upbit {
             while { if !__for_first_1137 { i += 1; } __for_first_1137 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -1771,7 +1771,7 @@ impl Upbit {
             element.insert("percentage".into(), Value::Bool(true));
             element.insert("tierBased".into(), Value::Bool(false));
             element.insert("info".into(), item.clone());
-            let mut feeSymbol: Option<String> = self.safe_string_k_opt(item, "symbol", &[]);
+            let mut feeSymbol: Option<String> = self.safe_string_k(item, "symbol", &[]).as_str().map(str::to_owned);
             if (feeSymbol.is_some()) {
                 response.insert(feeSymbol.as_deref().unwrap_or("null").to_string(), Value::Map(element));
             }

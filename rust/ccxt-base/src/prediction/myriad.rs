@@ -597,7 +597,7 @@ impl Myriad {
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
             flatMarkets.push(m.clone());
             let mut ev: Value = self.parse_market_to_event(raw, m);
-            let mut evKey: Option<String> = self.safe_string_k_opt(ev.clone(), "event", &[]);
+            let mut evKey: Option<String> = self.safe_string_k(ev.clone(), "event", &[]).as_str().map(str::to_owned);
             if (evKey.is_some()) {
                 if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(evKey.as_deref().unwrap_or("null").to_string(), ev); }
             }
@@ -4047,7 +4047,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_1367 { j += 1; } __for_first_1367 = false; j < (grouped.len() as i64) } {
                 let mut outcomeObj: Value = grouped.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = self.parse_prediction_ticker(response.clone(), &[outcomeObj]);
-                let mut symbolKey: Option<String> = self.safe_string_k_opt(ticker.clone(), "outcome", &[]);
+                let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
                 }
@@ -5314,7 +5314,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1383: bool = true;
             while { if !__for_first_1383 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1383 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength } {
             let mut p: crate::value::Dict = self.safe_dict(positions.clone(), i.clone(), &[]).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&p, "id", &[]);
+            let mut id: Option<String> = self.safe_string_k(&p, "id", &[]).as_str().map(str::to_owned);
             if (id.is_some()) {
                 balances.insert(id.as_deref().unwrap_or("null").to_string(), self.number_to_string(self.safe_number_k(&p, "contracts", &[Value::Int(0)])));
             }

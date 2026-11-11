@@ -1472,7 +1472,7 @@ impl Hyperliquid {
             let mut __for_first_1240: bool = true;
             while { if !__for_first_1240 { i += 1; } __for_first_1240 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
-            let mut coin: Option<String> = self.safe_string_k_opt(&balance, "coin", &[]);
+            let mut coin: Option<String> = self.safe_string_k(&balance, "coin", &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string_k(&balance, "total", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&balance, "hold", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

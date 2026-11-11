@@ -1981,7 +1981,7 @@ impl Polymarket {
                 let mut __for_first_1431: bool = true;
                 while { if !__for_first_1431 { if let Value::Int(n) = &mut li { *n += 1; } } __for_first_1431 = false; li.as_f64().unwrap_or(f64::NAN) < lastTradesLength } {
                 let mut lastTradeEntry: Value = lastTrades.as_array().and_then(|__arr| match &li { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut lastTradeTokenId: Option<String> = self.safe_string_k_opt(lastTradeEntry.clone(), "token_id", &[]);
+                let mut lastTradeTokenId: Option<String> = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]).as_str().map(str::to_owned);
                 if (lastTradeTokenId.is_some()) {
                     lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), lastTradeEntry);
                 }
