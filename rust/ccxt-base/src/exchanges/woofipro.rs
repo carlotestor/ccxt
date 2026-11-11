@@ -1698,7 +1698,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut tokenRows: Vec<Value> = self.safe_list_k(&tokenData, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tokenRows: crate::value::List = self.safe_list_k(&tokenData, "rows", &[Value::from(vec![])]).into_list();
         let mut chainData: crate::value::Dict = self.safe_dict_k(chainResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1735,7 +1735,7 @@ impl Woofipro {
     m
 }) });
         let mut currencyId: Option<String> = self.safe_string_k(token.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut networks: Vec<Value> = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networks: crate::value::List = self.safe_list_k(token.clone(), "chain_details", &[Value::from(vec![])]).into_list();
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut indexedChains: Value = (match rawCurrency.get("_indexedChains") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2333,7 +2333,7 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -2492,7 +2492,7 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -2593,7 +2593,7 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut result: Vec<Value> = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3043,11 +3043,11 @@ impl Woofipro {
         let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
         if (childOrders.is_some()) {
             let mut first: crate::value::Dict = self.safe_dict(childOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
-            let mut innerChildOrders: Vec<Value> = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut innerChildOrders: crate::value::List = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).into_list();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
-                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(innerChildOrders.clone().into(), Value::Int(0), &[]).into_dict();
-                let mut stopLossOrder: crate::value::Dict = self.safe_dict(innerChildOrders.clone().into(), Value::Int(1), &[]).into_dict();
+                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders.clone()), Value::Int(0), &[]).into_dict();
+                let mut stopLossOrder: crate::value::Dict = self.safe_dict(Value::Arr(innerChildOrders), Value::Int(1), &[]).into_dict();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]);
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]);
             }
@@ -4207,12 +4207,12 @@ impl Woofipro {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Vec<Value> = self.safe_list_k(response, "holding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response, "holding", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1183: bool = true;
             while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -5412,7 +5412,7 @@ impl Woofipro {
                 if !isSandboxMode {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: Vec<Value> = self.safe_list(Value::Map(requestParams.clone()), Value::Str("orders".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                        let mut ordersList: crate::value::List = self.safe_list(Value::Map(requestParams.clone()), Value::Str("orders".into()), &[Value::from(vec![])]).into_list();
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_1184: bool = true;

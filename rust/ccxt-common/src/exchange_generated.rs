@@ -3074,7 +3074,7 @@ pub trait ExchangeBase:
                 let mut __for_first_90: bool = true;
                 while { if !__for_first_90 { i += 1; } __for_first_90 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut groupedCurrenciesCode: Vec<Value> = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut groupedCurrenciesCode: crate::value::List = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]).into_list();
                 let mut highestPrecisionCurrency: Value = self.safe_value(&groupedCurrenciesCode, Value::Int(0), &[]);
                 {
                                         let mut j: i64 = 1;
@@ -3131,7 +3131,7 @@ pub trait ExchangeBase:
         self.quoteCurrencies = get_value(&sourceExchange, &Value::Str("quoteCurrencies".into()));
         self.codes = get_value(&sourceExchange, &Value::Str("codes".into()));
         // check marketHelperProps
-        let mut sourceExchangeHelpers: Vec<Value> = self.safe_list(get_value(&sourceExchange, &Value::Str("options".into())), Value::Str("marketHelperProps".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut sourceExchangeHelpers: crate::value::List = self.safe_list(get_value(&sourceExchange, &Value::Str("options".into())), Value::Str("marketHelperProps".into()), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_91: bool = true;
@@ -4345,7 +4345,7 @@ pub trait ExchangeBase:
         let mut volume = get_arg(optional_args, 5, Value::Str("v".into()));
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let mut result: Vec<Value> = Vec::new();
-        let mut timestamps: Vec<Value> = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut timestamps: crate::value::List = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]).into_list();
         let mut opens: crate::value::List = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]).into_list();
         let mut highs: crate::value::List = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]).into_list();
         let mut lows: crate::value::List = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]).into_list();
@@ -6216,7 +6216,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketType = get_arg(optional_args, 3, Value::Null);
         if (marketId != Value::Null) {
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut markets: Vec<Value> = self.safe_list(self.markets_by_id.clone(), marketId.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut markets: crate::value::List = self.safe_list(self.markets_by_id.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
                 let mut numMarkets: f64 = ((markets.len() as i64) as f64);
                 if (numMarkets == 1.0) {
                     return markets.get(0).cloned().unwrap_or(Value::Null);
@@ -10406,10 +10406,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbols: Vec<Value> = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut symbols: crate::value::List = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (topic.as_deref() == Some("ohlcv")) {
-            let mut symbolsAndTimeframes: Vec<Value> = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut symbolsAndTimeframes: crate::value::List = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_181: bool = true;

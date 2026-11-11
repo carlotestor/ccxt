@@ -2585,7 +2585,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_1158 { i += 1; } __for_first_1158 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".into())]);
-                    let mut marketOrders: Vec<Value> = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut marketOrders: crate::value::List = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).into_list();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1157: bool = true;
@@ -3879,7 +3879,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1164 { i += 1; } __for_first_1164 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".into())]);
-            let mut orders: Vec<Value> = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut orders: crate::value::List = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1163: bool = true;
@@ -4459,12 +4459,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut subAccounts: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subAccounts: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (subAccounts.len() as i64) } {
-            let mut subAccount: Value = self.safe_dict(subAccounts.clone().into(), Value::Int(i), &[Value::Map({
+            let mut subAccount: Value = self.safe_dict(Value::Arr(subAccounts.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

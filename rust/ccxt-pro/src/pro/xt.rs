@@ -480,15 +480,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         orderbook.set_book_meta("nonce", self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
-        let mut obAsks: Vec<Value> = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut obBids: Vec<Value> = self.safe_list_k(delta, "b", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut obAsks: crate::value::List = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]).into_list();
+        let mut obBids: crate::value::List = self.safe_list_k(delta, "b", &[Value::from(vec![])]).into_list();
         let mut bids: Value = orderbook.book_field("bids");
         let mut asks: Value = orderbook.book_field("asks");
         {
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
             while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (obBids.len() as i64) } {
-            let mut bid: Value = self.safe_list(obBids.clone().into(), Value::Int(i), &[]);
+            let mut bid: Value = self.safe_list(Value::Arr(obBids.clone()), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
@@ -498,7 +498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_717: bool = true;
             while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (obAsks.len() as i64) } {
-            let mut ask: Value = self.safe_list(obAsks.clone().into(), Value::Int(i), &[]);
+            let mut ask: Value = self.safe_list(Value::Arr(obAsks.clone()), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
             asks.store(price, quantity);
@@ -1607,8 +1607,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        ]
         //    }
         //
-        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut firstTicker: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(0), &[]).into_dict();
+        let mut data: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut firstTicker: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[]).into_dict();
         let mut spotTest: Option<String> = self.safe_string2(&firstTicker, Value::Str("cv".into()), Value::Str("aq".into()), &[]).as_str().map(str::to_owned);
         let mut tradeType: String = "contract".to_string();
         if (spotTest.is_some()) {
@@ -2366,8 +2366,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: crate::value::List = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut subMessageHashes: crate::value::List = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_724: bool = true;

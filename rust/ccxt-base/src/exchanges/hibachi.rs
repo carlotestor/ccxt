@@ -1547,7 +1547,7 @@ impl Hibachi {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Vec<Value> = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_736: bool = true;
@@ -1709,7 +1709,7 @@ impl Hibachi {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Vec<Value> = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_738: bool = true;
@@ -1826,7 +1826,7 @@ impl Hibachi {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Vec<Value> = Vec::new();
-        let mut responseOrders: Vec<Value> = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_740: bool = true;
@@ -3360,7 +3360,7 @@ impl Hibachi {
         //     ]
         // }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

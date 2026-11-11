@@ -358,7 +358,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Vec<Value> = (match message.get("trade_updates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rawTrades: crate::value::List = (match message.get("trade_updates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut length: f64 = ((rawTrades.len() as i64) as f64);
         if (length == 0.0) {
             return;
@@ -653,7 +653,7 @@ impl Luno {
         let mut bidsOrderSide: Value = orderbook.get("bids").cloned().unwrap_or(Value::Null);
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        let mut tradeUpdates: Vec<Value> = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tradeUpdates: crate::value::List = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_482: bool = true;

@@ -1336,14 +1336,14 @@ impl Bithumb {
     m
 })]).into_dict();
             timestamp = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
-            let mut orderBookUnits: Vec<Value> = self.safe_list_k(&result, "orderbook_units", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut orderBookUnits: crate::value::List = self.safe_list_k(&result, "orderbook_units", &[Value::from(vec![])]).into_list();
             let mut bids: Vec<Value> = Vec::new();
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
-                let mut entry: crate::value::Dict = self.safe_dict(orderBookUnits.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(orderBookUnits.clone()), Value::Int(i), &[]).into_dict();
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_string_k(&entry, "bid_price", &[]));

@@ -871,7 +871,7 @@ impl Zebpay {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(rawCurrency.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
-        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1114,7 +1114,7 @@ impl Zebpay {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut fees: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fees: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2530,7 +2530,7 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Vec<Value> = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1204: bool = true;
@@ -2637,7 +2637,7 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Vec<Value> = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1205: bool = true;
@@ -2707,12 +2707,12 @@ impl Zebpay {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut currencyList: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut currencyList: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1206: bool = true;
             while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (currencyList.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(currencyList.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(currencyList.clone()), Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
             account.insert("free".into(), self.safe_string_k(&entry, "free", &[]));

@@ -858,7 +858,7 @@ impl Bitfinex {
         let mut messageLength: f64 = ((message.len() as i64) as f64);
         if (messageLength == 2.0) {
             // initial snapshot
-            let mut trades: Vec<Value> = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut trades: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
             // needs to be reversed to make chronological order
             let mut length: Value = Value::Int(trades.len() as i64);
             {
@@ -869,7 +869,7 @@ impl Bitfinex {
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut parsed: Value = self.parse_ws_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("result".to_string(), self.safe_list(trades.clone().into(), index, &[]));
+        m.insert("result".to_string(), self.safe_list(Value::Arr(trades.clone()), index, &[]));
     m
 }), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -941,7 +941,7 @@ impl Bitfinex {
         //       1655110144596
         //    ]
         //
-        let mut trade: Vec<Value> = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut trade: crate::value::List = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut numFields: f64 = ((trade.len() as i64) as f64);
         let mut isPublic: bool = numFields <= ((8i64) as f64);
         let mut marketId: Value = Value::Null;
@@ -994,7 +994,7 @@ impl Bitfinex {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::from(trade));
+        m.insert("info".to_string(), Value::Arr(trade));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1188,12 +1188,12 @@ impl Bitfinex {
             }
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if isRaw {
-                let mut deltas: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
+                let mut deltas: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_103: bool = true;
                     while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = deltas.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut delta: Value = deltas.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut delta2: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     let mut size: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(delta2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { delta2.clone() });
                     let mut side: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
@@ -1204,12 +1204,12 @@ impl Bitfinex {
                 }
                 }
             }  else {
-                let mut deltas: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
+                let mut deltas: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_104: bool = true;
                     while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = self.safe_list(deltas.clone(), Value::Int(i), &[]);
+                    let mut delta: Value = self.safe_list(Value::Arr(deltas.clone()), Value::Int(i), &[]);
                     let mut deltaAmount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     if (deltaAmount == Value::Null) {
                         continue;
@@ -1488,8 +1488,8 @@ impl Bitfinex {
         let mut subMessageHash: String = self.safe_string(__ch.subscriptions.clone(), unSubChannel.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
         __ch.remove_subscription(&unSubChannel);
-        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
+        let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_108: bool = true;
@@ -1694,7 +1694,7 @@ impl Bitfinex {
         //        ]
         //    ]
         //
-        let mut data: Vec<Value> = self.safe_list(message.clone(), Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list(message.clone(), Value::Int(2), &[Value::from(vec![])]).into_list();
         let mut messageType: Option<String> = self.safe_string(message, Value::Int(1), &[]).as_str().map(str::to_owned);
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1722,7 +1722,7 @@ impl Bitfinex {
             }
             }
         }  else {
-            let mut parsed: Value = self.parse_ws_order(data.clone().into(), &[]);
+            let mut parsed: Value = self.parse_ws_order(Value::Arr(data), &[]);
             orders.append(parsed.clone());
             let mut symbol: Value = self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut symbolIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }

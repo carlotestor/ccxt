@@ -683,8 +683,8 @@ impl Bit2c {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: Vec<Value> = self.safe_list_k(&orderbook, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawAsks: Vec<Value> = self.safe_list_k(&orderbook, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawBids: crate::value::List = self.safe_list_k(&orderbook, "bids", &[Value::from(vec![])]).into_list();
+        let mut rawAsks: crate::value::List = self.safe_list_k(&orderbook, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {

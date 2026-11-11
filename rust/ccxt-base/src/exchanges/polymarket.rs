@@ -841,8 +841,8 @@ impl Polymarket {
 }));
         let mut promises: Value = Value::from(vec![self.public_get_info_instruments(&[params.clone()]).await, self.public_get_info_assets(&[params]).await]);
         let mut responses: Value = promise_all(&promises).await;
-        let mut instruments: Vec<Value> = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut assets: Vec<Value> = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut instruments: crate::value::List = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut assets: crate::value::List = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1159,7 +1159,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut statistics: Vec<Value> = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut statistics: crate::value::List = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1100: bool = true;
@@ -1170,7 +1170,7 @@ impl Polymarket {
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(entry.clone(), Value::Str("klines".into()), &[]));
         }
         }
-        let mut bbos: Vec<Value> = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut bbos: crate::value::List = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1101: bool = true;
@@ -1185,7 +1185,7 @@ impl Polymarket {
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous.clone(), &[entry.clone()]));
         }
         }
-        let mut tickers: Vec<Value> = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::List = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1720,7 +1720,7 @@ impl Polymarket {
         //         "more": false
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1876,7 +1876,7 @@ impl Polymarket {
         //         ]
         //     }
         //
-        let mut schedule: Vec<Value> = self.safe_list_k(&response, "fee_schedule", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut schedule: crate::value::List = self.safe_list_k(&response, "fee_schedule", &[Value::from(vec![])]).into_list();
         let mut byCategory: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1890,7 +1890,7 @@ impl Polymarket {
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
-        let mut fallback: Value = self.safe_dict(schedule.clone().into(), Value::Int(0), &[Value::Map({
+        let mut fallback: Value = self.safe_dict(Value::Arr(schedule), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2703,7 +2703,7 @@ impl Polymarket {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.private_get_account_portfolio(&[params]).await.into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        let mut rows: Vec<Value> = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3122,7 +3122,7 @@ impl Polymarket {
         //         "more": false
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4128,7 +4128,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut args: Vec<Value> = self.safe_list_k(&op, "args", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut args: crate::value::List = self.safe_list_k(&op, "args", &[Value::from(vec![])]).into_list();
             return self.sum(&[Value::Int(1), self.parse_to_int((match ((Value::Int(args.len() as i64)).as_f64(), (Value::Int(20)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
         }
         if (path.as_str() == Some("info/book")) {

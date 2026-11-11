@@ -950,7 +950,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).into_list();
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         {

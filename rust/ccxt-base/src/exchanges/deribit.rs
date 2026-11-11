@@ -1778,7 +1778,7 @@ impl Deribit {
             //         "testnet": false
             //     }
             //
-            let mut currenciesResult: Vec<Value> = self.safe_list_k(&currenciesResponse, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut currenciesResult: crate::value::List = self.safe_list_k(&currenciesResponse, "result", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_619: bool = true;
@@ -1872,7 +1872,7 @@ impl Deribit {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_621: bool = true;
             while { if !__for_first_621 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_621 = false; i.as_f64().unwrap_or(f64::NAN) < ((instrumentsResponses.len() as i64) as f64) } {
-            let mut instrumentsResult: Vec<Value> = self.safe_list(instrumentsResponses.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut instrumentsResult: crate::value::List = self.safe_list(instrumentsResponses.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::from(vec![])]).into_list();
             {
                                 let mut k: i64 = 0;
                 let mut __for_first_620: bool = true;
@@ -2515,7 +2515,7 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2910,7 +2910,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut fees: Vec<Value> = self.safe_list_k(&result, "fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fees: crate::value::List = self.safe_list_k(&result, "fees", &[Value::from(vec![])]).into_list();
         let mut perpetualFee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4428,7 +4428,7 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut volatilityResult: Vec<Value> = (match volatility.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut volatilityResult: crate::value::List = (match volatility.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4937,12 +4937,12 @@ impl Deribit {
         //    }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut result: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (result.len() as i64) } {
-            let mut fr: Value = self.safe_dict(result.clone().into(), Value::Int(i), &[]);
+            let mut fr: Value = self.safe_dict(Value::Arr(result.clone()), Value::Int(i), &[]);
             let mut rate: Value = self.parse_funding_rate(fr, &[(market).raw.clone()]);
             rates.push(rate);
         }

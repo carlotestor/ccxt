@@ -2182,7 +2182,7 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ids: Vec<Value> = self.safe_list_k(&data, "clientOrderIds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut ids: crate::value::List = self.safe_list_k(&data, "clientOrderIds", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

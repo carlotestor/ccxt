@@ -1299,8 +1299,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_order_book_snapshot(&self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut entries: Vec<Value> = (match message.get("r") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: crate::value::Dict = self.safe_dict(entries.clone().into(), Value::Int(0), &[Value::Map({
+        let mut entries: crate::value::List = (match message.get("r") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(entries.clone()), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1318,7 +1318,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_285: bool = true;
             while { if !__for_first_285 { i += 1; } __for_first_285 = false; i < (entries.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(entries.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(entries.clone()), Value::Int(i), &[]).into_dict();
             let mut entryData: crate::value::Dict = self.safe_dict_k(&entry, "d", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

@@ -613,7 +613,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut statuses: Vec<Value> = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1386,7 +1386,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Vec<Value> = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if (dataLength == 0.0) {
             return;
@@ -1438,7 +1438,7 @@ impl Hyperliquid {
             self.myLiquidations = ArrayCache::new(limit);
         }
         let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
-        let mut fills: Vec<Value> = self.safe_list_k(entry, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fills: crate::value::List = self.safe_list_k(entry, "fills", &[Value::from(vec![])]).into_list();
         let mut newLiquidations: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1604,12 +1604,12 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let mut entry: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut entry: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut entryLength: f64 = ((entry.len() as i64) as f64);
         if (entryLength == 0.0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(entry.clone()), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1627,7 +1627,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(entry.clone().into(), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(Value::Arr(entry.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2271,7 +2271,7 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut rawPositions: Vec<Value> = self.safe_list_k(&clearinghouseState, "assetPositions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: crate::value::List = self.safe_list_k(&clearinghouseState, "assetPositions", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_408: bool = true;
@@ -2494,7 +2494,7 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);

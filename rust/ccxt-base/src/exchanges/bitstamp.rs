@@ -4674,7 +4674,7 @@ impl Bitstamp {
             if matches!(&reasonInner, Value::Str(_)) {
                 if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(reasonInner.clone()); }
             }  else {
-                let mut all: Vec<Value> = self.safe_list_k(reasonInner, "__all__", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut all: crate::value::List = self.safe_list_k(reasonInner, "__all__", &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_439: bool = true;

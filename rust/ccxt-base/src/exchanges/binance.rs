@@ -6716,7 +6716,7 @@ impl Binance {
                     return market;
                 }
             }  else if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut markets: Vec<Value> = self.safe_list(self.markets_by_id.clone(), symbol.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut markets: crate::value::List = self.safe_list(self.markets_by_id.clone(), symbol.clone(), &[Value::from(vec![])]).into_list();
                 // begin diff
                 if isDerivative {
                     defaultType = (if (defaultSubType.as_deref() == Some("inverse")) { Some("inverse".to_string()) } else { Some("linear".to_string()) });
@@ -7189,7 +7189,7 @@ impl Binance {
         let mut name: Option<String> = self.safe_string_k(entry.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut isFiat: Option<bool> = self.safe_bool_k(entry.clone(), "isLegalMoney", &[]).as_bool();
-        let mut networkList: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networkList: crate::value::List = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut fees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7737,7 +7737,7 @@ impl Binance {
         }
         let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
         if spot {
-            let mut permissions: Vec<Value> = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut permissions: crate::value::List = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_277: bool = true;
@@ -8007,12 +8007,12 @@ impl Binance {
             }
             }
         }  else if isolated {
-            let mut assets: Vec<Value> = self.safe_list_k(response.clone(), "assets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut assets: crate::value::List = self.safe_list_k(response.clone(), "assets", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_280: bool = true;
                 while { if !__for_first_280 { i += 1; } __for_first_280 = false; i < (assets.len() as i64) } {
-                let mut asset: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut asset: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(i), &[]).into_dict();
                 let mut base: Value = self.safe_dict_k(&asset, "baseAsset", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -8032,12 +8032,12 @@ impl Binance {
             }
             }
         }  else if (type_var.as_str() == Some("savings")) {
-            let mut positionAmountVos: Vec<Value> = self.safe_list_k(response.clone(), "positionAmountVos", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut positionAmountVos: crate::value::List = self.safe_list_k(response.clone(), "positionAmountVos", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_281: bool = true;
                 while { if !__for_first_281 { i += 1; } __for_first_281 = false; i < (positionAmountVos.len() as i64) } {
-                let mut entry: Value = self.safe_dict(positionAmountVos.clone().into(), Value::Int(i), &[]);
+                let mut entry: Value = self.safe_dict(Value::Arr(positionAmountVos.clone()), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut accountSavings: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -11342,7 +11342,7 @@ impl Binance {
             // the batch legs take the same client order id fields as the single order endpoints
             if (api.as_str() == Some("fapiPrivate")) || (api.as_str() == Some("dapiPrivate")) || (api.as_str() == Some("eapiPrivate")) {
                 let mut batchClientOrderIdKey: Value = (if (api.as_str() == Some("eapiPrivate")) { Value::Str("clientOrderId".into()) } else { Value::Str("newClientOrderId".into()) });
-                let mut batchOrders: Vec<Value> = self.safe_list_k(params.clone(), "batchOrders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut batchOrders: crate::value::List = self.safe_list_k(params.clone(), "batchOrders", &[Value::from(vec![])]).into_list();
                 let mut checkedBatchOrders: Value = Value::from(vec![]);
                 {
                                         let mut i: i64 = 0;
@@ -13836,7 +13836,7 @@ impl Binance {
         //         },
         //       ]
         //     }
-        let mut results: Vec<Value> = self.safe_list_k(&response, "userAssetDribblets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&response, "userAssetDribblets", &[Value::from(vec![])]).into_list();
         let mut rows: Value = self.safe_integer_k(&response, "total", &[Value::Int(0)]);
         let mut data: Vec<Value> = Vec::new();
         {
@@ -14907,7 +14907,7 @@ impl Binance {
             let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(coins.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut networkList: Vec<Value> = self.safe_list_k(&entry, "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut networkList: crate::value::List = self.safe_list_k(&entry, "networkList", &[Value::from(vec![])]).into_list();
             if (code != Value::Null) {
                 withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default();
             }
@@ -14915,7 +14915,7 @@ impl Binance {
                                 let mut j: i64 = 0;
                 let mut __for_first_295: bool = true;
                 while { if !__for_first_295 { j += 1; } __for_first_295 = false; j < (networkList.len() as i64) } {
-                let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
+                let mut networkEntry: crate::value::Dict = self.safe_dict(Value::Arr(networkList.clone()), Value::Int(j), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                 let mut fee: Value = self.safe_number_k(&networkEntry, "withdrawFee", &[]);
@@ -15014,13 +15014,13 @@ impl Binance {
         //    }
         //
         let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut networkList: Vec<Value> = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networkList: crate::value::List = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_297: bool = true;
             while { if !__for_first_297 { j += 1; } __for_first_297 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
+            let mut networkEntry: crate::value::Dict = self.safe_dict(Value::Arr(networkList.clone()), Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut withdrawFee: Value = self.safe_number_k(&networkEntry, "withdrawFee", &[]);
@@ -15789,8 +15789,8 @@ impl Binance {
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
-        let mut positions: Vec<Value> = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut assets: Vec<Value> = (match account.get("assets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = (match account.get("positions") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut assets: crate::value::List = (match account.get("assets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -15799,7 +15799,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_301: bool = true;
             while { if !__for_first_301 { i += 1; } __for_first_301 = false; i < (assets.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut crossWalletBalance: Option<String> = self.safe_string_k(&entry, "crossWalletBalance", &[]).as_str().map(str::to_owned);
@@ -15973,7 +15973,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut leverageBracket: crate::value::List = self.safe_list(leverageBrackets, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
         let mut maintenanceMarginPercentageString: Option<String> = None;
         {
                         let mut i: i64 = 0;
@@ -16209,7 +16209,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut leverageBracket: crate::value::List = self.safe_list(leverageBrackets, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
         let mut notionalString: Option<String> = self.safe_string2(position.clone(), Value::Str("notional".into()), Value::Str("notionalValue".into()), &[]).as_str().map(str::to_owned);
         let mut notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut maintenanceMarginPercentageString: Option<String> = None;
@@ -16419,13 +16419,13 @@ impl Binance {
                 let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(entries.clone()), Value::Int(i), &[]).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
                 let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Null, Value::Str("contract".into())]);
-                let mut brackets: Vec<Value> = self.safe_list_k(&entry, "brackets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut brackets: crate::value::List = self.safe_list_k(&entry, "brackets", &[Value::from(vec![])]).into_list();
                 let mut result: Value = Value::from(vec![]);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_305: bool = true;
                     while { if !__for_first_305 { j += 1; } __for_first_305 = false; j < (brackets.len() as i64) } {
-                    let mut bracket: crate::value::Dict = self.safe_dict(brackets.clone().into(), Value::Int(j), &[]).into_dict();
+                    let mut bracket: crate::value::Dict = self.safe_dict(Value::Arr(brackets.clone()), Value::Int(j), &[]).into_dict();
                     let mut floorValue: Option<String> = self.safe_string2(&bracket, Value::Str("notionalFloor".into()), Value::Str("qtyFloor".into()), &[]).as_str().map(str::to_owned);
                     let mut maintenanceMarginPercentage: Option<String> = self.safe_string_k(&bracket, "maintMarginRatio", &[]).as_str().map(str::to_owned);
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![floorValue.clone().map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.clone().map(Value::from).unwrap_or(Value::Null)])); }
@@ -16524,7 +16524,7 @@ impl Binance {
         //
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
-        let mut brackets: Vec<Value> = self.safe_list_k(info, "brackets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut brackets: crate::value::List = self.safe_list_k(info, "brackets", &[Value::from(vec![])]).into_list();
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut j: i64 = 0;
@@ -18298,7 +18298,7 @@ if _try_result.is_err() {
         }  else if (config.contains_key("byLimit")) && (in_op(&params, &Value::Str("limit".into()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
-            let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_313: bool = true;

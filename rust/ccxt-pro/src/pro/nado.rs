@@ -1779,7 +1779,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut cancelledOrders: crate::value::List = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1847,7 +1847,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut cancelledOrders: crate::value::List = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

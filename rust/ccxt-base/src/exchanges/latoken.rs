@@ -1091,7 +1091,7 @@ impl Latoken {
         let mut code: Option<String> = self.safe_currency_code(tag.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
-        let mut bindings: Vec<Value> = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut bindings: crate::value::List = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1233,14 +1233,14 @@ impl Latoken {
 })]).into_dict();
         let mut accountType: Value = self.safe_string(&types, type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response, Value::Str("type".into()), &[]);
-        let mut balances: Vec<Value> = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut firstBalance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(0), &[]).into_dict();
+        let mut balances: crate::value::List = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]).into_list();
+        let mut firstBalance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(0), &[]).into_dict();
         let mut maxTimestamp: Value = self.safe_integer_k(&firstBalance, "timestamp", &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_913: bool = true;
             while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut timestamp: Value = self.safe_integer_k(&balance, "timestamp", &[]);
             if (timestamp != Value::Null) {
@@ -1325,8 +1325,8 @@ impl Latoken {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let mut rawAsks: Vec<Value> = self.safe_list_k(&response, "ask", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawBids: Vec<Value> = self.safe_list_k(&response, "bid", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: crate::value::List = self.safe_list_k(&response, "ask", &[Value::from(vec![])]).into_list();
+        let mut rawBids: crate::value::List = self.safe_list_k(&response, "bid", &[Value::from(vec![])]).into_list();
         let mut asks: Vec<Value> = Vec::new();
         let mut bids: Vec<Value> = Vec::new();
         {

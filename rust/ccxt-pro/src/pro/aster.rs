@@ -2323,7 +2323,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
         let mut messageValue: crate::value::Dict = self.safe_dict_k(message.clone(), "a", &[message.clone()]).into_dict();
-        let mut B: Vec<Value> = self.safe_list_k(&messageValue, "B", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut B: crate::value::List = self.safe_list_k(&messageValue, "B", &[Value::from(vec![])]).into_list();
         let mut wallet: String = self.safe_string_k(self.options.clone(), "wallet", &[Value::Str("wb".into())]).as_str().unwrap_or("wb").to_string();
         {
                         let mut i: i64 = 0;
@@ -2498,7 +2498,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut rawPositions: Vec<Value> = self.safe_list_k(&data, "P", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "P", &[Value::from(vec![])]).into_list();
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -2760,9 +2760,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     let mut order: Value = self.safe_dict(orders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     if (order != Value::Null) {
                         // accumulate order fees
-                        let mut fees: Vec<Value> = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                        let mut fees: crate::value::List = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]).into_list();
                         let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
-                        if !(self.is_empty(fees.clone().into()).as_bool() == Some(true)) {
+                        if !(self.is_empty(Value::Arr(fees.clone())).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);

@@ -818,7 +818,7 @@ impl Coinbase {
         //
         //
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut events: Vec<Value> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut events: crate::value::List = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         let mut datetime: Option<String> = self.safe_string_k(message, "timestamp", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut newTickers: Vec<Value> = Vec::new();
@@ -826,8 +826,8 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
-            let mut tickersObj: crate::value::Dict = self.safe_dict(events.clone().into(), Value::Int(i), &[]).into_dict();
-            let mut tickers: Vec<Value> = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut tickersObj: crate::value::Dict = self.safe_dict(Value::Arr(events.clone()), Value::Int(i), &[]).into_dict();
+            let mut tickers: crate::value::List = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_225: bool = true;
@@ -975,14 +975,14 @@ impl Coinbase {
         //         ]
         //     }
         //
-        let mut events: Vec<Value> = self.safe_list_k(message, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut events: crate::value::List = self.safe_list_k(message, "events", &[Value::from(vec![])]).into_list();
         let mut timeframe: String = "5m".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_228: bool = true;
             while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (events.len() as i64) } {
             let mut event: Value = events.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut candles: Vec<Value> = self.safe_list_k(event, "candles", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut candles: crate::value::List = self.safe_list_k(event, "candles", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_227: bool = true;
@@ -1659,8 +1659,8 @@ impl Coinbase {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut messageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-            let mut subMessageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut messageHashes: crate::value::List = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
+            let mut subMessageHashes: crate::value::List = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_236: bool = true;

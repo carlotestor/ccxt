@@ -524,7 +524,7 @@ impl Binance {
             //         "hasMore": true
             //     }
             //
-            let mut pageTopics: Vec<Value> = self.safe_list_k(&response, "marketTopics", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut pageTopics: crate::value::List = self.safe_list_k(&response, "marketTopics", &[Value::from(vec![])]).into_list();
             let mut pageTopicsLength: Value = Value::Int(pageTopics.len() as i64);
             {
                                 let mut i: i64 = 0;
@@ -587,15 +587,15 @@ impl Binance {
             let mut __for_first_1212: bool = true;
             while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; (i as f64) < rawTopicsLength } {
             let mut rawTopic: Value = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             let mut hasOutcomes: bool = false;
             if rawMarketsLength > ((0i64) as f64) {
-                let mut firstMarket: crate::value::Dict = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
+                let mut firstMarket: crate::value::Dict = self.safe_dict(Value::Arr(rawMarkets), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut firstOutcomes: Vec<Value> = self.safe_list_k(&firstMarket, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut firstOutcomes: crate::value::List = self.safe_list_k(&firstMarket, "outcomes", &[Value::from(vec![])]).into_list();
                 let mut firstOutcomesLength: f64 = ((firstOutcomes.len() as i64) as f64);
                 hasOutcomes = firstOutcomesLength > ((0i64) as f64);
             }
@@ -650,7 +650,7 @@ impl Binance {
         }
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
-        let mut tags: Vec<Value> = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
         let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         let mut allQueries: Vec<Value> = Vec::new();
         {
@@ -729,7 +729,7 @@ impl Binance {
             while { if !__for_first_1216 { i += 1; } __for_first_1216 = false; (i as f64) < rawTopicsLength } {
             let mut parsedEvent: Value = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(parsedEvent.clone());
-            let mut parsedMarkets: Vec<Value> = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut parsedMarkets: crate::value::List = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -907,7 +907,7 @@ impl Binance {
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        let mut rawMarkets: Vec<Value> = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
         let mut marketsList: Vec<Value> = Vec::new();
         let mut anyActive: Value = Value::Bool(false);
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
@@ -1019,7 +1019,7 @@ impl Binance {
         });
         let mut volume: Option<f64> = self.safe_number_k(rawMarket.clone(), "tradeVolume", &[]).as_f64();
         let mut liquidity: Option<f64> = self.safe_number_k(rawMarket.clone(), "liquidity", &[]).as_f64();
-        let mut rawOutcomes: Vec<Value> = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawOutcomes: crate::value::List = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcomeRaw: Value = Value::Null;
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
@@ -1027,7 +1027,7 @@ impl Binance {
                         let mut oi: i64 = 0;
             let mut __for_first_1220: bool = true;
             while { if !__for_first_1220 { oi += 1; } __for_first_1220 = false; (oi as f64) < rawOutcomesLength } {
-            let mut rawOutcome: crate::value::Dict = self.safe_dict(rawOutcomes.clone().into(), Value::Int(oi), &[]).into_dict();
+            let mut rawOutcome: crate::value::Dict = self.safe_dict(Value::Arr(rawOutcomes.clone()), Value::Int(oi), &[]).into_dict();
             let mut label: Option<String> = self.safe_string_upper_k(&rawOutcome, "name", &[]).as_str().map(str::to_owned);
             let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "tokenId", &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1429,12 +1429,12 @@ impl Binance {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Vec<Value> = self.safe_list_k(response, "items", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response, "items", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1222: bool = true;
             while { if !__for_first_1222 { i += 1; } __for_first_1222 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut accountType: Option<String> = self.safe_string_k_opt(&balance, "accountType", &[]);
             if (accountType.as_deref() == type_var.as_str()) {
                 let mut free: Option<String> = self.safe_string_k(&balance, "availableBalanceDisplay", &[]).as_str().map(str::to_owned);
@@ -2235,9 +2235,9 @@ impl Binance {
         //     ]
         // }
         //
-        let mut wallets: Value = self.safe_list_k(&response, "wallets", &[Value::from(vec![])]);
+        let mut wallets: crate::value::List = self.safe_list_k(&response, "wallets", &[Value::from(vec![])]).into_list();
         if (walletAddress == Value::Null) {
-            { let __be_tmp = self.safe_dict(wallets.clone(), Value::Int(0), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), __be_tmp); } }
+            { let __be_tmp = self.safe_dict(Value::Arr(wallets.clone()), Value::Int(0), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), __be_tmp); } }
             return self.safe_dict_k(self.options.clone(), "wallet", &[]);
         }
         let mut walletLength: f64 = ((wallets.len() as i64) as f64);
@@ -2245,9 +2245,9 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1225: bool = true;
             while { if !__for_first_1225 { i += 1; } __for_first_1225 = false; (i as f64) < walletLength } {
-            let mut w: Value = self.safe_string_k(wallets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "walletAddress", &[Value::Str("".into())]);
+            let mut w: Value = self.safe_string_k(wallets.get(i as usize).cloned().unwrap_or(Value::Null), "walletAddress", &[Value::Str("".into())]);
             if (w.as_str() == walletAddress.as_str()) {
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), wallets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), wallets.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 return self.safe_dict_k(self.options.clone(), "wallet", &[]);
             }
         }
@@ -2576,9 +2576,9 @@ impl Binance {
         //     ]
         // }
         //
-        let mut canceledOrders: Vec<Value> = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut canceledOrders: crate::value::List = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).into_list();
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]);
-        let mut failedOrders: Vec<Value> = self.safe_list_k(&response, "failed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut failedOrders: crate::value::List = self.safe_list_k(&response, "failed", &[Value::from(vec![])]).into_list();
         let mut failedOrdersLength: f64 = ((failedOrders.len() as i64) as f64);
         if failedOrdersLength > ((0i64) as f64) {
             let mut failedDetails: Vec<Value> = Vec::new();
@@ -2586,7 +2586,7 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_1227: bool = true;
                 while { if !__for_first_1227 { i += 1; } __for_first_1227 = false; (i as f64) < failedOrdersLength } {
-                let mut failedOrder: crate::value::Dict = self.safe_dict(failedOrders.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut failedOrder: crate::value::Dict = self.safe_dict(Value::Arr(failedOrders.clone()), Value::Int(i), &[]).into_dict();
                 let mut failedOrderId: String = self.safe_string_k(&failedOrder, "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut failedReason: String = self.safe_string_k(&failedOrder, "reason", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, Value::Str(": ".into())).into()), failedReason).into()));

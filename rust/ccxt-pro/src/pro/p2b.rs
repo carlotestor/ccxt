@@ -695,7 +695,7 @@ impl P2b {
         //    }
         //
         let mut data: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut trades: Vec<Value> = self.safe_list(data.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut trades: crate::value::List = self.safe_list(data.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string(data, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);

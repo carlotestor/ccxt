@@ -1497,7 +1497,7 @@ impl Digifinex {
         //         "code":0
         //     }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3058,7 +3058,7 @@ impl Digifinex {
         //     }
         //
         if isMargin || (marketType.as_deref() == Some("spot")) {
-            let mut canceledOrders: Vec<Value> = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut canceledOrders: crate::value::List = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).into_list();
             let mut numCanceledOrders: f64 = ((canceledOrders.len() as i64) as f64);
             if (numCanceledOrders != 1.0) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() ".into())).into()), idValue.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
@@ -3085,8 +3085,8 @@ impl Digifinex {
 }));
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut success: Vec<Value> = (match response.get("success") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut error: Vec<Value> = (match response.get("error") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut success: crate::value::List = (match response.get("success") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut error: crate::value::List = (match response.get("error") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4824,7 +4824,7 @@ impl Digifinex {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "list", &[Value::from(vec![])]).into_list();
         let mut result: Value = Value::Null;
         {
                         let mut i: i64 = 0;
@@ -5147,7 +5147,7 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut result: Vec<Value> = self.safe_list_k(&data, "funding_rates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = self.safe_list_k(&data, "funding_rates", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5378,7 +5378,7 @@ impl Digifinex {
         if (marketType.as_deref() == Some("swap")) {
             positionRequest = "data".to_string();
         }
-        let mut positions: Vec<Value> = self.safe_list(response, Value::from(positionRequest), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list(response, Value::from(positionRequest), &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5500,7 +5500,7 @@ impl Digifinex {
         if (marketType.as_deref() == Some("swap")) {
             dataRequest = "data".to_string();
         }
-        let mut data: Vec<Value> = self.safe_list(response.clone(), Value::from(dataRequest), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list(response.clone(), Value::from(dataRequest), &[Value::from(vec![])]).into_list();
         let mut position: indexmap::IndexMap<String, Value> = self.parse_position(data.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
         if (marketType.as_deref() == Some("swap")) {
             return Value::Map(position);
@@ -5917,14 +5917,14 @@ impl Digifinex {
         //     }
         //
         let mut tiers: Vec<Value> = Vec::new();
-        let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "open_max_limits", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut brackets: crate::value::List = self.safe_list_k(info.clone(), "open_max_limits", &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string_k(info, "instrument_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (brackets.len() as i64) } {
-            let mut tier: Value = self.safe_dict(brackets.clone().into(), Value::Int(i), &[]);
+            let mut tier: Value = self.safe_dict(Value::Arr(brackets.clone()), Value::Int(i), &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));

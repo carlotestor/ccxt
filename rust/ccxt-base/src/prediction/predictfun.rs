@@ -573,7 +573,7 @@ impl Predictfun {
                         let mut ei: i64 = 0;
             let mut __for_first_1457: bool = true;
             while { if !__for_first_1457 { ei += 1; } __for_first_1457 = false; (ei as f64) < eventsLength } {
-            let mut eventMarkets: Vec<Value> = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut eventMarkets: crate::value::List = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]).into_list();
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -892,7 +892,7 @@ impl Predictfun {
             while { if !__for_first_1459 { i += 1; } __for_first_1459 = false; (i as f64) < rawTopicsLength } {
             let mut parsedEvent: Value = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(parsedEvent.clone());
-            let mut parsedMarkets: Vec<Value> = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut parsedMarkets: crate::value::List = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -1042,13 +1042,13 @@ impl Predictfun {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut categories: Vec<Value> = self.safe_list_k(&data, "categories", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut categories: crate::value::List = self.safe_list_k(&data, "categories", &[Value::from(vec![])]).into_list();
             let mut categoriesLength: f64 = ((categories.len() as i64) as f64);
             {
                                 let mut ci: i64 = 0;
                 let mut __for_first_1460: bool = true;
                 while { if !__for_first_1460 { ci += 1; } __for_first_1460 = false; (ci as f64) < categoriesLength } {
-                let mut category: Value = self.safe_dict(categories.clone().into(), Value::Int(ci), &[]);
+                let mut category: Value = self.safe_dict(Value::Arr(categories.clone()), Value::Int(ci), &[]);
                 let mut categorySlug: Option<String> = self.safe_string_k_opt(category.clone(), "slug", &[]);
                 if (categorySlug.is_none()) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1062,7 +1062,7 @@ impl Predictfun {
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(&data, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawMarkets: crate::value::List = self.safe_list_k(&data, "markets", &[Value::from(vec![])]).into_list();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -1305,7 +1305,7 @@ impl Predictfun {
         //         }
         //     }
         //
-        let mut rawMarkets: Vec<Value> = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
         let mut marketsList: Vec<Value> = Vec::new();
         let mut anyActive: Value = Value::Bool(false);
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
@@ -1536,7 +1536,7 @@ impl Predictfun {
             eventHandle = self.shorten_slug(topicSlug.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut title: Value = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut topicMarkets: Vec<Value> = (match rawTopic.get("markets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut topicMarkets: crate::value::List = (match rawTopic.get("markets") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut marketCount: Value = Value::Int(topicMarkets.len() as i64);
         let mut symbolTitle: Value = self.title_for_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), title, &[marketCount]).map(Value::from).unwrap_or(Value::Null);
         let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), symbolTitle);
@@ -1558,7 +1558,7 @@ impl Predictfun {
                 m.insert("price".to_string(), pricePrecision);
             m
         });
-        let mut rawOutcomes: Vec<Value> = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawOutcomes: crate::value::List = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcomeRaw: Value = Value::Null;
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
@@ -1755,15 +1755,15 @@ impl Predictfun {
             let mut yesOrderbook: Value = self.parse_order_book(data.clone(), outcomeSymbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
             return self.safe_prediction_order_book(yesOrderbook, &[outcomeObj.clone()]);
         }  else {
-            let mut bids: Vec<Value> = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-            let mut asks: Vec<Value> = self.safe_list_k(data, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut bids: crate::value::List = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k(data, "asks", &[Value::from(vec![])]).into_list();
             let mut noBids: Vec<Value> = Vec::new();
             let mut noAsks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1467: bool = true;
                 while { if !__for_first_1467 { i += 1; } __for_first_1467 = false; i < (bids.len() as i64) } {
-                let mut bid: crate::value::List = self.safe_list(bids.clone().into(), Value::Int(i), &[]).into_list();
+                let mut bid: crate::value::List = self.safe_list(Value::Arr(bids.clone()), Value::Int(i), &[]).into_list();
                 let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -1774,7 +1774,7 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1468: bool = true;
                 while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (asks.len() as i64) } {
-                let mut ask: crate::value::List = self.safe_list(asks.clone().into(), Value::Int(i), &[]).into_list();
+                let mut ask: crate::value::List = self.safe_list(Value::Arr(asks.clone()), Value::Int(i), &[]).into_list();
                 let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -1914,7 +1914,7 @@ impl Predictfun {
     m
 })]).into_dict();
         let mut indexSet: Option<i64> = self.safe_integer_k(&info, "indexSet", &[]).as_i64();
-        let mut rawOutcomes: Vec<Value> = self.safe_list_k(ticker.clone(), "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawOutcomes: crate::value::List = self.safe_list_k(ticker.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         let mut rawOutcome: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2032,7 +2032,7 @@ impl Predictfun {
         let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[__ws_arg_5]).await.into_dict();
         // the venue answers with the shape documented in fetchTrades below
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut wallet: Value = (if let Some(__s) = signerAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         // a settlement names one taker and several makers, and the wallet may sit on either side,
         // so the legs it signed are the ones to report - a self trade legitimately yields two rows
@@ -2062,7 +2062,7 @@ impl Predictfun {
                     m
                 })]));
             }
-            let mut makers: Vec<Value> = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
             let mut makersLength: f64 = ((makers.len() as i64) as f64);
             {
                                 let mut j: i64 = 0;
@@ -2170,14 +2170,14 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut flattenTrades: Vec<Value> = Vec::new();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1473: bool = true;
             while { if !__for_first_1473 { i += 1; } __for_first_1473 = false; (i as f64) < dataLength } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
             let mut taker: crate::value::Dict = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2210,7 +2210,7 @@ impl Predictfun {
                     m
                 })]));
             }  else {
-                let mut makers: Vec<Value> = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
                 let mut makersLength: f64 = ((makers.len() as i64) as f64);
                 let mut makerParty: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -3152,15 +3152,15 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut rejected: Vec<Value> = self.safe_list_k(response.clone(), "rejected", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rejected: crate::value::List = self.safe_list_k(response.clone(), "rejected", &[Value::from(vec![])]).into_list();
         let mut rejectedLength: f64 = ((rejected.len() as i64) as f64);
         if rejectedLength > ((0i64) as f64) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() was refused for ".into())).into()), json_stringify(&rejected.clone().into()))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() was refused for ".into())).into()), json_stringify(&Value::Arr(rejected)))));
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
         // read: it takes the hash off orderHash and the status through parseOrderStatus
-        let mut removed: Vec<Value> = self.safe_list_k(response.clone(), "removed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut noop: Vec<Value> = self.safe_list_k(response.clone(), "noop", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut removed: crate::value::List = self.safe_list_k(response.clone(), "removed", &[Value::from(vec![])]).into_list();
+        let mut noop: crate::value::List = self.safe_list_k(response.clone(), "noop", &[Value::from(vec![])]).into_list();
         let mut rows: Vec<Value> = Vec::new();
         let mut removedLength: f64 = ((removed.len() as i64) as f64);
         {
@@ -4083,8 +4083,8 @@ impl Predictfun {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: crate::value::List = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut subMessageHashes: crate::value::List = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         let mut messageHashesLength: f64 = ((messageHashes.len() as i64) as f64);
         // one wallet hash stands for a family: 'orders' is what an unnarrowed caller waits on and
         // 'orders::<outcome>' what a narrowed one waits on, so the base matches it as a prefix and
@@ -4559,8 +4559,8 @@ impl Predictfun {
 }) }).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "marketId", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updateTimestampMs", &[]).as_i64();
-        let mut rawAsks: Vec<Value> = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawBids: Vec<Value> = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+        let mut rawBids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
         // every message carries the whole book - the venue publishes no deltas - and the levels
         // arrive already sorted, best first
         let mut yesBids: Value = Value::from(vec![]);
@@ -4572,7 +4572,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1486: bool = true;
             while { if !__for_first_1486 { i += 1; } __for_first_1486 = false; (i as f64) < bidsLength } {
-            let mut bid: crate::value::List = self.safe_list(rawBids.clone().into(), Value::Int(i), &[]).into_list();
+            let mut bid: crate::value::List = self.safe_list(Value::Arr(rawBids.clone()), Value::Int(i), &[]).into_list();
             let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(bidPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), bidSize.clone()])); }
@@ -4585,7 +4585,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1487: bool = true;
             while { if !__for_first_1487 { i += 1; } __for_first_1487 = false; (i as f64) < asksLength } {
-            let mut ask: crate::value::List = self.safe_list(rawAsks.clone().into(), Value::Int(i), &[]).into_list();
+            let mut ask: crate::value::List = self.safe_list(Value::Arr(rawAsks.clone()), Value::Int(i), &[]).into_list();
             let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(askPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), askSize.clone()])); }

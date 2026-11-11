@@ -4399,7 +4399,7 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotBalances: Value = self.safe_list2(spotData, Value::Str("balances".into()), Value::Str("assets".into()), &[Value::from(vec![])]);
+        let mut spotBalances: crate::value::List = self.safe_list2(spotData, Value::Str("balances".into()), Value::Str("assets".into()), &[Value::from(vec![])]).into_list();
         if isContract {
             {
                                 let mut i: i64 = 0;
@@ -4425,7 +4425,7 @@ impl Bingx {
                                 let mut i: i64 = 0;
                 let mut __for_first_320: bool = true;
                 while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (spotBalances.len() as i64) } {
-                let mut balance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[]);
+                let mut balance: Value = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
@@ -8524,7 +8524,7 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut success: Vec<Value> = self.safe_list_k(&data, "success", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut success: crate::value::List = self.safe_list_k(&data, "success", &[Value::from(vec![])]).into_list();
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

@@ -2338,7 +2338,7 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_947: bool = true;
@@ -2491,7 +2491,7 @@ impl Mexc {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2650,7 +2650,7 @@ impl Mexc {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5285,7 +5285,7 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Value = self.fetch_account_helper(marketType, &query).await;
-        let mut data: Vec<Value> = self.safe_list_k(response, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response, "balances", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5989,7 +5989,7 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut resultList: Vec<Value> = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut resultList: crate::value::List = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -6218,7 +6218,7 @@ impl Mexc {
         //    }
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
-        let mut result: Vec<Value> = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -7749,7 +7749,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: Vec<Value> = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut networkList: crate::value::List = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7758,7 +7758,7 @@ impl Mexc {
                         let mut j: i64 = 0;
             let mut __for_first_958: bool = true;
             while { if !__for_first_958 { j += 1; } __for_first_958 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
+            let mut networkEntry: crate::value::Dict = self.safe_dict(Value::Arr(networkList.clone()), Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
@@ -7829,13 +7829,13 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: Vec<Value> = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networkList: crate::value::List = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_959: bool = true;
             while { if !__for_first_959 { j += 1; } __for_first_959 = false; j < (networkList.len() as i64) } {
-            let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
+            let mut networkEntry: crate::value::Dict = self.safe_dict(Value::Arr(networkList.clone()), Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
             if (networkCode != Value::Null) {

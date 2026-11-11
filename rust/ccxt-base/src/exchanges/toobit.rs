@@ -1393,7 +1393,7 @@ impl Toobit {
         //            },
         //          ...
         //
-        let mut coins: Vec<Value> = self.safe_list_k(response, "coins", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut coins: crate::value::List = self.safe_list_k(response, "coins", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1422,7 +1422,7 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut rawNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawNetworks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_1130: bool = true;

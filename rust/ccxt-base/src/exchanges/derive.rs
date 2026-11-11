@@ -1341,7 +1341,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut subaccountIds: Vec<Value> = self.safe_list_k(result.clone(), "subaccount_ids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subaccountIds: crate::value::List = self.safe_list_k(result.clone(), "subaccount_ids", &[Value::from(vec![])]).into_list();
         let mut accounts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2897,7 +2897,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&result, "funding_rate_history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&result, "funding_rate_history", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5018,12 +5018,12 @@ impl Derive {
             while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (subaccounts.len() as i64) } {
             let mut subaccount: crate::value::Dict = self.safe_dict(Value::Arr(subaccounts.clone()), Value::Int(i), &[]).into_dict();
             usedUsd = crate::precise::Precise::stringSub(&usedUsd.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringAdd(&self.safe_string_k(&subaccount, "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(&subaccount, "open_orders_margin", &[Value::Str("0".into())]))).as_str().map(str::to_owned);
-            let mut collaterals: Vec<Value> = self.safe_list_k(&subaccount, "collaterals", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut collaterals: crate::value::List = self.safe_list_k(&subaccount, "collaterals", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_634: bool = true;
                 while { if !__for_first_634 { j += 1; } __for_first_634 = false; j < (collaterals.len() as i64) } {
-                let mut balance: crate::value::Dict = self.safe_dict(collaterals.clone().into(), Value::Int(j), &[]).into_dict();
+                let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(collaterals.clone()), Value::Int(j), &[]).into_dict();
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), &[]);
                 let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                 if (account == Value::Null) {
@@ -5265,13 +5265,13 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transfers: Vec<Value> = self.safe_list_k(&result, "transfers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut transfers: crate::value::List = self.safe_list_k(&result, "transfers", &[Value::from(vec![])]).into_list();
         let mut parsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_636: bool = true;
             while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (transfers.len() as i64) } {
-            parsed.push(self.parse_transfer(self.safe_dict(transfers.clone().into(), Value::Int(i), &[Value::Map({
+            parsed.push(self.parse_transfer(self.safe_dict(Value::Arr(transfers.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]));
@@ -5358,14 +5358,14 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Vec<Value> = self.safe_list_k(&result, "interest_rate_history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&result, "interest_rate_history", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_637: bool = true;
             while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (rows.len() as i64) } {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
-            rates.push(self.parse_borrow_rate(self.safe_dict(rows.clone().into(), Value::Int(i), &[Value::Map({
+            rates.push(self.parse_borrow_rate(self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[currency.clone()]));

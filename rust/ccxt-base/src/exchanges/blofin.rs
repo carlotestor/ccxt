@@ -2003,12 +2003,12 @@ impl Blofin {
         let __ws_arg_5 = self.extend(Value::Map(request), &[query]);
         let mut response: crate::value::Dict = self.public_get_market_funding_rate_history(&[__ws_arg_5]).await.into_dict();
         let mut rates: Vec<Value> = Vec::new();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_460: bool = true;
             while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (data.len() as i64) } {
-            let mut rate: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut rate: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2189,12 +2189,12 @@ impl Blofin {
     m
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        let mut details: Vec<Value> = self.safe_list_k(&data, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut details: crate::value::List = self.safe_list_k(&data, "details", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_461: bool = true;
             while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (details.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(details.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(details.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2239,12 +2239,12 @@ impl Blofin {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_462: bool = true;
             while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3613,7 +3613,7 @@ impl Blofin {
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_22]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // only accept a row that matches the requested id, in case the
         // venue ignores the filter and returns the latest records instead
         let mut dataLength: f64 = ((data.len() as i64) as f64);
@@ -3621,7 +3621,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_466: bool = true;
             while { if !__for_first_466 { i += 1; } __for_first_466 = false; (i as f64) < dataLength } {
-            let mut entry: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_value(&data, Value::Int(i), &[]);
             if (self.safe_string_k(entry.clone(), "depositId", &[]).as_str() == id.as_str()) {
                 return self.parse_transaction(entry, &[currency.clone()]);
             }
@@ -3668,7 +3668,7 @@ impl Blofin {
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_23]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // only accept a row that matches the requested id (or clientId), in
         // case the venue ignores the filter and returns the latest records
         let mut dataLength: f64 = ((data.len() as i64) as f64);
@@ -3676,7 +3676,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_467: bool = true;
             while { if !__for_first_467 { i += 1; } __for_first_467 = false; (i as f64) < dataLength } {
-            let mut entry: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_value(&data, Value::Int(i), &[]);
             let mut matches: bool = false;
             if (id != Value::Null) {
                 matches = self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str();

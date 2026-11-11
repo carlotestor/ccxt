@@ -4028,7 +4028,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut list: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut list: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         let mut status: String = "ok".to_string();
         let mut eta: Option<i64> = None;
         let mut url: Option<String> = None;
@@ -4036,7 +4036,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_497: bool = true;
             while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (list.len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(list.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(Value::Arr(list.clone()), Value::Int(i), &[]).into_dict();
             let mut state: Option<String> = self.safe_string_k(&event, "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("ongoing")) {
                 status = "maintenance".to_string();
@@ -4161,7 +4161,7 @@ impl Bybit {
         let mut currencyId: Option<String> = self.safe_string_k(currency.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut chains: Vec<Value> = self.safe_list_k(currency.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(currency.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4381,7 +4381,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Vec<Value> = self.safe_list_k(&responseResult, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&responseResult, "list", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         let mut takerFee: Value = self.parse_number(Value::Str("0.001".into()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("0.001".into()), &[]);
@@ -4528,12 +4528,12 @@ impl Bybit {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut rawMarkets: Vec<Value> = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut rawMarkets: crate::value::List = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).into_list();
                 let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
                 if (rawMarketsLength == 0.0) {
                     break;
                 }
-                markets = self.array_concat(rawMarkets.clone().into(), markets.clone());
+                markets = self.array_concat(Value::Arr(rawMarkets), markets.clone());
                 paginationCursor = self.safe_string_k(&dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
             }
         }
@@ -4771,12 +4771,12 @@ impl Bybit {
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]).into_dict();
-                    let mut rawMarkets: Vec<Value> = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut rawMarkets: crate::value::List = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).into_list();
                     let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
                     if (rawMarketsLength == 0.0) {
                         break;
                     }
-                    markets = self.array_concat(rawMarkets.clone().into(), markets.clone());
+                    markets = self.array_concat(Value::Arr(rawMarkets), markets.clone());
                     paginationCursor = self.safe_string_k(&dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
                 }
             }
@@ -5769,7 +5769,7 @@ impl Bybit {
         //
         let mut rates: Vec<Value> = Vec::new();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
-        let mut resultList: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut resultList: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_508: bool = true;
@@ -6341,13 +6341,13 @@ impl Bybit {
                 let mut entry: crate::value::Dict = self.safe_dict(currencyList.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
                 let mut accountType: Option<String> = self.safe_string_k(&entry, "accountType", &[]).as_str().map(str::to_owned);
                 if (accountType.as_deref() == Some("UNIFIED")) || (accountType.as_deref() == Some("CONTRACT")) || (accountType.as_deref() == Some("SPOT")) {
-                    let mut coins: Vec<Value> = self.safe_list_k(&entry, "coin", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut coins: crate::value::List = self.safe_list_k(&entry, "coin", &[Value::from(vec![])]).into_list();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_509: bool = true;
                         while { if !__for_first_509 { j += 1; } __for_first_509 = false; j < (coins.len() as i64) } {
                         let mut account: Value = self.account();
-                        let mut coinEntry: crate::value::Dict = self.safe_dict(coins.clone().into(), Value::Int(j), &[]).into_dict();
+                        let mut coinEntry: crate::value::Dict = self.safe_dict(Value::Arr(coins.clone()), Value::Int(j), &[]).into_dict();
                         let mut loan: Option<String> = self.safe_string_k_opt(&coinEntry, "borrowAmount", &[]);
                         let mut interest: Option<String> = self.safe_string_k_opt(&coinEntry, "accruedInterest", &[]);
                         if (loan.is_some()) && (interest.is_some()) {
@@ -7319,7 +7319,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut codes: Vec<Value> = self.safe_list_k(&retInfo, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut codes: crate::value::List = self.safe_list_k(&retInfo, "list", &[Value::from(vec![])]).into_list();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_512: bool = true;
@@ -7564,7 +7564,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut codes: Vec<Value> = self.safe_list_k(&retInfo, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut codes: crate::value::List = self.safe_list_k(&retInfo, "list", &[Value::from(vec![])]).into_list();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_514: bool = true;
@@ -8215,7 +8215,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut innerList: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut innerList: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
         // see https://github.com/ccxt/ccxt/pull/29602
         let mut innerListLength: f64 = ((innerList.len() as i64) as f64);
@@ -8226,7 +8226,7 @@ impl Bybit {
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
-        let mut order: Value = self.safe_dict(innerList.clone().into(), Value::Int(0), &[Value::Map({
+        let mut order: Value = self.safe_dict(Value::Arr(innerList), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -11756,7 +11756,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut fees: Vec<Value> = self.safe_list_k(&feeRates, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fees: crate::value::List = self.safe_list_k(&feeRates, "list", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -11801,7 +11801,7 @@ impl Bybit {
         //        ]
         //    }
         //
-        let mut chains: Vec<Value> = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -11829,7 +11829,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_520: bool = true;
                 while { if !__for_first_520 { i += 1; } __for_first_520 = false; (i as f64) < chainsLength } {
-                let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut chain: crate::value::Dict = self.safe_dict(Value::Arr(chains.clone()), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -12321,7 +12321,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         let mut greeks: Value = self.parse_greeks(data.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         let __ws_arg_72 = self.iso8601(Value::from(timestamp));
         return self.extend(greeks, &[Value::Map({
@@ -13382,7 +13382,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut coins: Vec<Value> = self.safe_list_k(&data, "coins", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut coins: crate::value::List = self.safe_list_k(&data, "coins", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_526: bool = true;

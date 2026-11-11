@@ -1392,7 +1392,7 @@ impl Dydx {
         // }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut rows: Vec<Value> = self.safe_list_k(&response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&response, "historicalFunding", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_658: bool = true;
@@ -3407,7 +3407,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(&response, "subaccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(&response, "subaccounts", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

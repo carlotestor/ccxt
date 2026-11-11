@@ -2764,7 +2764,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isUnSub: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isUnSub {
-            let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
             let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
@@ -2778,7 +2778,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
             if (topic.as_deref() == Some("fundingRate")) {
                 // todo: add fundingRate topic to cleanCache
-                let mut symbols: Vec<Value> = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut symbols: crate::value::List = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_462: bool = true;

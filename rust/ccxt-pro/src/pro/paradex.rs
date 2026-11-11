@@ -1094,12 +1094,12 @@ impl Paradex {
             let mut __for_first_588: bool = true;
             while { if !__for_first_588 { k += 1; } __for_first_588 = false; k < (levelKeys.len() as i64) } {
             let mut isDelete: bool = levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
-            let mut levels: Vec<Value> = self.safe_list(data.clone(), levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut levels: crate::value::List = self.safe_list(data.clone(), levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_587: bool = true;
                 while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (levels.len() as i64) } {
-                let mut level: crate::value::Dict = self.safe_dict(levels.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut level: crate::value::Dict = self.safe_dict(Value::Arr(levels.clone()), Value::Int(i), &[]).into_dict();
                 let mut price: Option<String> = self.safe_string_k(&level, "price", &[]).as_str().map(str::to_owned);
                 let mut size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k(&level, "size", &[]).as_str().map(str::to_owned) });
                 if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {

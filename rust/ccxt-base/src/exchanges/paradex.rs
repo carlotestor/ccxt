@@ -1752,7 +1752,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut fees: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fees: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3433,7 +3433,7 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut results: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3927,7 +3927,7 @@ impl Paradex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: crate::value::Dict = self.private_get_positions(&[params]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         let mut matching: Vec<Value> = Vec::new();
         {
@@ -4001,7 +4001,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // the endpoint keeps returning a market's position after it is closed, with a size of 0
         let mut openPositions: Vec<Value> = Vec::new();
         {
@@ -5274,7 +5274,7 @@ impl Paradex {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        let mut results: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5432,7 +5432,7 @@ impl Paradex {
             //         "orders": [ null ]
             //     }
             //
-            let mut batchErrors: Vec<Value> = self.safe_list_k(response, "errors", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut batchErrors: crate::value::List = self.safe_list_k(response, "errors", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1073: bool = true;

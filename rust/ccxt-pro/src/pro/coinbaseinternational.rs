@@ -2090,7 +2090,7 @@ impl Coinbaseinternational {
     m
 }) }).into_dict();
         let mut channel: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
-        let mut data: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -3085,7 +3085,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("fetchBalanceWs".into()), &[params]);
         let mut result: Value = self.request_ws(Value::Str("private/get_account_summaries".into()), &[paramsResolved, Value::Bool(true)]).await;
-        let mut summaries: Vec<Value> = self.safe_list_k(result.clone(), "summaries", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut summaries: crate::value::List = self.safe_list_k(result.clone(), "summaries", &[Value::from(vec![])]).into_list();
         let mut balance: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), result);

@@ -532,7 +532,7 @@ impl Sxbet {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut pageMarkets: Vec<Value> = self.safe_list_k(&result, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut pageMarkets: crate::value::List = self.safe_list_k(&result, "markets", &[Value::from(vec![])]).into_list();
             let mut pageMarketsLength: f64 = ((pageMarkets.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
@@ -767,7 +767,7 @@ impl Sxbet {
         let mut leagueId: Option<String> = self.safe_string_k(params.clone(), "leagueId", &[]).as_str().map(str::to_owned);
         let mut sportId: Option<String> = self.safe_string_k(params.clone(), "sportId", &[]).as_str().map(str::to_owned);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut tags: Vec<Value> = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
         let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -855,7 +855,7 @@ impl Sxbet {
             while { if !__for_first_1498 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1498 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
             let mut fixtureId: Value = order.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(fixtureId.clone(), (if let (Some(__m), Some(__k)) = (grouped.as_map(), fixtureId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-            let mut evMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut evMarkets: crate::value::List = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).into_list();
             let mut evMarketsLength: f64 = ((evMarkets.len() as i64) as f64);
             {
                                 let mut j: i64 = 0;
@@ -1656,7 +1656,7 @@ impl Sxbet {
         let mut result: Vec<Value> = Vec::new();
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
         // report 'cancelledSubmitted' instead - treat both like cancelled
-        let mut cancelled: Value = self.safe_list2(data.clone(), Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]);
+        let mut cancelled: crate::value::List = self.safe_list2(data.clone(), Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]).into_list();
         let mut cancelledLength: f64 = ((cancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1664,14 +1664,14 @@ impl Sxbet {
             while { if !__for_first_1504 { i += 1; } __for_first_1504 = false; (i as f64) < cancelledLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(cancelled.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "orderId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(cancelled.get(i as usize).cloned().unwrap_or(Value::Null), "orderId", &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
         m.insert("info".to_string(), response.clone());
     m
 }), &[]));
         }
         }
-        let mut notCancelled: Vec<Value> = self.safe_list_k(data.clone(), "notCancelled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut notCancelled: crate::value::List = self.safe_list_k(data.clone(), "notCancelled", &[Value::from(vec![])]).into_list();
         let mut notCancelledLength: f64 = ((notCancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1687,7 +1687,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut unconfirmed: Vec<Value> = self.safe_list_k(data, "unconfirmed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut unconfirmed: crate::value::List = self.safe_list_k(data, "unconfirmed", &[Value::from(vec![])]).into_list();
         let mut unconfirmedLength: f64 = ((unconfirmed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -2187,7 +2187,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rawTrades: Vec<Value> = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
         let mut trades: Value = Value::from(vec![]);
         let mut rawTradesLength: f64 = ((rawTrades.len() as i64) as f64);
         {
@@ -2253,7 +2253,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rawFills: Vec<Value> = self.safe_list_k(&data, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawFills: crate::value::List = self.safe_list_k(&data, "fills", &[Value::from(vec![])]).into_list();
         let mut trades: Value = Value::from(vec![]);
         let mut rawFillsLength: f64 = ((rawFills.len() as i64) as f64);
         {
@@ -2377,7 +2377,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balances: Vec<Value> = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2389,7 +2389,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { i += 1; } __for_first_1512 = false; (i as f64) < balancesLength } {
-            let mut row: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut tokenAddress: String = self.safe_string_lower_k(&row, "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -2467,7 +2467,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rawPositions: Vec<Value> = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         let mut rawPositionsLength: f64 = ((rawPositions.len() as i64) as f64);
         {
@@ -2606,7 +2606,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rawTrades: Vec<Value> = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         let mut rawTradesLength: f64 = ((rawTrades.len() as i64) as f64);
         {

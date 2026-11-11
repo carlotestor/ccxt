@@ -1545,7 +1545,7 @@ impl Coinbaseinternational {
         let mut precision: Value = self.parse_number(self.parse_precision(&[decimals.clone().map(Value::from).unwrap_or(Value::Null)]), &[]);
         let mut networkFee: Option<f64> = self.safe_number_k(currency.clone(), "network_fee", &[]).as_f64();
         let mut withdrawalFee: Option<f64> = self.safe_number_k(currency.clone(), "withdrawal_fee", &[]).as_f64();
-        let mut rawNetworks: Vec<Value> = self.safe_list_k(currency.clone(), "coinbase_networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawNetworks: crate::value::List = self.safe_list_k(currency.clone(), "coinbase_networks", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3048,9 +3048,9 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut logs: Vec<Value> = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut logs: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
-            return self.parse_transactions(logs.clone().into(), &[currency.clone(), since.clone(), limit.clone()]);
+            return self.parse_transactions(Value::Arr(logs.clone()), &[currency.clone(), since.clone(), limit.clone()]);
         }
         let mut transactions: Vec<Value> = Vec::new();
         {

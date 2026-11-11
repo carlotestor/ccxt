@@ -516,7 +516,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).into_list();
         let mut ch: Option<String> = match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         if (ch.is_none()) {
             return message;

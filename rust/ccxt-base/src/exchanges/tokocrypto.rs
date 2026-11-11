@@ -1147,7 +1147,7 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut list: Vec<Value> = self.safe_list_k(&data, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1170,7 +1170,7 @@ impl Tokocrypto {
             let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
             let mut status: Option<String> = self.safe_string_k(market.clone(), "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: bool = status.as_deref() == Some("1");
-            let mut permissions: Vec<Value> = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut permissions: crate::value::List = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1125: bool = true;
@@ -2093,12 +2093,12 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balances: Vec<Value> = self.safe_list_k(&data, "accountAssets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(&data, "accountAssets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1127: bool = true;
             while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3618,7 +3618,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params]);
-        let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("coin"))) {
             return (match config.get("noCoin") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("symbol"))) {

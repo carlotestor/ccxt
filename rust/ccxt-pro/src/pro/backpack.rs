@@ -2242,7 +2242,7 @@ impl Backpack {
             m
         })]);
         if stock {
-            let mut securities: Vec<Value> = self.safe_list_k(self.options.clone(), "securities", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut securities: crate::value::List = self.safe_list_k(self.options.clone(), "securities", &[Value::from(vec![])]).into_list();
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer_k(balances.clone(), "timestamp", &[]));
@@ -2254,7 +2254,7 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_52: bool = true;
                 while { if !__for_first_52 { i += 1; } __for_first_52 = false; i < (securities.len() as i64) } {
-                let mut security: crate::value::Dict = self.safe_dict(securities.clone().into(), Value::Int(i), &[Value::Map({
+                let mut security: crate::value::Dict = self.safe_dict(Value::Arr(securities.clone()), Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();

@@ -1262,10 +1262,10 @@ impl Bittrade {
         //         ]
         //    }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut numMarkets: f64 = ((markets.len() as i64) as f64);
         if numMarkets < ((1i64) as f64) {
-            panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&markets.clone().into()))));
+            panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&Value::Arr(markets.clone())))));
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1614,7 +1614,7 @@ impl Bittrade {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.market_get_tickers(&[params]).await.into_dict();
-        let mut tickers: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1880,13 +1880,13 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_448: bool = true;
             while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (data.len() as i64) } {
-            let mut trades: Vec<Value> = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut trades: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_447: bool = true;
@@ -2121,7 +2121,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balances: Vec<Value> = self.safe_list_k(&data, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2824,7 +2824,7 @@ impl Bittrade {
         }  else {
             success = self.safe_list_k(orders.clone(), "success", &[Value::from(vec![])]);
         }
-        let mut failed: Value = self.safe_list2(orders, Value::Str("errors".into()), Value::Str("failed".into()), &[Value::from(vec![])]);
+        let mut failed: crate::value::List = self.safe_list2(orders, Value::Str("errors".into()), Value::Str("failed".into()), &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2844,7 +2844,7 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (failed.len() as i64) } {
-            let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

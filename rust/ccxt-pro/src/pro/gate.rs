@@ -2107,7 +2107,7 @@ impl Gate {
         //     ]
         // }
         //
-        let mut result: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut result: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut tradesLength: f64 = ((result.len() as i64) as f64);
         if (tradesLength == 0.0) {
             return;
@@ -2118,7 +2118,7 @@ impl Gate {
             cachedTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = cachedTrades.clone();
         }
-        let mut parsed: Value = self.parse_trades(result.clone().into(), &[]);
+        let mut parsed: Value = self.parse_trades(Value::Arr(result), &[]);
         let mut marketIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2466,7 +2466,7 @@ impl Gate {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(client.url());
-        let mut data: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut newPositions: Value = Value::from(vec![]);
         {
@@ -2865,7 +2865,7 @@ impl Gate {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rawLiquidations: crate::value::List = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut newLiquidations: Value = Value::from(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -3018,7 +3018,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
                 if (channel.is_some()) && (Value::Int(channel.as_deref().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                     let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-                    let mut payload: Vec<Value> = (match __pro_message.get("payload").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+                    let mut payload: crate::value::List = (match __pro_message.get("payload").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_338: bool = true;
@@ -3124,8 +3124,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (id != subId) {
                     continue;
                 }
-                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
+                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_339: bool = true;

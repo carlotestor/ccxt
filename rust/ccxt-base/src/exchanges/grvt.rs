@@ -1383,7 +1383,7 @@ impl Grvt {
         // }
         //
         let mut currentBuilders: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
-        let mut approvedBuilder: Vec<Value> = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut approvedBuilder: crate::value::List = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).into_list();
         let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
@@ -1391,7 +1391,7 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
-            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), Value::Int(i), &[Value::Map({
+            let mut builderInfo: crate::value::Dict = self.safe_dict(Value::Arr(approvedBuilder.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2383,13 +2383,13 @@ if _try_result.is_err() {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let mut spotBalances: Vec<Value> = self.safe_list_k(response.clone(), "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut spotBalances: crate::value::List = self.safe_list_k(response.clone(), "spot_balances", &[Value::from(vec![])]).into_list();
         let mut availableBalance: Option<String> = self.safe_string_k(response, "available_balance", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_722: bool = true;
             while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (spotBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3034,13 +3034,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut mainAccountId: Option<String> = self.safe_string_k_opt(&result1, "main_account_id", &[]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userMainAccountId".into(), mainAccountId.map(Value::from).unwrap_or(Value::Null)); }
         if accountIsUndefined {
-            let mut subAccountIds: Vec<Value> = self.safe_list_k(responses.get(1).cloned().unwrap_or(Value::Null), "sub_account_ids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut subAccountIds: crate::value::List = self.safe_list_k(responses.get(1).cloned().unwrap_or(Value::Null), "sub_account_ids", &[Value::from(vec![])]).into_list();
             let mut length: f64 = ((subAccountIds.len() as i64) as f64);
             if length < ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website".into()))));
             }
             if length > ((1i64) as f64) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".into())).into()), json_stringify(&subAccountIds.clone().into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".into())).into()), json_stringify(&Value::Arr(subAccountIds.clone())))));
             }
             let mut subAccountId: Option<String> = self.safe_string_opt(&subAccountIds, Value::Int(0), &[]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), subAccountId.map(Value::from).unwrap_or(Value::Null)); }
@@ -3372,7 +3372,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let mut priceMultiplier: Value = Value::Int(1000000000);
-        let mut orderLegs: Vec<Value> = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut orderLegs: crate::value::List = (match order.get("legs") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

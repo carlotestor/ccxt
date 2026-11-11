@@ -594,7 +594,7 @@ impl Phemex {
 }) });
             tickers.push(self.parse_ticker(ticker.clone(), &[]));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
-            let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut data: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_606: bool = true;

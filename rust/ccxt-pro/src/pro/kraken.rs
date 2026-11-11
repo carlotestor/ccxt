@@ -1092,8 +1092,8 @@ impl Kraken {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(0), &[]).into_dict();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1120,7 +1120,7 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_418: bool = true;
             while { if !__for_first_418 { i += 1; } __for_first_418 = false; (i as f64) < ohlcvsLength } {
-            let mut candle: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut candle: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&candle, "interval_begin", &[]).as_str().map(str::to_owned);
             let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             let mut parsed: Value = Value::from(vec![timestamp, self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
@@ -1777,10 +1777,10 @@ impl Kraken {
                 while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
-                let mut deltas: Vec<Value> = self.safe_list(first.clone(), key, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut deltas: crate::value::List = self.safe_list(first.clone(), key, &[Value::from(vec![])]).into_list();
                 let mut deltasLength: f64 = ((deltas.len() as i64) as f64);
                 if deltasLength > ((0i64) as f64) {
-                    self.custom_handle_deltas(bookside, deltas.clone().into());
+                    self.custom_handle_deltas(bookside, Value::Arr(deltas));
                 }
             }
             }
@@ -1798,7 +1798,7 @@ impl Kraken {
                                         let mut i: i64 = 0;
                     let mut __for_first_422: bool = true;
                     while { if !__for_first_422 { i += 1; } __for_first_422 = false; (i as f64) < ((10i64) as f64) } {
-                    let mut currentAsk: Vec<Value> = self.safe_list(checkAsks.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut currentAsk: crate::value::List = self.safe_list(checkAsks.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                     let mut currentAskLength: f64 = ((currentAsk.len() as i64) as f64);
                     let mut formattedAsk: String = "".to_string();
                     if currentAskLength > ((1i64) as f64) {
@@ -1811,7 +1811,7 @@ impl Kraken {
                                         let mut i: i64 = 0;
                     let mut __for_first_423: bool = true;
                     while { if !__for_first_423 { i += 1; } __for_first_423 = false; (i as f64) < ((10i64) as f64) } {
-                    let mut currentBid: Vec<Value> = self.safe_list(checkBids.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut currentBid: crate::value::List = self.safe_list(checkBids.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                     let mut currentBidLength: f64 = ((currentBid.len() as i64) as f64);
                     let mut formattedBid: String = "".to_string();
                     if currentBidLength > ((1i64) as f64) {
@@ -2050,7 +2050,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sequence": 10
         //     }
         //
-        let mut allTrades: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut allTrades: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut allTradesLength: f64 = ((allTrades.len() as i64) as f64);
         if allTradesLength > ((0i64) as f64) {
             if (self.myTrades.clone() == Value::Null) {
@@ -2066,7 +2066,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_425: bool = true;
                 while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (allTrades.len() as i64) } {
-                let mut trade: Value = self.safe_dict(allTrades.clone().into(), Value::Int(i), &[Value::Map({
+                let mut trade: Value = self.safe_dict(Value::Arr(allTrades.clone()), Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -2226,7 +2226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sequence": 8
         //     }
         //
-        let mut allOrders: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut allOrders: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut allOrdersLength: f64 = ((allOrders.len() as i64) as f64);
         if allOrdersLength > ((0i64) as f64) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -2242,7 +2242,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_427: bool = true;
                 while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (allOrders.len() as i64) } {
-                let mut order: Value = self.safe_dict(allOrders.clone().into(), Value::Int(i), &[Value::Map({
+                let mut order: Value = self.safe_dict(Value::Arr(allOrders.clone()), Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -2494,7 +2494,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.clone(), __be_tmp); } }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_430: bool = true;

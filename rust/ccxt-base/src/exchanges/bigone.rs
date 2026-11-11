@@ -935,7 +935,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "binding_gateways", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "binding_gateways", &[Value::from(vec![])]).into_list();
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
         {
                         let mut j: i64 = 0;
@@ -1105,7 +1105,7 @@ impl Bigone {
         //        ...
         //    ]
         //
-        let mut markets: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2011,12 +2011,12 @@ impl Bigone {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_267: bool = true;
             while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "asset_symbol", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2429,8 +2429,8 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut cancelled: Vec<Value> = self.safe_list_k(&data, "cancelled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut failed: Vec<Value> = self.safe_list_k(&data, "failed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut cancelled: crate::value::List = self.safe_list_k(&data, "cancelled", &[Value::from(vec![])]).into_list();
+        let mut failed: crate::value::List = self.safe_list_k(&data, "failed", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2855,12 +2855,12 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if dataLength < ((1i64) as f64) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned empty address response".into()))));
         }
-        let mut chainsIndexedById: Value = self.index_by(data.clone().into(), Value::Str("chain".into()));
+        let mut chainsIndexedById: Value = self.index_by(Value::Arr(data), Value::Str("chain".into()));
         let mut selectedNetworkId: Value = self.select_network_key_from_networks(code.clone(), networkCode, chainsIndexedById.clone(), &[Value::Bool(false)]);
         let mut addressObject: crate::value::Dict = self.safe_dict(chainsIndexedById, selectedNetworkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

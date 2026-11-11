@@ -1445,7 +1445,7 @@ impl Extended {
         //       ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1454,7 +1454,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_663: bool = true;
             while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < (data.len() as i64) } {
-            let mut marketData: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut marketData: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&marketData, "name", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut stats: Value = self.safe_dict_k(&marketData, "marketStats", &[Value::Map({
@@ -1735,7 +1735,7 @@ impl Extended {
         //         }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1747,7 +1747,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_664: bool = true;
             while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1839,7 +1839,7 @@ impl Extended {
         //         }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1851,7 +1851,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_665: bool = true;
             while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2162,7 +2162,7 @@ impl Extended {
         //       }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2174,7 +2174,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2554,7 +2554,7 @@ impl Extended {
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v1_private_get_user_asset_operations(&[__ws_arg_9]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2566,7 +2566,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_669: bool = true;
             while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2709,7 +2709,7 @@ impl Extended {
         //         }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2721,7 +2721,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_670: bool = true;
             while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2948,7 +2948,7 @@ impl Extended {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v1_private_get_user_asset_operations(&[__ws_arg_14]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2960,7 +2960,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_671: bool = true;
             while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3308,7 +3308,7 @@ impl Extended {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3317,7 +3317,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
             while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (data.len() as i64) } {
-            let mut fee: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut fee: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3647,7 +3647,7 @@ impl Extended {
         //         }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3659,7 +3659,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4813,7 +4813,7 @@ impl Extended {
         //       }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4825,7 +4825,7 @@ impl Extended {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_674: bool = true;
             while { if !__for_first_674 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), i.clone(), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

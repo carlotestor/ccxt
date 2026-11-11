@@ -1600,7 +1600,7 @@ impl Mercado {
                         let mut i: i64 = 0;
             let mut __for_first_946: bool = true;
             while { if !__for_first_946 { i += 1; } __for_first_946 = false; i < (orders.len() as i64) } {
-            let mut trades: Vec<Value> = self.safe_list(self.safe_value(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut trades: crate::value::List = self.safe_list(self.safe_value(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
             {
                                 let mut y: i64 = 0;
                 let mut __for_first_945: bool = true;

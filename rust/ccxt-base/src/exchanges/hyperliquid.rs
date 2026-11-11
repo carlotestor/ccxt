@@ -968,7 +968,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut types: Vec<Value> = self.safe_list_k(&options, "types", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut types: crate::value::List = self.safe_list_k(&options, "types", &[Value::from(vec![])]).into_list();
         let mut rawPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1131,14 +1131,14 @@ impl Hyperliquid {
     m
 })]).into_dict();
             let mut collateralToken: Value = self.safe_string_k(&meta, "collateralToken", &[]);
-            let mut universe: Vec<Value> = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut universe: crate::value::List = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).into_list();
             let mut assetCtxs: Value = self.safe_list(response, Value::Int(1), &[Value::from(vec![])]);
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_802: bool = true;
                 while { if !__for_first_802 { j += 1; } __for_first_802 = false; j < (universe.len() as i64) } {
-                let __ws_arg_4 = self.safe_dict(universe.clone().into(), Value::Int(j), &[Value::Map({
+                let __ws_arg_4 = self.safe_dict(Value::Arr(universe.clone()), Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1240,14 +1240,14 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut universe: Vec<Value> = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut universe: crate::value::List = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).into_list();
         let mut assetCtxs: Value = self.safe_list(response, Value::Int(1), &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_804: bool = true;
             while { if !__for_first_804 { i += 1; } __for_first_804 = false; i < (universe.len() as i64) } {
-            let __ws_arg_7 = self.safe_dict(universe.clone().into(), Value::Int(i), &[Value::Map({
+            let __ws_arg_7 = self.safe_dict(Value::Arr(universe.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1387,8 +1387,8 @@ impl Hyperliquid {
     m
 })]).into_dict();
         let mut second: Value = self.safe_list(response, Value::Int(1), &[Value::from(vec![])]);
-        let mut meta: Vec<Value> = self.safe_list_k(&first, "universe", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tokens: Vec<Value> = self.safe_list_k(&first, "tokens", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut meta: crate::value::List = self.safe_list_k(&first, "universe", &[Value::from(vec![])]).into_list();
+        let mut tokens: crate::value::List = self.safe_list_k(&first, "tokens", &[Value::from(vec![])]).into_list();
         // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
         let mut tokensByIndex: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1398,7 +1398,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_805: bool = true;
             while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (tokens.len() as i64) } {
-            let mut token: Value = self.safe_dict(tokens.clone().into(), Value::Int(i), &[Value::Map({
+            let mut token: Value = self.safe_dict(Value::Arr(tokens.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1413,7 +1413,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_806: bool = true;
             while { if !__for_first_806 { i += 1; } __for_first_806 = false; i < (meta.len() as i64) } {
-            let mut market: Value = self.safe_dict(meta.clone().into(), Value::Int(i), &[Value::Map({
+            let mut market: Value = self.safe_dict(Value::Arr(meta.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2094,14 +2094,14 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut universe: Vec<Value> = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut universe: crate::value::List = self.safe_list_k(&meta, "universe", &[Value::from(vec![])]).into_list();
         let mut assetCtxs: Value = self.safe_list(response, Value::Int(1), &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_809: bool = true;
             while { if !__for_first_809 { i += 1; } __for_first_809 = false; i < (universe.len() as i64) } {
-            let __ws_arg_13 = self.safe_dict(universe.clone().into(), Value::Int(i), &[Value::Map({
+            let __ws_arg_13 = self.safe_dict(Value::Arr(universe.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3344,7 +3344,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut statuses: Vec<Value> = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
         let mut ordersToBeParsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3720,7 +3720,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut innerResponse: crate::value::Dict = self.safe_dict_k(&response, "response", &[]).into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&innerResponse, "data", &[]).into_dict();
-        let mut statuses: Vec<Value> = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5562,7 +5562,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "withdrawable": "100.0"
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "assetPositions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "assetPositions", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -7186,7 +7186,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut statuses: Vec<Value> = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut statuses: crate::value::List = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_830: bool = true;

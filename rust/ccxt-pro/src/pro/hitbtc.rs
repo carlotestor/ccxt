@@ -1526,7 +1526,7 @@ impl Hitbtc {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
-            let mut rawOhlcvs: Vec<Value> = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawOhlcvs: crate::value::List = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_370: bool = true;
@@ -2317,8 +2317,8 @@ impl Hitbtc {
             let mut isUnSubscription: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut subscriptionId: Option<String> = self.safe_string_k(subscription.clone(), "id", &[]).as_str().map(str::to_owned);
             if isUnSubscription && (subscriptionId.is_some()) && (subscriptionId == id) {
-                let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
+                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_375: bool = true;

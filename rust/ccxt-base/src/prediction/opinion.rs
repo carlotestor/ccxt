@@ -470,7 +470,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawMarkets: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
@@ -485,7 +485,7 @@ impl Opinion {
                 let mut marketType: Option<i64> = self.safe_integer_k(raw.clone(), "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
                     let mut event: Value = self.parse_event(raw.clone());
-                    let mut childMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    let mut childMarkets: crate::value::List = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).into_list();
                     let mut childMarketsLength: f64 = ((childMarkets.len() as i64) as f64);
                     {
                                                 let mut ci: i64 = 0;
@@ -797,7 +797,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut pageEvents: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut pageEvents: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
             let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
@@ -826,7 +826,7 @@ impl Opinion {
             let mut event: Value = self.parse_event(rawEvents.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(event.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
-            let mut eventMarkets: Vec<Value> = self.safe_list_k(event, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut eventMarkets: crate::value::List = self.safe_list_k(event, "markets", &[Value::from(vec![])]).into_list();
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -1002,7 +1002,7 @@ impl Opinion {
         }  else {
             eventHandle = self.shorten_slug(slug.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut rawChildren: Vec<Value> = self.safe_list_k(rawEvent.clone(), "childMarkets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawChildren: crate::value::List = self.safe_list_k(rawEvent.clone(), "childMarkets", &[Value::from(vec![])]).into_list();
         let mut rawChildrenLength: f64 = ((rawChildren.len() as i64) as f64);
         let mut marketsList: Vec<Value> = Vec::new();
         {
@@ -1374,14 +1374,14 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut history: Vec<Value> = self.safe_list_k(&result, "history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut history: crate::value::List = self.safe_list_k(&result, "history", &[Value::from(vec![])]).into_list();
         let mut candles: Vec<Value> = Vec::new();
         let mut historyLength: f64 = ((history.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1395: bool = true;
             while { if !__for_first_1395 { i += 1; } __for_first_1395 = false; (i as f64) < historyLength } {
-            let mut point: crate::value::Dict = self.safe_dict(history.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut point: crate::value::Dict = self.safe_dict(Value::Arr(history.clone()), Value::Int(i), &[]).into_dict();
             let mut price: Option<f64> = self.safe_number_k(&point, "p", &[]).as_f64();
             let mut timestamp: Option<i64> = self.safe_timestamp_k(&point, "t", &[]).as_i64();
             if (price.is_some()) && (timestamp.is_some()) {
@@ -1444,7 +1444,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut list: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut list: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         let mut listLength: f64 = ((list.len() as i64) as f64);
         let mut quoteTokens: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2119,7 +2119,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Vec<Value> = self.safe_list_k(&result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut trades: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -2139,7 +2139,7 @@ impl Opinion {
             }
         }
         }
-        return self.parse_prediction_trades(trades.clone().into(), &[outcomeObj, since, limit]);
+        return self.parse_prediction_trades(Value::Arr(trades), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2262,7 +2262,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut rawBalances: Vec<Value> = self.safe_list_k(&result, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawBalances: crate::value::List = self.safe_list_k(&result, "balances", &[Value::from(vec![])]).into_list();
         let mut rawBalancesLength: f64 = ((rawBalances.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -2297,13 +2297,13 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balances: Vec<Value> = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).into_list();
         let mut balancesLength: f64 = ((balances.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1400: bool = true;
             while { if !__for_first_1400 { i += 1; } __for_first_1400 = false; (i as f64) < balancesLength } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut code: String = self.safe_string_k(&balance, "symbol", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
             result.insert(code, Value::Map({
     let mut m = indexmap::IndexMap::new();

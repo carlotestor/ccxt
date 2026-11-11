@@ -1307,7 +1307,7 @@ impl Krakenfutures {
                 add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".into()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
                 let mut totalCost: Option<String> = Some("0".to_string());
                 let mut totalAmount: Option<String> = Some("0".to_string());
-                let mut trades: Vec<Value> = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut trades: crate::value::List = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_435: bool = true;
@@ -1455,7 +1455,7 @@ impl Krakenfutures {
         //            ...
         //        ]
         //    }
-        let mut orders: Vec<Value> = (match message.get("orders") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut orders: crate::value::List = (match message.get("orders") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (self.orders.clone() == Value::Null) {
@@ -2244,7 +2244,7 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let mut trades: Vec<Value> = (match message.get("fills") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut trades: crate::value::List = (match message.get("fills") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut stored: Value = self.myTrades.clone();
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

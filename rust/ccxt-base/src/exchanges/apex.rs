@@ -927,18 +927,18 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Vec<Value> = self.safe_list_k(self.options.clone(), "_temp_currencies_chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(self.options.clone(), "_temp_currencies_chains", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { j += 1; } __for_first_226 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(chains.clone().into(), Value::Int(j), &[]);
-            let mut tokens: Vec<Value> = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut chain: Value = self.safe_dict(Value::Arr(chains.clone()), Value::Int(j), &[]);
+            let mut tokens: crate::value::List = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]).into_list();
             {
                                 let mut f: i64 = 0;
                 let mut __for_first_225: bool = true;
                 while { if !__for_first_225 { f += 1; } __for_first_225 = false; f < (tokens.len() as i64) } {
-                let mut token: crate::value::Dict = self.safe_dict(tokens.clone().into(), Value::Int(f), &[]).into_dict();
+                let mut token: crate::value::Dict = self.safe_dict(Value::Arr(tokens.clone()), Value::Int(f), &[]).into_dict();
                 let mut tokenName: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
                     let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
@@ -1670,7 +1670,7 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut resultList: Vec<Value> = self.safe_list_k(&data, "historyFunds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut resultList: crate::value::List = self.safe_list_k(&data, "historyFunds", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_227: bool = true;
@@ -2125,7 +2125,7 @@ impl Apex {
         })]).into_dict();
         let mut zkAccountId: String = self.safe_string_k(&spotAccount, "zkAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subAccountId: String = self.safe_string_k(&spotAccount, "defaultSubAccountId", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut subAccounts: Vec<Value> = self.safe_list_k(&spotAccount, "subAccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subAccounts: crate::value::List = self.safe_list_k(&spotAccount, "subAccounts", &[Value::from(vec![])]).into_list();
         let mut nonce: String = "0".to_string();
         if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
             nonce = self.safe_string_k(subAccounts.get(0).cloned().unwrap_or(Value::Null), "nonce", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();

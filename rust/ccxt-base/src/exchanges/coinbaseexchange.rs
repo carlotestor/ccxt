@@ -1118,7 +1118,7 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut supportedNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut supportedNetworks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_550: bool = true;

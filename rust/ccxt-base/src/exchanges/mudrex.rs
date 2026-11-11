@@ -2070,7 +2070,7 @@ impl Mudrex {
             }
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
-            let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: i64 = 0;

@@ -1117,7 +1117,7 @@ impl Delta {
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut numericId: Option<i64> = self.safe_integer_k(rawCurrency.clone(), "id", &[]).as_i64();
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1449,7 +1449,7 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2080,7 +2080,7 @@ impl Delta {
         //         "success":true
         //     }
         //
-        let mut tickers: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2429,7 +2429,7 @@ impl Delta {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2443,7 +2443,7 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_617: bool = true;
             while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset_id", &[]).as_str().map(str::to_owned);
             let mut currency: Option<crate::value::Dict> = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             let mut code: Value = (if (currency.is_none()) { currencyId.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::value::KeyRead::key_read(&&currency, "code") });

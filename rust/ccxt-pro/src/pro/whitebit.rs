@@ -410,7 +410,7 @@ impl Whitebit {
         //     "id": null
         // }
         //
-        let mut params: Vec<Value> = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut params: crate::value::List = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_690: bool = true;
@@ -1306,16 +1306,16 @@ impl Whitebit {
             return;
         }
         let mut isMargin: bool = method.as_deref().unwrap_or_default().contains("Margin");
-        let mut data: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_696: bool = true;
             while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (data.len() as i64) } {
-            let mut balanceDict: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut balanceDict: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            { let __be_tmp = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            { let __be_tmp = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), __be_tmp); } }

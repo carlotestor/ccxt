@@ -703,13 +703,13 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&data, "results", &[Value::from(vec![])]).into_list();
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_574: bool = true;
             while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (results.len() as i64) } {
-            let mut order: crate::value::Dict = self.safe_dict(results.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut order: crate::value::Dict = self.safe_dict(Value::Arr(results.clone()), Value::Int(i), &[]).into_dict();
             let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut marketId: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
@@ -1406,7 +1406,7 @@ impl Pacifica {
         // }
         //
         let mut parsedTickers: Vec<Value> = Vec::new();
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_575: bool = true;
@@ -1470,7 +1470,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if (dataLength == 0.0) {
             return;
@@ -1652,8 +1652,8 @@ impl Pacifica {
         //   ]
         // }
         //
-        let mut entry: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: crate::value::Dict = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
+        let mut entry: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(entry.clone()), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1671,7 +1671,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_578: bool = true;
             while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(entry.clone().into(), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(Value::Arr(entry.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2135,7 +2135,7 @@ impl Pacifica {
         //     }
         //   ]
         // }
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);

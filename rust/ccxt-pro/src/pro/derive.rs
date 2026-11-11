@@ -1179,7 +1179,7 @@ impl Derive {
         //
         let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
-        let mut rawOrders: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawOrders: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_301: bool = true;
@@ -1353,7 +1353,7 @@ impl Derive {
         }
         let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
-        let mut rawTrades: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawTrades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_302: bool = true;
@@ -1677,7 +1677,7 @@ impl Derive {
         let mut topic: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
         let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut subaccountIdKey: Value = self.safe_string(topicParts, Value::Int(0), &[]);
-        let mut data: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1694,7 +1694,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1861,7 +1861,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // }
         //
         let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut ids: Vec<Value> = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut ids: crate::value::List = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         let mut idsLength: f64 = ((ids.len() as i64) as f64);
         if idsLength > ((0i64) as f64) {
             // client.resolve (message, messageHash);

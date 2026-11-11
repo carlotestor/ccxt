@@ -1218,7 +1218,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut cancelledOrders: crate::value::List = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1345,7 +1345,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut cancelledOrders: crate::value::List = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1799,7 +1799,7 @@ impl Nado {
         //     }
         //
         let mut closedOrders: Vec<Value> = Vec::new();
-        let mut orders: Vec<Value> = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_981: bool = true;
@@ -1974,7 +1974,7 @@ impl Nado {
         //         ]
         //     }
         //
-        let mut matches: Vec<Value> = self.safe_list_k(&response, "matches", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut matches: crate::value::List = self.safe_list_k(&response, "matches", &[Value::from(vec![])]).into_list();
         let mut txs: Value = self.safe_list_k(&response, "txs", &[Value::from(vec![])]);
         let mut txsBySubmission: Value = self.index_by(txs, Value::Str("submission_idx".into()));
         let mut trades: Vec<Value> = Vec::new();
@@ -2198,8 +2198,8 @@ impl Nado {
         //         ]
         //     }
         //
-        let mut events: Vec<Value> = self.safe_list_k(&response, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut txs: Vec<Value> = self.safe_list_k(&response, "txs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut events: crate::value::List = self.safe_list_k(&response, "events", &[Value::from(vec![])]).into_list();
+        let mut txs: crate::value::List = self.safe_list_k(&response, "txs", &[Value::from(vec![])]).into_list();
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2305,8 +2305,8 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Vec<Value> = self.safe_list_k(&data, "perp_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut products: Vec<Value> = self.safe_list_k(&data, "perp_products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list_k(&data, "perp_balances", &[Value::from(vec![])]).into_list();
+        let mut products: crate::value::List = self.safe_list_k(&data, "perp_products", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2451,9 +2451,9 @@ impl Nado {
         let mut pairsRequest: Value = self.gateway_v2_public_get_pairs(&[params.clone()]).await;
         let mut assetsRequest: Value = self.gateway_v2_public_get_assets(&[params]).await;
         let mut responses: Value = promise_all(&Value::from(vec![symbolsRequest, pairsRequest, assetsRequest])).await;
-        let mut symbols: Vec<Value> = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut pairs: Vec<Value> = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut assets: Vec<Value> = self.safe_list(responses, Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut symbols: crate::value::List = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut pairs: crate::value::List = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut assets: crate::value::List = self.safe_list(responses, Value::Int(2), &[Value::from(vec![])]).into_list();
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         let mut pairsById: indexmap::IndexMap<String, Value> = ({
@@ -2903,7 +2903,7 @@ impl Nado {
         //         "next_idx": "1314805"
         //     }
         //
-        let mut fundingPayments: Vec<Value> = self.safe_list_k(&response, "funding_payments", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fundingPayments: crate::value::List = self.safe_list_k(&response, "funding_payments", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3629,12 +3629,12 @@ impl Nado {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Vec<Value> = self.safe_list_k(response, "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response, "spot_balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_995: bool = true;
             while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (balances.len() as i64) } {
-            let mut rawBalance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut rawBalance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code.as_str() == Some("0")) {

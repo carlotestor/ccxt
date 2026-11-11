@@ -1489,7 +1489,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Vec<Value> = self.safe_list_k(currency.clone(), "network_list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(currency.clone(), "network_list", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_587: bool = true;
@@ -1662,7 +1662,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&resultResponse, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&resultResponse, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2257,7 +2257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         let mut data: Value = self.safe_list_k(&responseResult, "data", &[Value::from(vec![])]);
-        let mut positionBalances: Vec<Value> = self.safe_list(self.safe_dict(data, Value::Int(0), &[]), Value::Str("position_balances".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positionBalances: crate::value::List = self.safe_list(self.safe_dict(data, Value::Int(0), &[]), Value::Str("position_balances".into()), &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2267,7 +2267,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_589: bool = true;
             while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(positionBalances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(positionBalances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3407,7 +3407,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut addresses: Vec<Value> = self.safe_list_k(&data, "deposit_address_list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut addresses: crate::value::List = self.safe_list_k(&data, "deposit_address_list", &[Value::from(vec![])]).into_list();
         let mut addressesLength: f64 = ((addresses.len() as i64) as f64);
         if (addressesLength == 0.0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddressesByNetwork() generating address...".into()))));
@@ -3420,7 +3420,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
             while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < addressesLength } {
-            let mut value: Value = self.safe_dict(addresses.clone().into(), Value::Int(i), &[]);
+            let mut value: Value = self.safe_dict(Value::Arr(addresses.clone()), Value::Int(i), &[]);
             let mut addressString: Option<String> = self.safe_string_k(value.clone(), "address", &[]).as_str().map(str::to_owned);
             let mut currencyId: Option<String> = self.safe_string_k(value.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut responseCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -4772,7 +4772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&result, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string_k(&result, "instrument_name", &[]).as_str().map(str::to_owned);
         let mut rates: Vec<Value> = Vec::new();
         {
@@ -4932,7 +4932,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Vec<Value> = self.safe_list_k(&responseResult, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list_k(&responseResult, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

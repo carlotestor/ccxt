@@ -1540,12 +1540,12 @@ if _try_result.is_err() {
         usdcAccount.insert("total".into(), self.safe_string_k(data.clone(), "balance", &[]));
         usdcAccount.insert("used".into(), self.safe_string_k(data.clone(), "total_margin_used", &[]));
         result.insert("USDC".into(), Value::Map(usdcAccount));
-        let mut spotBalances: Vec<Value> = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut spotBalances: crate::value::List = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1043: bool = true;
             while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (spotBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2728,7 +2728,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&data, "results", &[Value::from(vec![])]).into_list();
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2816,7 +2816,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut results: crate::value::List = self.safe_list_k(&data, "results", &[Value::from(vec![])]).into_list();
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2867,7 +2867,7 @@ if _try_result.is_err() {
             actions.push(action.clone());
         }
         }
-        let mut clientOrderIds: Vec<Value> = self.safe_list_k(params.clone(), "clientOrderIds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut clientOrderIds: crate::value::List = self.safe_list_k(params.clone(), "clientOrderIds", &[Value::from(vec![])]).into_list();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("clientOrderIds".into()), &[]).into_dict();
         {
                         let mut i: i64 = 0;
@@ -3300,7 +3300,7 @@ if _try_result.is_err() {
         //   "code": null
         // }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4020,7 +4020,7 @@ if _try_result.is_err() {
         //   "code": null,
         //   "last_order_id": 1557431179
         // }
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

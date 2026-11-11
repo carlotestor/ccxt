@@ -1117,7 +1117,7 @@ impl Polymarket {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut rows: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         if (rowsLength == 0.0) {
             return;
@@ -1665,13 +1665,13 @@ impl Polymarket {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rows: Vec<Value> = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: crate::value::List = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]).into_list();
         let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
             let mut __for_first_645: bool = true;
             while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(rows.clone().into(), Value::Int(i), &[Value::Map({
+            let mut row: Value = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1763,8 +1763,8 @@ impl Polymarket {
             return;
         }
         __ch.remove_subscription(&key);
-        let mut messageHashes: Vec<Value> = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Vec<Value> = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut messageHashes: crate::value::List = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).into_list();
+        let mut subMessageHashes: crate::value::List = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).into_list();
         let mut action: Option<String> = self.safe_string_k(&pending, "method", &[]).as_str().map(str::to_owned);
         let mut errorMessage: Value = Value::Null;
         {

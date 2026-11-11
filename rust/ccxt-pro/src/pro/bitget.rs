@@ -1204,7 +1204,7 @@ impl Bitget {
             stored = ArrayCacheByTimestamp::new(limit);
             symbolOhlcvs.insert(crate::runtime::stringify_param(&timeframe), stored.clone());
         }
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_113: bool = true;
@@ -2243,7 +2243,7 @@ impl Bitget {
             if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&instType), ArrayCacheBySymbolBySide::new(Value::Null)); }
         }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), instType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut rawPositions: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -2627,8 +2627,8 @@ impl Bitget {
         }  else {
             marketType = Some("contract".to_string());
         }
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -3188,7 +3188,7 @@ impl Bitget {
             self.myTrades = ArrayCache::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut length: f64 = ((data.len() as i64) as f64);
         let mut messageHash: String = "myTrades".to_string();
         let mut arg: crate::value::Dict = (match message.get("arg") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
@@ -3411,19 +3411,19 @@ impl Bitget {
     m
 }) }).into_dict();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
-        let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_125: bool = true;
             while { if !__for_first_125 { i += 1; } __for_first_125 = false; i < (data.len() as i64) } {
             let mut rawBalance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             if (instType.as_deref() == Some("uta")) {
-                let mut coins: Vec<Value> = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut coins: crate::value::List = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_124: bool = true;
                     while { if !__for_first_124 { j += 1; } __for_first_124 = false; j < (coins.len() as i64) } {
-                    let mut entry: crate::value::Dict = self.safe_dict(coins.clone().into(), Value::Int(j), &[]).into_dict();
+                    let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(coins.clone()), Value::Int(j), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: Value = self.account();

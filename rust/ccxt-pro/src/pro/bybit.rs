@@ -1437,7 +1437,7 @@ impl Bybit {
         //         "type": "snapshot"
         //     }
         //
-        let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut topicLength: Value = Value::Int(topicParts.len() as i64);
@@ -2541,7 +2541,7 @@ impl Bybit {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut rawPositions: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+        let mut rawPositions: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_200: bool = true;
@@ -2700,12 +2700,12 @@ impl Bybit {
         //     }
         //
         if (matches!(&message.get("data").cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            let mut rawLiquidations: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut rawLiquidations: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_202: bool = true;
                 while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawLiquidations.len() as i64) } {
-                let mut rawLiquidation: Value = self.safe_dict(rawLiquidations.clone().into(), Value::Int(i), &[]);
+                let mut rawLiquidation: Value = self.safe_dict(Value::Arr(rawLiquidations.clone()), Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k_opt(rawLiquidation.clone(), "s", &[]);
                 let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3287,24 +3287,24 @@ impl Bybit {
         let mut account: Value = Value::Null;
         if (topic.as_deref() == Some("outboundAccountInfo")) {
             account = Value::Str("spot".into());
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+            let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_205: bool = true;
                 while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (data.len() as i64) } {
-                let mut B: Value = self.safe_list_k(data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]);
+                let mut B: Value = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]);
                 rawBalances = self.array_concat(rawBalances.clone(), B);
             }
             }
             info = rawBalances.clone();
         }
         if (topic.as_deref() == Some("wallet")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+            let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_206: bool = true;
                 while { if !__for_first_206 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_206 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut result: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+                let mut result: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
@@ -3446,7 +3446,7 @@ impl Bybit {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut recordedTopics: Vec<Value> = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut recordedTopics: crate::value::List = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).into_list();
                 let mut recordedLength: f64 = ((recordedTopics.len() as i64) as f64);
                 {
                                         let mut j: i64 = 0;
@@ -3887,7 +3887,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (reqId != subId) {
                     continue;
                 }
-                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
                 let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;

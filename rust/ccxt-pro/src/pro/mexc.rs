@@ -650,7 +650,7 @@ impl Mexc {
         //         "s": "BTCUSDT"
         //     }
         //
-        let mut data: Value = self.safe_list2(message, Value::Str("data".into()), Value::Str("d".into()), &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list2(message, Value::Str("data".into()), Value::Str("d".into()), &[Value::from(vec![])]).into_list();
         let mut channel: String = (match __pro_message.get("c").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -668,7 +668,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_485: bool = true;
             while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
                 ticker = self.parse_ws_ticker(entry.clone(), &[market.clone()]);

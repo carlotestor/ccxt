@@ -962,7 +962,7 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut pairs: Vec<Value> = self.safe_list_k(&data, "pairs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut pairs: crate::value::List = self.safe_list_k(&data, "pairs", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1094,12 +1094,12 @@ impl Bitbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut assets: Vec<Value> = self.safe_list_k(&data, "assets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut assets: crate::value::List = self.safe_list_k(&data, "assets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (assets.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

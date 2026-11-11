@@ -1453,7 +1453,7 @@ impl Gemini {
         if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test"))) {
             return Value::from(vec![]);
         }
-        let mut fetchUsdtMarkets: Vec<Value> = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fetchUsdtMarkets: crate::value::List = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

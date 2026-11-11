@@ -3922,7 +3922,7 @@ impl Okx {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         let mut update: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3937,7 +3937,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_999: bool = true;
             while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (data.len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
             let mut state: Option<String> = self.safe_string_k(&event, "state", &[]).as_str().map(str::to_owned);
             update.insert("eta".into(), self.safe_integer_k(&event, "end", &[]));
             update.insert("url".into(), self.safe_string_k(&event, "href", &[]));
@@ -4052,7 +4052,7 @@ impl Okx {
         //         "msg": ""
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4420,7 +4420,7 @@ impl Okx {
         //         "msg": ""
         //     }
         //
-        let mut dataResponse: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut dataResponse: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut marketsWithoutTest: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -5486,7 +5486,7 @@ impl Okx {
         //     }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1007: bool = true;
@@ -5532,12 +5532,12 @@ impl Okx {
     m
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&first, "uTime", &[]).as_i64();
-        let mut details: Vec<Value> = self.safe_list_k(&first, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut details: crate::value::List = self.safe_list_k(&first, "details", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1008: bool = true;
             while { if !__for_first_1008 { i += 1; } __for_first_1008 = false; i < (details.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(details.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(details.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -5569,12 +5569,12 @@ impl Okx {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1009: bool = true;
             while { if !__for_first_1009 { i += 1; } __for_first_1009 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -7244,7 +7244,7 @@ impl Okx {
         let mut stopLossPrice: Option<f64> = self.safe_number2(order.clone(), Value::Str("slTriggerPx".into()), Value::Str("slOrdPx".into()), &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number2(order.clone(), Value::Str("tpTriggerPx".into()), Value::Str("tpOrdPx".into()), &[]).as_f64();
         // regular orders carry attached sl/tp inside attachAlgoOrds
-        let mut attachAlgoOrds: Vec<Value> = self.safe_list_k(order.clone(), "attachAlgoOrds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut attachAlgoOrds: crate::value::List = self.safe_list_k(order.clone(), "attachAlgoOrds", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1016: bool = true;
@@ -9498,7 +9498,7 @@ impl Okx {
         //         ]
         //     }
         //
-        let mut positions: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -10475,7 +10475,7 @@ impl Okx {
         //        "type": "8"
         //    }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -10754,7 +10754,7 @@ impl Okx {
         //        ],
         //    }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
         let mut rates: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -11644,7 +11644,7 @@ impl Okx {
         //         "msg": ""
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         return self.parse_open_interest(data.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -12337,7 +12337,7 @@ impl Okx {
             let __ws_arg_88 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_account_bills_archive(&[__ws_arg_88]).await;
         }
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -12410,7 +12410,7 @@ impl Okx {
             while { if !__for_first_1031 { i += 1; } __for_first_1031 = false; i < (settlements.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(settlements.clone(), Value::Int(i), &[]).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "ts", &[]).as_i64();
-            let mut details: Vec<Value> = self.safe_list_k(&entry, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut details: crate::value::List = self.safe_list_k(&entry, "details", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1030: bool = true;
@@ -12553,7 +12553,7 @@ impl Okx {
         //         "msg": ""
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1032: bool = true;
@@ -13403,7 +13403,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1033: bool = true;
@@ -13485,12 +13485,12 @@ impl Okx {
         let mut codeError: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if (codeError.as_deref() != Some("0")) && (codeError.as_deref() != Some("2")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-            let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1034: bool = true;
                 while { if !__for_first_1034 { i += 1; } __for_first_1034 = false; i < (data.len() as i64) } {
-                let mut error: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut error: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
                 let mut errorCode: Option<String> = self.safe_string_k(&error, "sCode", &[]).as_str().map(str::to_owned);
                 let mut message: Option<String> = self.safe_string_k(&error, "sMsg", &[]).as_str().map(str::to_owned);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -13787,13 +13787,13 @@ impl Okx {
         //         "msg": ""
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1035: bool = true;
             while { if !__for_first_1035 { i += 1; } __for_first_1035 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::List = self.safe_list(data.clone().into(), Value::Int(i), &[]).into_list();
+            let mut entry: crate::value::List = self.safe_list(Value::Arr(data.clone()), Value::Int(i), &[]).into_list();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_string(&entry, Value::Int(0), &[]));

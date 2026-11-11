@@ -1682,12 +1682,12 @@ impl Btse {
             if (assets.is_some()) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                let mut inUse: Vec<Value> = self.safe_list_k(&row, "assetsInUse", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut inUse: crate::value::List = self.safe_list_k(&row, "assetsInUse", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_479: bool = true;
                     while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (inUse.len() as i64) } {
-                    let mut usedRow: crate::value::Dict = self.safe_dict(inUse.clone().into(), Value::Int(j), &[]).into_dict();
+                    let mut usedRow: crate::value::Dict = self.safe_dict(Value::Arr(inUse.clone()), Value::Int(j), &[]).into_dict();
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
                         continue;
@@ -1811,7 +1811,7 @@ impl Btse {
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbolsNormalized.is_none()) || self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true) {
-                let mut levels: Vec<Value> = self.safe_list_k(&entry, "riskLimits", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut levels: crate::value::List = self.safe_list_k(&entry, "riskLimits", &[Value::from(vec![])]).into_list();
                 let mut tiers: Value = Value::from(vec![]);
                 // each tier's floor is the previous tier's cap (0 for the first)
                 let mut minNotional: Value = Value::Null;
@@ -2096,7 +2096,7 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[params]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2201,7 +2201,7 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[params]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3848,11 +3848,11 @@ impl Btse {
         // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
         // every runtime
-        let mut typesList: Vec<Value> = self.safe_list(Value::Map({
+        let mut typesList: crate::value::List = self.safe_list(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), historyTypes);
     m
-}), Value::Str("types".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+}), Value::Str("types".into()), &[Value::from(vec![])]).into_list();
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut walletType: String = self.safe_string_k(params.clone(), "walletType", &[Value::Str("SPOT".into())]).as_str().unwrap_or("SPOT").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3862,7 +3862,7 @@ impl Btse {
         });
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
-        request.insert("historyTypes".into(), json_stringify(&typesList.clone().into()));
+        request.insert("historyTypes".into(), json_stringify(&Value::Arr(typesList.clone())));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("walletType".into()), &[]).into_dict();
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {

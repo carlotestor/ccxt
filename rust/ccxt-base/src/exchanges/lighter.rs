@@ -2740,7 +2740,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "funding_rates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "funding_rates", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2843,19 +2843,19 @@ if _try_result.is_err() {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut accounts: Vec<Value> = self.safe_list_k(response, "accounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut accounts: crate::value::List = self.safe_list_k(response, "accounts", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_934: bool = true;
             while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut account: crate::value::Dict = self.safe_dict(Value::Arr(accounts.clone()), Value::Int(i), &[]).into_dict();
             if (type_var.as_deref() == Some("spot")) {
-                let mut assets: Vec<Value> = self.safe_list_k(&account, "assets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut assets: crate::value::List = self.safe_list_k(&account, "assets", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_933: bool = true;
                     while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (assets.len() as i64) } {
-                    let mut asset: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(j), &[]).into_dict();
+                    let mut asset: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(j), &[]).into_dict();
                     let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(codeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     let __ws_arg_17 = self.account();
@@ -3010,13 +3010,13 @@ if _try_result.is_err() {
         //     }
         //
         let mut allPositions: Vec<Value> = Vec::new();
-        let mut accounts: Vec<Value> = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_936: bool = true;
             while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]).into_dict();
-            let mut positions: Vec<Value> = self.safe_list_k(&account, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut account: crate::value::Dict = self.safe_dict(Value::Arr(accounts.clone()), Value::Int(i), &[]).into_dict();
+            let mut positions: crate::value::List = self.safe_list_k(&account, "positions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_935: bool = true;

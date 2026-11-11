@@ -656,14 +656,14 @@ impl Coincheck {
         //         ]
         //     }
         //
-        let mut exchangeStatuses: Vec<Value> = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut exchangeStatuses: crate::value::List = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]).into_list();
         let mut status: String = "ok".to_string();
         let mut updated: Option<i64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_564: bool = true;
             while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (exchangeStatuses.len() as i64) } {
-            let mut exchangeStatus: crate::value::Dict = self.safe_dict(exchangeStatuses.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut exchangeStatus: crate::value::Dict = self.safe_dict(Value::Arr(exchangeStatuses.clone()), Value::Int(i), &[]).into_dict();
             let mut rawStatus: Option<String> = self.safe_string_k(&exchangeStatus, "status", &[]).as_str().map(str::to_owned);
             if (updated.is_none()) {
                 updated = self.safe_timestamp_k(&exchangeStatus, "timestamp", &[]).as_i64();

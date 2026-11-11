@@ -2103,7 +2103,7 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut currenciesData: Vec<Value> = self.safe_list_k(&currenciesResult, "currencies", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut currenciesData: crate::value::List = self.safe_list_k(&currenciesResult, "currencies", &[Value::from(vec![])]).into_list();
         let mut chainsDataIndexed: Value = self.index_by(chainsData, Value::Str("currency".into()));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2120,7 +2120,7 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut rawNetworks: Vec<Value> = self.safe_list_k(&networkEntry, "supportChains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawNetworks: crate::value::List = self.safe_list_k(&networkEntry, "supportChains", &[Value::from(vec![])]).into_list();
             let mut networks: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2541,7 +2541,7 @@ impl Xt {
         }
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut filters: Vec<Value> = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut filters: crate::value::List = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]).into_list();
         let mut minAmount: Value = Value::Null;
         let mut maxAmount: Value = Value::Null;
         let mut minCost: Value = Value::Null;
@@ -2553,7 +2553,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1188: bool = true;
             while { if !__for_first_1188 { i += 1; } __for_first_1188 = false; i < (filters.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(filters.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(filters.clone()), Value::Int(i), &[]).into_dict();
             let mut filter: Option<String> = self.safe_string_k(&entry, "filter", &[]).as_str().map(str::to_owned);
             if (filter.as_deref() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(&entry, "min", &[]);
@@ -3062,7 +3062,7 @@ impl Xt {
         //     }
         //
         if (market).spot {
-            let mut tickers: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut tickers: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
             return self.parse_ticker(tickers.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         }
         let mut ticker: Value = self.safe_dict_k(&response, "result", &[Value::Map({
@@ -3172,7 +3172,7 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut tickers: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3283,7 +3283,7 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut tickers: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6666,15 +6666,15 @@ impl Xt {
         //     }
         //
         let mut tiers: Vec<Value> = Vec::new();
-        let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut brackets: crate::value::List = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1193: bool = true;
             while { if !__for_first_1193 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1193 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
-            let mut tier: Value = self.safe_dict(brackets.clone().into(), i.clone(), &[]);
+            let mut tier: Value = self.safe_dict(Value::Arr(brackets.clone()), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), Value::Str("_".into()), Value::Str("contract".into())]);
-            let mut minNotional: Value = self.safe_number(self.safe_dict(brackets.clone().into(), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            let mut minNotional: Value = self.safe_number(self.safe_dict(Value::Arr(brackets.clone()), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Value::Str("maxNominalValue".into()), &[Value::Int(0)]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6781,7 +6781,7 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Vec<Value> = self.safe_list_k(&result, "items", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -7249,13 +7249,13 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Vec<Value> = self.safe_list_k(&data, "items", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1196: bool = true;
             while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (items.len() as i64) } {
-            let mut entry: Value = self.safe_dict(items.clone().into(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(Value::Arr(items.clone()), Value::Int(i), &[]);
             result.push(self.parse_funding_history(entry, &[(market).raw.clone()]));
         }
         }
@@ -7439,7 +7439,7 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut positions: Vec<Value> = self.safe_list_k(response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list_k(response, "result", &[Value::from(vec![])]).into_list();
         let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::from(vec![])]));
         {
                         let mut i: i64 = 0;
@@ -7540,7 +7540,7 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut positions: Vec<Value> = self.safe_list_k(response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut positions: crate::value::List = self.safe_list_k(response, "result", &[Value::from(vec![])]).into_list();
         let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::from(vec![])]));
         let mut result: Vec<Value> = Vec::new();
         {

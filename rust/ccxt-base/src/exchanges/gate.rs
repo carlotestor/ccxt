@@ -4385,7 +4385,7 @@ if _try_result.is_err() {
         if self.is_leveraged_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_bool() == Some(true) {
             type_var = "leveraged".to_string();
         }
-        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4632,7 +4632,7 @@ if _try_result.is_err() {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_wallet_get_deposit_address(&[__ws_arg_4]).await.into_dict();
-        let mut addresses: Vec<Value> = self.safe_list_k(&response, "multichain_addresses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut addresses: crate::value::List = self.safe_list_k(&response, "multichain_addresses", &[Value::from(vec![])]).into_list();
         let mut currencyId: Option<String> = self.safe_string_k(&response, "currency", &[]).as_str().map(str::to_owned);
         let mut codeValue: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut result: indexmap::IndexMap<String, Value> = ({

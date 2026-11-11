@@ -1338,7 +1338,7 @@ impl Bitrue {
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(rawCurrency.clone(), "coinFulName", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut networkDetails: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainDetail", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networkDetails: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chainDetail", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1718,12 +1718,12 @@ impl Bitrue {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "updateTime", &[]).as_i64();
-        let mut balances: Value = self.safe_list2(response, Value::Str("balances".into()), Value::Str("account".into()), &[Value::from(vec![])]);
+        let mut balances: crate::value::List = self.safe_list2(response, Value::Str("balances".into()), Value::Str("account".into()), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_415: bool = true;
             while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string2(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3638,7 +3638,7 @@ impl Bitrue {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        let mut chainDetails: Vec<Value> = self.safe_list_k(fee.clone(), "chainDetail", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut chainDetails: crate::value::List = self.safe_list_k(fee.clone(), "chainDetail", &[Value::from(vec![])]).into_list();
         let mut chainDetailLength: f64 = ((chainDetails.len() as i64) as f64);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3666,7 +3666,7 @@ impl Bitrue {
                                 let mut i: i64 = 0;
                 let mut __for_first_417: bool = true;
                 while { if !__for_first_417 { i += 1; } __for_first_417 = false; (i as f64) < chainDetailLength } {
-                let mut chainDetail: crate::value::Dict = self.safe_dict(chainDetails.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut chainDetail: crate::value::Dict = self.safe_dict(Value::Arr(chainDetails.clone()), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chainDetail, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -4233,7 +4233,7 @@ impl Bitrue {
             return config.get("noSymbol").cloned().unwrap_or(Value::Null);
         }  else if (config.contains_key("byLimit")) && (in_op(&params, &Value::Str("limit".into()))) {
             let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
-            let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_418: bool = true;

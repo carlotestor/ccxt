@@ -1020,7 +1020,7 @@ impl Bitvavo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networksArray: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networksArray: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).into_list();
         let mut deposit: bool = self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK");
         let mut withdrawal: bool = self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK");
         let mut active: Value = Value::Bool(deposit && withdrawal);

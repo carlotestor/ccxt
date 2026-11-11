@@ -375,7 +375,7 @@ impl Deribit {
         self.authenticate(&[params.clone()]).await;
         let mut messageHash: String = "balance".to_string();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut currencies: Vec<Value> = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut currencies: crate::value::List = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]).into_list();
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -870,7 +870,7 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut trades: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut trades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         if (self.safe_dict(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
@@ -1177,14 +1177,14 @@ impl Deribit {
 }
 
     pub fn clean_order_book(&self, mut data: Value) -> Value {
-        let mut bids: Vec<Value> = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut asks: Vec<Value> = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut bids: crate::value::List = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]).into_list();
         let mut cleanedBids: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_293: bool = true;
             while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (bids.len() as i64) } {
-            let mut bid: Vec<Value> = self.safe_list(bids.clone().into(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut bid: crate::value::List = self.safe_list(Value::Arr(bids.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
@@ -1193,7 +1193,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_294: bool = true;
             while { if !__for_first_294 { i += 1; } __for_first_294 = false; i < (asks.len() as i64) } {
-            let mut ask: Vec<Value> = self.safe_list(asks.clone().into(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut ask: crate::value::List = self.safe_list(Value::Arr(asks.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }

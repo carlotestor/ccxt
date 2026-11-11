@@ -1103,7 +1103,7 @@ impl Coinsph {
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "isLegalMoney", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut networkList: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networkList: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1186,9 +1186,9 @@ impl Coinsph {
         }  else if (config.contains_key("noSymbolAndNoSymbols")) && !hasSymbolParam && !hasSymbolsParam {
             return config.get("noSymbolAndNoSymbols").cloned().unwrap_or(Value::Null);
         }  else if (config.contains_key("byNumberOfSymbols")) && hasSymbolsParam {
-            let mut symbols: Vec<Value> = self.safe_list_k(params, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut symbols: crate::value::List = self.safe_list_k(params, "symbols", &[Value::from(vec![])]).into_list();
             let mut symbolsAmount: f64 = ((symbols.len() as i64) as f64);
-            let mut byNumberOfSymbols: Vec<Value> = (match config.get("byNumberOfSymbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut byNumberOfSymbols: crate::value::List = (match config.get("byNumberOfSymbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_574: bool = true;
@@ -1201,7 +1201,7 @@ impl Coinsph {
             }
             }
         }  else if (config.contains_key("byLimit")) && (limit != Value::Null) {
-            let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_575: bool = true;
@@ -1353,7 +1353,7 @@ impl Coinsph {
         //         ]
         //     }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).into_list();
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -2071,7 +2071,7 @@ impl Coinsph {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2083,7 +2083,7 @@ impl Coinsph {
                         let mut i: i64 = 0;
             let mut __for_first_578: bool = true;
             while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

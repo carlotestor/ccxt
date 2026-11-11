@@ -1458,7 +1458,7 @@ impl Coinbaseexchange {
         }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut timestamp: Value = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-            let mut changes: Vec<Value> = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
+            let mut changes: crate::value::List = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
             let mut sides: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("sell".to_string(), Value::Str("asks".into()));
@@ -1469,7 +1469,7 @@ impl Coinbaseexchange {
                                 let mut i: i64 = 0;
                 let mut __for_first_242: bool = true;
                 while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < (changes.len() as i64) } {
-                let mut change: Option<crate::value::List> = self.safe_list(changes.clone().into(), Value::Int(i), &[]).into_opt_list();
+                let mut change: Option<crate::value::List> = self.safe_list(Value::Arr(changes.clone()), Value::Int(i), &[]).into_opt_list();
                 let mut key: Option<String> = self.safe_string(&change, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string(&sides, key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut price: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);

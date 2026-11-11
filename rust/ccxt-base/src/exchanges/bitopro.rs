@@ -1667,7 +1667,7 @@ impl Bitopro {
             let mut __for_first_412: bool = true;
             while { if !__for_first_412 { i += 1; } __for_first_412 = false; i < (dataKeys.len() as i64) } {
             let mut marketId: Value = dataKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut orderIds: Vec<Value> = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut orderIds: crate::value::List = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_411: bool = true;

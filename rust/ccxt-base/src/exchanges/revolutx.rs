@@ -946,7 +946,7 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut metadata: crate::value::Dict = self.safe_dict_k(&response, "metadata", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -960,7 +960,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1118: bool = true;
             while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut tickerData: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1300,13 +1300,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1120: bool = true;
             while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1354,7 +1354,7 @@ impl Revolutx {
                 m
             });
         }
-        let mut data: Vec<Value> = self.safe_list_k(payload, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(payload, "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1364,7 +1364,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1121: bool = true;
             while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1956,13 +1956,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1122: bool = true;
             while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2053,13 +2053,13 @@ impl Revolutx {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("trigger".into())]), &[])]);
         let mut response: crate::value::Dict = self.private_get10_orders_historical(&[__ws_arg_11]).await.into_dict();
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1123: bool = true;
             while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2230,13 +2230,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1124: bool = true;
             while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

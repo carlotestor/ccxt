@@ -1229,7 +1229,7 @@ impl Backpack {
         let mut symbol: String = self.safe_string_k(rawCurrency.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stock: bool = (symbol.ends_with(".US")) || (symbol.ends_with(".HK"));
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut networks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::from(vec![])]).into_list();
         let mut parsedNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1622,7 +1622,7 @@ impl Backpack {
             type_var = Some("spot".to_string());
             if matches!(&rfq, Value::Bool(true)) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(".RFQ/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut sessions: Vec<Value> = self.safe_list_k(&security, "sessions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut sessions: crate::value::List = self.safe_list_k(&security, "sessions", &[Value::from(vec![])]).into_list();
                 let mut stepSize: Option<String> = None;
                 let mut minimum: Option<String> = None;
                 let mut maximum: Option<String> = None;

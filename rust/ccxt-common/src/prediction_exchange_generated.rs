@@ -121,8 +121,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         let mut query: Option<String> = self.safe_string_k(params.clone(), "query", &[]).as_str().map(str::to_owned);
-        let mut queries: Vec<Value> = self.safe_list_k(params.clone(), "queries", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tags: Vec<Value> = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut queries: crate::value::List = self.safe_list_k(params.clone(), "queries", &[Value::from(vec![])]).into_list();
+        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
@@ -130,7 +130,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (query.is_some()) || (queriesLength > ((0i64) as f64)) || (tagsLength > ((0i64) as f64)) || (eventId.is_some()) || (slug.is_some()) {
             return Value::Null;
         }
-        let mut extraScopeParams: Vec<Value> = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut extraScopeParams: crate::value::List = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).into_list();
         let mut extraScopeParamsLength: f64 = ((extraScopeParams.len() as i64) as f64);
         let mut extraNames: String = "".to_string();
         {
@@ -368,7 +368,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_197: bool = true;
             while { if !__for_first_197 { i += 1; } __for_first_197 = false; i < (events.len() as i64) } {
             let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut eventTags: Vec<Value> = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut eventTags: crate::value::List = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).into_list();
             let mut matched: bool = false;
             {
                                 let mut ti: i64 = 0;
@@ -839,7 +839,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 m
             });
         }
-        let mut outcomesList: Vec<Value> = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut outcomesList: crate::value::List = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_206: bool = true;
@@ -920,7 +920,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut markets: Vec<Value> = self.safe_list_k(event, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(event, "markets", &[Value::from(vec![])]).into_list();
         let mut marketsLength: f64 = ((markets.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
