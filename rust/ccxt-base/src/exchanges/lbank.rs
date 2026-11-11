@@ -1988,11 +1988,11 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut free: Value = self.safe_dict_k(data.clone(), "free", &[Value::Map({
+            let mut free: crate::value::Dict = self.safe_dict_k(data.clone(), "free", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut currencies: Vec<Value> = Value::Array(free.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+            let mut currencies: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_919: bool = true;
@@ -2001,7 +2001,7 @@ impl Lbank {
                 let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(&used, currencyId.clone(), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(&free, currencyId.clone(), &[])); }
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
                 }

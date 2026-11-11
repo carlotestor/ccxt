@@ -1870,11 +1870,11 @@ impl Hitbtc {
 }));
         let mut type_var: Value = self.safe_string_lower_k(params.clone(), "type", &[Value::Str("spot".into())]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("type".into())]), &[]);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut account: Option<String> = (if (type_var == Value::Null) { None } else { self.safe_string(accountsByType.clone(), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned) });
+})]).into_dict();
+        let mut account: Option<String> = (if (type_var == Value::Null) { None } else { self.safe_string(&accountsByType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned) });
         let mut response: Value = Value::Null;
         if (account.as_deref() == Some("wallet")) {
             response = self.private_get_wallet_balance(&[paramsOmitted.clone()]).await;
@@ -1883,7 +1883,7 @@ impl Hitbtc {
         }  else if (account.as_deref() == Some("derivatives")) {
             response = self.private_get_futures_balance(&[paramsOmitted]).await;
         }  else {
-            let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         return self.parse_balance_list(response);
@@ -3906,21 +3906,21 @@ impl Hitbtc {
         if (code.as_str() != Some("USDT")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() only supports USDT currently".into()))));
         }
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut fromNetworkUpper: String = fromNetwork.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut toNetworkUpper: String = toNetwork.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut fromNetworkValue: Value = self.safe_string(self.networkAliases.clone(), Value::from(fromNetworkUpper.clone()), &[Value::from(fromNetworkUpper)]);
         let mut toNetworkValue: Value = self.safe_string(self.networkAliases.clone(), Value::from(toNetworkUpper.clone()), &[Value::from(toNetworkUpper)]);
-        let mut fromNetworkValue2: Value = self.safe_string(networks.clone(), fromNetworkValue, &[]); // unified code to exchange id
-        let mut toNetworkValue2: Value = self.safe_string(networks.clone(), toNetworkValue, &[]); // unified code to exchange id
+        let mut fromNetworkValue2: Value = self.safe_string(&networks, fromNetworkValue, &[]); // unified code to exchange id
+        let mut toNetworkValue2: Value = self.safe_string(&networks, toNetworkValue, &[]); // unified code to exchange id
         if (fromNetworkValue2 == toNetworkValue2) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork".into()))));
         }
         if (fromNetworkValue2 == Value::Null) || (toNetworkValue2 == Value::Null) {
-            let mut keys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut keys: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ".into())).into()),
                 Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }

@@ -7179,11 +7179,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut data: Value = self.safe_dict_k(&responsePayload, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&responsePayload, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut statuses: crate::value::List = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]).into_list();
+            })]).into_dict();
+            let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_830: bool = true;
@@ -7194,8 +7194,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            if (matches!(&data, Value::Dict(__d) if __d.contains_key("status"))) {
-                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(data, "status", &[Value::Map({
+            if (data.contains_key("status")) {
+                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(&data, "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();

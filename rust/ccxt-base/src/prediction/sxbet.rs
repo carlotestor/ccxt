@@ -3523,11 +3523,11 @@ impl Sxbet {
             return Value::from(refreshed);
         }
         self.set_ws_option(Value::Str("wsBookVersions".into()), marketHash.clone(), version);
-        let mut watchedBooks: Value = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
+        let mut watchedBooks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.milliseconds().as_i64();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
@@ -3535,7 +3535,7 @@ impl Sxbet {
             let mut __for_first_1524: bool = true;
             while { if !__for_first_1524 { i += 1; } __for_first_1524 = false; (i as f64) < watchedSymsLength } {
             let mut sym: Value = watchedSyms.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string(watchedBooks.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
+            if (self.safe_string(&watchedBooks, sym.clone(), &[]).as_str() != marketHash.as_str()) {
                 continue;
             }
             let mut outcomeObj: crate::value::Dict = self.outcome(sym.clone()).into_dict();
@@ -3676,11 +3676,11 @@ impl Sxbet {
         //         "outcomeTwo": null
         //     }
         //
-        let mut watchedTickers: Value = self.safe_dict_k(self.options.clone(), "wsWatchedTickers", &[Value::Map({
+        let mut watchedTickers: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsWatchedTickers", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut watchedSyms: Vec<Value> = Value::Array(watchedTickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut watchedSyms: Vec<Value> = Value::Array(watchedTickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -3722,7 +3722,7 @@ impl Sxbet {
                 let mut __for_first_1527: bool = true;
                 while { if !__for_first_1527 { j += 1; } __for_first_1527 = false; (j as f64) < watchedSymsLength } {
                 let mut sym: Value = watchedSyms.get(j as usize).cloned().unwrap_or(Value::Null);
-                if (self.safe_string(watchedTickers.clone(), sym.clone(), &[]).as_str() != marketHash.as_deref()) {
+                if (self.safe_string(&watchedTickers, sym.clone(), &[]).as_str() != marketHash.as_deref()) {
                     continue;
                 }
                 let mut outcomeObj: Value = self.outcome(sym.clone());

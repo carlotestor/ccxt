@@ -4648,13 +4648,13 @@ impl Kucoin {
         //
         let mut defaultType: String = self.safe_string2(self.options.clone(), methodName, Value::Str("defaultType".into()), &[Value::Str("trade".into())]).as_str().unwrap_or("trade").to_string();
         let mut requestedType: Option<String> = (match params.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultType) }).as_str().map(str::to_owned);
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut type_var: Option<String> = self.safe_string(accountsByType.clone(), requestedType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut type_var: Option<String> = self.safe_string(&accountsByType, requestedType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) {
-            let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" isFuturesMethod() type must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         return Value::Bool((type_var.as_deref() == Some("contract")) || (type_var.as_deref() == Some("future")) || (type_var.as_deref() == Some("futures")));

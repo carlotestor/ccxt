@@ -2804,16 +2804,16 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut subscriptions: Value = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
+        let mut subscriptions: crate::value::Dict = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("book".to_string(), Value::Str("handle_order_book_subscriptions".into()).clone());
             m
         });
-        let mut names: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut names: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_161: bool = true;
@@ -2821,7 +2821,7 @@ impl Bitvavo {
             let mut name: Value = names.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut method: Value = self.safe_value(&methods, name.clone(), &[]);
             if (method != Value::Null) {
-                let mut subscription: Value = self.safe_value(subscriptions.clone(), name, &[]);
+                let mut subscription: Value = self.safe_value(&subscriptions, name, &[]);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
         }

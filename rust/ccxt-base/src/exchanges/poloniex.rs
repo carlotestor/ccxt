@@ -4543,13 +4543,13 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1094: bool = true;
             while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (entries.len() as i64) } {
-            let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut currencies: crate::value::List = Value::Array(entry.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+})]).into_dict();
+            let mut currencies: crate::value::List = Value::Array(entry.keys().cloned().map(Value::from).collect()).into_list();
             let mut currencyId: Option<String> = self.safe_string_opt(&currencies, Value::Int(0), &[]);
-            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(&entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         }
         return self.parse_deposit_withdraw_fees(Value::Map(data), &[codes]);

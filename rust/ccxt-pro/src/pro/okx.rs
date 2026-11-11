@@ -2555,7 +2555,7 @@ impl Okx {
 }));
         self.check_required_credentials(&[]);
         let mut access: String = self.safe_string_k(params.clone(), "access", &[Value::Str("private".into())]).as_str().unwrap_or("private").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]).into_dict();
         let mut url: Value = self.get_url(Value::Str("users".into()), &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
@@ -2582,8 +2582,8 @@ impl Okx {
                 m
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-            if (matches!(&paramsOmitted, Value::Dict(__d) if __d.contains_key("access"))) {
-                request.insert("access".into(), paramsOmitted.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null));
+            if (paramsOmitted.contains_key("access")) {
+                request.insert("access".into(), crate::value::KeyRead::key_read(&&paramsOmitted, "access"));
             }
             self.watch(url, &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone())]).await;
         }

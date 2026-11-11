@@ -3614,19 +3614,19 @@ if _try_result.is_err() {
 }));
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
-        let mut paramsDict: Value = self.extend(Value::Map({
+        let mut paramsDict: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[params]);
+        }), &[params]).into_dict();
         let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
-        if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("coin"))) {
+        if (paramsDict.contains_key("noCoin")) && !(paramsDict.contains_key("coin")) {
             return (match config.get("noCoin") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("symbol"))) {
+        }  else if (paramsDict.contains_key("noSymbol")) && !(paramsDict.contains_key("symbol")) {
             return (match config.get("noSymbol") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noPoolId"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("poolId"))) {
+        }  else if (paramsDict.contains_key("noPoolId")) && !(paramsDict.contains_key("poolId")) {
             return (match config.get("noPoolId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("limit"))) {
-            let mut limit: Value = self.safe_integer_k(paramsDict.clone(), "limit", &[]);
+        }  else if (paramsDict.contains_key("limit")) {
+            let mut limit: Value = self.safe_integer_k(&paramsDict, "limit", &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1128: bool = true;
