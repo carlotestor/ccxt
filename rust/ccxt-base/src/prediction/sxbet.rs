@@ -1285,7 +1285,7 @@ impl Sxbet {
         let mut nonce: Value = (if (nonceHex.as_deref() == Some("")) { Value::Str("0".into()) } else { self.number_to_string(self.hex_to_int(nonceHex.clone().map(Value::from).unwrap_or(Value::Null))) });
         let mut tokenName: Value = self.fetch_erc20_name(rpcUrl, tokenAddress.clone()).await;
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
-        let mut deadline: Value = self.safe_integer_k(&paramsSpender, "deadline", &[self.sum(&[self.seconds(), Value::from(defaultDeadlineSeconds)])]);
+        let mut deadline: Option<i64> = self.safe_integer_k(&paramsSpender, "deadline", &[self.sum(&[self.seconds(), Value::from(defaultDeadlineSeconds)])]).as_i64();
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&self.number_to_string(Value::from(amount)), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1331,7 +1331,7 @@ impl Sxbet {
                 m.insert("spender".to_string(), spender.clone());
                 m.insert("value".to_string(), value.clone());
                 m.insert("nonce".to_string(), nonce);
-                m.insert("deadline".to_string(), deadline.clone());
+                m.insert("deadline".to_string(), Value::from(deadline));
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
@@ -1343,7 +1343,7 @@ impl Sxbet {
                 m.insert("spender".to_string(), spender);
                 m.insert("tokenAddress".to_string(), tokenAddress);
                 m.insert("value".to_string(), value.clone());
-                m.insert("deadline".to_string(), self.number_to_string(deadline));
+                m.insert("deadline".to_string(), self.number_to_string(Value::from(deadline)));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -1450,7 +1450,7 @@ impl Sxbet {
         let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut saltHex: String = format!("{}{}", Value::Str("0x".into()), saltHexPadded);
         let mut defaultExpirySeconds: i64 = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]).as_i64().unwrap_or(86400);
-        let mut expiry: Value = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), Value::from(defaultExpirySeconds)])]);
+        let mut expiry: Option<i64> = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), Value::from(defaultExpirySeconds)])]).as_i64();
         let mut defaultTif: String = "IOC".to_string();
         if (type_var.as_str() == Some("limit")) {
             defaultTif = "GTC".to_string();
@@ -1517,7 +1517,7 @@ impl Sxbet {
                 m.insert("totalBetSize".to_string(), totalBetSize.clone());
                 m.insert("percentageOdds".to_string(), percentageOdds.clone());
                 m.insert("salt".to_string(), saltNumber);
-                m.insert("expiry".to_string(), expiry.clone());
+                m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("maker".to_string(), maker.clone());
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne.clone());
             m
@@ -1532,7 +1532,7 @@ impl Sxbet {
                 m.insert("totalBetSize".to_string(), totalBetSize);
                 m.insert("percentageOdds".to_string(), percentageOdds);
                 m.insert("salt".to_string(), Value::from(saltHex));
-                m.insert("expiry".to_string(), expiry);
+                m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("baseToken".to_string(), baseToken.map(Value::from).unwrap_or(Value::Null));
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne);
                 m.insert("timeInForce".to_string(), timeInForce.clone());
@@ -1611,7 +1611,7 @@ impl Sxbet {
                 orderStatus = (if (reason.as_str() == Some("EXPIRED")) { Some("expired".to_string()) } else { Some("canceled".to_string()) });
             }
         }
-        let mut now: Option<i64> = self.milliseconds().as_i64();
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&first, Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
@@ -3027,8 +3027,8 @@ impl Sxbet {
         let mut bid: Value = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]) } else { Value::Null });
         let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
-        let mut now: Option<i64> = self.milliseconds().as_i64();
-        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { now });
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { Some(now) });
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&self.number_to_string(bid.clone()), &self.number_to_string(ask.clone())), &Value::Str("2".into())), &[]);
@@ -3113,7 +3113,7 @@ impl Sxbet {
                 sortedAsks = self.array_slice(sortedAsks.clone(), Value::Int(0), &[limit]);
             }
         }
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         return self.safe_prediction_order_book(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]));
@@ -3528,7 +3528,7 @@ impl Sxbet {
     m
 })]);
         let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
                         let mut i: i64 = 0;

@@ -2704,7 +2704,7 @@ impl Predictfun {
             if isMarket {
                 expirationDelta = self.safe_integer_k(self.options.clone(), "marketOrderExpiration", &[Value::from(defaultExpiration)]).as_i64();
             }
-            let mut now: Option<i64> = self.seconds().as_i64();
+            let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
             expiration = self.sum(&[Value::from(now), Value::from(expirationDelta)]);
         }
         let mut nonce: Value = self.incrementing_nonce();

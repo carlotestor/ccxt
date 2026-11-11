@@ -744,7 +744,7 @@ impl Bitopro {
             return;
         }
         self.check_required_credentials(&[]);
-        let mut nonce: Option<i64> = self.milliseconds().as_i64();
+        let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut rawData: Value = self.json(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));

@@ -7959,7 +7959,7 @@ impl Bingx {
             fills = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
             request.insert("symbol".into(), Value::from((market).id.clone()));
-            let mut now: Value = self.milliseconds();
+            let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
             if (since != Value::Null) {
                 let mut startTimeReq: String = "startTs".to_string();
                 if (market).spot {
@@ -7967,11 +7967,7 @@ impl Bingx {
                 }
                 request.insert(startTimeReq, since.clone());
             }  else if (market).swap {
-                request.insert("startTs".into(), (match (&(now), &((match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                    &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x),
-                    Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); // 30 days for swap
+                request.insert("startTs".into(), Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))))); // 30 days for swap
             }
             let mut until: Option<i64> = self.safe_integer_k(&paramsSubType, "until", &[]).as_i64();
             let mut paramsUntil: Value = self.omit(&paramsSubType, Value::Str("until".into()), &[]);
@@ -7982,7 +7978,7 @@ impl Bingx {
                 }
                 request.insert(endTimeReq, Value::from(until));
             }  else if (market).swap {
-                request.insert("endTs".into(), now);
+                request.insert("endTs".into(), Value::from(now));
             }
             if (market).spot {
                 if (limit != Value::Null) {

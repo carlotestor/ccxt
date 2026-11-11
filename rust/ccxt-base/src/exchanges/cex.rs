@@ -2750,7 +2750,7 @@ impl Cex {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut seconds: Value = Value::Str(format!("{}", self.seconds()).into());
+            let mut seconds: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut bodySigned: Value = json_stringify(&query);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned);
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
@@ -2758,7 +2758,7 @@ impl Cex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-AGGR-KEY".to_string(), self.apiKey.clone());
-                    m.insert("X-AGGR-TIMESTAMP".to_string(), seconds);
+                    m.insert("X-AGGR-TIMESTAMP".to_string(), Value::from(seconds));
                     m.insert("X-AGGR-SIGNATURE".to_string(), signature);
                 m
             });

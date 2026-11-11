@@ -3381,7 +3381,7 @@ impl Polymarket {
         // the signed amount is denominated using raw base units of the token
         let mut precised: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), self.parse_number(precision.clone(), &[]), &[Value::Int(crate::runtime::TICK_SIZE)]);
         let mut baseUnits: Option<String> = crate::precise::Precise::stringDiv(&precised, &precision).as_str().map(str::to_owned);
-        let mut ts: Option<i64> = self.seconds().as_i64();
+        let mut ts: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut contract: String = self.safe_string_k(self.options.clone(), "depositContract", &[Value::Str("0xDCa4af75705dbB50f62437045afF9921947917d2".into())]).as_str().unwrap_or("0xDCa4af75705dbB50f62437045afF9921947917d2").to_string();
@@ -3848,7 +3848,7 @@ impl Polymarket {
         let mut proxyPrivateKey: Value = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut proxyAddress: Value = self.eth_get_address_from_private_key(proxyPrivateKey.clone(), &[]);
         let mut owner: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-        let mut ts: Option<i64> = self.milliseconds().as_i64();
+        let mut ts: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut lifetime: i64 = self.safe_integer_k(self.options.clone(), "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);
         let mut expiry: Value = self.sum(&[Value::from(ts), Value::from(lifetime)]);
         let mut salt: Value = self.rand_number(Value::Int(9));
@@ -3982,7 +3982,7 @@ impl Polymarket {
         let mut credentials: Value = self.load_proxy_credentials(&[]).await;
         let mut packed: Value = self.packb(signable, &[]);
         let mut dataHash: Value = self.hash_message(packed);
-        let mut ts: Option<i64> = self.milliseconds().as_i64();
+        let mut ts: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({

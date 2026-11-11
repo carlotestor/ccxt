@@ -3615,7 +3615,7 @@ impl Bitget {
         let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: Value = Value::Str(format!("{}", self.seconds()).into());
+            let mut timestamp: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("GET".into())).into()), Value::Str("/user/verify".into()));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut operation: String = "login".to_string();
@@ -3626,7 +3626,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("passphrase".to_string(), self.password.clone());
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("sign".to_string(), signature);
     m
 })]));

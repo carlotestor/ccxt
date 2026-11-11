@@ -1843,11 +1843,11 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: Value = self.milliseconds();
-        let mut lastAuthenticatedTime: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("lastAuthenticatedTime".into()), &[Value::Int(0)]);
+        let mut time: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut lastAuthenticatedTime: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("lastAuthenticatedTime".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut listenKeyRefreshRate: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("listenKeyRefreshRate".into()), &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
         let mut delay: i64 = (listenKeyRefreshRate + 10000);
-        if (match (&(time), &(lastAuthenticatedTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > (delay as f64) {
+        if ((time - lastAuthenticatedTime)) > delay {
             self.check_required_credentials(&[]);
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
@@ -1875,7 +1875,7 @@ impl Toobit {
                 self.set_ws_options(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("listenKey".to_string(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
-                        m.insert("lastAuthenticatedTime".to_string(), time);
+                        m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
                     m
                 }));
                 self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), params]).await;

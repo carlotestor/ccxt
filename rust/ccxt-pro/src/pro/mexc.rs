@@ -967,7 +967,7 @@ impl Mexc {
         self.check_required_credentials(&[]);
         let mut channel: String = "login".to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
-        let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut payload: String = format!("{}{}", self.apiKey.clone(), timestamp);
         let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -977,7 +977,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("signature".to_string(), signature);
-        m.insert("reqTime".to_string(), timestamp);
+        m.insert("reqTime".to_string(), Value::from(timestamp));
     m
 }));
             m

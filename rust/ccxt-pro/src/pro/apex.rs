@@ -1461,7 +1461,7 @@ impl Apex {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut request_path: String = "/ws/accounts".to_string();
         let mut http_method: String = "GET".to_string();
         let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, http_method).into()), request_path);
@@ -1480,7 +1480,7 @@ impl Apex {
                     m.insert("requestPath".to_string(), Value::from(request_path));
                     m.insert("apiKey".to_string(), self.apiKey.clone());
                     m.insert("passphrase".to_string(), self.password.clone());
-                    m.insert("timestamp".to_string(), timestamp);
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("signature".to_string(), signature);
                 m
             });
@@ -1670,7 +1670,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //
-        let mut timeStamp: Value = self.milliseconds();
+        let mut timeStamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();

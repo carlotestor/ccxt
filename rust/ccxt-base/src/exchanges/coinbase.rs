@@ -7288,7 +7288,7 @@ if _try_result.is_err() {
                 authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), self.token.clone()));
             }  else {
                 self.check_required_credentials(&[]);
-                let mut seconds: Option<i64> = self.seconds().as_i64();
+                let mut seconds: i64 = self.seconds().as_i64().unwrap_or_default();
                 let mut payload: Option<String> = Some("".to_string());
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {

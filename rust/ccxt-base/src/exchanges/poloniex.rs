@@ -4382,8 +4382,8 @@ impl Poloniex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut year: i64 = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
-        let mut now: Value = self.seconds();
-        let mut start: Value = (match (&(now), &(Value::Int((10 * year)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut start: Value = Value::Int((now - ((10 * year))));
         if (since != Value::Null) {
             let mut sinceMs: i64 = self.safe_integer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4395,7 +4395,7 @@ impl Poloniex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("start".to_string(), start);
-                m.insert("end".to_string(), now);
+                m.insert("end".to_string(), Value::from(now));
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);

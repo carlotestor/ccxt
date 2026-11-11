@@ -1488,7 +1488,7 @@ impl Hollaex {
         if paginateOption {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
         }
-        let mut now: Option<i64> = self.milliseconds().as_i64();
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]);
         let mut timeDelta: Value = (match (&((match (&(self.parse_timeframe(timeframe.clone())), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),

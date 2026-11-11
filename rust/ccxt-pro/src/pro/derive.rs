@@ -1457,11 +1457,11 @@ impl Derive {
             self.balance = emptyBalances;
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
-        let mut subaccountIdKey: Value = self.number_to_string(subaccountId.clone());
-        if (subaccountIdKey == Value::Null) {
+        let mut subaccountIdKey: Option<String> = self.number_to_string(subaccountId.clone()).as_str().map(str::to_owned);
+        if (subaccountIdKey.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() could not resolve the subaccount id".into()))));
         }
-        if fetchSnapshot && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if fetchSnapshot && !(matches!((&self.balance, subaccountIdKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
@@ -1474,7 +1474,7 @@ impl Derive {
                 m
             }); // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
             let mut seeded: Value = self.extend(crate::types::IntoRaw::into_raw(snapshot), &[Value::Map(emptyBalance)]); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), seeded); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), seeded); }
         }
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".balances".into()));
@@ -1633,7 +1633,7 @@ impl Derive {
         let mut position: Value = self.safe_dict(symbolPositions, Value::from(side.clone()), &[]);
         if (position == Value::Null) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
-            let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             position = self.safe_position(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(symbol));

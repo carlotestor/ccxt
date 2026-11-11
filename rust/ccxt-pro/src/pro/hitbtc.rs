@@ -409,7 +409,7 @@ impl Hitbtc {
         let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut timestampString: Option<String> = self.number_to_string(Value::from(timestamp)).as_str().map(str::to_owned);
             let mut timestampEncoded: Option<String> = timestampString.clone();
             if (timestampString.is_none()) {

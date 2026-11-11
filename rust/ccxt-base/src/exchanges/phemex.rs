@@ -6282,7 +6282,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Option<i64> = self.seconds().as_i64();
+            let mut timestamp: i64 = self.seconds().as_i64().unwrap_or_default();
             let mut xPhemexRequestExpiry: i64 = self.safe_integer_k(self.options.clone(), "x-phemex-request-expiry", &[Value::Int(60)]).as_i64().unwrap_or(60);
             let mut expiry: Value = self.sum(&[Value::from(timestamp), Value::from(xPhemexRequestExpiry)]);
             let mut expiryString: Value = Value::str(expiry.to_string());

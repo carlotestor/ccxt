@@ -476,7 +476,7 @@ impl Revolutx {
         let mut bodyString: Value = Value::Str("".into());
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             if (method.as_str() == Some("GET")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString.as_str() != Some("")) {
@@ -496,7 +496,7 @@ impl Revolutx {
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Revx-API-Key".to_string(), self.apiKey.clone());
-                    m.insert("X-Revx-Timestamp".to_string(), timestamp);
+                    m.insert("X-Revx-Timestamp".to_string(), Value::from(timestamp));
                     m.insert("X-Revx-Signature".to_string(), signature);
                 m
             });

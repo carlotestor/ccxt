@@ -2562,7 +2562,7 @@ impl Okx {
         let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: Value = Value::Str(format!("{}", self.seconds()).into());
+            let mut timestamp: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut method: String = "GET".to_string();
             let mut path: String = "/users/self/verify".to_string();
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), path);
@@ -2575,7 +2575,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("passphrase".to_string(), self.password.clone());
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("sign".to_string(), signature);
     m
 })]));
@@ -3353,7 +3353,7 @@ impl Okx {
 }
 
     pub fn request_id(&self) -> Option<String> {
-        let mut ts: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut randomNumber: Value = self.rand_number(Value::Int(4));
         let mut randomPart: Value = Value::Str(format!("{}", randomNumber).into());
         return Value::Str(format!("{}{}", ts, randomPart).into()).as_str().map(str::to_owned);
