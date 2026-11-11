@@ -4258,7 +4258,7 @@ impl Bitfinex {
     m
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
@@ -4288,8 +4288,8 @@ impl Bitfinex {
                 m.insert("address".to_string(), address);
             m
         });
-        if (tag != Value::Null) {
-            request.insert("payment_id".into(), tag);
+        if (tag.is_some()) {
+            request.insert("payment_id".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

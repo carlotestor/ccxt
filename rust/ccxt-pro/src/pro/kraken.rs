@@ -679,8 +679,8 @@ impl Kraken {
         });
         let requestValueparamsValueVariable: Vec<Value> = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_0 = self.extend(requestValue, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_0 = self.extend(requestValue, &[&paramsValue]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
         Value::Null
         }).await?))
@@ -775,8 +775,8 @@ impl Kraken {
         });
         let requestValueparamsValueVariable: Vec<Value> = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: Value = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_1 = self.extend(requestValue, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_1 = self.extend(requestValue, &[&paramsValue]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
         Value::Null
         }).await?))

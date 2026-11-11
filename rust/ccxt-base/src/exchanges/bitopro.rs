@@ -2291,12 +2291,12 @@ impl Bitopro {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2322,8 +2322,8 @@ impl Bitopro {
             }
             request.insert("protocol".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("message".into(), tagWithdrawTag);
+        if (tagWithdrawTag.is_some()) {
+            request.insert("message".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await.into_dict();

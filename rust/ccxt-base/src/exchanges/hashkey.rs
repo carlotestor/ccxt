@@ -2862,9 +2862,9 @@ impl Hashkey {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2876,8 +2876,8 @@ impl Hashkey {
                 m.insert("quantity".to_string(), amount);
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("addressExt".into(), tagWithdrawTag);
+        if (tagWithdrawTag.is_some()) {
+            request.insert("addressExt".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3982,9 +3982,9 @@ impl Hashkey {
             m
         });
         let clientOrderIdparamsClientOrderIdVariable: Vec<Value> = self.handle_param_string(params, Value::Str("clientOrderId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut clientOrderId: Value = clientOrderIdparamsClientOrderIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut clientOrderId: Option<String> = clientOrderIdparamsClientOrderIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsClientOrderId: Value = clientOrderIdparamsClientOrderIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (clientOrderId == Value::Null) {
+        if (clientOrderId.is_none()) {
             request.insert("orderId".into(), id.clone());
         }
         let mut market: Option<crate::types::Market> = None;
@@ -3996,8 +3996,8 @@ impl Hashkey {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            if (clientOrderId != Value::Null) {
-                request.insert("origClientOrderId".into(), clientOrderId);
+            if (clientOrderId.is_some()) {
+                request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_24]).await;
@@ -4120,10 +4120,10 @@ impl Hashkey {
         });
         let mut response: Value = Value::Null;
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMethodName, methodNameOption.map(Value::from).unwrap_or(Value::Null), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (accountId != Value::Null) {
-            request.insert("subAccountId".into(), accountId);
+        if (accountId.is_some()) {
+            request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsAccountId]);
             response = self.private_get_api_v1_spot_sub_account_open_orders(&[__ws_arg_26]).await;
         }  else {
@@ -4193,10 +4193,10 @@ impl Hashkey {
         }
         let mut response: Value = Value::Null;
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (accountId != Value::Null) {
-            request.insert("subAccountId".into(), accountId);
+        if (accountId.is_some()) {
+            request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsAccountId]);
             response = self.private_get_api_v1_futures_sub_account_open_orders(&[__ws_arg_28]).await;
         }  else {

@@ -5860,13 +5860,13 @@ impl Okx {
         // position side / hedged options only apply to swap and future orders
         let mut isSwapOrFuture: bool = (contract == Some(true)) && (((market).swap) || ((market).future));
         let positionSideparamsPositionSideVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("positionSide".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut positionSide: Value = positionSideparamsPositionSideVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut positionSide: Option<String> = positionSideparamsPositionSideVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPositionSide: Value = positionSideparamsPositionSideVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsSwapOrFuture: Value = params.clone();
         if isSwapOrFuture {
             paramsSwapOrFuture = paramsPositionSide;
         }
-        let mut usesHedged: bool = isSwapOrFuture && (positionSide == Value::Null);
+        let mut usesHedged: bool = isSwapOrFuture && (positionSide.is_none());
         let hedgedparamsHedgedOptionVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSwapOrFuture.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut hedged: Value = hedgedparamsHedgedOptionVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHedgedOption: Value = hedgedparamsHedgedOptionVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -5889,8 +5889,8 @@ impl Okx {
             request.insert("tdMode".into(), tradeMode);
         }  else if (contract == Some(true)) {
             if matches!((self.safe_bool_k((market).raw.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k((market).raw.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) {
-                if (positionSide != Value::Null) {
-                    request.insert("posSide".into(), positionSide);
+                if (positionSide.is_some()) {
+                    request.insert("posSide".into(), positionSide.map(Value::from).unwrap_or(Value::Null));
                 }  else {
                     if (hedged.as_bool() == Some(true)) {
                         let mut isBuy: bool = side.as_str() == Some("buy");

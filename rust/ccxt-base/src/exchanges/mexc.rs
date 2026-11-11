@@ -7547,7 +7547,7 @@ impl Mexc {
         }
         let mut currency: Value = self.currency(code.clone());
         let tagResolvedparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagResolved: Value = tagResolvedparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagResolved: Option<String> = tagResolvedparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagResolvedparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut internal: bool = self.safe_bool_k(paramsWithdrawTag.clone(), "internal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if internal {
@@ -7573,7 +7573,7 @@ impl Mexc {
 })]).into_dict();
         let mut networkRaw: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]).as_str().map(str::to_owned); // this line allows the user to specify either ERC20 or ETH
         let mut network: Option<String> = self.network_code_to_id(self.safe_string(&networks, networkRaw.clone().map(Value::from).unwrap_or(Value::Null), &[networkRaw.clone().map(Value::from).unwrap_or(Value::Null)]), &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned); // handle ETH > ERC-20 alias
-        self.check_address(&[address.clone(), code, tagResolved.clone()]);
+        self.check_address(&[address.clone(), code, tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7581,8 +7581,8 @@ impl Mexc {
                 m.insert("amount".to_string(), amount);
             m
         });
-        if (tagResolved != Value::Null) {
-            request.insert("memo".into(), tagResolved);
+        if (tagResolved.is_some()) {
+            request.insert("memo".into(), tagResolved.map(Value::from).unwrap_or(Value::Null));
         }
         if (network.is_some()) {
             request.insert("netWork".into(), network.clone().map(Value::from).unwrap_or(Value::Null));

@@ -10630,12 +10630,12 @@ impl Kucoin {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -10644,8 +10644,8 @@ impl Kucoin {
                 m.insert("withdrawType".to_string(), Value::Str("ADDRESS".into()));
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("memo".into(), tagWithdrawTag);
+        if (tagWithdrawTag.is_some()) {
+            request.insert("memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -11843,23 +11843,23 @@ impl Kucoin {
         let mut paramsTransferType: crate::value::Dict = transferTypeOptionparamsTransferTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut fromUserId: Value = Value::Null;
         let fromUserIdOptionparamsFromUserIdVariable: Vec<Value> = self.handle_param_string2(&paramsTransferType, Value::Str("fromUserId".into()), Value::Str("fromUid".into()), &[fromUserId]).as_array().cloned().unwrap_or_default();
-        let mut fromUserIdOption: Value = fromUserIdOptionparamsFromUserIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fromUserIdOption: Option<String> = fromUserIdOptionparamsFromUserIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsFromUserId: crate::value::Dict = fromUserIdOptionparamsFromUserIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut toUserId: Value = Value::Null;
         let toUserIdOptionparamsToUserIdVariable: Vec<Value> = self.handle_param_string2(&paramsFromUserId, Value::Str("toUserId".into()), Value::Str("toUid".into()), &[toUserId]).as_array().cloned().unwrap_or_default();
-        let mut toUserIdOption: Value = toUserIdOptionparamsToUserIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut toUserIdOption: Option<String> = toUserIdOptionparamsToUserIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsToUserId: crate::value::Dict = toUserIdOptionparamsToUserIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (transferTypeOption.as_deref() == Some("PARENT_TO_SUB")) || (transferTypeOption.as_deref() == Some("SUB_TO_SUB")) {
-            if (toUserIdOption == Value::Null) {
+            if (toUserIdOption.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers".into()))));
             }  else {
-                request.insert("toUid".into(), toUserIdOption);
+                request.insert("toUid".into(), toUserIdOption.map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (transferTypeOption.as_deref() == Some("SUB_TO_PARENT")) || (transferTypeOption.as_deref() == Some("SUB_TO_SUB")) {
-            if (fromUserIdOption == Value::Null) {
+            if (fromUserIdOption.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers".into()))));
             }  else {
-                request.insert("fromUid".into(), fromUserIdOption);
+                request.insert("fromUid".into(), fromUserIdOption.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut clientOid: Value = self.uuid(&[]);
@@ -11955,13 +11955,13 @@ impl Kucoin {
         });
         let mut transferType: String = "INTERNAL".to_string();
         let transferTypeOptionparamsTransferTypeVariable: Vec<Value> = self.handle_param_string2(params, Value::Str("transferType".into()), Value::Str("type".into()), &[Value::from(transferType)]).as_array().cloned().unwrap_or_default();
-        let mut transferTypeOption: Value = transferTypeOptionparamsTransferTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut transferTypeOption: Option<String> = transferTypeOptionparamsTransferTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTransferType: Value = transferTypeOptionparamsTransferTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (transferTypeOption.as_str() == Some("PARENT_TO_SUB")) {
+        if (transferTypeOption.as_deref() == Some("PARENT_TO_SUB")) {
             if !(matches!(&paramsTransferType, Value::Dict(__d) if __d.contains_key("toUserId"))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB transfers".into()))));
             }
-        }  else if (transferTypeOption.as_str() == Some("SUB_TO_PARENT")) {
+        }  else if (transferTypeOption.as_deref() == Some("SUB_TO_PARENT")) {
             if !(matches!(&paramsTransferType, Value::Dict(__d) if __d.contains_key("fromUserId"))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT transfers".into()))));
             }
@@ -11992,7 +11992,7 @@ impl Kucoin {
             let __ws_arg_108 = self.extend(Value::Map(request.clone()), &[paramsTransferType.clone()]);
             response = self.private_post_accounts_inner_transfer(&[__ws_arg_108]).await.into_opt_dict();
         }  else {
-            request.insert("type".into(), transferTypeOption);
+            request.insert("type".into(), transferTypeOption.map(Value::from).unwrap_or(Value::Null));
             request.insert("fromAccountType".into(), (if let Some(__s) = (fromId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("toAccountType".into(), (if let Some(__s) = (toId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             //

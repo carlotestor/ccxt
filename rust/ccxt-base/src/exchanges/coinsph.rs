@@ -2796,7 +2796,7 @@ impl Coinsph {
     m
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
         let mut warning: bool = self.safe_bool_k(options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -2820,8 +2820,8 @@ impl Coinsph {
                 m.insert("address".to_string(), address);
             m
         });
-        if (tag != Value::Null) {
-            request.insert("withdrawOrderId".into(), tag);
+        if (tag.is_some()) {
+            request.insert("withdrawOrderId".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);

@@ -3532,16 +3532,16 @@ impl Hitbtc {
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let requestparamsValueVariable: Vec<Value> = self.create_order_request(market.clone(), marketType.clone().map(Value::from).unwrap_or(Value::Null), type_var, side, amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), paramsMarginMode]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_51 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_51 = self.extend(request.clone(), &[&paramsValue]);
             response = self.private_post_futures_order(&[__ws_arg_51]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            let __ws_arg_52 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_52 = self.extend(request.clone(), &[&paramsValue]);
             response = self.private_post_margin_order(&[__ws_arg_52]).await;
         }  else {
-            let __ws_arg_53 = self.extend(request, &[paramsValue]);
+            let __ws_arg_53 = self.extend(request, &[&paramsValue]);
             response = self.private_post_spot_order(&[__ws_arg_53]).await;
         }
         return self.parse_order(response, &[market]);
@@ -3968,12 +3968,12 @@ impl Hitbtc {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3982,8 +3982,8 @@ impl Hitbtc {
                 m.insert("address".to_string(), address);
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("payment_id".into(), tagWithdrawTag);
+        if (tagWithdrawTag.is_some()) {
+            request.insert("payment_id".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

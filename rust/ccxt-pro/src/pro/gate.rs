@@ -814,12 +814,12 @@ impl Gate {
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id, &[symbol, params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_status".into()));
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.clone(), messageType).await;
-        let __ws_arg_2 = self.extend(request, &[requestParams]);
+        let __ws_arg_2 = self.extend(request, &[&requestParams]);
         let mut rawOrder: Value = self.request_private(url, __ws_arg_2, Value::from(channel), &[]).await;
         return self.parse_order(rawOrder, &[market]);
         Value::Null
@@ -926,13 +926,13 @@ impl Gate {
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut newRequest: Value = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]);
         let mut messageType: Value = self.get_type_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_list".into()));
         let mut url: Value = self.get_url_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         self.authenticate(url.clone(), messageType).await;
-        let __ws_arg_3 = self.extend(newRequest, &[requestParams]);
+        let __ws_arg_3 = self.extend(newRequest, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url, __ws_arg_3, Value::from(channel), &[]).await;
         let mut orders: Value = self.parse_orders(rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);

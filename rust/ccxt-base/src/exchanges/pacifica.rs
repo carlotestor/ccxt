@@ -5020,7 +5020,7 @@ if _try_result.is_err() {
             m
         });
         let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createSubAccount".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut agentAddress: Value = agentAddressparamsAgentAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut agentAddress: Option<String> = agentAddressparamsAgentAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), &paramsAgentAddress).as_array().cloned().unwrap_or_default();
         let mut originAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -5028,16 +5028,16 @@ if _try_result.is_err() {
         if (originAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }
-        if (agentAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".into(), agentAddress); }
+        if (agentAddress.is_some()) {
+            if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".into(), agentAddress.map(Value::from).unwrap_or(Value::Null)); }
         }
         let subAccountAddressparamsSubAccountAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOriginAndSingleAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut subAccountAddress: Value = subAccountAddressparamsSubAccountAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subAccountAddress: Option<String> = subAccountAddressparamsSubAccountAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubAccountAddress: crate::value::Dict = subAccountAddressparamsSubAccountAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subAccountPrivateKeyparamsSubAccountPrivateKeyVariable: Vec<Value> = self.handle_option_string_and_params(&paramsSubAccountAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountPrivateKey".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut subAccountPrivateKey: Option<String> = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubAccountPrivateKey: crate::value::Dict = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (subAccountAddress == Value::Null) {
+        if (subAccountAddress.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires a \"subAccountAddress\"!".into()))));
         }
         if (subAccountPrivateKey.is_none()) {
@@ -5076,7 +5076,7 @@ if _try_result.is_err() {
         });
         let mut main_signature: Value = self.sign_message(Value::Map(mainSignatureHeader), Value::Map(mainSigPayload), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress); }
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".into(), subAccountAddress); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
@@ -5491,15 +5491,15 @@ if _try_result.is_err() {
             m
         });
         let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsExpiryWindow, Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut agentAddress: Value = agentAddressparamsAgentAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut agentAddress: Option<String> = agentAddressparamsAgentAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut originAddress: Value = self.handle_origin_and_single_address(Value::Str("postActionRequest".into()), &paramsAgentAddress).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (originAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".into())).into()), operationType).into()), Value::Str(" postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }
         finalHeaders.insert("account".into(), originAddress);
-        if (agentAddress != Value::Null) {
-            finalHeaders.insert("agent_wallet".into(), agentAddress);
+        if (agentAddress.is_some()) {
+            finalHeaders.insert("agent_wallet".into(), agentAddress.map(Value::from).unwrap_or(Value::Null));
         }
         finalHeaders.insert("signature".into(), signature);
         finalHeaders.insert("timestamp".into(), self.safe_integer(Value::Map(signatureHeader.clone()), Value::Str("timestamp".into()), &[]));

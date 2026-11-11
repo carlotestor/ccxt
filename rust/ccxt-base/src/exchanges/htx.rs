@@ -9810,12 +9810,12 @@ impl Htx {
     m
 }));
         let tagValueparamsTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagValue: Value = tagValueparamsTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagValue: Option<String> = tagValueparamsTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTag: crate::value::Dict = tagValueparamsTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagValue.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagValue.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -9823,8 +9823,8 @@ impl Htx {
                 m.insert("currency".to_string(), (currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null));
             m
         });
-        if (tagValue != Value::Null) {
-            request.insert("addr-tag".into(), tagValue); // only for XRP?
+        if (tagValue.is_some()) {
+            request.insert("addr-tag".into(), tagValue.map(Value::from).unwrap_or(Value::Null)); // only for XRP?
         }
         let networkCodeparamsNetworkVariable: Vec<Value> = self.handle_network_code_and_params(&paramsTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkVariable.get(0).and_then(Value::as_str).map(str::to_owned);

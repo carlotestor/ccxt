@@ -3189,12 +3189,12 @@ impl Bittrade {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3203,8 +3203,8 @@ impl Bittrade {
                 m.insert("currency".to_string(), self.safe_string_lower_k(currency.clone(), "id", &[]));
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("addr-tag".into(), tagWithdrawTag); // only for XRP?
+        if (tagWithdrawTag.is_some()) {
+            request.insert("addr-tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)); // only for XRP?
         }
         let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
         if (network != Value::Null) {

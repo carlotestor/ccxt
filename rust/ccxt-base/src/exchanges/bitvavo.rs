@@ -2125,13 +2125,13 @@ impl Bitvavo {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
         let selfTradePreventionparamsSelfTradePreventionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOperatorId, Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut selfTradePrevention: Value = selfTradePreventionparamsSelfTradePreventionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut selfTradePrevention: Option<String> = selfTradePreventionparamsSelfTradePreventionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSelfTradePrevention: crate::value::Dict = selfTradePreventionparamsSelfTradePreventionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (selfTradePrevention != Value::Null) {
-            if (selfTradePrevention.as_str() == Some("EXPIRE_BOTH")) {
+        if (selfTradePrevention.is_some()) {
+            if (selfTradePrevention.as_deref() == Some("EXPIRE_BOTH")) {
                 request.insert("selfTradePrevention".into(), Value::Str("cancelBoth".into()));
             }  else {
-                request.insert("selfTradePrevention".into(), selfTradePrevention);
+                request.insert("selfTradePrevention".into(), selfTradePrevention.map(Value::from).unwrap_or(Value::Null));
             }
         }
         return self.extend(Value::Map(request), &[&paramsSelfTradePrevention]);

@@ -3987,7 +3987,7 @@ impl Toobit {
     m
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
@@ -4009,8 +4009,8 @@ impl Toobit {
                 m.insert("clientOrderId".to_string(), self.milliseconds());
             m
         });
-        if (tag != Value::Null) {
-            request.insert("addressExt".into(), tag);
+        if (tag.is_some()) {
+            request.insert("addressExt".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await;

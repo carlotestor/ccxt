@@ -3468,7 +3468,7 @@ impl Backpack {
     m
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3481,8 +3481,8 @@ impl Backpack {
                 m.insert("address".to_string(), address);
             m
         });
-        if (tag != Value::Null) {
-            request.insert("clientId".into(), tag); // memo or tag
+        if (tag.is_some()) {
+            request.insert("clientId".into(), tag.map(Value::from).unwrap_or(Value::Null)); // memo or tag
         }
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
