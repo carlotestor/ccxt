@@ -218,12 +218,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn load_credentials_from_env(&self, mut exchange: Value) {
         let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".into()));
         let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", Value::Str("re".into()), Value::Str("quiredCredentials".into())).into()), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        let mut objkeys: Vec<Value> = object_keys(&reqCreds).as_array().cloned().unwrap_or_default();
+        let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1615: bool = true;
             while { if !__for_first_1615 { i += 1; } __for_first_1615 = false; i < (objkeys.len() as i64) } {
-            let mut credential: Value = objkeys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut credential: Value = objkeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
                 let mut fullKey: String = format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential);
@@ -264,12 +264,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         if (exchangeSettings != Value::Null) {
-            let mut settingKeys: Vec<Value> = object_keys(&exchangeSettings).as_array().cloned().unwrap_or_default();
+            let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1616: bool = true;
                 while { if !__for_first_1616 { i += 1; } __for_first_1616 = false; i < (settingKeys.len() as i64) } {
-                let mut key: Value = settingKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut key: Value = settingKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut settingValue: Value = get_value(&exchangeSettings, &key);
                 let mut settingIsEmpty: bool = (settingValue == Value::Null) || (settingValue == Value::Null) || (settingValue.as_str() == Some("")) || (is_equal(&settingValue, &Value::Bool(false))) || (is_equal(&settingValue, &Value::Int(0)));
                 if !settingIsEmpty {
@@ -439,7 +439,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".into()), Value::Str("fetchDepositWithdrawFees".into())]));
             m
         });
-        let mut objectNames: Value = Value::Array(objectSkips.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+        let mut objectNames: Value = object_keys(&Value::Map(objectSkips.clone()));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1619: bool = true;
@@ -645,13 +645,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub async fn run_tests(&mut self, mut exchange: Value, mut tests: Value, mut isPublicTest: Value) -> Value {
-        let mut testNames: Vec<Value> = object_keys(&tests).as_array().cloned().unwrap_or_default();
+        let mut testNames: Value = object_keys(&tests);
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1621: bool = true;
             while { if !__for_first_1621 { i += 1; } __for_first_1621 = false; i < (testNames.len() as i64) } {
-            let mut testName: Value = testNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testArgs: Value = get_value(&tests, &testName);
             promises.push(self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
         }
@@ -665,7 +665,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1622: bool = true;
             while { if !__for_first_1622 { i += 1; } __for_first_1622 = false; i < (testNames.len() as i64) } {
-            let mut testName: Value = testNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testReturnedValue: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_equal(&testReturnedValue, &Value::Bool(true)) {
                 failedMethods.push(testName.clone());
@@ -753,12 +753,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut markets: Value = get_value(&exchange, &Value::Str("markets".into()));
-        let mut keys: Vec<Value> = object_keys(&markets).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&markets);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1625: bool = true;
             while { if !__for_first_1625 { i += 1; } __for_first_1625 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&markets, &key);
             if spot && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
                 res.insert(ccxt::runtime::stringify_param(&(get_value(&market, &Value::Str("symbol".into())))), market.clone());
@@ -816,10 +816,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             symbol = self.get_test_symbol(exchange.clone(), spot.clone(), Value::from(activeSymbols));
         }
         if (symbol == Value::Null) {
-            let mut values: Vec<Value> = object_values(&currentTypeMarkets).as_array().cloned().unwrap_or_default();
+            let mut values: Value = object_values(&currentTypeMarkets);
             let mut valuesLength: Value = Value::Int(values.len() as i64);
             if valuesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                let mut first: Value = values.get(0).cloned().unwrap_or(Value::Null);
+                let mut first: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 if (first != Value::Null) {
                     symbol = get_value(&first, &Value::Str("symbol".into()));
                 }
@@ -895,12 +895,12 @@ if _try_result.is_err() {
         let mut quote: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("quote".into()), &[]);
         let mut settle: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("settle".into()), &[]);
         let mut candidates: Value = Value::from(vec![]);
-        let mut tickerSymbols: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
+        let mut tickerSymbols: Value = object_keys(&tickers);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1628: bool = true;
             while { if !__for_first_1628 { i += 1; } __for_first_1628 = false; i < (tickerSymbols.len() as i64) } {
-            let mut tickerSymbol: Value = tickerSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut tickerSymbol: Value = tickerSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), tickerSymbol.clone(), &[]);
             if (market != Value::Null) {
                 // exchanges keep returning tickers for delisted markets, and those
@@ -1585,9 +1585,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut ticker: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/USDT".into())]).await;
         let mut info: Value = ticker.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
         let mut headers: Value = get_value(&info, &Value::Str("responseHeaders".into()));
-        let mut headersKeys: Vec<Value> = object_keys(&headers).as_array().cloned().unwrap_or_default();
+        let mut headersKeys: Value = object_keys(&headers);
         assert((Value::Int(headersKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers should not be empty".into())]);
-        let mut headerValues: Vec<Value> = object_values(&headers).as_array().cloned().unwrap_or_default();
+        let mut headerValues: Value = object_values(&headers);
         assert((Value::Int(headerValues.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str("Response headers values should not be empty".into())]);
         ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".into()), Value::Bool(false));
         return Value::Bool(true);
@@ -1845,12 +1845,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Bool(true);
         }
         if is_true(&exchange.is_dictionary(value.clone())) {
-            let mut keys: Vec<Value> = object_keys(&value).as_array().cloned().unwrap_or_default();
+            let mut keys: Value = object_keys(&value);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1642: bool = true;
                 while { if !__for_first_1642 { i += 1; } __for_first_1642 = false; i < (keys.len() as i64) } {
-                if !(self.is_vacant_value(exchange.clone(), get_value(&value, &keys.get(i as usize).cloned().unwrap_or(Value::Null))).as_bool() == Some(true)) {
+                if !(self.is_vacant_value(exchange.clone(), get_value(&value, &keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))).as_bool() == Some(true)) {
                     return Value::Bool(false);
                 }
             }
@@ -1865,13 +1865,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn count_significant_keys(&self, mut exchange: Value, mut target: Value, mut otherKeys: Value) -> Value {
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
-        let mut keys: Vec<Value> = object_keys(&target).as_array().cloned().unwrap_or_default();
+        let mut keys: Value = object_keys(&target);
         let mut count: i64 = 0;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1643: bool = true;
             while { if !__for_first_1643 { i += 1; } __for_first_1643 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_true(&(exchange.in_array(key.clone(), otherKeys.clone()))) && self.is_vacant_value(exchange.clone(), get_value(&target, &key)).as_bool() == Some(true) {
                 continue;
             }
@@ -2309,12 +2309,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-                let mut storedHeaderKeys: Vec<Value> = object_keys(&storedHeaders).as_array().cloned().unwrap_or_default();
+                let mut storedHeaderKeys: Value = object_keys(&storedHeaders);
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_1649: bool = true;
                     while { if !__for_first_1649 { i += 1; } __for_first_1649 = false; i < (storedHeaderKeys.len() as i64) } {
-                    let mut headerKey: Value = storedHeaderKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+                    let mut headerKey: Value = storedHeaderKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
                     let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
                     self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", Value::Str("header mismatch for ".into()), headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
@@ -2568,12 +2568,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { exchangeData.as_map().and_then(|__m| __m.get("methods")).cloned().unwrap_or(Value::Null) });
-        let mut methodsNames: Vec<Value> = object_keys(&methods).as_array().cloned().unwrap_or_default();
+        let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1655: bool = true;
             while { if !__for_first_1655 { i += 1; } __for_first_1655 = false; i < (methodsNames.len() as i64) } {
-            let mut method: Value = methodsNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
@@ -2821,12 +2821,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut methodsNames: Vec<Value> = object_keys(&methods).as_array().cloned().unwrap_or_default();
+        let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1659: bool = true;
             while { if !__for_first_1659 { i += 1; } __for_first_1659 = false; i < (methodsNames.len() as i64) } {
-            let mut method: Value = methodsNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
@@ -2931,12 +2931,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
         exchange.extend_exchange_options(options.clone());
-        let mut methodsNames: Vec<Value> = object_keys(&methods).as_array().cloned().unwrap_or_default();
+        let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1661: bool = true;
             while { if !__for_first_1661 { i += 1; } __for_first_1661 = false; i < (methodsNames.len() as i64) } {
-            let mut method: Value = methodsNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
@@ -3017,12 +3017,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut sum: Value = Value::Int(0);
         let mut methods: Value = exchangeData.get("methods").cloned().unwrap_or(Value::Null);
-        let mut methodsNames: Vec<Value> = object_keys(&methods).as_array().cloned().unwrap_or_default();
+        let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1662: bool = true;
             while { if !__for_first_1662 { i += 1; } __for_first_1662 = false; i < (methodsNames.len() as i64) } {
-            let mut method: Value = methodsNames.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
             sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
@@ -3102,7 +3102,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (staticData == Value::Null) {
             return Value::Bool(true);
         }
-        let mut exchanges: Vec<Value> = object_keys(&staticData).as_array().cloned().unwrap_or_default();
+        let mut exchanges: Value = object_keys(&staticData);
         let mut exchange: Value = initExchange(Value::Str("Exchange".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3119,7 +3119,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1663: bool = true;
             while { if !__for_first_1663 { i += 1; } __for_first_1663 = false; i < (exchanges.len() as i64) } {
-            let mut exchangeName: Value = exchanges.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut exchangeName: Value = exchanges.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut exchangeData: Value = staticData.as_map().and_then(|__m| exchangeName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
             if disabled.as_bool() == Some(true) {

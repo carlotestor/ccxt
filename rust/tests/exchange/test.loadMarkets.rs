@@ -21,12 +21,12 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&((marketKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64() == marketKeysLength.as_f64()))));
-    let mut marketValues: Vec<Value> = object_values(&markets).as_array().cloned().unwrap_or_default();
+    let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: i64 = 0;
         let mut __for_first_1599: bool = true;
         while { if !__for_first_1599 { i += 1; } __for_first_1599 = false; i < (marketValues.len() as i64) } {
-        testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.get(i as usize).cloned().unwrap_or(Value::Null));
+        testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }
     // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)

@@ -74,12 +74,12 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
         let mut m = indexmap::IndexMap::new();
         m
     });
-    let mut keys: Vec<Value> = object_keys(&currencyValues).as_array().cloned().unwrap_or_default();
+    let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: i64 = 0;
         let mut __for_first_1568: bool = true;
         while { if !__for_first_1568 { i += 1; } __for_first_1568 = false; i < (keys.len() as i64) } {
-        let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+        let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
         if !(ids.as_map().is_some_and(|__m| code.as_str().is_some_and(|__k| __m.contains_key(__k)))) {

@@ -60,7 +60,7 @@ if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
     Value::Null
 }
 fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mut tickers: Value) {
-    let mut tickersValues: Vec<Value> = object_values(&tickers).as_array().cloned().unwrap_or_default();
+    let mut tickersValues: Value = object_values(&tickers);
     if !(in_op(&skippedProperties, &Value::Str("checkActiveSymbols".into()))) {
         //
         // ensure all "active" symbols have tickers

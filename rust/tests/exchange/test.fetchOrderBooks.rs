@@ -16,13 +16,13 @@ pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Val
     let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.clone()])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), orderBooks.clone()]);
-    let mut orderBookKeys: Vec<Value> = object_keys(&orderBooks).as_array().cloned().unwrap_or_default();
+    let mut orderBookKeys: Value = object_keys(&orderBooks);
     assert!(ccxt::runtime::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1589: bool = true;
         while { if !__for_first_1589 { i += 1; } __for_first_1589 = false; i < (orderBookKeys.len() as i64) } {
-        let mut symbolInner: Value = orderBookKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+        let mut symbolInner: Value = orderBookKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), orderBooks.as_map().and_then(|__m| symbolInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), symbolInner.clone());
     }
     }
