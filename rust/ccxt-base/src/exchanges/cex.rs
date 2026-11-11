@@ -1288,9 +1288,9 @@ impl Cex {
     m
 }));
         let dataTypeparamsDataTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut dataType: Value = dataTypeparamsDataTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut dataType: Option<String> = dataTypeparamsDataTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDataType: crate::value::Dict = dataTypeparamsDataTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (dataType == Value::Null) {
+        if (dataType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1301,7 +1301,7 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.clone()));
                 m.insert("resolution".to_string(), (if let (Some(__m), Some(__k)) = (self.timeframes.as_map(), timeframe.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-                m.insert("dataType".to_string(), dataType);
+                m.insert("dataType".to_string(), dataType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
@@ -2003,9 +2003,9 @@ impl Cex {
     m
 }));
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (accountId == Value::Null) {
+        if (accountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2018,7 +2018,7 @@ impl Cex {
                 m.insert("clientOrderId".to_string(), self.uuid(&[]));
                 m.insert("currency1".to_string(), Value::from((market).base_id.clone()));
                 m.insert("currency2".to_string(), Value::from((market).quote_id.clone()));
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("timestamp".to_string(), self.milliseconds());
@@ -2651,9 +2651,9 @@ impl Cex {
     m
 }));
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (accountId == Value::Null) {
+        if (accountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2665,7 +2665,7 @@ impl Cex {
         let mut currency: Value = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m

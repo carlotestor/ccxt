@@ -3155,9 +3155,9 @@ impl Digifinex {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsOmittedVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: Value = marketTypeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for swap markets".into()))));
             }
@@ -3180,7 +3180,7 @@ impl Digifinex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), marketType);
+                m.insert("market".to_string(), marketType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("order_id".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
@@ -5960,16 +5960,16 @@ impl Digifinex {
         let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marginMode != Value::Null) {
-            if (marginMode.as_str() != Some("cross")) {
+        if (marginMode.is_some()) {
+            if (marginMode.as_deref() != Some("cross")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".into()))));
             }
         }  else if (defaultType.as_deref() == Some("margin")) || isMargin {
             return Value::from(vec![Value::Str("cross".into()), paramsMarginMode.clone()]);
         }
-        return Value::from(vec![marginMode, paramsMarginMode]);
+        return Value::from(vec![marginMode.map(Value::from).unwrap_or(Value::Null), paramsMarginMode]);
 
     Value::Null
 }

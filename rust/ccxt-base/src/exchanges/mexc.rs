@@ -3600,13 +3600,13 @@ impl Mexc {
             market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut tickers: Value = Value::Null;
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             tickers = self.spot_public_get_ticker_book_ticker(&[query]).await;
-        }  else if (marketType.as_str() == Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() is not available for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+        }  else if (marketType.as_deref() == Some("swap")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() is not available for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
@@ -4179,11 +4179,11 @@ impl Mexc {
             }
             let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params.clone() });
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            if (marginMode != Value::Null) {
-                if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
+            if (marginMode.is_some()) {
+                if (marginMode.as_deref() != Some("isolated")) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&query]);
                 data = self.spot_private_get_margin_order(&[__ws_arg_18]).await;
@@ -4284,7 +4284,7 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument for spot market".into()))));
             }
             let marginModequeryInnerVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrders".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModequeryInnerVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModequeryInnerVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut queryInner: crate::value::Dict = marginModequeryInnerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -4296,9 +4296,9 @@ impl Mexc {
                 request.insert("limit".into(), limit.clone());
             }
             let mut response: Value = Value::Null;
-            if (marginMode != Value::Null) {
-                if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
+            if (marginMode.is_some()) {
+                if (marginMode.as_deref() != Some("isolated")) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&queryInner]);
                 response = self.spot_private_get_margin_all_orders(&[__ws_arg_21]).await;
@@ -4436,10 +4436,10 @@ impl Mexc {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrdersByIds".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByIds() is not supported for ".into())).into()), marketType)));
+        if (marketType.as_deref() == Some("spot")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByIds() is not supported for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null))));
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.join(",").into()));
             let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
@@ -4532,12 +4532,12 @@ impl Mexc {
                 request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             }
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut response: Value = Value::Null;
-            if (marginMode != Value::Null) {
-                if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
+            if (marginMode.is_some()) {
+                if (marginMode.as_deref() != Some("isolated")) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await;
@@ -4651,9 +4651,9 @@ impl Mexc {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrdersByState".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByState() is not supported for ".into())).into()), marketType)));
+        let mut marketType: Option<String> = marketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        if (marketType.as_deref() == Some("spot")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByState() is not supported for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null))));
         }  else {
             request.insert("states".into(), state);
             let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
@@ -4703,9 +4703,9 @@ impl Mexc {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut data: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
@@ -4717,15 +4717,15 @@ impl Mexc {
                     m.insert("symbol".to_string(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
                 m
             });
-            let mut clientOrderId: Option<String> = self.safe_string_k(paramsMarketType, "clientOrderId", &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string_k(&paramsMarketType, "clientOrderId", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 requestInner.insert("origClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 requestInner.insert("orderId".into(), id.clone());
             }
-            if (marginMode != Value::Null) {
-                if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
+            if (marginMode.is_some()) {
+                if (marginMode.as_deref() != Some("isolated")) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_31 = self.extend(Value::Map(requestInner.clone()), &[query.clone()]);
                 data = self.spot_private_delete_margin_order(&[__ws_arg_31]).await;
@@ -4818,9 +4818,9 @@ impl Mexc {
         }
         let mut market: Value = (if (symbol != Value::Null) { crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())) } else { Value::Null });
         let marketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() is not supported for ".into())).into()), marketType)));
+        let mut marketType: Option<String> = marketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        if (marketType.as_deref() == Some("spot")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() is not supported for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null))));
         }  else {
             let mut response: crate::value::Dict = self.contract_private_post_order_cancel(&[ids]).await.into_dict(); // the request cannot be changed or extended. The only way to send.
             //
@@ -7173,12 +7173,12 @@ impl Mexc {
     m
 }));
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTransfer".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("transact_id".to_string(), id.clone());
@@ -7205,7 +7205,7 @@ impl Mexc {
             })]);
             return self.parse_transfer(data, &[]);
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfer() is not supported for ".into())).into()), marketType)));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfer() is not supported for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null))));
         Value::Null
         }).await?))
     }
@@ -7252,7 +7252,7 @@ impl Mexc {
             currency = self.currency(code);
         }
         let fromAccountTypeparamsFromAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchTransfers".into()), Value::Str("fromAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut fromAccountType: Value = fromAccountTypeparamsFromAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fromAccountType: Option<String> = fromAccountTypeparamsFromAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsFromAccountType: crate::value::Dict = fromAccountTypeparamsFromAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7263,16 +7263,16 @@ impl Mexc {
                 m.insert("margin".to_string(), Value::Str("SPOT".into()));
             m
         });
-        if (fromAccountType != Value::Null) {
-            request.insert("fromAccountType".into(), self.safe_string(accountTypes.clone(), fromAccountType.clone(), &[fromAccountType.clone()]));
+        if (fromAccountType.is_some()) {
+            request.insert("fromAccountType".into(), self.safe_string(accountTypes.clone(), fromAccountType.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountType.clone().map(Value::from).unwrap_or(Value::Null)]));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"".into()))));
         }
         let toAccountTypeparamsToAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsFromAccountType, Value::Str("fetchTransfers".into()), Value::Str("toAccountType".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut toAccountType: Value = toAccountTypeparamsToAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut toAccountType: Option<String> = toAccountTypeparamsToAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsToAccountType: crate::value::Dict = toAccountTypeparamsToAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (toAccountType != Value::Null) {
-            request.insert("toAccountType".into(), self.safe_string(accountTypes, toAccountType.clone(), &[toAccountType.clone()]));
+        if (toAccountType.is_some()) {
+            request.insert("toAccountType".into(), self.safe_string(accountTypes, toAccountType.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountType.clone().map(Value::from).unwrap_or(Value::Null)]));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"".into()))));
         }

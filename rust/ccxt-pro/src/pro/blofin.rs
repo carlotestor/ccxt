@@ -604,13 +604,14 @@ impl Blofin {
         let mut callerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsCallerMethodName: crate::value::Dict = callerMethodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let channelNameparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCallerMethodName, callerMethodName.clone(), Value::Str("channel".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default();
-        let mut channelName: Value = channelNameparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channelName: Option<String> = channelNameparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelNameparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         // due to some problem, temporarily disable other channels
-        if (channelName.as_str() != Some("books")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str("() at this moment ".into())).into()), channelName).into()), Value::Str(" is not supported, coming soon".into()))));
+        if (channelName.as_deref() != Some("books")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str("() at this moment ".into())).into()),
+                channelName.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" is not supported, coming soon".into()))));
         }
-        let mut orderbook: Value = self.watch_multiple_wrapper(Value::Bool(true), channelName, callerMethodName, &[symbols, paramsChannel]).await;
+        let mut orderbook: Value = self.watch_multiple_wrapper(Value::Bool(true), channelName.map(Value::from).unwrap_or(Value::Null), callerMethodName, &[symbols, paramsChannel]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1466,10 +1467,11 @@ impl Blofin {
             firstMarket = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(callerMethodNameOption.clone(), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsCallerMethodName]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marketType.as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
+        if (marketType.as_deref() != Some("swap")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()),
+                marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets yet".into()))));
         }
         let mut rawSubscriptions: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
@@ -1520,7 +1522,7 @@ impl Blofin {
         if (isPublic.as_bool() == Some(true)) {
             privateOrPublic = "public".to_string();
         }
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();

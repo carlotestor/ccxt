@@ -3395,7 +3395,7 @@ impl Okx {
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrderWs".into()), Value::Str("op".into()), &[Value::Str("batch-orders".into())]).as_array().cloned().unwrap_or_default();
-        let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut args: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side, amount, &[price, paramsOp]);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -3408,13 +3408,13 @@ impl Okx {
         if (ordType.as_deref() == Some("trigger")) || (ordType.as_deref() == Some("conditional")) || (type_var.as_str() == Some("oco")) || (type_var.as_str() == Some("move_order_stop")) || (type_var.as_str() == Some("iceberg")) || (type_var.as_str() == Some("twap")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order".into()))));
         }
-        if (op.as_str() != Some("order")) && (op.as_str() != Some("batch-orders")) {
+        if (op.as_deref() != Some("order")) && (op.as_deref() != Some("batch-orders")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
-                m.insert("op".to_string(), op);
+                m.insert("op".to_string(), op.map(Value::from).unwrap_or(Value::Null));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });

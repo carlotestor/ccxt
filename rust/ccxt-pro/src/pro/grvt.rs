@@ -981,9 +981,9 @@ impl Grvt {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("channel".into()), &[Value::Str("v1.book.d".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isSnapshot: bool = channel.as_str() == Some("v1.book.s");
+        let mut isSnapshot: bool = channel.as_deref() == Some("v1.book.s");
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
@@ -1021,7 +1021,7 @@ impl Grvt {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("stream".to_string(), channel);
+                m.insert("stream".to_string(), channel.map(Value::from).unwrap_or(Value::Null));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });

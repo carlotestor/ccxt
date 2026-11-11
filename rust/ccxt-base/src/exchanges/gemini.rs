@@ -3049,12 +3049,12 @@ impl Gemini {
         let mut currency: Value = self.currency(code);
         let mut codeValue: Value = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode == Value::Null) {
+        if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency, "code", &[])]);
+        let mut networkId: Value = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency, "code", &[])]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("network".to_string(), networkId);
@@ -3064,7 +3064,7 @@ impl Gemini {
         let mut response: Value = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(response, &[Value::from(vec![codeValue.clone()]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), networkCode);
+        m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), codeValue);
     m
 })]);

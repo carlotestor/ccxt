@@ -2626,19 +2626,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: String = "orders".to_string();
         let mut type_var: Value = Value::Null;
         let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, type_var.clone()]).as_array().cloned().unwrap_or_default();
-        let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (type_var == Value::Null) || (typeMarketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a market type".into()))));
         }
-        self.authenticate(&[typeMarketType.clone(), paramsMarketType]).await;
+        self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), paramsMarketType]).await;
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
         }
-        let mut url: Value = self.get_private_url(&[typeMarketType.clone()]);
+        let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone());
-        let mut orders: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType])]).await;
+        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut orders: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2686,19 +2686,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: String = "myTrades".to_string();
         let mut type_var: Value = Value::Null;
         let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, type_var.clone()]).as_array().cloned().unwrap_or_default();
-        let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (type_var == Value::Null) || (typeMarketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a market type".into()))));
         }
-        self.authenticate(&[typeMarketType.clone(), paramsMarketType]).await;
+        self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), paramsMarketType]).await;
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
         }
-        let mut url: Value = self.get_private_url(&[typeMarketType.clone()]);
+        let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone());
-        let mut trades: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType])]).await;
+        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut trades: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);

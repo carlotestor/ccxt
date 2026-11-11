@@ -1966,10 +1966,10 @@ impl Foxbit {
             m
         });
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsOmitedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmited: crate::value::Dict = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
+        if (networkCode.is_some()) {
+            request.insert("network_code".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmited]);
         let mut response: Value = self.v3_private_get_deposits_address(&[__ws_arg_12]).await;
@@ -2360,10 +2360,10 @@ impl Foxbit {
             request.insert("destination_tag".into(), tagWithdrawTag);
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
+        if (networkCode.is_some()) {
+            request.insert("network_code".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.v3_private_post_withdrawals(&[__ws_arg_16]).await;

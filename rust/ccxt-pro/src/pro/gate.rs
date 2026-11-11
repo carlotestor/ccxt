@@ -663,9 +663,9 @@ impl Gate {
         let mut url: Value = self.get_url_by_market(market.clone());
         let mut paramsOmitted: Value = self.omit(&paramsChannel, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varqueryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_str() == Some("spot")) { self.parent.multi_order_spot_prepare_request(&[market.clone(), trigger, query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var, query]) }).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(&[market.clone(), trigger, query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), query]) }).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         self.authenticate(url.clone(), messageType).await;
@@ -712,9 +712,10 @@ impl Gate {
         let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varqueryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let requestrequestParamsVariable: Vec<Value> = (if ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"))) { self.parent.spot_order_prepare_request(&[market.clone(), Value::Bool(trigger), query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var, query]) }).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = (if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) { self.parent.spot_order_prepare_request(&[market.clone(), Value::Bool(trigger), query.clone()]) } else { self.parent.prepare_request(&[market.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null),
+            query]) }).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageType: Value = self.get_type_by_market(market.clone());
@@ -2049,12 +2050,12 @@ impl Gate {
             marketId = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), &[market, paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageType: Value = self.get_supported_mapping(type_var.clone(), &[Value::Map({
+        let mut messageType: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot".into()));
                 m.insert("margin".to_string(), Value::Str("spot".into()));
@@ -2069,10 +2070,10 @@ impl Gate {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbol));
         }
         let mut isInverse: Value = (Value::Bool(subType.as_deref() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
+        let mut url: Value = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isInverse]);
         let mut payload: Value = Value::from(vec![marketId]);
         // uid required for non spot markets
-        let mut requiresUid: Value = (Value::Bool(type_var.as_str() != Some("spot")));
+        let mut requiresUid: Value = (Value::Bool(type_var.as_deref() != Some("spot")));
         let mut trades: Value = self.subscribe_private(url, Value::from(messageHash), payload, Value::from(channel), paramsSubType, &[requiresUid]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

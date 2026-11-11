@@ -3303,13 +3303,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let costparamsCostVariable: Vec<Value> = self.handle_param_string(params, Value::Str("cost".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut cost: Value = costparamsCostVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut cost: Option<String> = costparamsCostVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCost: Value = costparamsCostVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (cost != Value::Null) {
+        if (cost.is_some()) {
             if (side.as_str() != Some("buy")) || (type_var.as_str() != Some("market")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cost is only supported for market buy orders".into()))));
             }
-            request.insert("amount".into(), self.cost_to_precision(symbol.clone(), cost.clone()));
+            request.insert("amount".into(), self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
         }  else {
             request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
         }
@@ -3389,7 +3389,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await;
                 }  else {
-                    if (cost != Value::Null) {
+                    if (cost.is_some()) {
                         let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                         response = self.v4_private_post_order_market(&[__ws_arg_14]).await;
                     }  else {
@@ -3567,11 +3567,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut requestType: Vec<Value> = vec![];
         let mut requestParams: Value = paramsMarketType.clone();
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let isMarginparamsIsMarginVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isMargin: bool = isMarginparamsIsMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsIsMargin: Value = isMarginparamsIsMarginVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3581,10 +3581,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 requestType.push(Value::Str("spot".into()));
             }
-        }  else if (marketType.as_str() == Some("swap")) {
+        }  else if (marketType.as_deref() == Some("swap")) {
             requestType.push(Value::Str("futures".into()));
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".into())).into()), marketType).into()), Value::Str(" type".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" type".into()))));
         }
         request.insert("type".into(), Value::Array(requestType));
         let __ws_arg_18 = self.extend(Value::Map(request), &[requestParams]);
@@ -5954,9 +5954,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone(), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -5970,7 +5970,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) {
             request.insert("startDate".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {

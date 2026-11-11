@@ -3305,12 +3305,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.clone()]);
         }
         let channelNameparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(paramsStock, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::Str("miniTicker".into())]).as_array().cloned().unwrap_or_default();
-        let mut channelName: Value = channelNameparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channelName: Option<String> = channelNameparamsNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsName: Value = channelNameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (channelName.as_str() == Some("bookTicker")) {
+        if (channelName.as_deref() == Some("bookTicker")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead".into()))));
         }
-        let mut newTickers: Value = self.watch_multi_ticker_helper(Value::Str("watchTickers".into()), channelName, &[symbolsNormalized.clone(), paramsName]).await;
+        let mut newTickers: Value = self.watch_multi_ticker_helper(Value::Str("watchTickers".into()), channelName.map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone(), paramsName]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
@@ -3347,12 +3347,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     m
 }));
         let channelNameparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::Str("ticker".into())]).as_array().cloned().unwrap_or_default();
-        let mut channelName: Value = channelNameparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channelName: Option<String> = channelNameparamsNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsName: Value = channelNameparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (channelName.as_str() == Some("bookTicker")) {
+        if (channelName.as_deref() == Some("bookTicker")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead".into()))));
         }
-        return self.watch_multi_ticker_helper(Value::Str("unWatchTickers".into()), channelName, &[symbols, paramsName, Value::Bool(true)]).await;
+        return self.watch_multi_ticker_helper(Value::Str("unWatchTickers".into()), channelName.map(Value::from).unwrap_or(Value::Null), &[symbols, paramsName, Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -4514,8 +4514,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("keepAliveListenKey".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPortfolioMargin: Value = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut subType: Value = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), &[Value::Null, paramsPortfolioMargin.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut subType: Value = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), &[Value::Null, Value::from(&paramsPortfolioMargin)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'linear'.
@@ -4547,7 +4547,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsPortfolioMargin, Value::from(vec![Value::Str("type".into()), Value::Str("symbol".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsPortfolioMargin, Value::from(vec![Value::Str("type".into()), Value::Str("symbol".into())]), &[]);
         let mut time: Value = self.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if isStock {

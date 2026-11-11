@@ -2718,7 +2718,7 @@ impl Predictfun {
         let mut taker: String = "0x0000000000000000000000000000000000000000".to_string();
         let takerOptionparamsTakerVariable: Vec<Value> = self.handle_option_and_params(&paramsWarnOnMarketOrderWithoutPrice, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(taker)]).as_array().cloned().unwrap_or_default();
         let mut takerOption: Value = takerOptionparamsTakerVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTaker: Value = takerOptionparamsTakerVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTaker: crate::value::Dict = takerOptionparamsTakerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut contractOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt);
@@ -2729,7 +2729,7 @@ impl Predictfun {
                 m.insert("makerAmount".to_string(), self.decimal_to_precision(makerAmount, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]));
                 m.insert("takerAmount".to_string(), self.decimal_to_precision(takerAmount, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]));
                 m.insert("expiration".to_string(), expiration);
-                m.insert("nonce".to_string(), self.safe_string_k(paramsTaker.clone(), "nonce", &[Value::Str("0".into())]));
+                m.insert("nonce".to_string(), self.safe_string_k(&paramsTaker, "nonce", &[Value::Str("0".into())]));
                 m.insert("feeRateBps".to_string(), feeRateBps);
                 m.insert("side".to_string(), (if isBuy { Value::Int(0) } else { Value::Int(1) }));
                 m.insert("signatureType".to_string(), Value::Int(0));
@@ -2751,8 +2751,8 @@ impl Predictfun {
                 m.insert("strategy".to_string(), Value::from(strategy));
             m
         });
-        let mut postOnly: bool = self.safe_bool_k(paramsTaker.clone(), "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[paramsTaker]).as_array().cloned().unwrap_or_default();
+        let mut postOnly: bool = self.safe_bool_k(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
         let mut postOnlyOption: Value = postOnlyOptionparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnlyOption.as_bool() == Some(true) {

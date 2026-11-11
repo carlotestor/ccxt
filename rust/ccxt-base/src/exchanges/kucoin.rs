@@ -4419,10 +4419,10 @@ impl Kucoin {
             m
         });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode, &[self.safe_string_k(currency, "code", &[])]).as_str().map(str::to_owned);
+        if (networkCode.is_some()) {
+            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency, "code", &[])]).as_str().map(str::to_owned);
             if (_netIdTmp.is_some()) {
                 request.insert("chain".into(), _netIdTmp.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
             }
@@ -4483,10 +4483,10 @@ impl Kucoin {
             m
         });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
+        if (networkCode.is_some()) {
+            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
             if (_netIdTmp.is_some()) {
                 request.insert("chain".into(), _netIdTmp.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
             }
@@ -4989,8 +4989,8 @@ impl Kucoin {
         let mut uta: bool = false;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTickers".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default();
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut tradeType: Option<String> = self.safe_string_k(paramsUta.clone(), "tradeType", &[]).as_str().map(str::to_owned);
+        let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut tradeType: Option<String> = self.safe_string_k(&paramsUta, "tradeType", &[]).as_str().map(str::to_owned);
         let mut firstMarket: Option<crate::types::Market> = None;
         if (symbolsNormalized != Value::Null) {
             let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -4998,17 +4998,17 @@ impl Kucoin {
                 firstMarket = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
-        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::from(&paramsUta)]).as_array().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (tradeType.is_some()) || utaOption {
             if (tradeType.is_none()) {
-                request.insert("tradeType".into(), self.type_to_trade_type(type_var.clone()).map(Value::from).unwrap_or(Value::Null));
+                request.insert("tradeType".into(), self.type_to_trade_type(type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_6 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
             response = self.uta_get_market_ticker(&[__ws_arg_6]).await;
-        }  else if (type_var.as_str() != Some("spot")) && (type_var.as_str() != Some("margin")) {
+        }  else if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("margin")) {
             return crate::types::IntoRaw::into_raw(self.fetch_contract_tickers(symbolsNormalized.to_opt_str_vec(), paramsMarketType.clone()).await);
         }  else {
             response = self.public_get_market_all_tickers(&[paramsMarketType]).await;
@@ -5502,9 +5502,9 @@ impl Kucoin {
         }
         let mut priceType: Value = Value::Null;
         let priceTypePriceparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[priceType]).as_array().cloned().unwrap_or_default();
-        let mut priceTypePrice: Value = priceTypePriceparamsPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut priceTypePrice: Option<String> = priceTypePriceparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPrice: crate::value::Dict = priceTypePriceparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (priceTypePrice != Value::Null) {
+        if (priceTypePrice.is_some()) {
             let mut priceTypes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mark".to_string(), Value::Str("mark-price".into()));
@@ -5512,7 +5512,7 @@ impl Kucoin {
                     m.insert("premiumIndex".to_string(), Value::Str("premium-index".into()));
                 m
             });
-            let mut suffix: Option<String> = self.safe_string(Value::Map(priceTypes), priceTypePrice, &[]).as_str().map(str::to_owned);
+            let mut suffix: Option<String> = self.safe_string(Value::Map(priceTypes), priceTypePrice.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (suffix.is_none()) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"".into()))));
             }
@@ -5577,9 +5577,9 @@ impl Kucoin {
         let mut maxLimit: i64 = 1500;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchSpotOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchSpotOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5610,7 +5610,7 @@ impl Kucoin {
                 (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)));
         }
         request.insert("endAt".into(), self.parse_to_int(((match ((endAt).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)));
-        let __ws_arg_13 = self.extend(Value::Map(request), &[paramsPaginate]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.public_get_market_candles(&[__ws_arg_13]).await.into_dict();
         //
         //     {
@@ -5661,9 +5661,9 @@ impl Kucoin {
         let mut maxLimit: i64 = 200;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchContractOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchContractOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5704,7 +5704,7 @@ impl Kucoin {
             request.insert("from".into(), sinceResolved.clone());
         }
         request.insert("to".into(), endAt);
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsPaginate]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.futures_public_get_kline_query(&[__ws_arg_14]).await.into_dict();
         //
         //    {
@@ -5753,10 +5753,10 @@ impl Kucoin {
             m
         });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            request.insert("chain".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])])); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+        if (networkCode.is_some()) {
+            request.insert("chain".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])])); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: crate::value::Dict = self.private_post_deposit_address_create(&[__ws_arg_15]).await.into_dict();
@@ -8172,9 +8172,9 @@ impl Kucoin {
         }
         let mut paramsOmitted: Value = self.omit(&paramsHf, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("till".into()), Value::Str("until".into())]), &[]);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isMarginOrder: bool = marginMode != Value::Null;
+        let mut isMarginOrder: bool = marginMode.is_some();
         if (lowercaseStatus.as_str() == Some("open")) {
             lowercaseStatus = Value::Str("active".into());
         }  else if (lowercaseStatus.as_str() == Some("closed")) {
@@ -8189,7 +8189,7 @@ impl Kucoin {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        request.insert("tradeType".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode, &[Value::Str("TRADE".into())]));
+        request.insert("tradeType".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode.map(Value::from).unwrap_or(Value::Null), &[Value::Str("TRADE".into())]));
         let mut response: Value = Value::Null;
         if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && (!trigger) {
             // hf margin open non-trigger orders require only symbol and tradeType params
@@ -8416,12 +8416,12 @@ impl Kucoin {
         let mut maxLimit: i64 = 200;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut accountMode: String = "unified".to_string();
-        let accountModeOptionparamsAccountModeVariable: Vec<Value> = self.handle_option_string_and_params(paramsPaginate, Value::Str("fetchUtaOrdersByStatus".into()), Value::Str("accountMode".into()), &[Value::from(accountMode)]).as_array().cloned().unwrap_or_default();
+        let accountModeOptionparamsAccountModeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchUtaOrdersByStatus".into()), Value::Str("accountMode".into()), &[Value::from(accountMode)]).as_array().cloned().unwrap_or_default();
         let mut accountModeOption: Value = accountModeOptionparamsAccountModeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountMode: crate::value::Dict = accountModeOptionparamsAccountModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -9817,9 +9817,9 @@ impl Kucoin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -9836,7 +9836,7 @@ impl Kucoin {
         if (limit != Value::Null) {
             request.insert("pageSize".into(), crate::runtime::Math::min(&Value::Int(1000), &limit));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_85 = self.extend(requestUntil, &[&paramsUntil]);
@@ -10646,15 +10646,15 @@ impl Kucoin {
             request.insert("memo".into(), tagWithdrawTag);
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode != Value::Null) {
-            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
+        if (networkCode.is_some()) {
+            let mut _netIdTmp: Option<String> = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
             if (_netIdTmp.is_some()) {
                 request.insert("chain".into(), _netIdTmp.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut amountString: Value = self.currency_to_precision(code, amount, &[networkCode]);
+        let mut amountString: Value = self.currency_to_precision(code, amount, &[networkCode.map(Value::from).unwrap_or(Value::Null)]);
         if (amountString != Value::Null) {
             request.insert("amount".into(), (match &amountString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
@@ -11837,7 +11837,7 @@ impl Kucoin {
         });
         let mut transferType: String = "INTERNAL".to_string();
         let transferTypeOptionparamsTransferTypeVariable: Vec<Value> = self.handle_param_string2(params, Value::Str("transferType".into()), Value::Str("type".into()), &[Value::from(transferType)]).as_array().cloned().unwrap_or_default();
-        let mut transferTypeOption: Value = transferTypeOptionparamsTransferTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut transferTypeOption: Option<String> = transferTypeOptionparamsTransferTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTransferType: crate::value::Dict = transferTypeOptionparamsTransferTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut fromUserId: Value = Value::Null;
         let fromUserIdOptionparamsFromUserIdVariable: Vec<Value> = self.handle_param_string2(&paramsTransferType, Value::Str("fromUserId".into()), Value::Str("fromUid".into()), &[fromUserId]).as_array().cloned().unwrap_or_default();
@@ -11847,13 +11847,13 @@ impl Kucoin {
         let toUserIdOptionparamsToUserIdVariable: Vec<Value> = self.handle_param_string2(&paramsFromUserId, Value::Str("toUserId".into()), Value::Str("toUid".into()), &[toUserId]).as_array().cloned().unwrap_or_default();
         let mut toUserIdOption: Value = toUserIdOptionparamsToUserIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsToUserId: crate::value::Dict = toUserIdOptionparamsToUserIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (transferTypeOption.as_str() == Some("PARENT_TO_SUB")) || (transferTypeOption.as_str() == Some("SUB_TO_SUB")) {
+        if (transferTypeOption.as_deref() == Some("PARENT_TO_SUB")) || (transferTypeOption.as_deref() == Some("SUB_TO_SUB")) {
             if (toUserIdOption == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers".into()))));
             }  else {
                 request.insert("toUid".into(), toUserIdOption);
             }
-        }  else if (transferTypeOption.as_str() == Some("SUB_TO_PARENT")) || (transferTypeOption.as_str() == Some("SUB_TO_SUB")) {
+        }  else if (transferTypeOption.as_deref() == Some("SUB_TO_PARENT")) || (transferTypeOption.as_deref() == Some("SUB_TO_SUB")) {
             if (fromUserIdOption == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers".into()))));
             }  else {
@@ -11894,7 +11894,7 @@ impl Kucoin {
                 m.insert("SUB_TO_SUB".to_string(), Value::Str("3".into()));
             m
         });
-        request.insert("type".into(), self.safe_string(Value::Map(types), transferTypeOption.clone(), &[transferTypeOption.clone()]));
+        request.insert("type".into(), self.safe_string(Value::Map(types), transferTypeOption.clone().map(Value::from).unwrap_or(Value::Null), &[transferTypeOption.clone().map(Value::from).unwrap_or(Value::Null)]));
         let __ws_arg_107 = self.extend(Value::Map(request), &[&paramsClientOid]);
         let mut response: crate::value::Dict = self.uta_private_post_account_transfer(&[__ws_arg_107]).await.into_dict();
         //
@@ -13469,9 +13469,9 @@ if _try_result.is_err() {
     m
 }));
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginMode.as_str() != Some("cross")) {
+        if (marginMode.as_deref() != Some("cross")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -13504,7 +13504,7 @@ if _try_result.is_err() {
         let mut parsed: Value = self.parse_leverage(data, &[(market).raw.clone()]);
         return self.extend(parsed, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
         Value::Null
@@ -15730,9 +15730,9 @@ if _try_result.is_err() {
         let mut paginate: bool = false;
         let paginateOptionparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[Value::Bool(paginate)]).as_array().cloned().unwrap_or_default();
         let mut paginateOption: bool = paginateOptionparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateOptionparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateOptionparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginateOption {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol, since.clone(), limit.clone(), timeframe, paramsPaginate.clone(), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol, since.clone(), limit.clone(), timeframe, Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -15746,7 +15746,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("pageSize".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_154 = self.extend(requestUntil, &[&paramsUntil]);

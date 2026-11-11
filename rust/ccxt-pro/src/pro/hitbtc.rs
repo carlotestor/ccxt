@@ -1931,18 +1931,18 @@ impl Hitbtc {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrder".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.clone(), type_var, side, amount, &[price, marginMode.clone(), paramsMarginMode]).as_array().cloned().unwrap_or_default();
+        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.clone().map(Value::from).unwrap_or(Value::Null), type_var, side, amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), paramsMarginMode]).as_array().cloned().unwrap_or_default();
         let mut orderRequest: Value = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: Value = self.extend(orderRequest, &[paramsValue]);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_new_order".into()), &[request.clone()]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             return self.trade_request(Value::Str("margin_new_order".into()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_new_order".into()), &[request]).await;

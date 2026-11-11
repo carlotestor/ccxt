@@ -2472,9 +2472,9 @@ impl Toobit {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate)]).await;
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
@@ -2488,7 +2488,7 @@ impl Toobit {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsPaginate]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
         return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -2655,13 +2655,13 @@ impl Toobit {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let costparamsCostVariable: Vec<Value> = self.handle_param_string(params, Value::Str("cost".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut cost: Value = costparamsCostVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut cost: Option<String> = costparamsCostVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCost: Value = costparamsCostVariable.get(1).cloned().unwrap_or(Value::Null);
         if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
-            if (cost == Value::Null) {
+            if (cost.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires params[\"cost\"] for market buy order".into()))));
             }
-            request.insert("quantity".into(), self.cost_to_precision(symbol.clone(), cost));
+            request.insert("quantity".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
         }  else {
             request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
         }
@@ -3589,11 +3589,11 @@ impl Toobit {
         let mut response: Value = Value::Null;
         let mut market: Value = Value::Null;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees(): does not support ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
-        }  else if self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])).as_bool() == Some(true) {
+        if (marketType.as_deref() == Some("spot")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees(): does not support ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
+        }  else if self.in_array(marketType.map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])).as_bool() == Some(true) {
             let symbolparamsSymbolVariable: Vec<Value> = self.handle_param_string(&paramsMarketType, Value::Str("symbol".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut symbol: Value = symbolparamsSymbolVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsSymbol: crate::value::Dict = symbolparamsSymbolVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3927,12 +3927,12 @@ impl Toobit {
         });
         let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params]);
         let networkCodeparamsOmittedVariable: Vec<Value> = self.handle_network_code_and_params(__ws_arg_31).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode == Value::Null) {
+        if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : param[\"network\"] is required".into()))));
         }
-        request.insert("chainType".into(), self.network_code_to_id(networkCode, &[code]));
+        request.insert("chainType".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_32]).await;
         return self.parse_deposit_address(response, &[currency]);
@@ -3990,9 +3990,9 @@ impl Toobit {
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (networkCode == Value::Null) {
+        if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() : param[\"network\"] is required".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -4004,7 +4004,7 @@ impl Toobit {
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("address".to_string(), address);
                 m.insert("quantity".to_string(), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount, &[]));
-                m.insert("chainType".to_string(), self.network_code_to_id(networkCode, &[code]));
+                m.insert("chainType".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
                 m.insert("clientOrderId".to_string(), self.milliseconds());
             m
         });

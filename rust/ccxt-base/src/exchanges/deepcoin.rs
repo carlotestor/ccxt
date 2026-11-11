@@ -1773,9 +1773,9 @@ impl Deepcoin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1792,11 +1792,11 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("size".into(), limit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::Str("until".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_deepcoin_asset_deposit_list(&[__ws_arg_14]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -1845,9 +1845,9 @@ impl Deepcoin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1864,11 +1864,11 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("size".into(), limit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::Str("until".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_deepcoin_asset_withdraw_list(&[__ws_arg_15]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -2739,13 +2739,13 @@ impl Deepcoin {
     pub fn handle_type_post_only_and_time_in_force(&self, mut type_var: Value, mut params: Value) -> Value {
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("post_only")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut typePostOnly: Value = type_var;
         if postOnly {
             typePostOnly = Value::Str("post_only".into());
         }
-        let mut timeInForce: Option<String> = self.handle_time_in_force(&[paramsPostOnly.clone()]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::Str("timeInForce".into()), &[]);
+        let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]);
         let mut typeValue: Value = typePostOnly;
         if (timeInForce.as_deref() == Some("IOC")) {
             typeValue = Value::Str("ioc".into());
@@ -3029,13 +3029,13 @@ impl Deepcoin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchCanceledAndClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchCanceledAndClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
-        let mut trigger: bool = self.safe_bool_k(paramsPaginate.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut methodName: String = self.safe_string_k(paramsPaginate.clone(), "methodName", &[Value::Str("fetchCanceledAndClosedOrders".into())]).as_str().unwrap_or("fetchCanceledAndClosedOrders").to_string();
-        let mut paramsMethodName: Value = self.omit(paramsPaginate, Value::Str("methodName".into()), &[]);
+        let mut trigger: bool = self.safe_bool_k(&paramsPaginate, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut methodName: String = self.safe_string_k(&paramsPaginate, "methodName", &[Value::Str("fetchCanceledAndClosedOrders".into())]).as_str().unwrap_or("fetchCanceledAndClosedOrders").to_string();
+        let mut paramsMethodName: Value = self.omit(&paramsPaginate, Value::Str("methodName".into()), &[]);
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3999,24 +3999,24 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginMode: String = "cross".to_string();
         let marginModeOptionparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::from(marginMode)]).as_array().cloned().unwrap_or_default();
-        let mut marginModeOption: Value = marginModeOptionparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginModeOption: Option<String> = marginModeOptionparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeOptionparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginModeOption.as_str() != Some("cross")) && (marginModeOption.as_str() != Some("isolated")) {
+        if (marginModeOption.as_deref() != Some("cross")) && (marginModeOption.as_deref() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
         }
         let mut mrgPosition: String = "merge".to_string();
         let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("setLeverage".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
-        let mut mrgPositionOption: Value = mrgPositionOptionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut mrgPositionOption: Option<String> = mrgPositionOptionparamsMrgPositionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMrgPosition: crate::value::Dict = mrgPositionOptionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (mrgPositionOption.as_str() != Some("merge")) && (mrgPositionOption.as_str() != Some("split")) {
+        if (mrgPositionOption.as_deref() != Some("merge")) && (mrgPositionOption.as_deref() != Some("split")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() mrgPosition parameter must be either merge or split".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), leverage);
-                m.insert("mgnMode".to_string(), marginModeOption);
+                m.insert("mgnMode".to_string(), marginModeOption.map(Value::from).unwrap_or(Value::Null));
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
-                m.insert("mrgPosition".to_string(), mrgPositionOption);
+                m.insert("mrgPosition".to_string(), mrgPositionOption.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsMrgPosition]);

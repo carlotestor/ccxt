@@ -3805,10 +3805,10 @@ if _try_result.is_err() {
         let mut isV3: bool = self.safe_bool_k(params.clone(), "v3", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("v3".into())]), &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("v3PrivateGetBrokerageAccounts".into())]).as_str().map(str::to_owned);
-        if (marketType.as_str() == Some("future")) || (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("future")) || (marketType.as_deref() == Some("swap")) {
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_26]).await;
         }  else if isV3 || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
@@ -3848,7 +3848,7 @@ if _try_result.is_err() {
         }
         let __ws_arg_32 = self.extend(paramsMarketType, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), marketType);
+        m.insert("type".to_string(), marketType.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
         return self.parse_custom_balance(response, &[__ws_arg_32]);

@@ -1232,9 +1232,9 @@ impl Toobit {
         }
         self.authenticate(&[]).await;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isSpot: bool = marketType.as_str() == Some("spot");
+        let mut isSpot: bool = marketType.as_deref() == Some("spot");
         let mut type_var: String = "contract".to_string();
         if isSpot {
             type_var = "spot".to_string();
@@ -1253,7 +1253,7 @@ impl Toobit {
         }
         let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), marketType, &[subscriptionHash.clone(), paramsMarketType.clone()]);
+        self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[subscriptionHash.clone(), paramsMarketType.clone()]);
         client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())]);
         return self.watch(url, messageHash, &[paramsMarketType, subscriptionHash]).await;
         Value::Null
