@@ -999,8 +999,8 @@ impl Btcbox {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
-        let mut market: crate::types::Market = (match self.market(symbolResolved.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
+        let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1119,8 +1119,8 @@ impl Btcbox {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
-        let mut market: crate::types::Market = (match self.market(symbolResolved.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
+        let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);

@@ -4629,20 +4629,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
-        let mut codeResolved: Value = code.clone();
+        let mut codeResolved: String = code.as_str().unwrap_or_default().to_string();
         if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {
-            codeResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("-".into())).into()), network).into());
+            codeResolved = format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("-".into())).into()), network);
         }
         let mut defaultDepositMethods: crate::value::Dict = self.safe_dict_k(self.options.clone(), "depositMethods", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut defaultDepositMethod: Option<String> = self.safe_string(&defaultDepositMethods, codeResolved.clone(), &[]).as_str().map(str::to_owned);
+        let mut defaultDepositMethod: Option<String> = self.safe_string(&defaultDepositMethods, Value::from(codeResolved.clone()), &[]).as_str().map(str::to_owned);
         let mut depositMethod: Option<String> = self.safe_string_k(&paramsOmitted, "method", &[defaultDepositMethod.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod.is_none()) {
-            let mut depositMethods: Value = self.fetch_deposit_methods(codeResolved.clone(), &[]).await;
+            let mut depositMethods: Value = self.fetch_deposit_methods(Value::from(codeResolved.clone()), &[]).await;
             if (network != Value::Null) {
                 {
                                         let mut i: i64 = 0;

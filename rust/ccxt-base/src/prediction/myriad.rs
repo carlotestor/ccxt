@@ -5162,20 +5162,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut trader: Value = self.wallet_address_from_keys().map(Value::from).unwrap_or(Value::Null);
         let mut networkId: Value = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())]);
-        let mut outcomeResolved: Value = outcome;
-        if (outcomeResolved != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
+        let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
+        if (outcomeResolved.is_some()) {
+            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null), &[]).await;
             let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             networkId = self.safe_string_k(&info, "networkId", &[networkId.clone()]);
-            outcomeResolved = self.safe_outcome_symbol(outcomeResolved.clone(), &[outcomeObj]);
+            outcomeResolved = self.safe_outcome_symbol(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null), &[outcomeObj]).as_str().map(str::to_owned);
         }
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders:".into()), networkId).into()), Value::Str(":".into())).into()), trader);
         let mut messageHash: String = "orders".to_string();
         let mut orders: Value = self.subscribe_myriad_channel(Value::from(messageHash), Value::from(channel), &[params]).await;
-        return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[outcomeResolved, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -3892,8 +3892,8 @@ impl Phemex {
             let mut posSide: Option<String> = self.safe_string_lower_k(orderParams.clone(), "posSide", &[]).as_str().map(str::to_owned);
             // a hedged reduceOnly order without posSide closes the opposite side
             let mut flipSide: bool = (posSide.is_none()) && hedged.as_bool() == Some(true) && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
-            let mut oppositeSide: Value = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
-            let mut sideResolved: Value = side;
+            let mut oppositeSide: String = (if (side.as_str() == Some("buy")) { "sell".to_string() } else { "buy".to_string() });
+            let mut sideResolved: String = side.as_str().unwrap_or_default().to_string();
             if flipSide {
                 sideResolved = oppositeSide;
             }
@@ -3902,7 +3902,7 @@ impl Phemex {
                     if flipSide {
                         orderParams = self.omit(orderParams.clone(), Value::Str("reduceOnly".into()), &[]);
                     }
-                    posSide = (if (sideResolved.as_str() == Some("buy")) { Some("Long".to_string()) } else { Some("Short".to_string()) });
+                    posSide = (if (sideResolved == "buy") { Some("Long".to_string()) } else { Some("Short".to_string()) });
                 }  else {
                     posSide = Some("Merged".to_string());
                 }
@@ -3927,15 +3927,15 @@ impl Phemex {
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
                 if (triggerDirection.as_deref() == Some("ascending")) || (triggerDirection.as_deref() == Some("up")) {
-                    if (sideResolved.as_str() == Some("sell")) {
+                    if (sideResolved == "sell") {
                         request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
-                    }  else if (sideResolved.as_str() == Some("buy")) {
+                    }  else if (sideResolved == "buy") {
                         request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
                     }
                 }  else if (triggerDirection.as_deref() == Some("descending")) || (triggerDirection.as_deref() == Some("down")) {
-                    if (sideResolved.as_str() == Some("sell")) {
+                    if (sideResolved == "sell") {
                         request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("Stop".into()) } else { Value::Str("StopLimit".into()) }));
-                    }  else if (sideResolved.as_str() == Some("buy")) {
+                    }  else if (sideResolved == "buy") {
                         request.insert("ordType".into(), (if (typeValue.as_deref() == Some("Market")) { Value::Str("MarketIfTouched".into()) } else { Value::Str("LimitIfTouched".into()) }));
                     }
                 }

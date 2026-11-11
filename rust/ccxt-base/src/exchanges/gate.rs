@@ -11339,8 +11339,8 @@ if _try_result.is_err() {
         });
         let mut paramsExtended: Value = self.extend(Value::Map(request), &[params]);
         // side is not used but needs to be present, otherwise crashes in php
-        let mut sideResolved: Value = (if (side == Value::Null) { Value::Str("".into()) } else { side });
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", sideResolved.as_str().unwrap_or_default(), 0.0, None, paramsExtended).await);
+        let mut sideResolved: Option<String> = (if (side == Value::Null) { Some("".to_string()) } else { side.as_str().map(str::to_owned) });
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", sideResolved.as_deref().unwrap_or_default(), 0.0, None, paramsExtended).await);
         Value::Null
         }).await?))
     }

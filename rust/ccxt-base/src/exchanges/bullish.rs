@@ -2570,9 +2570,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("POST_ONLY")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderType: Value = type_var;
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string();
         if postOnly {
-            orderType = Value::Str("POST_ONLY".into());
+            orderType = "POST_ONLY".to_string();
         }
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceRawVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2591,10 +2591,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market trigger orders".into()))));
             }
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-            orderType = Value::Str("STOP_LIMIT".into());
+            orderType = "STOP_LIMIT".to_string();
         }
         let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce }).into_dict();
-        request.insert("type".into(), (if let Some(__s) = orderType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+        request.insert("type".into(), Value::from(orderType.to_uppercase()));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_v2_orders(&[__ws_arg_14]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
