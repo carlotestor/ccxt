@@ -815,8 +815,8 @@ impl P2b {
         let mut asks: Option<crate::value::List> = self.safe_list_k(&data, "asks", &[]).into_opt_list();
         let mut bids: Option<crate::value::List> = self.safe_list_k(&data, "bids", &[]).into_opt_list();
         let mut marketId: Option<String> = self.safe_string(params, Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

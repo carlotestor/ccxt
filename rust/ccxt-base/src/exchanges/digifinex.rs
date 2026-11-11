@@ -5554,8 +5554,8 @@ impl Digifinex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string2(position.clone(), Value::Str("instrument_id".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "margin_mode", &[]).as_str().map(str::to_owned);
         if (marginMode.is_some()) {
             marginMode = (if (marginMode.as_deref() == Some("crossed")) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
@@ -5596,7 +5596,7 @@ impl Digifinex {
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("avg_cost".into()), Value::Str("entry_price".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("position".into()), Value::Str("avail_position".into()), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("markPrice".to_string(), self.safe_number2(position.clone(), Value::Str("mark_price".into()), Value::Str("last".into()), &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Null);

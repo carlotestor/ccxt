@@ -1773,8 +1773,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (i.is_some()) {
                 tradeType = "spot".to_string();
             }
-            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]);
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]).into_dict();
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (tradesArray == Value::Null) {
@@ -1866,8 +1866,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (data != Value::Null) && (matches!(&data, Value::Dict(__d) if __d.contains_key("fu"))) {
                 tradeType = "contract".to_string();
             }
-            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]);
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]).into_dict();
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut obAsks: Option<crate::value::List> = self.safe_list_k(data.clone(), "a", &[]).into_opt_list();
             let mut obBids: Option<crate::value::List> = self.safe_list_k(data.clone(), "b", &[]).into_opt_list();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType);

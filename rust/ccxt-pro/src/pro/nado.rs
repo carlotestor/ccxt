@@ -2504,7 +2504,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Value = self.parse_ws_timestamp(position.clone(), Value::Str("timestamp".into()));
         let mut amountString: Option<String> = self.safe_string_k(position.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut vQuoteAmount: Option<String> = self.safe_string_k(position.clone(), "v_quote_amount", &[]).as_str().map(str::to_owned);
@@ -2527,14 +2527,14 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("isolated".to_string(), self.safe_bool_k(position, "isolated", &[]));
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), contracts);
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), entryPrice);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
@@ -2737,8 +2737,8 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }

@@ -2800,13 +2800,13 @@ impl Coinbaseexchange {
         self.load_accounts(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".into()));
-        let mut account: Value = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]);
-        if (account == Value::Null) {
+        let mut account: Option<crate::value::Dict> = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+        if (account.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("id".to_string(), crate::value::KeyRead::key_read(&&account, "id"));
             m
         });
         if (since != Value::Null) {
@@ -3188,14 +3188,14 @@ impl Coinbaseexchange {
         }
         let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
         let mut accountsByCurrencyId: Value = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]);
-        let mut account: Value = self.safe_dict(accountsByCurrencyId, currencyId.clone(), &[]);
-        if (account == Value::Null) {
+        let mut account: Option<crate::value::Dict> = self.safe_dict(accountsByCurrencyId, currencyId.clone(), &[]).into_opt_dict();
+        if (account.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".into())).into()), code).into()), Value::Str(" with id = ".into())).into()),
                 currencyId).into()), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("id".to_string(), crate::value::KeyRead::key_read(&&account, "id"));
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);

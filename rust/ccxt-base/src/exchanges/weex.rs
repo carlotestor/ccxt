@@ -2107,10 +2107,10 @@ impl Weex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("spot".into())]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("spot".into())]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_number_omit_zero(entry.clone(), Value::Str("price".into()), &[]));
@@ -5112,7 +5112,7 @@ impl Weex {
             self.handle_order_or_position_error(errorCode.clone().map(Value::from).unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), position.clone());
         }
         let mut marketId: Value = self.from_sandbox_market_id(self.safe_string2(position.clone(), Value::Str("symbol".into()), Value::Str("coinId".into()), &[])).map(Value::from).unwrap_or(Value::Null); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
-        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::Str("contract".into())]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId, market, Value::Null, Value::Str("contract".into())]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
         let mut marginType: Option<String> = self.safe_string2(position.clone(), Value::Str("marginType".into()), Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
         let mut marginMode: String = "cross".to_string();
@@ -5142,12 +5142,12 @@ impl Weex {
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string2(position.clone(), Value::Str("id".into()), Value::Str("positionId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "side", &[]));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));

@@ -3364,18 +3364,18 @@ impl Ndax {
         //     }
         //
         let mut templateTypes: Value = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
-        let mut firstTemplateType: Value = self.safe_dict(templateTypes, Value::Int(0), &[]);
-        if (firstTemplateType == Value::Null) {
+        let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict(templateTypes, Value::Int(0), &[]).into_opt_dict();
+        if (firstTemplateType.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }
-        let mut templateName: Option<String> = self.safe_string_k(firstTemplateType.clone(), "TemplateName", &[]).as_str().map(str::to_owned);
+        let mut templateName: Option<String> = self.safe_string_k(&firstTemplateType, "TemplateName", &[]).as_str().map(str::to_owned);
         let mut withdrawTemplateRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("TemplateType".to_string(), templateName.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("AccountProviderId".to_string(), firstTemplateType.as_map().and_then(|__m| __m.get("AccountProviderId")).cloned().unwrap_or(Value::Null));
+                m.insert("AccountProviderId".to_string(), crate::value::KeyRead::key_read(&&firstTemplateType, "AccountProviderId"));
             m
         });
         let mut withdrawTemplateResponse: crate::value::Dict = self.private_get_get_withdraw_template(&[Value::Map(withdrawTemplateRequest)]).await.into_dict();

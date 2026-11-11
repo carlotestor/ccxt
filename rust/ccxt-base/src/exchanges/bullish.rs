@@ -3474,8 +3474,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     ]
         //
-        let mut marketResolved: Value = self.safe_market(&[self.safe_string_k(position.clone(), "symbol", &[]), market]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved, "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[self.safe_string_k(position.clone(), "symbol", &[]), market]).into_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdAtTimestamp", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({

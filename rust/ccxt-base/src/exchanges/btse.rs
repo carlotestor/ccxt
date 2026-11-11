@@ -2247,7 +2247,7 @@ impl Btse {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(contract.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(contract.clone(), "closeTime", &[]).as_i64();
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
@@ -2264,7 +2264,7 @@ impl Btse {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), Value::Null);
@@ -3816,8 +3816,8 @@ impl Btse {
     m
 })]);
             let mut marketId: Option<String> = self.safe_string_k(feeInfo.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut makerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "makerFee", &[]).as_f64();
             let mut takerFee: Option<f64> = self.safe_number_k(feeInfo.clone(), "takerFee", &[]).as_f64();
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -4487,7 +4487,7 @@ impl Btse {
         }  else {
             marketId = self.safe_string_k_opt(position.clone(), "symbol", &[]);
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut marginType: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
@@ -4507,7 +4507,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "positionId", &[]));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "entryPrice", &[]), &[]));
         m.insert("markPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "markPrice", &[]), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
@@ -4708,7 +4708,7 @@ impl Btse {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(marginMode.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut positionMode: Option<String> = self.safe_string_lower_k(marginMode.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut marginModeValue: String = "cross".to_string();
         if (positionMode.as_deref() == Some("isolated")) {
@@ -4717,7 +4717,7 @@ impl Btse {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("marginMode".to_string(), Value::from(marginModeValue));
     m
 });

@@ -407,8 +407,8 @@ impl Apex {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str("recentlyTrade.H.".into()), marketId).into()));
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
             messageHashes.push(messageHash);
@@ -589,8 +589,8 @@ impl Apex {
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), self.number_to_string(limitValue.clone())).into()), Value::Str(".H.".into())).into()), marketId).into()));
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
             messageHashes.push(messageHash);
@@ -777,11 +777,11 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Value = self.get_ws_public_url();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
-        let mut marketId: String = self.safe_string_k(market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topics: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into())]);
         return self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         Value::Null
@@ -820,8 +820,8 @@ impl Apex {
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into()));
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
             messageHashes.push(messageHash);

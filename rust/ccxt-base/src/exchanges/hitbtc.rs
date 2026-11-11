@@ -4177,14 +4177,14 @@ impl Hitbtc {
             let mut __for_first_753: bool = true;
             while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (contracts.len() as i64) } {
             let mut marketId: Value = contracts.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
+            let mut marketInner: crate::value::Dict = self.safe_market(&[marketId.clone()]).into_dict();
             let mut fundingRateData: Vec<Value> = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_752: bool = true;
                 while { if !__for_first_752 { j += 1; } __for_first_752 = false; j < (fundingRateData.len() as i64) } {
                 let mut entry: Value = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut symbolInner: Option<String> = self.safe_symbol(marketInner.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut symbolInner: Option<String> = self.safe_symbol(crate::value::KeyRead::key_read(&&marketInner, "symbol"), &[]).as_str().map(str::to_owned);
                 let mut fundingRate: Option<f64> = self.safe_number_k(entry.clone(), "funding_rate", &[]).as_f64();
                 let mut datetime: Option<String> = self.safe_string_k(entry.clone(), "timestamp", &[]).as_str().map(str::to_owned);
                 rates.push(Value::Map({

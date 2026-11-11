@@ -1257,8 +1257,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut ch: Value = (match message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = Value::Array(if let Some(__s) = ch.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1281,8 +1281,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol))));
             }
         }
-        let mut spotConditon: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (prevSeqNum.as_f64() == self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_f64());
-        let mut nonSpotCondition: bool = (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (version != Value::Null) && ((match (&(version), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
+        let mut spotConditon: bool = (crate::value::KeyRead::key_read(&&market, "spot").as_bool() == Some(true)) && (prevSeqNum.as_f64() == self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_f64());
+        let mut nonSpotCondition: bool = (crate::value::KeyRead::key_read(&&market, "contract").as_bool() == Some(true)) && (version != Value::Null) && ((match (&(version), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64() == self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_f64());
         if (spotConditon) || (nonSpotCondition) {
             let mut asks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
@@ -3673,26 +3673,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut subTypeUrl: Value = Value::Null;
+            let mut subTypeUrl: Option<crate::value::Dict> = None;
             if isLinear {
                 subTypeUrl = self.safe_dict_k(&typeUrls, "linear", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
             }  else {
                 subTypeUrl = self.safe_dict_k(&typeUrls, "inverse", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
             }
             if isPrivate {
                 if isV5 && isLinear {
-                    url = self.safe_string_k(subTypeUrl.clone(), "privateV5", &[subTypeUrl.as_map().and_then(|__m| __m.get("private")).cloned().unwrap_or(Value::Null)]);
+                    url = self.safe_string_k(&subTypeUrl, "privateV5", &[crate::value::KeyRead::key_read(&&subTypeUrl, "private")]);
                 }  else {
-                    url = subTypeUrl.as_map().and_then(|__m| __m.get("private")).cloned().unwrap_or(Value::Null);
+                    url = crate::value::KeyRead::key_read(&&subTypeUrl, "private");
                 }
             }  else {
-                url = subTypeUrl.as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null);
+                url = crate::value::KeyRead::key_read(&&subTypeUrl, "public");
             }
         }
         return url.as_str().map(str::to_owned);

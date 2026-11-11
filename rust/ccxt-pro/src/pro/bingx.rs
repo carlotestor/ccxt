@@ -1176,8 +1176,8 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             // const limit = [ 5, 10, 20, 50, 100 ]
@@ -1195,7 +1195,7 @@ impl Bingx {
         let mut snapshot: Value = Value::Null;
         let mut timestamp: Value = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]);
         timestamp = self.safe_integer2(data.clone(), Value::Str("timestamp".into()), Value::Str("ts".into()), &[timestamp.clone()]);
-        if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         }  else {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
@@ -2638,11 +2638,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isExecution: bool = status.as_deref() == Some("FILLED");
             if (type_var.as_deref() == Some("TRADE")) && (status.as_deref() == Some("PARTIALLY_FILLED")) {
                 let mut marketId: Option<String> = self.safe_string_k(data.clone(), "s", &[]).as_str().map(str::to_owned);
-                let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::Str("swap".into())]);
+                let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into()), Value::Str("swap".into())]).into_dict();
                 // parseTrade gates its `l`/`L` last-fill preference on the same
                 // `market['linear'] === true`, so an unresolved market id must be skipped here:
                 // delivering it would report the order aggregate `q`/`p` as a single fill.
-                isExecution = (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (self.safe_string_k(data.clone(), "l", &[]) != Value::Null) && (self.safe_string_k(data, "L", &[]) != Value::Null);
+                isExecution = (crate::value::KeyRead::key_read(&&market, "linear").as_bool() == Some(true)) && (self.safe_string_k(data.clone(), "l", &[]) != Value::Null) && (self.safe_string_k(data, "L", &[]) != Value::Null);
             }
             if (type_var.as_deref() == Some("TRADE")) && isExecution {
                 self.handle_my_trades(client.clone(), message.clone());

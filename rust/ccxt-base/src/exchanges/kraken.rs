@@ -1062,11 +1062,11 @@ impl Kraken {
 }
 
     pub fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Value {
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k(market, "precision", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "precision", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         return self.decimal_to_precision(fee, Value::Int(crate::runtime::TRUNCATE), marketPrecision.get("amount").cloned().unwrap_or(Value::Null), &[self.precisionMode.clone()]);
 
     Value::Null

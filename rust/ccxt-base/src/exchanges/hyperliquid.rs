@@ -5610,8 +5610,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut leverage: crate::value::Dict = self.safe_dict_k(&entry, "leverage", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6980,14 +6980,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (coin.is_some()) {
             marketId = self.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId, market]).into_dict();
         let mut amount: Option<String> = self.safe_string_k(&delta, "usdc", &[]).as_str().map(str::to_owned);
-        let mut code: String = self.safe_string_k(marketResolved.clone(), "settle", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
+        let mut code: String = self.safe_string_k(&marketResolved, "settle", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
         let mut rate: Option<f64> = self.safe_number_k(&delta, "fundingRate", &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

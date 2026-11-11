@@ -1079,8 +1079,8 @@ impl Paradex {
             m
         })]);
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "last_updated_at", &[]).as_i64();
         let mut nonce: Value = self.safe_integer_k(data.clone(), "seq_no", &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);

@@ -524,8 +524,8 @@ impl Whitebit {
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut isSnapshot: bool = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string(params.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut data: Value = self.safe_dict(params, Value::Int(1), &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(data.clone(), "timestamp", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

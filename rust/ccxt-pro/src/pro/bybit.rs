@@ -1634,8 +1634,8 @@ impl Bybit {
         let mut paramsOmitted: Value = (if (limitParam.is_some()) { self.omit(params.clone(), Value::Str("limit".into()), &[]) } else { params });
         let mut defaultLimit: i64 = 500;
         if (limitParam.is_none()) {
-            let mut firstMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-            defaultLimit = (if matches!((self.safe_bool_k(firstMarket, "spot", &[Value::Bool(false)])), Value::Bool(true)) { 50 } else { 500 });
+            let mut firstMarket: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).into_dict();
+            defaultLimit = (if matches!((self.safe_bool_k(&firstMarket, "spot", &[Value::Bool(false)])), Value::Bool(true)) { 50 } else { 500 });
         }
         let mut limit: Value = (if (limitParam.is_none()) { Value::from(defaultLimit) } else { Value::from(limitParam) });
         channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
@@ -1647,8 +1647,8 @@ impl Bybit {
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), marketId).into());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()));
@@ -1859,8 +1859,8 @@ impl Bybit {
             let mut __for_first_193: bool = true;
             while { if !__for_first_193 { i += 1; } __for_first_193 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("publicTrade.".into()), marketId).into());
             topics.push(topic);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
@@ -1912,8 +1912,8 @@ impl Bybit {
             let mut __for_first_194: bool = true;
             while { if !__for_first_194 { i += 1; } __for_first_194 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("publicTrade.".into()), marketId).into());
             topics.push(topic);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());

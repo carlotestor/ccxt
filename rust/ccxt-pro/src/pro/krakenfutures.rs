@@ -1767,8 +1767,8 @@ impl Krakenfutures {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut timestamp: Value = self.parse8601(self.safe_string_k(ticker.clone(), "lastTime", &[]));
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
@@ -2303,7 +2303,7 @@ impl Krakenfutures {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut isBuy: bool = self.safe_bool_k(trade.clone(), "buy", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut feeCurrencyId: Option<String> = self.safe_string_k(trade.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
@@ -2312,7 +2312,7 @@ impl Krakenfutures {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "fill_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved, "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), (if isBuy { Value::Str("buy".into()) } else { Value::Str("sell".into()) }));

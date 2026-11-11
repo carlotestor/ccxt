@@ -304,14 +304,14 @@ impl Independentreserve {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
-        let mut baseId: String = self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteId: String = self.safe_string_k(market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseId: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?subscribe=ticker-".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[Value::Null, Value::from(messageHash)]).await;
@@ -421,16 +421,16 @@ impl Independentreserve {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut limitString: Option<String> = self.number_to_string(limitResolved).as_str().map(str::to_owned);
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut baseId: String = self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteId: String = self.safe_string_k(market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseId: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/orderbook/".into())).into()), limitString.clone().map(Value::from).unwrap_or(Value::Null)).into()),
             Value::Str("?subscribe=".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into()), Value::Str(":".into())).into()), limitString.clone().map(Value::from).unwrap_or(Value::Null));

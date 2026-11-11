@@ -12842,8 +12842,8 @@ if _try_result.is_err() {
         if (marketId.is_none()) {
             marginMode = "cross".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved, "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut isolatedBase: crate::value::Dict = self.safe_dict_k(info.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14638,7 +14638,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut symbol: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "currentTimestamp", &[]).as_i64();
         if (timestamp.is_none()) {
             timestamp = self.safe_integer_product_k(position.clone(), "creationTime", Value::Float(0.000001), &[]).as_i64();
@@ -14703,7 +14703,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_n(position.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("positionId".into()), Value::Str("closeId".into())]), &[]));
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
@@ -14716,7 +14716,7 @@ if _try_result.is_err() {
         m.insert("leverage".to_string(), self.safe_number2(position.clone(), Value::Str("realLeverage".into()), Value::Str("leverage".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_n(position.clone(), Value::from(vec![Value::Str("realisedPnl".into()), Value::Str("pnl".into()), Value::Str("realizedPnL".into())]), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));

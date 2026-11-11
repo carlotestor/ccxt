@@ -7091,8 +7091,8 @@ impl Mexc {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        let mut marketResolved: Value = self.safe_market(&[self.safe_string_k(position.clone(), "symbol", &[]), market, Value::Null, Value::Str("swap".into())]);
-        let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[self.safe_string_k(position.clone(), "symbol", &[]), market, Value::Null, Value::Str("swap".into())]).into_dict();
+        let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "holdVol", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "openAvgPrice", &[]).as_f64();
         let mut initialMargin: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "im", &[])).as_str().map(str::to_owned);
@@ -7120,7 +7120,7 @@ impl Mexc {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));

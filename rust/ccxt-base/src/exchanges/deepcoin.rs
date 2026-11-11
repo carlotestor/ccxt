@@ -3915,7 +3915,7 @@ impl Deepcoin {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "instId", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "cTime", &[]).as_i64();
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut useMargin: Option<f64> = self.safe_number_k(position.clone(), "useMargin", &[]).as_f64();
@@ -3926,7 +3926,7 @@ impl Deepcoin {
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "posId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -4286,11 +4286,11 @@ impl Deepcoin {
         //
         let mut timestamp: Option<i64> = self.safe_timestamp_k(info.clone(), "CreateTime", &[]).as_i64();
         let mut instrumentID: Option<String> = self.safe_string2(info.clone(), Value::Str("instrumentID".into()), Value::Str("instrumentId".into()), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[instrumentID.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("swap".into())]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[instrumentID.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("swap".into())]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("fundingRate".to_string(), self.safe_number_k(info, "rate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

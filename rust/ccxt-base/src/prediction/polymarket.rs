@@ -2896,7 +2896,7 @@ impl Polymarket {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
-        let mut wantedIds: indexmap::IndexMap<String, Value> = ({
+        let mut wantedIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2907,8 +2907,8 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1438: bool = true;
             while { if !__for_first_1438 { i += 1; } __for_first_1438 = false; i < (outcomes.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            wantedIds.insert(crate::runtime::stringify_param(&(outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null))), Value::Bool(true));
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            add_element_to_object(&mut wantedIds, &crate::value::KeyRead::key_read(&&outcomeObj, "outcomeId"), Value::Bool(true));
         }
         }
         let mut result: Vec<Value> = Vec::new();
@@ -2922,7 +2922,7 @@ impl Polymarket {
     m
 })]).into_dict();
             let mut assetId: Option<String> = self.safe_string_k_opt(&info, "asset", &[]);
-            if (assetId.is_some()) && (matches!(&assetId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedIds.contains_key(__k.as_ref()))) {
+            if (assetId.is_some()) && (matches!((&wantedIds, &assetId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 result.push(position);
             }
         }

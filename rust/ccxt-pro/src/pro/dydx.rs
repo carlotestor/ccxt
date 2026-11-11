@@ -557,8 +557,8 @@ impl Dydx {
         // }
         //
         let mut marketId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut content: crate::value::Dict = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
@@ -616,14 +616,14 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution).into()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -664,14 +664,14 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&market, "id", &[Value::Str("".into())]), Value::Str("/".into())).into()), resolution).into()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);

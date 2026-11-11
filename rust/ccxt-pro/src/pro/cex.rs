@@ -489,8 +489,8 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "trades".to_string();
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("old:".into()), symbolValue).into());
@@ -513,8 +513,8 @@ impl Cex {
             }
             }
         }
-        let mut baseId: String = self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteId: String = self.safe_string_k(market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseId: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("subscribe".into()));
@@ -1695,12 +1695,12 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut baseId: String = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut quoteId: String = self.safe_string_k(market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut quoteId: String = self.safe_string_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("init-ohlcv".into()));

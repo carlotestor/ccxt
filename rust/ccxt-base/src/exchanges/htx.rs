@@ -4740,12 +4740,12 @@ impl Htx {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // example responses are documented in fetchLastPrices
         let mut marketId: Option<String> = self.safe_string2(entry.clone(), Value::Str("symbol".into()), Value::Str("contract_code".into()), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut price: Option<f64> = self.safe_number_k(entry.clone(), "price", &[]).as_f64();
         let mut direction: Option<String> = self.safe_string_k(entry.clone(), "direction", &[]).as_str().map(str::to_owned); // "buy" or "sell"
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("price".to_string(), Value::from(price));
@@ -10724,8 +10724,8 @@ impl Htx {
         if (marketId.is_none()) {
             marginMode = "cross".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved, "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "accrued-at", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11275,10 +11275,10 @@ impl Htx {
         //         "updated_time": "1780903703234"
         //     }
         //
-        let mut marketResolved: Value = self.safe_market(&[self.safe_string_k(position.clone(), "contract_code", &[])]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[self.safe_string_k(position.clone(), "contract_code", &[])]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "volume", &[]).as_str().map(str::to_owned);
-        let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
+        let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
         let mut entryPrice: Option<f64> = self.safe_number2(position.clone(), Value::Str("cost_open".into()), Value::Str("open_avg_price".into()), &[]).as_f64();
         let mut initialMargin: Option<String> = self.safe_string2(position.clone(), Value::Str("position_margin".into()), Value::Str("initial_margin".into()), &[]).as_str().map(str::to_owned);
@@ -11301,7 +11301,7 @@ impl Htx {
         let mut lastPrice: Option<String> = self.safe_string_k(position.clone(), "last_price", &[]).as_str().map(str::to_owned);
         let mut faceValue: Option<String> = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut notional: Option<String> = None;
-        if matches!(self.safe_bool_k(marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             notional = crate::precise::Precise::stringMul(&faceValue.clone().map(Value::from).unwrap_or(Value::Null), &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             notional = crate::precise::Precise::stringDiv(&faceValue.clone().map(Value::from).unwrap_or(Value::Null), &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);

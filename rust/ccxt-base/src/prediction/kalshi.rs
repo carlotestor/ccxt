@@ -3224,8 +3224,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (outcome != Value::Null) {
-            let mut outcomeObj: Value = self.outcome(outcome.clone());
-            request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+            request.insert("ticker".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "ticker", &[]));
         }
         let mut restingResponse: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await.into_dict();
         let mut restingOrders: Vec<Value> = self.safe_list_k(&restingResponse, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();

@@ -4037,21 +4037,21 @@ impl Bingx {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.cswap_v1_public_get_market_premium_index(&[__ws_arg_20]).await;
+            response = self.cswap_v1_public_get_market_premium_index(&[__ws_arg_20]).await.into_opt_dict();
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.swap_v2_public_get_quote_premium_index(&[__ws_arg_21]).await;
+            response = self.swap_v2_public_get_quote_premium_index(&[__ws_arg_21]).await.into_opt_dict();
         }
-        if (matches!(&response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            return self.parse_ticker(self.safe_dict(response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), Value::Int(0), &[Value::Map({
+        if (matches!(&crate::value::KeyRead::key_read(&&response, "data"), Value::Arr(_))) {
+            return self.parse_ticker(self.safe_dict(crate::value::KeyRead::key_read(&&response, "data"), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[(market).raw.clone()]);
         }
-        return self.parse_ticker(response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
+        return self.parse_ticker(crate::value::KeyRead::key_read(&&response, "data"), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

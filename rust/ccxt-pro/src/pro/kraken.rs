@@ -2250,14 +2250,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 let mut symbol: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
                 let mut previousOrders: Value = self.safe_dict(stored.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut previousOrder: Value = self.safe_dict(previousOrders, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut previousOrder: Option<crate::value::Dict> = self.safe_dict(previousOrders, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
                 let mut newOrder: Value = parsed.clone();
-                if (previousOrder != Value::Null) {
-                    let mut newRawOrder: Value = self.extend(previousOrder.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), &[parsed.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]);
+                if (previousOrder.is_some()) {
+                    let mut newRawOrder: Value = self.extend(crate::value::KeyRead::key_read(&&previousOrder, "info"), &[parsed.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]);
                     newOrder = self.parse_ws_order(newRawOrder, &[]);
                 }
                 let mut length: Value = get_array_length(&stored);
-                if (length.as_f64() == limit.as_f64()) && (previousOrder == Value::Null) {
+                if (length.as_f64() == limit.as_f64()) && (previousOrder.is_none()) {
                     let mut first: Value = get_value(&stored, &Value::Int(0));
                     let mut symbolsByOrderId: Value = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();

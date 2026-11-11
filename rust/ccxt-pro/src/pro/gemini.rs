@@ -616,12 +616,12 @@ impl Gemini {
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str(format!("{}{}", Value::Str("candles_".into()), timeframeId).into()));
-        m.insert("symbols".to_string(), Value::from(vec![self.safe_string_upper_k(market.clone(), "id", &[])]));
+        m.insert("symbols".to_string(), Value::from(vec![self.safe_string_upper_k(&market, "id", &[])]));
     m
 })]));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), timeframeId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), timeframeId);
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() has no websocket url".into()))));
@@ -770,8 +770,8 @@ impl Gemini {
         let mut isInitial: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("auction_events"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("changes")));
         let mut changes: Vec<Value> = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut marketId: Option<String> = self.safe_string_lower_k(message, "symbol", &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
@@ -908,8 +908,8 @@ impl Gemini {
         //
         let mut firstBidAsk: Value = rawBidAskChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = (self.safe_string_k(firstBidAsk, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut market: Value = self.safe_market(&[marketId]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
         let mut currentBidAsk: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1029,8 +1029,8 @@ impl Gemini {
         //
         let mut firstChange: Value = rawOrderBookChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = (self.safe_string_k(firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut market: Value = self.safe_market(&[marketId]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[]);

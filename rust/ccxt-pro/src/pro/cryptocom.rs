@@ -664,8 +664,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut marketId: Option<String> = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut data: Value = self.safe_dict((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "t", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -798,8 +798,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_270: bool = true;
             while { if !__for_first_270 { i += 1; } __for_first_270 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())); }
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
+            if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into())); }
         }
         }
         let mut trades: Value = self.watch_public_multiple(topics.clone(), topics.clone(), &[params]).await;
@@ -983,8 +983,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        return self.watch_public(Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), &[params]).await;
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        return self.watch_public(Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), &[params]).await;
         Value::Null
         }).await?))
     }

@@ -1636,8 +1636,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut authenticated: Value = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]);
-            if (authenticated == Value::Null) {
+            let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_opt_dict();
+            if (authenticated.is_none()) {
                 let mut response: Value = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await;
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
@@ -1653,11 +1653,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
             }  else {
-                let mut expires: Value = self.safe_integer_k(authenticated.clone(), "expires", &[Value::Int(0)]);
+                let mut expires: Value = self.safe_integer_k(&authenticated, "expires", &[Value::Int(0)]);
                 if expires.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN) {
                     let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("subscribeKey".to_string(), authenticated.as_map().and_then(|__m| __m.get("key")).cloned().unwrap_or(Value::Null));
+                            m.insert("subscribeKey".to_string(), crate::value::KeyRead::key_read(&&authenticated, "key"));
                         m
                     });
                     let __ws_arg_0 = self.extend(Value::Map(request), &[params]);

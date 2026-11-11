@@ -1914,8 +1914,8 @@ impl Backpack {
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), data.clone());
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut isStockMarket: bool = (market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+            let mut isStockMarket: bool = (crate::value::KeyRead::key_read(&&market, "stock").as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
             let mut defaultSnapshotDelay: Value = (if isStockMarket { Value::Int(0) } else { Value::Int(10) });
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[defaultSnapshotDelay]);
             if is_equal(&cacheLength, &snapshotDelay) {
@@ -2623,8 +2623,8 @@ impl Backpack {
         //
         let mut id: Option<String> = self.safe_string_k(position.clone(), "i", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut notional: Option<String> = self.safe_string_k(position.clone(), "n", &[]).as_str().map(str::to_owned);
         let mut liquidationPrice: Option<String> = self.safe_string_k(position.clone(), "l", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<String> = self.safe_string_k(position.clone(), "b", &[]).as_str().map(str::to_owned);

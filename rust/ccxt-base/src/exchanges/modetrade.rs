@@ -4834,7 +4834,7 @@ impl Modetrade {
         // }
         //
         let mut contract: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[contract.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[contract.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut size: Option<String> = self.safe_string_k(position.clone(), "position_qty", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -4842,7 +4842,7 @@ impl Modetrade {
         }  else {
             side = Some("short".to_string());
         }
-        let mut contractSize: Option<String> = self.safe_string_k(marketResolved.clone(), "contractSize", &[]).as_str().map(str::to_owned);
+        let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = self.safe_string_k(position.clone(), "mark_price", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut entryPrice: Option<String> = self.safe_string_k(position.clone(), "average_open_price", &[]).as_str().map(str::to_owned);
@@ -4853,7 +4853,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved, "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);

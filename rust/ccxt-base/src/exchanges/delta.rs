@@ -2445,8 +2445,8 @@ impl Delta {
             while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset_id", &[]).as_str().map(str::to_owned);
-            let mut currency: Value = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut code: Value = (if (currency == Value::Null) { currencyId.clone().map(Value::from).unwrap_or(Value::Null) } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
+            let mut currency: Option<crate::value::Dict> = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut code: Value = (if (currency.is_none()) { currencyId.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::value::KeyRead::key_read(&&currency, "code") });
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "available_balance", &[]));

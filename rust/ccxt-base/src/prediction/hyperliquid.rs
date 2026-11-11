@@ -2971,8 +2971,8 @@ impl Hyperliquid {
 }
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default()));
-        let mut prec: Value = self.safe_number(self.safe_dict_k(market, "precision", &[Value::Map({
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default())).into_dict();
+        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("amount".into()), &[Value::Float(0.0001)]);
@@ -2990,8 +2990,8 @@ impl Hyperliquid {
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Value {
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default()));
-        let mut prec: Value = self.safe_number(self.safe_dict_k(market, "precision", &[Value::Map({
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default())).into_dict();
+        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("price".into()), &[Value::Float(0.0001)]);

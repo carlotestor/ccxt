@@ -7122,8 +7122,8 @@ if _try_result.is_err() {
         }
         }
         let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-        if matches!((self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market, "option", &[Value::Bool(false)])), Value::Bool(true)) {
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).into_dict();
+        if matches!((self.safe_bool_k(&market, "future", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(&market, "option", &[Value::Bool(false)])), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support futures or options markets".into()))));
         }
         return Value::from(ordersRequests);

@@ -762,8 +762,8 @@ impl Upbit {
         let mut channelKey: Value = channel.clone();
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+            let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             request.insert("codes".into(), self.market_ids(&[Value::from(vec![Value::from(symbolResolved.clone())])]));
             messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
             channelKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolResolved).into());
@@ -948,13 +948,13 @@ impl Upbit {
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_ws_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(order.clone(), "paid_fee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "quote"));
                     m.insert("cost".to_string(), feeCost.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -973,7 +973,7 @@ impl Upbit {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "trade_timestamp", &[]));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "timestamp", &[]));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "order_type", &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);

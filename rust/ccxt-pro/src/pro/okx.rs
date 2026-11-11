@@ -3398,8 +3398,8 @@ impl Okx {
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut args: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side, amount, &[price, paramsOp]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
             remove(&mut args, &Value::Str("instId".into()));
             add_element_to_object(&mut args, &Value::Str("instIdCode".into()), Value::from(instIdCode));
@@ -3509,8 +3509,8 @@ impl Okx {
         let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, paramsOp.clone()]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
             remove(&mut args, &Value::Str("instId".into()));
             add_element_to_object(&mut args, &Value::Str("instIdCode".into()), Value::from(instIdCode));
@@ -3562,8 +3562,8 @@ impl Okx {
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         let mut arg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instIdCode".to_string(), Value::from(instIdCode));
@@ -3622,8 +3622,8 @@ impl Okx {
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut args: Vec<Value> = Vec::new();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         let mut instParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instIdCode".to_string(), Value::from(instIdCode));

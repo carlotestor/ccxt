@@ -548,14 +548,14 @@ impl Bullish {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() has no public websocket url".into()))));
         }
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), symbolValue);
-        let __ws_arg_2 = self.safe_string_k(market, "id", &[Value::Str("".into())]);
+        let __ws_arg_2 = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
         return self.watch(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/trading-api/v1/market-data/tick/".into())).into()), __ws_arg_2).into()), Value::from(messageHash.clone()), &[params, Value::from(messageHash)]).await;
         Value::Null
         }).await?))

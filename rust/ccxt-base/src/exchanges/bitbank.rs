@@ -973,8 +973,8 @@ impl Bitbank {
             while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (pairs.len() as i64) } {
             let mut pair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(pair.clone(), "name", &[]).as_str().map(str::to_owned);
-            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+            let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
+            let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), pair.clone());

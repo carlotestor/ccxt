@@ -5679,7 +5679,7 @@ impl Woo {
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(leverage.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut marginMode: Option<String> = self.safe_string_lower_k(leverage.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut spotLeverage: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         if (spotLeverage == Some(0)) {
@@ -5711,7 +5711,7 @@ impl Woo {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("longLeverage".to_string(), Value::from(longLeverage));
         m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
@@ -6061,7 +6061,7 @@ impl Woo {
         //     }
         //
         let mut contract: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[contract.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[contract.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut size: Option<String> = self.safe_string_k(position.clone(), "holding", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -6069,7 +6069,7 @@ impl Woo {
         }  else {
             side = Some("short".to_string());
         }
-        let mut contractSize: Option<String> = self.safe_string_k(marketResolved.clone(), "contractSize", &[]).as_str().map(str::to_owned);
+        let mut contractSize: Option<String> = self.safe_string_k(&marketResolved, "contractSize", &[]).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("mark_price".into()), &[]).as_str().map(str::to_owned);
         let mut timestampString: Option<String> = self.safe_string_k(position.clone(), "timestamp", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
@@ -6095,7 +6095,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved, "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);

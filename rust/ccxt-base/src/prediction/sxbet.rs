@@ -2172,10 +2172,10 @@ impl Sxbet {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped".into()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("marketHash".to_string(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]));
+                m.insert("marketHash".to_string(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[]));
             m
         });
         if (limit != Value::Null) {
@@ -2199,7 +2199,7 @@ impl Sxbet {
         }
         // the venue serves the tape newest-first - the unified contract is ascending by timestamp
         trades = self.sort_by(trades.clone(), Value::Str("timestamp".into()), &[]);
-        let mut sym: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
+        let mut sym: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym.clone().map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -2447,8 +2447,8 @@ impl Sxbet {
                                 let mut i: i64 = 0;
                 let mut __for_first_1513: bool = true;
                 while { if !__for_first_1513 { i += 1; } __for_first_1513 = false; (i as f64) < outcomesLength } {
-                let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-                let mut hash: String = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut outcomeObj: crate::value::Dict = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+                let mut hash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 wantedMarkets.insert(hash, Value::Bool(true));
             }
             }
@@ -2874,8 +2874,8 @@ impl Sxbet {
             let mut __for_first_1516: bool = true;
             while { if !__for_first_1516 { i += 1; } __for_first_1516 = false; (i as f64) < outcomesLength } {
             self.load_outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut marketHash: Value = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]);
             if (self.safe_bool(Value::Map(seenHashes.clone()), marketHash.clone(), &[]) == Value::Null) {
                 seenHashes.insert(crate::runtime::stringify_param(&marketHash), Value::Bool(true));
                 if let Value::Arr(__a) = &mut hashesOrder { std::sync::Arc::make_mut(__a).push(marketHash.clone()); }
@@ -3454,9 +3454,9 @@ impl Sxbet {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut sym: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[Value::Str("".into())]);
-        let mut marketHash: String = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut sym: Value = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]);
+        let mut marketHash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("orderbook_v3:".into()), marketHash);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);

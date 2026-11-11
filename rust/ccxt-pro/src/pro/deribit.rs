@@ -492,7 +492,7 @@ impl Deribit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("100ms".into())]).as_str().unwrap_or("100ms").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
@@ -502,7 +502,7 @@ impl Deribit {
         if (interval == "raw") {
             self.authenticate(&[]).await;
         }
-        let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -561,8 +561,8 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_289: bool = true;
             while { if !__for_first_289 { i += 1; } __for_first_289 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); };
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).into_dict();
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); };
         }
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -673,8 +673,8 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_290: bool = true;
             while { if !__for_first_290 { i += 1; } __for_first_290 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())); };
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).into_dict();
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into())); };
         }
         }
         let mut message: indexmap::IndexMap<String, Value> = ({

@@ -1554,8 +1554,8 @@ impl Bitget {
             marketType = "spot".to_string();
         }
         let mut marketId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -3908,9 +3908,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             type_var = "spot".to_string();
         }
         let mut instId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
+        let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -3945,9 +3945,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             type_var = "spot".to_string();
         }
         let mut instId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
+        let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -3982,9 +3982,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             type_var = "spot".to_string();
         }
         let mut instId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
+        let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -4033,8 +4033,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
-        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+        let mut market: crate::value::Dict = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Option<String> = None;
         let mut subMessageHash: Option<String> = None;
         if (isUta == Some(true)) {

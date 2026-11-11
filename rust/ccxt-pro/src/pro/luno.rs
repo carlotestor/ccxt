@@ -767,9 +767,9 @@ impl Luno {
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
             orderbook.set_book_meta("nonce", Value::Null);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+            let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), marketId).into());
             if (__ch.has_subscription(&subscriptionHash)) {
                 __ch.remove_subscription(&subscriptionHash);

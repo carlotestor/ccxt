@@ -1377,8 +1377,8 @@ impl Gate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchTicker".into())); }
         let mut result: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::from(symbolValue), &[]);
@@ -2482,20 +2482,20 @@ impl Gate {
                 if (symbol.is_none()) {
                     continue;
                 }
-                let mut prevLongPosition: Value = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("long".into())).into()), &[]);
-                if (prevLongPosition != Value::Null) {
-                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), prevLongPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null)); }
+                let mut prevLongPosition: Option<crate::value::Dict> = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("long".into())).into()), &[]).into_opt_dict();
+                if (prevLongPosition.is_some()) {
+                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), crate::value::KeyRead::key_read(&&prevLongPosition, "side")); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());
                 }
-                let mut prevShortPosition: Value = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("short".into())).into()), &[]);
-                if (prevShortPosition != Value::Null) {
-                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), prevShortPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null)); }
+                let mut prevShortPosition: Option<crate::value::Dict> = self.safe_dict(cache.clone(), Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("short".into())).into()), &[]).into_opt_dict();
+                if (prevShortPosition.is_some()) {
+                    if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), crate::value::KeyRead::key_read(&&prevShortPosition, "side")); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());
                 }
                 // if no prev position is found, default to long
-                if (prevLongPosition == Value::Null) && (prevShortPosition == Value::Null) {
+                if (prevLongPosition.is_none()) && (prevShortPosition.is_none()) {
                     if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                     if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
                     cache.append(position.clone());

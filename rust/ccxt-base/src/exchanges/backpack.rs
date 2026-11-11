@@ -4815,8 +4815,8 @@ impl Backpack {
         //
         let mut id: Option<String> = self.safe_string_k(position.clone(), "positionId", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "entryPrice", &[]).as_f64();
         let mut markPrice: Option<f64> = self.safe_number_k(position.clone(), "markPrice", &[]).as_f64();
         let mut netCost: Option<String> = self.safe_string_k(position.clone(), "netCost", &[]).as_str().map(str::to_owned);

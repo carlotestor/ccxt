@@ -633,8 +633,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 
     fn safe_outcome_symbol(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
-        let mut outcomeObjValue: Value = self.safe_outcome(outcomeIdOrSymbol, &[outcomeObj]);
-        return crate::value::get_value_k(&outcomeObjValue, "outcome");
+        let mut outcomeObjValue: crate::value::Dict = self.safe_outcome(outcomeIdOrSymbol, &[outcomeObj]).into_dict();
+        return crate::value::KeyRead::key_read(&&outcomeObjValue, "outcome");
 
     Value::Null
 }

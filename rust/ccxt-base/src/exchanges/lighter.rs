@@ -1073,12 +1073,12 @@ impl Lighter {
             //
             let mut subAccounts: Option<crate::value::List> = self.safe_list_k(&res, "sub_accounts", &[]).into_opt_list();
             if (subAccounts.is_some()) {
-                let mut account: Value = self.safe_dict(subAccounts.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]);
-                if (account == Value::Null) {
+                let mut account: Option<crate::value::Dict> = self.safe_dict(subAccounts.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_opt_dict();
+                if (account.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName1).into()),
                         Value::Str("() requires an ".into())).into()), optionName1).into()), Value::Str(" or ".into())).into()), optionName2).into()), Value::Str(" parameter".into()))));
                 }
-                accountIndex = account.as_map().and_then(|__m| __m.get("index")).cloned().unwrap_or(Value::Null);
+                accountIndex = crate::value::KeyRead::key_read(&&account, "index");
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
             }
         }
@@ -3051,7 +3051,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "market_id", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut sign: Option<i64> = self.safe_integer_k(position.clone(), "sign", &[]).as_i64();
         let mut side: Value = Value::Null;
         if (sign.is_some()) {
@@ -3082,7 +3082,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("isolated".to_string(), (Value::Bool(marginMode.as_deref() == Some("isolated"))));

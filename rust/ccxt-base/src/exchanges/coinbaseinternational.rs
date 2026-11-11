@@ -2818,7 +2818,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut instrumentName: Option<String> = self.safe_string_k(position.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = self.safe_market(&[instrumentName.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[instrumentName.clone().map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut side: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("buy")) {
             side = Some("long".to_string());
@@ -2831,22 +2831,22 @@ impl Coinbaseinternational {
         let mut contracts: Value = self.safe_number_k(position.clone(), "size", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-            if !matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
+            if !matches!(self.safe_bool_k(&marketResolved, "option", &[Value::Bool(false)]), Value::Bool(true)) {
                 notional = size.clone();
-                if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+                if matches!(self.safe_bool_k(&marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                     size = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned);
                 }
             }  else {
                 notional = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(position.clone(), "mark_price", &[])).as_str().map(str::to_owned);
             }
-            let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[crate::precise::Precise::stringDiv(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]);
+            let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[crate::precise::Precise::stringDiv(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&marketResolved, "contractSize", &[]))]);
             contracts = self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_price", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&notional.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
@@ -2854,7 +2854,7 @@ impl Coinbaseinternational {
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "floating_profit_loss", &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), contracts);
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);

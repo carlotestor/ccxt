@@ -5645,9 +5645,9 @@ pub trait ExchangeBase:
         if (code == Value::Null) {
             return code;
         }
-        let mut currencyById: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[]);
-        if (currencyById != Value::Null) {
-            return currencyById.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+        let mut currencyById: Option<crate::value::Dict> = self.safe_dict(self.currencies.clone(), code.clone(), &[]).into_opt_dict();
+        if (currencyById.is_some()) {
+            return crate::value::KeyRead::key_read(&&currencyById, "id");
         }
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
         if (currency != Value::Null) {
@@ -5672,8 +5672,8 @@ pub trait ExchangeBase:
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" symbol() requires a symbol argument".into()))));
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-        return self.safe_string_k(market, "symbol", &[symbol]);
+        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).into_dict();
+        return self.safe_string_k(&market, "symbol", &[symbol]);
 
     Value::Null
 }
@@ -8372,8 +8372,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut delimiter = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market, delimiter, marketType]);
-        return marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId, market, delimiter, marketType]).into_dict();
+        return crate::value::KeyRead::key_read(&&marketResolved, "symbol");
 
     Value::Null
 }
