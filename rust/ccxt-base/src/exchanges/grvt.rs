@@ -3196,8 +3196,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut timeInForce: Value = self.safe_string_upper_k(paramsOmitted3.clone(), "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]);
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOmitted3.clone()]);
-        if postOnly.as_bool() == Some(true) {
+        let mut postOnly: bool = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOmitted3.clone()]).as_bool() == Some(true);
+        if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }
         if (timeInForce == Value::Null) {
@@ -3214,7 +3214,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         orderRequest.insert("time_in_force".into(), timeInForce.clone());
         if !(matches!(&isMarketOrder, Value::Bool(true))) {
-            if postOnly.as_bool() == Some(true) {
+            if postOnly {
                 timeInForce = Value::Str("POST_ONLY".into());
             }  else if (timeInForce.as_str() == Some("ioc")) {
                 timeInForce = Value::Str("IMMEDIATE_OR_CANCEL".into());

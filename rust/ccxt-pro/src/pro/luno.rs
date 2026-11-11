@@ -528,8 +528,8 @@ impl Luno {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (asks.is_none()) {
-            let mut inSequence: Value = self.is_order_book_delta_in_sequence(client.clone(), message.clone(), symbol.clone());
-            if !(inSequence.as_bool() == Some(true)) {
+            let mut inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message.clone(), symbol.clone()).as_bool() == Some(true);
+            if !inSequence {
                 return;
             }
         }
@@ -665,8 +665,8 @@ impl Luno {
                 // the message does not carry the side of the maker order and
                 // order ids are unique across the book, so try the bids first
                 // and fall back to the asks only on a miss
-                let mut reduced: Value = self.reduce_order_volume(bidsOrderSide.clone(), makerOrderId.clone().map(Value::from).unwrap_or(Value::Null), tradedAmount.clone().map(Value::from).unwrap_or(Value::Null));
-                if !(reduced.as_bool() == Some(true)) {
+                let mut reduced: bool = self.reduce_order_volume(bidsOrderSide.clone(), makerOrderId.clone().map(Value::from).unwrap_or(Value::Null), tradedAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true);
+                if !reduced {
                     self.reduce_order_volume(asksOrderSide.clone(), makerOrderId.map(Value::from).unwrap_or(Value::Null), tradedAmount.map(Value::from).unwrap_or(Value::Null));
                 }
             }

@@ -5333,9 +5333,9 @@ if _try_result.is_err() {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);

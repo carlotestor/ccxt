@@ -1606,8 +1606,8 @@ impl Bitopro {
             }
         }
         let mut paramsOmitted: Value = (if (orderType.as_str() == Some("STOP_LIMIT")) { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
-        let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]);
-        if postOnly.as_bool() == Some(true) {
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
+        if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);

@@ -1996,12 +1996,12 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]).as_bool() == Some(true);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
         if !(isMarket) {
-            if postOnly.as_bool() == Some(true) {
+            if postOnly {
                 timeInForce = Some("POST_ONLY".to_string());
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());

@@ -1809,9 +1809,9 @@ impl Binance {
         // market, and picking the first match drops the message under the wrong
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
-        let mut isSpot: Value = self.is_spot_url(client.clone());
+        let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
         let mut marketType: String = "swap".to_string();
-        if isSpot.as_bool() == Some(true) {
+        if isSpot {
             marketType = "spot".to_string();
         }
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
@@ -2483,9 +2483,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
-        let mut isSpot: Value = self.is_spot_url(client.clone());
+        let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
         let mut marketType: String = "contract".to_string();
-        if isSpot.as_bool() == Some(true) {
+        if isSpot {
             marketType = "spot".to_string();
         }
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
@@ -2900,9 +2900,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut unifiedTimeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
-        let mut isSpot: Value = self.is_spot_url(client.clone());
+        let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
         let mut marketType: String = "contract".to_string();
-        if isSpot.as_bool() == Some(true) {
+        if isSpot {
             marketType = "spot".to_string();
         }
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
@@ -4022,9 +4022,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             let mut tickerMarketById: Value = (if (numTickerMarkets.as_f64() == Some(1.0)) { self.safe_dict(tickerMarketsByIdList.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]) } else { Value::Null });
-            let mut isSpot: Value = self.is_spot_url(client.clone());
+            let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
             let mut tickerFallbackType: String = "contract".to_string();
-            if isSpot.as_bool() == Some(true) {
+            if isSpot {
                 tickerFallbackType = "spot".to_string();
             }
             let mut tickerMarketType: Value = (if (tickerMarketById != Value::Null) { self.safe_value_k(tickerMarketById, "type", &[]) } else { Value::from(tickerFallbackType) });

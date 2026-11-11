@@ -4630,9 +4630,9 @@ impl Coinbaseinternational {
         let mut access: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut rpcMethod: String = format!("{}{}", Value::Str(format!("{}{}", access, Value::Str("/".into())).into()), path);
         let mut requestParams: Value = self.handle_route_and_params(Value::Str("sign".into()), &[params]);
-        let mut isNativeDeribit: Value = self.is_native_deribit_credentials();
+        let mut isNativeDeribit: bool = self.is_native_deribit_credentials().as_bool() == Some(true);
         let mut baseApiUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if isNativeDeribit.as_bool() == Some(true) {
+        if isNativeDeribit {
             baseApiUrl = "https://www.deribit.com/api/v2".to_string();
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl, Value::Str("/".into())).into()), rpcMethod);
@@ -4640,12 +4640,12 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if isNativeDeribit.as_bool() == Some(true) && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
+        if isNativeDeribit && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), rpcMethod).into()), Value::Str(" is only documented on the Coinbase gateway".into()))));
         }
         if (access.as_str() == Some("public")) && (path.as_str() == Some("auth")) {
             self.check_required_credentials(&[]);
-            if isNativeDeribit.as_bool() == Some(true) {
+            if isNativeDeribit {
                 requestParams = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("grant_type".to_string(), Value::Str("client_credentials".into()));
@@ -4662,7 +4662,7 @@ impl Coinbaseinternational {
                     m
                 }), &[requestParams.clone()]);
             }
-        }  else if (access.as_str() == Some("private")) && isNativeDeribit.as_bool() == Some(true) {
+        }  else if (access.as_str() == Some("private")) && isNativeDeribit {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);

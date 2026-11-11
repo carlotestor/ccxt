@@ -6087,7 +6087,7 @@ impl Kucoin {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut isAuthenticated: Value = self.check_required_credentials(&[Value::Bool(false)]);
+        let mut isAuthenticated: bool = self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true);
         let mut uta: bool = false;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default();
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -6148,7 +6148,7 @@ impl Kucoin {
             }  else {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() limit argument must be 20 or 100".into()))));
             }
-        }  else if !(isAuthenticated.as_bool() == Some(true)) || (limit != Value::Null) {
+        }  else if !isAuthenticated || (limit != Value::Null) {
             if (level.as_f64() == Some(2.0)) {
                 request.insert("level".into(), level.clone());
                 if (limit != Value::Null) {
@@ -11982,9 +11982,9 @@ impl Kucoin {
             request.insert("toAccountTag".into(), toId.clone());
             toId = Value::Str("isolated".into());
         }
-        let mut hfOrMining: Value = self.is_hf_or_mining(fromId.clone(), toId.clone());
+        let mut hfOrMining: bool = self.is_hf_or_mining(fromId.clone(), toId.clone()).as_bool() == Some(true);
         let mut response: Option<crate::value::Dict> = None;
-        if hfOrMining.as_bool() == Some(true) {
+        if hfOrMining {
             // new endpoint does not support hf and mining transfers
             // use old endpoint for hf and mining transfers
             request.insert("from".into(), fromId.clone());
