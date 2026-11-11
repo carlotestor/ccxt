@@ -5565,9 +5565,9 @@ impl Mexc {
             let mut parsedSymbols: Value = Value::Null;
             let mut symbol: Option<String> = self.safe_string_k(&paramsOmitted2, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
-                let mut symbols: Value = self.safe_list_k(&paramsOmitted2, "symbols", &[]);
-                if (symbols != Value::Null) {
-                    let mut symbolIds: Value = self.market_ids(&[symbols]);
+                let mut symbols: Option<crate::value::List> = self.safe_list_k(&paramsOmitted2, "symbols", &[]).into_opt_list();
+                if (symbols.is_some()) {
+                    let mut symbolIds: Value = self.market_ids(&[symbols.clone().map_or(Value::Null, Value::Arr)]);
                     parsedSymbols = Value::Str(symbolIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
                 }
             }  else {
@@ -8161,19 +8161,19 @@ impl Mexc {
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut section: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut access: Value = api.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathValue: Value = self.implode_params(path.clone(), params.clone());
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: String = "".to_string();
         if (section.as_str() == Some("spot")) || (section.as_str() == Some("broker")) {
             if (section.as_str() == Some("broker")) {
-                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone(), &[]);
+                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
                 }
                 url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), pathValue);
             }  else {
-                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone(), &[]);
+                let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
                 }
@@ -8183,7 +8183,7 @@ impl Mexc {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if (access.as_str() == Some("private")) {
+            if (access.as_deref() == Some("private")) {
                 if (section.as_str() == Some("broker")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"))) {
                     urlParams = Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -8202,7 +8202,7 @@ impl Mexc {
                 paramsEncoded = self.urlencode(urlParams, &[]).as_str().map(str::to_owned);
                 url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), paramsEncoded.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            if (access.as_str() == Some("private")) {
+            if (access.as_deref() == Some("private")) {
                 self.check_required_credentials(&[]);
                 let mut signature: Value = self.hmac(self.encode(paramsEncoded.clone().map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("&signature=".into())).into()), signature);
@@ -8223,13 +8223,13 @@ impl Mexc {
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
         }  else if (section.as_str() == Some("contract")) || (section.as_str() == Some("spot2")) {
-            let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone(), &[]);
+            let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
             url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(pathValue.clone(), paramsValue.clone()));
             let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(pathValue), &[]);
-            if (access.as_str() == Some("public")) {
+            if (access.as_deref() == Some("public")) {
                 if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
                 }

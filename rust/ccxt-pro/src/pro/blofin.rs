@@ -513,15 +513,15 @@ impl Blofin {
         //
         let mut arg: crate::value::Dict = (match message.get("arg") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut channelName: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
-        if (data == Value::Null) {
+        let mut data: Option<crate::value::List> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
+        if (data.is_none()) {
             return;
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (data.len() as i64) } {
-            let mut rawTrade: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
+            while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut rawTrade: Value = self.safe_value(&data, Value::Int(i), &[]);
             let mut trade: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -1459,9 +1459,9 @@ impl Blofin {
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         let mut isOHLCV: bool = channelName.as_str() == Some("candle");
         let mut symbolsRaw: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
-        let mut symbols: Value = self.market_symbols(&[symbolsRaw, Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let mut symbols: Option<crate::value::List> = self.market_symbols(&[symbolsRaw, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut firstMarket: Option<crate::types::Market> = None;
-        let mut firstSymbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut firstSymbol: Option<String> = self.safe_string(&symbols, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (firstSymbol.is_some()) {
             firstMarket = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
@@ -1473,12 +1473,12 @@ impl Blofin {
         }
         let mut rawSubscriptions: Value = Value::from(vec![]);
         let mut messageHashes: Value = Value::from(vec![]);
-        if (symbols != Value::Null) && (((symbols.len() as i64) as f64) > ((0i64) as f64)) {
+        if (symbols.is_some()) && (((symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64) > ((0i64) as f64)) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_173: bool = true;
-                while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.len() as i64) } {
-                let mut current: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut current: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: Value = Value::Null;
                 let mut channel: Value = channelName.clone();
                 if isOHLCV {

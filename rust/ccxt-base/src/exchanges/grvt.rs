@@ -3561,15 +3561,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("sub_account_id".to_string(), self.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
             let mut baseIds: Vec<Value> = vec![];
             let mut quoteIds: Vec<Value> = vec![];
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_725: bool = true;
-                while { if !__for_first_725 { i += 1; } __for_first_725 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                while { if !__for_first_725 { i += 1; } __for_first_725 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 if !(market).contract {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() supports contract markets only".into()))));
@@ -3609,7 +3609,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //    }
         //
         let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_positions(result, &[symbolsNormalized]);
+        return self.parse_positions(result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4773,8 +4773,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut requestBody: Value = Value::Null;
         let mut requestPath: Value = path.clone();
         let mut query: Value = self.omit(params.clone(), self.extract_params(requestPath.clone()), &[]);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -4801,7 +4801,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 requestBody = json_stringify(&params);
             }
         }
-        let mut isPrivate: bool = apiName.as_str().unwrap_or("").starts_with("private");
+        let mut isPrivate: bool = apiName.as_deref().unwrap_or_default().starts_with("private");
         if isPrivate {
             self.check_required_credentials(&[]);
             if (queryString.as_deref() != Some("")) {

@@ -3236,20 +3236,20 @@ impl Bittrade {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut url: Value = Value::Str("/".into());
-        if (apiName.as_str() == Some("market")) {
+        if (apiName.as_deref() == Some("market")) {
             url = Value::Str(format!("{}{}", url, Value::Str("market".into())).into());
-        }  else if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("private")) {
+        }  else if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("private")) {
             url = Value::Str(format!("{}{}", url, self.version.clone()).into());
-        }  else if (apiName.as_str() == Some("v2Public")) || (apiName.as_str() == Some("v2Private")) {
+        }  else if (apiName.as_deref() == Some("v2Public")) || (apiName.as_deref() == Some("v2Private")) {
             url = Value::Str(format!("{}{}", url, Value::Str("v2".into())).into());
         }
         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-        if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("v2Private")) {
+        if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]);
             let mut request: Value = Value::Map({
@@ -3294,7 +3294,7 @@ impl Bittrade {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])).into())).into());
             }
         }
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }

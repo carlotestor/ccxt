@@ -1955,11 +1955,11 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(false)]);
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(false)]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if symbolsLength > ((0i64) as f64) {
-                market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+                market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 if (symbolsLength == 1.0) {
                     request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 }
@@ -1998,10 +1998,10 @@ impl Poloniex {
             //            },
             //
             let mut data: Value = self.safe_list_k(&responseRaw, "data", &[]);
-            return self.parse_tickers(data, &[symbolsNormalized.clone()]);
+            return self.parse_tickers(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         let mut response: Value = self.public_get_markets_ticker24h(&[paramsMarketType]).await;
-        return self.parse_tickers(response, &[symbolsNormalized]);
+        return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5343,7 +5343,7 @@ impl Poloniex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut isArray: bool = matches!(&params, Value::Arr(_));
         if (method.as_str() == Some("GET")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
             { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&params, "symbol")); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
@@ -5351,7 +5351,7 @@ impl Poloniex {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut implodedPath: Value = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
-        if self.in_array(apiName.clone(), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
+        if self.in_array(apiName.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("swap".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
         }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
@@ -5359,7 +5359,7 @@ impl Poloniex {
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
-        if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("swapPublic")) {
+        if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("swapPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query.clone(), &[]));
             }

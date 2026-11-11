@@ -3878,15 +3878,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut created: Option<i64> = self.safe_integer_k(order.clone(), "create_time", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
-        let mut execInst: Value = self.safe_list_k(order.clone(), "exec_inst", &[]);
+        let mut execInst: Option<crate::value::List> = self.safe_list_k(order.clone(), "exec_inst", &[]).into_opt_list();
         let mut postOnly: Option<bool> = None;
-        if (execInst != Value::Null) {
+        if (execInst.is_some()) {
             postOnly = Some(false);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_594: bool = true;
-                while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < (execInst.len() as i64) } {
-                let mut inst: Option<String> = self.safe_string(execInst.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+                while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < (execInst.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut inst: Option<String> = self.safe_string(&execInst, Value::Int(i), &[]).as_str().map(str::to_owned);
                 if (inst.as_deref() == Some("POST_ONLY")) {
                     postOnly = Some(true);
                     break;

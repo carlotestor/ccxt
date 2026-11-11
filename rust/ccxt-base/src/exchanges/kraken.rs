@@ -1776,14 +1776,14 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
             let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_847: bool = true;
-                while { if !__for_first_847 { i += 1; } __for_first_847 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_847 { i += 1; } __for_first_847 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
                 if matches!(self.safe_bool_k(market.clone(), "active", &[Value::Bool(false)]), Value::Bool(true)) {
                     marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1814,7 +1814,7 @@ impl Kraken {
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3468,16 +3468,16 @@ impl Kraken {
 }));
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
-        let mut orderTrades: Value = (match params.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
+        let mut orderTrades: Option<crate::value::List> = (match params.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
         let mut tradeIds: Vec<Value> = Vec::new();
-        if (orderTrades == Value::Null) {
+        if (orderTrades.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)".into()))));
         }  else {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_854: bool = true;
-                while { if !__for_first_854 { i += 1; } __for_first_854 = false; i < (orderTrades.len() as i64) } {
-                let mut orderTrade: Value = orderTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_854 { i += 1; } __for_first_854 = false; i < (orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut orderTrade: Value = orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if matches!(&orderTrade, Value::Str(_)) {
                     tradeIds.push(orderTrade.clone());
                 }  else {
@@ -5171,15 +5171,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.safe_string(body.clone(), Value::Int(0), &[]).as_str() == Some("{")) {
             if !matches!(&response, Value::Str(_)) {
                 let mut message: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-                let mut errors: Value = self.safe_list_k(response.clone(), "error", &[]);
-                if (errors != Value::Null) {
-                    let mut numErrors: f64 = ((errors.len() as i64) as f64);
+                let mut errors: Option<crate::value::List> = self.safe_list_k(response.clone(), "error", &[]).into_opt_list();
+                if (errors.is_some()) {
+                    let mut numErrors: f64 = ((errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
                     if numErrors > ((0i64) as f64) {
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_864: bool = true;
                             while { if !__for_first_864 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_864 = false; i.as_f64().unwrap_or(f64::NAN) < numErrors } {
-                            let mut error: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                            let mut error: Value = errors.as_deref().map(Vec::as_slice).unwrap_or_default().get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), Value::from(message.clone()));
                             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), Value::from(message.clone()));
                         }

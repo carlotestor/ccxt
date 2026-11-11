@@ -3671,9 +3671,9 @@ impl Woo {
                 }
             }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut paramsRequest: Value = params.clone();
-        if (symbolsNormalized == Value::Null) {
+        if (symbolsNormalized.is_none()) {
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3713,7 +3713,7 @@ impl Woo {
             result.push(self.parse_ticker(ticker, &[]));
         }
         }
-        return self.filter_by_array_tickers(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5037,22 +5037,22 @@ impl Woo {
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Option<String> = None;
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
-        let mut access: Value = section.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone(), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut urlPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), version).into()), Value::Str("/".into()));
         let mut paramsSorted: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut url: String = urlPrefix.clone();
-        if (access.as_str() == Some("public")) {
+        if (access.as_deref() == Some("public")) {
             let mut publicUrl: String = format!("{}{}", Value::Str(format!("{}{}", urlPrefix, Value::Str("public/".into())).into()), pathWithParams);
             url = publicUrl.clone();
             if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, Value::Str("?".into())).into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
             }
-        }  else if (access.as_str() == Some("pub")) {
+        }  else if (access.as_deref() == Some("pub")) {
             url = format!("{}{}", urlPrefix, pathWithParams);
             if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
@@ -5955,15 +5955,15 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (symbolsLength == 1.0) {
-                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
         }
@@ -6005,7 +6005,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized]);
+        return self.parse_positions(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -6563,15 +6563,15 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (symbolsLength == 1.0) {
-                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
         }
@@ -6613,7 +6613,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        return self.parse_adl_ranks(positions, &[symbolsNormalized]);
+        return self.parse_adl_ranks(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

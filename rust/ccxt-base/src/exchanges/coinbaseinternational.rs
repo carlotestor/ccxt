@@ -1932,8 +1932,8 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols]);
-        if (symbolsResolved == Value::Null) {
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsResolved.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires a symbols argument".into()))));
         }
         let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1943,8 +1943,8 @@ impl Coinbaseinternational {
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.len() as i64) } {
-            let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1952,7 +1952,7 @@ impl Coinbaseinternational {
             tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
-        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved]);
+        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2500,9 +2500,9 @@ impl Coinbaseinternational {
 })]);
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
-            let mut summaries: Value = self.safe_list_k(result.clone(), "summaries", &[]);
-            if (summaries != Value::Null) {
-                return self.parse_balance_list(summaries);
+            let mut summaries: Option<crate::value::List> = self.safe_list_k(result.clone(), "summaries", &[]).into_opt_list();
+            if (summaries.is_some()) {
+                return self.parse_balance_list(summaries.map_or(Value::Null, Value::Arr));
             }
             return self.parse_balance_list(self.safe_dict_k(result.clone(), "summaries", &[Value::from(vec![])]));
         }

@@ -3279,15 +3279,15 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            request.insert("product_ids".into(), self.market_ids(&[symbolsNormalized.clone()]));
+        if (symbolsNormalized.is_some()) {
+            request.insert("product_ids".into(), self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
         }
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[self.get_market_from_symbols(&[symbolsNormalized.clone()]), params, Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]), params, Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.is_some()) && (marketType.as_deref() != Some("default")) {
@@ -3357,7 +3357,7 @@ if _try_result.is_err() {
             result.insert(symbol, self.parse_ticker(entry, &[market]));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -5851,13 +5851,13 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            request.insert("product_ids".into(), self.market_ids(&[symbolsNormalized.clone()]));
+        if (symbolsNormalized.is_some()) {
+            request.insert("product_ids".into(), self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
         }
         let __ws_arg_53 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_best_bid_ask(&[__ws_arg_53]).await.into_dict();
@@ -5884,7 +5884,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut tickers: Value = self.safe_list_k(&response, "pricebooks", &[Value::from(vec![])]);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

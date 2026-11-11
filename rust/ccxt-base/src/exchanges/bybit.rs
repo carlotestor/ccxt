@@ -5592,11 +5592,11 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             market = symbolMarket.clone();
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (symbolsLength == 1.0) {
                 request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -5662,7 +5662,7 @@ impl Bybit {
             add_element_to_object(get_value_mut(&mut tickerList, &i), &Value::Str("timestamp".into()), Value::from(timestamp)); // will be removed inside the parser
         }
         }
-        return self.parse_funding_rates(tickerList, &[symbolsNormalized]);
+        return self.parse_funding_rates(tickerList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -6325,8 +6325,8 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyList: Value = self.safe_list_n(responseResult.clone(), Value::from(vec![Value::Str("loanAccountList".into()), Value::Str("list".into()), Value::Str("balance".into())]), &[]);
-        if (currencyList == Value::Null) {
+        let mut currencyList: Option<crate::value::List> = self.safe_list_n(responseResult.clone(), Value::from(vec![Value::Str("loanAccountList".into()), Value::Str("list".into()), Value::Str("balance".into())]), &[]).into_opt_list();
+        if (currencyList.is_none()) {
             // usdc wallet
             let mut code: String = "USDC".to_string();
             let mut account: Value = self.account();
@@ -6337,8 +6337,8 @@ impl Bybit {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_510: bool = true;
-                while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (currencyList.len() as i64) } {
-                let mut entry: crate::value::Dict = self.safe_dict(currencyList.clone(), Value::Int(i), &[]).into_dict();
+                while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (currencyList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut entry: crate::value::Dict = self.safe_dict(currencyList.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
                 let mut accountType: Option<String> = self.safe_string_k(&entry, "accountType", &[]).as_str().map(str::to_owned);
                 if (accountType.as_deref() == Some("UNIFIED")) || (accountType.as_deref() == Some("CONTRACT")) || (accountType.as_deref() == Some("SPOT")) {
                     let mut coins: Vec<Value> = self.safe_list_k(&entry, "coin", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
@@ -8044,15 +8044,15 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&result, "list", &[]);
-        if !(matches!(&orders, Value::Arr(_))) {
+        let mut orders: Option<crate::value::List> = self.safe_list_k(&result, "list", &[]).into_opt_list();
+        if !(orders.is_some()) {
             return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
 }), &[])]);
         }
-        return self.parse_orders(orders, &[market]);
+        return self.parse_orders(orders.map_or(Value::Null, Value::Arr), &[market]);
         Value::Null
         }).await?))
     }
@@ -12358,7 +12358,7 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut baseCoin: String = self.safe_string_k(params.clone(), "baseCoin", &[Value::Str("BTC".into())]).as_str().unwrap_or("BTC").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -12366,10 +12366,10 @@ impl Bybit {
                 m.insert("baseCoin".to_string(), Value::from(baseCoin));
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (symbolsLength == 1.0) {
-                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((symbolMarket).id.clone()));
             }
         }
@@ -12420,7 +12420,7 @@ impl Bybit {
             m
         })]).into_dict();
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
-        return self.parse_all_greeks(data, &[symbolsNormalized]);
+        return self.parse_all_greeks(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -14164,19 +14164,19 @@ impl Bybit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path);
-        if (apiName.as_str() == Some("public")) {
+        if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), self.rawencode(params.clone(), &[]));
             }
-        }  else if (apiName.as_str() == Some("private")) {
+        }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut isOpenapi: bool = url.contains("openapi");
             let mut isV3UnifiedMargin: bool = url.contains("unified/v3");

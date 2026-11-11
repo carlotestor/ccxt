@@ -11513,10 +11513,10 @@ if _try_result.is_err() {
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
         let mut resultList: Value = self.safe_list_n(data.clone(), Value::from(vec![Value::Str("resultList".into()), Value::Str("successList".into()), Value::Str("list".into())]), &[]);
-        let mut failureList: Value = self.safe_list2(data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]);
+        let mut failureList: Option<crate::value::List> = self.safe_list2(data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]).into_opt_list();
         let mut responseList: Value = Value::Null;
-        if (resultList != Value::Null) && (failureList != Value::Null) {
-            responseList = self.array_concat(resultList.clone(), failureList);
+        if (resultList != Value::Null) && (failureList.is_some()) {
+            responseList = self.array_concat(resultList.clone(), failureList.clone().map_or(Value::Null, Value::Arr));
         }  else {
             responseList = resultList;
         }

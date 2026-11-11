@@ -2138,8 +2138,8 @@ impl Blofin {
     }
 
     pub fn parse_balance_by_type(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if (data != Value::Null) {
+        let mut data: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
+        if (data.is_some()) {
             return self.parse_funding_balance(response.clone());
         }  else {
             return self.parse_balance(response);

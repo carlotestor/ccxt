@@ -1454,11 +1454,11 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if symbolsLength > ((0i64) as f64) {
-                market = Some(match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1524,7 +1524,7 @@ impl Lbank {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        return self.parse_tickers(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2010,13 +2010,13 @@ impl Lbank {
             return self.safe_balance(Value::Map(result.clone()));
         }
         // from spotPrivatePostSupplementUserInfoAccount
-        let mut balances: Value = self.safe_list_k(data.clone(), "balances", &[]);
-        if (balances != Value::Null) {
+        let mut balances: Option<crate::value::List> = self.safe_list_k(data.clone(), "balances", &[]).into_opt_list();
+        if (balances.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_920: bool = true;
-                while { if !__for_first_920 { i += 1; } __for_first_920 = false; i < (balances.len() as i64) } {
-                let mut item: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
+                while { if !__for_first_920 { i += 1; } __for_first_920 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut item: Value = self.safe_dict(balances.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "asset", &[]);
                 let mut codeInner: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();

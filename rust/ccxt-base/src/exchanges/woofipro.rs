@@ -3040,9 +3040,9 @@ impl Woofipro {
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        let mut childOrders: Value = self.safe_list_k(order.clone(), "childOrders", &[]);
-        if (childOrders != Value::Null) {
-            let mut first: crate::value::Dict = self.safe_dict(childOrders, Value::Int(0), &[]).into_dict();
+        let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
+        if (childOrders.is_some()) {
+            let mut first: crate::value::Dict = self.safe_dict(childOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
             let mut innerChildOrders: Vec<Value> = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
@@ -3305,8 +3305,8 @@ impl Woofipro {
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut paramsChildOrders: Value = self.safe_list_k(params, "childOrders", &[]);
-        let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (paramsChildOrders != Value::Null);
+        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(params, "childOrders", &[]).into_opt_list();
+        let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (paramsChildOrders.is_some());
         let mut response: Value = Value::Null;
         if isConditional {
             response = self.v1_private_post_algo_order(&[request.clone()]).await;
@@ -3366,8 +3366,8 @@ impl Woofipro {
             let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             let mut stopLoss: Value = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]);
-            let mut paramsChildOrders: Value = self.safe_list_k(orderParams.clone(), "childOrders", &[]);
-            let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (paramsChildOrders != Value::Null);
+            let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(orderParams.clone(), "childOrders", &[]).into_opt_list();
+            let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (paramsChildOrders.is_some());
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".into()))));
             }
@@ -5390,9 +5390,9 @@ impl Woofipro {
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
-        let mut access: Value = section.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -5400,7 +5400,7 @@ impl Woofipro {
         let mut requestParams: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (access.as_str() == Some("public")) {
+        if (access.as_deref() == Some("public")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             if ((Value::Array(requestParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])).into())).into());

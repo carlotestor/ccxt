@@ -3830,9 +3830,9 @@ impl Bingx {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if (data != Value::Null) {
-            let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
+        if (data.is_some()) {
+            let mut first: Value = self.safe_dict(data.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3871,8 +3871,8 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3881,7 +3881,7 @@ impl Bingx {
             m
         });
         let mut rows: Value = Value::from(vec![]);
-        let mut symbolsLength: Value = (if (symbolsNormalized == Value::Null) { Value::Int(0) } else { Value::Int(symbolsNormalized.len() as i64) });
+        let mut symbolsLength: Value = (if (symbolsNormalized.is_none()) { Value::Int(0) } else { Value::Int(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) });
         if (type_var.as_deref() == Some("spot")) {
             if (market != Value::Null) && (symbolsLength.as_f64() == Some(1.0)) {
                 request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
@@ -3915,7 +3915,7 @@ impl Bingx {
             results.push(self.parse_ticker(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[rowMarket.clone()]));
         }
         }
-        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3946,9 +3946,9 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
-            let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (firstSymbol.is_some()) {
                 market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
@@ -3999,7 +3999,7 @@ impl Bingx {
         //     }
         //
         let mut tickers: Value = self.safe_list_k(response, "data", &[]);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4081,9 +4081,9 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
-            let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (firstSymbol.is_some()) {
                 market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
@@ -4127,7 +4127,7 @@ impl Bingx {
         //     }
         //
         let mut tickers: Value = self.safe_list_k(response, "data", &[]);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4556,7 +4556,7 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let standardparamsStandardVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositions".into()), Value::Str("standard".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut standard: bool = standardparamsStandardVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStandard: Value = standardparamsStandardVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -4565,8 +4565,8 @@ impl Bingx {
             response = self.contract_v1_private_get_all_position(&[paramsStandard.clone()]).await;
         }  else {
             let mut market: Option<crate::types::Market> = None;
-            if (symbolsNormalized != Value::Null) {
-                let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            if (symbolsNormalized.is_some()) {
+                let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
                 if (firstSymbol.is_some()) {
                     market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
@@ -4581,7 +4581,7 @@ impl Bingx {
             }
         }
         let mut positions: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized]);
+        return self.parse_positions(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -9079,7 +9079,7 @@ impl Bingx {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut type_var: Value = section.get(0).cloned().unwrap_or(Value::Null);
         let mut version: Value = section.get(1).cloned().unwrap_or(Value::Null);
-        let mut access: Value = section.get(2).cloned().unwrap_or(Value::Null);
+        let mut access: Option<String> = section.get(2).and_then(Value::as_str).map(str::to_owned);
         let mut isSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Value = self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var));
         if isSandbox && (url == Value::Null) {
@@ -9095,7 +9095,7 @@ impl Bingx {
                 type_var = Value::Str("api/asset".into());
             }
             version = section.get(2).cloned().unwrap_or(Value::Null);
-            access = section.get(3).cloned().unwrap_or(Value::Null);
+            access = section.get(3).and_then(Value::as_str).map(str::to_owned);
         }
         let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
         if !(self.in_array(pathValue.clone(), flatAccountPaths).as_bool() == Some(true)) {
@@ -9114,11 +9114,11 @@ impl Bingx {
             m
         })]);
         let mut paramsSorted: Value = self.keysort(__ws_arg_82, &[]);
-        if (access.as_str() == Some("public")) {
+        if (access.as_deref() == Some("public")) {
             if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
             }
-        }  else if (access.as_str() == Some("private")) {
+        }  else if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut isJsonContentType: bool = ((type_var.as_str() == Some("subAccount")) || (type_var.as_str() == Some("account/transfer"))) && (method.as_str() == Some("POST"));
             let mut parsedParams: Value = Value::Null;

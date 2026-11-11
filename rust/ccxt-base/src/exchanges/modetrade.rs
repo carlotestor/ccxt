@@ -2889,9 +2889,9 @@ impl Modetrade {
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
         let mut takeProfitPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        let mut childOrders: Value = self.safe_list_k(order.clone(), "childOrders", &[]);
-        if (childOrders != Value::Null) {
-            let mut first: crate::value::Dict = self.safe_dict(childOrders, Value::Int(0), &[]).into_dict();
+        let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
+        if (childOrders.is_some()) {
+            let mut first: crate::value::Dict = self.safe_dict(childOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
             let mut innerChildOrders: Vec<Value> = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
             if innerChildOrdersLength > ((0i64) as f64) {
@@ -5041,15 +5041,15 @@ impl Modetrade {
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
-        let mut access: Value = section.get(1).cloned().unwrap_or(Value::Null);
+        let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into());
         let mut paramsSorted: Value = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]);
-        if (access.as_str() == Some("public")) {
+        if (access.as_deref() == Some("public")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());

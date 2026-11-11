@@ -1677,12 +1677,12 @@ impl Hashkey {
             amountPrecisionString = crate::precise::Precise::stringDiv(&amountPrecisionString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             amountMinLimitString = crate::precise::Precise::stringDiv(&amountMinLimitString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut riskLimits: Value = self.safe_list_k(market.clone(), "riskLimits", &[]);
-            if (riskLimits != Value::Null) {
-                let mut first: crate::value::Dict = self.safe_dict(riskLimits.clone(), Value::Int(0), &[]).into_dict();
-                let mut arrayLength: Value = Value::Int(riskLimits.len() as i64);
-                let mut last: crate::value::Dict = self.safe_dict(riskLimits, (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+            let mut riskLimits: Option<crate::value::List> = self.safe_list_k(market.clone(), "riskLimits", &[]).into_opt_list();
+            if (riskLimits.is_some()) {
+                let mut first: crate::value::Dict = self.safe_dict(riskLimits.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
+                let mut arrayLength: Value = Value::Int(riskLimits.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64);
+                let mut last: crate::value::Dict = self.safe_dict(riskLimits.clone().map_or(Value::Null, Value::Arr), (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
                 let mut minInitialMargin: Option<String> = self.safe_string_k(&first, "initialMargin", &[]).as_str().map(str::to_owned);
                 let mut maxInitialMargin: Option<String> = self.safe_string_k(&last, "initialMargin", &[]).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&minInitialMargin.clone().map(Value::from).unwrap_or(Value::Null), &maxInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
@@ -5482,14 +5482,14 @@ impl Hashkey {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
         let mut query: Value = Value::Null;
-        if (apiName.as_str() == Some("private")) {
+        if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<i64> = self.milliseconds().as_i64();
             let mut additionalParams: indexmap::IndexMap<String, Value> = ({

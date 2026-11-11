@@ -2068,15 +2068,15 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         // the endpoint takes one market id, and ALL answers for every product on
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let mut target: Value = Value::Str("ALL".into());
-        if (symbolsNormalized != Value::Null) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
+        if (symbolsNormalized.is_some()) {
+            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (symbolsLength == 1.0) {
-                target = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+                target = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2087,7 +2087,7 @@ impl Paradex {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_markets_summary(&[__ws_arg_4]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        return self.parse_funding_rates(data, &[symbolsNormalized]);
+        return self.parse_funding_rates(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2785,10 +2785,10 @@ impl Paradex {
             postOnly = Some(timeInForce.as_str() == Some("PO"));
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_updated_at", &[]).as_i64();
-        let mut flags: Value = self.safe_list_k(order.clone(), "flags", &[]);
+        let mut flags: Option<crate::value::List> = self.safe_list_k(order.clone(), "flags", &[]).into_opt_list();
         let mut reduceOnly: Value = Value::Null;
-        if (flags != Value::Null) {
-            reduceOnly = self.in_array(Value::Str("REDUCE_ONLY".into()), flags);
+        if (flags.is_some()) {
+            reduceOnly = self.in_array(Value::Str("REDUCE_ONLY".into()), flags.clone().map_or(Value::Null, Value::Arr));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -1473,11 +1473,11 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut data: Value = Value::Null;
         if isSpot {
-            if (symbolsNormalized != Value::Null) {
-                let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
+            if (symbolsNormalized.is_some()) {
+                let mut ids: Value = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
                 request.insert("pair_names".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             }
             let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
@@ -1514,8 +1514,8 @@ impl Bigone {
             let mut instruments: Value = self.contract_public_get_instruments(&[paramsMarketType]).await;
             data = self.to_array(instruments);
         }
-        let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone()]);
-        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2751,10 +2751,10 @@ impl Bigone {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -2764,7 +2764,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("webExchange")) || (apiName.as_str() == Some("contractPublic")) {
+        if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("webExchange")) || (apiName.as_deref() == Some("contractPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }

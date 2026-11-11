@@ -1108,7 +1108,7 @@ impl Coinone {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
@@ -1116,8 +1116,8 @@ impl Coinone {
         });
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
-        if (symbolsNormalized != Value::Null) {
-            let mut first: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (symbolsNormalized.is_some()) {
+            let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             market = crate::types::IntoRaw::into_raw(self.market(first.as_deref().unwrap_or_default()));
             request.insert("quote_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
             request.insert("target_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
@@ -1161,7 +1161,7 @@ impl Coinone {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "tickers", &[Value::from(vec![])]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        return self.parse_tickers(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

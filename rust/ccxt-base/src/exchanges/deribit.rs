@@ -2444,16 +2444,16 @@ impl Deribit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("code".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]).into_dict();
-        if (symbolsNormalized != Value::Null) {
+        if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_623: bool = true;
-                while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut marketBase: Option<String> = self.safe_string_k((market).raw.clone(), "base", &[]).as_str().map(str::to_owned);
                 if (code.is_some()) && (code != marketBase) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency".into()))));
@@ -2531,7 +2531,7 @@ impl Deribit {
             }
         }
         }
-        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

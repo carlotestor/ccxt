@@ -8236,9 +8236,9 @@ impl Kucoin {
                 response = self.private_get_orders(&[__ws_arg_62]).await;
             }
         }
-        let mut listData: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if (listData != Value::Null) {
-            return self.parse_orders(listData, &[market.clone(), since.clone(), limit.clone()]);
+        let mut listData: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
+        if (listData.is_some()) {
+            return self.parse_orders(listData.map_or(Value::Null, Value::Arr), &[market.clone(), since.clone(), limit.clone()]);
         }
         let mut responseData: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -12532,9 +12532,9 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if (dataList != Value::Null) {
-            return self.parse_ledger(dataList, &[currency.clone(), since.clone(), limit.clone()]);
+        let mut dataList: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
+        if (dataList.is_some()) {
+            return self.parse_ledger(dataList.map_or(Value::Null, Value::Arr), &[currency.clone(), since.clone(), limit.clone()]);
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
         let mut items: Value = self.safe_list2(data, Value::Str("items".into()), Value::Str("dataList".into()), &[Value::from(vec![])]);
@@ -14425,11 +14425,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        if (symbolsNormalized != Value::Null) {
-            let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsNormalized.is_some()) {
+            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if (length == 1.0) {
-                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.clone())); }
             }
         }
@@ -14523,7 +14523,7 @@ if _try_result.is_err() {
         }
         let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
         let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_positions(items, &[symbolsNormalized]);
+        return self.parse_positions(items, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -15614,17 +15614,17 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsNormalized != Value::Null) {
-            let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
+        if (symbolsNormalized.is_some()) {
+            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             if length < ((11i64) as f64) {
                 // the endpoint does not accept more than 10 symbols at a time
                 // if user provided more than 10 symbols, we will fetch all symbols
-                let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
+                let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
                 request.insert("symbol".into(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             }
         }
@@ -15643,7 +15643,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_open_interests(data, &[symbolsNormalized]);
+        return self.parse_open_interests(data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -15822,7 +15822,7 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -15832,7 +15832,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut apiVersions: Value = self.safe_dict(versions, apiName.clone(), &[Value::Map({
+        let mut apiVersions: Value = self.safe_dict(versions, apiName.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -15844,19 +15844,19 @@ if _try_result.is_err() {
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone()));
-        if (apiName.as_str() == Some("utaV2")) {
+        if (apiName.as_deref() == Some("utaV2")) {
             endpoint = format!("{}{}", Value::Str("/api/ua/v2/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         }
-        if (apiName.as_str() == Some("webExchange")) {
+        if (apiName.as_deref() == Some("webExchange")) {
             endpoint = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         }
-        if (apiName.as_str() == Some("earn")) {
+        if (apiName.as_deref() == Some("earn")) {
             endpoint = format!("{}{}", Value::Str("/api/v1/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         }
         let mut isUtaPrivate: bool = false;
-        if (apiName.as_str() == Some("uta")) || (apiName.as_str() == Some("utaPrivate")) {
+        if (apiName.as_deref() == Some("uta")) || (apiName.as_deref() == Some("utaPrivate")) {
             endpoint = format!("{}{}", Value::Str("/api/ua/v1/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
-            if (apiName.as_str() == Some("utaPrivate")) {
+            if (apiName.as_deref() == Some("utaPrivate")) {
                 isUtaPrivate = true;
             }
         }
@@ -15867,7 +15867,7 @@ if _try_result.is_err() {
             m
         });
         let mut bodyJson: Value = Value::Null;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -15885,10 +15885,10 @@ if _try_result.is_err() {
             }
         }
         let mut headersResult: Value = headersBase.clone();
-        let mut isFuturePrivate: bool = apiName.as_str() == Some("futuresPrivate");
-        let mut isPrivate: bool = apiName.as_str() == Some("private");
-        let mut isBroker: bool = apiName.as_str() == Some("broker");
-        let mut isEarn: bool = apiName.as_str() == Some("earn");
+        let mut isFuturePrivate: bool = apiName.as_deref() == Some("futuresPrivate");
+        let mut isPrivate: bool = apiName.as_deref() == Some("private");
+        let mut isBroker: bool = apiName.as_deref() == Some("broker");
+        let mut isEarn: bool = apiName.as_deref() == Some("earn");
         if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());

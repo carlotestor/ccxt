@@ -962,8 +962,8 @@ impl Toobit {
         //        "shared": false
         //    }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
-        if (data == Value::Null) {
+        let mut data: Option<crate::value::List> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
+        if (data.is_none()) {
             return;
         }
         let mut newTickers: indexmap::IndexMap<String, Value> = {
@@ -973,8 +973,8 @@ impl Toobit {
         {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut ticker: Value = self.safe_dict(data.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
