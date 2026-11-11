@@ -3881,7 +3881,7 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbolsLength: Value = (if (symbolsNormalized.is_none()) { Value::Int(0) } else { Value::Int(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) });
         if (type_var.as_deref() == Some("spot")) {
             if (market != Value::Null) && (symbolsLength.as_f64() == Some(1.0)) {
@@ -3889,7 +3889,7 @@ impl Bingx {
             }
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.spot_v2_public_get_quote_book_ticker(&[__ws_arg_18]).await.into_dict();
-            rows = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            rows = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }  else {
             if (market == Value::Null) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) || (symbolsLength.as_f64() != Some(1.0)) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() requires exactly one linear swap symbol for contract markets".into()))));
@@ -3901,7 +3901,7 @@ impl Bingx {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            rows = Value::from(vec![self.safe_dict_k(&data, "book_ticker", &[Value::Map({
+            rows = std::sync::Arc::new(vec![self.safe_dict_k(&data, "book_ticker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])]);
@@ -3913,7 +3913,7 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_318: bool = true;
             while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (rows.len() as i64) } {
-            results.push(self.parse_ticker(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[rowMarket.clone()]));
+            results.push(self.parse_ticker(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[rowMarket.clone()]));
         }
         }
         return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

@@ -623,7 +623,7 @@ impl Limitless {
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
         let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
-        let mut allRaw: Vec<Value> = vec![];
+        let mut allRaw: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         if queriesLength > ((0i64) as f64) {
             let mut requestedLimit: Value = self.safe_integer_k(params, "limit", &[Value::Int(50)]);
@@ -659,7 +659,7 @@ impl Limitless {
                     let mut slug: Option<String> = self.safe_string_k_opt(raw.clone(), "slug", &[]);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!(&slug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
                         seen.insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                        allRaw.push(raw.clone());
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
                     }
                 }
                 }
@@ -677,7 +677,7 @@ impl Limitless {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&rest]);
             let mut firstPageResponse: crate::value::Dict = self.limitless_public_get_markets_active(&[__ws_arg_1]).await.into_dict();
             let mut firstData: Value = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]);
-            match &firstData { Value::Arr(__b) => allRaw.extend(__b.iter().cloned()), _ => allRaw.clear() };
+            allRaw = self.array_concat(Value::Arr(allRaw), firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
             let mut cappedPages: Value = ((match ((maxMarkets).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: Value = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]);
@@ -703,7 +703,7 @@ impl Limitless {
                 while { if !__for_first_1302 { j += 1; } __for_first_1302 = false; (j as f64) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(j), &[]);
                 let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-                match &data { Value::Arr(__b) => allRaw.extend(__b.iter().cloned()), _ => allRaw.clear() };
+                allRaw = self.array_concat(Value::Arr(allRaw), data).into_list();
             }
             }
             let mut lastPageResponse: crate::value::Dict = self.safe_dict(responses, (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -731,7 +731,7 @@ impl Limitless {
                         let mut __for_first_1303: bool = true;
                         while { if !__for_first_1303 { i += 1; } __for_first_1303 = false; (i as f64) < pageMarketsLength } {
                         let mut raw: Value = self.safe_value(&page_markets, Value::Int(i), &[]);
-                        allRaw.push(raw.clone());
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
                     }
                     }
                     let mut allRawCount: f64 = ((allRaw.len() as i64) as f64);
@@ -748,7 +748,7 @@ impl Limitless {
         });
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
-        let mut expandedRaw: Vec<Value> = self.expand_group_rows(Value::Array(allRaw)).as_array().cloned().unwrap_or_default();
+        let mut expandedRaw: Vec<Value> = self.expand_group_rows(Value::Arr(allRaw)).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1304: bool = true;
@@ -3866,7 +3866,7 @@ if _try_result.is_err() {
         //
         let mut clob: crate::value::List = self.safe_list_k(&response, "clob", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
-        let mut labels: Value = Value::from(vec![Value::Str("yes".into()), Value::Str("no".into())]);
+        let mut labels: crate::value::List = std::sync::Arc::new(vec![Value::Str("yes".into()), Value::Str("no".into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1327: bool = true;
@@ -3876,7 +3876,7 @@ if _try_result.is_err() {
                                 let mut j: i64 = 0;
                 let mut __for_first_1326: bool = true;
                 while { if !__for_first_1326 { j += 1; } __for_first_1326 = false; j < (labels.len() as i64) } {
-                let mut label: Option<String> = self.safe_string(labels.clone(), Value::Int(j), &[]).as_str().map(str::to_owned);
+                let mut label: Option<String> = self.safe_string(&labels, Value::Int(j), &[]).as_str().map(str::to_owned);
                 let mut position: Value = self.get_position_from_clob_entry(label.map(Value::from).unwrap_or(Value::Null), &[entry.clone()]);
                 if (position != Value::Null) {
                     result.push(position);

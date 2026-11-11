@@ -1178,14 +1178,14 @@ impl Grvt {
         }
         self.authenticate(&[]).await;
         let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.clone())).into()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), Value::from((market).symbol.clone())).into()));
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str("myTrades".into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str("myTrades".into()));
             rawHashes.push(subAccountId);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1195,7 +1195,7 @@ impl Grvt {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_7, messageHashes.clone(), &[Value::Bool(false)]).await;
+        let mut trades: Value = self.subscribe_multiple(Value::Arr(messageHashes.clone()), __ws_arg_7, Value::Arr(messageHashes), &[Value::Bool(false)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);

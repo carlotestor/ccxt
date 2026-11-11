@@ -2271,7 +2271,7 @@ impl Bitrue {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Value = Value::from(vec![]);
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2284,7 +2284,7 @@ impl Bitrue {
             }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_12]).await;
-                data = self.to_array(response.clone());
+                data = self.to_array(response.clone()).into_list();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers only support spot & swap markets".into()))));
             }
@@ -2297,7 +2297,7 @@ impl Bitrue {
             }
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_13]).await;
-            data = self.to_array(response);
+            data = self.to_array(response).into_list();
         }
         //
         // spot
@@ -2348,7 +2348,7 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_416: bool = true;
             while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut ticker: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

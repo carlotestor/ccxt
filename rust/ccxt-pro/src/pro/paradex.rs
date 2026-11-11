@@ -746,18 +746,18 @@ impl Paradex {
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
             while { if !__for_first_585 { i += 1; } __for_first_585 = false; (i as f64) < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone())).into())); }
+            std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone())).into()));
         }
         }
         let mut url: Value = self.get_ws_url();
         // handleTrade resolves the channel of each market
-        let mut trades: Value = self.subscribe_channels(url, channels.clone(), channels.clone(), &[params]).await;
+        let mut trades: Value = self.subscribe_channels(url, Value::Arr(channels.clone()), Value::Arr(channels), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
@@ -2627,7 +2627,7 @@ impl Paradex {
             return Value::Null;
         }
         let mut levels: Value = Value::from(vec![]);
-        let mut sides: Value = Value::from(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
+        let mut sides: crate::value::List = std::sync::Arc::new(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
         let mut frameEnd: Value = self.parse_to_int(frameLength.clone());
         let mut position: Value = self.parse_to_int(self.sum(&[blockLength, Value::Int(8)]));
         {
@@ -2651,7 +2651,7 @@ impl Paradex {
                 while { if !__for_first_601 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_601 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut levels { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), sides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("side".to_string(), sides.get(i as usize).cloned().unwrap_or(Value::Null));
                         m.insert("price".to_string(), self.sbe_read_decimal(frameHex.clone(), position.clone()).map(Value::from).unwrap_or(Value::Null));
                         m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), (match (&(position), &(Value::Int(8))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
                             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).map(Value::from).unwrap_or(Value::Null));

@@ -2158,12 +2158,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]).await; // extend the expiry
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
+            let mut types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_97: bool = true;
                 while { if !__for_first_97 { i += 1; } __for_first_97 = false; i < (types.len() as i64) } {
-                let mut type_var: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut type_var: Value = types.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut baseUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var, &[]).as_str().map(str::to_owned);
                 if (baseUrl.is_none()) {
                     continue;

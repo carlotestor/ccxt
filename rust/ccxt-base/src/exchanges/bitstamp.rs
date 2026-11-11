@@ -4648,9 +4648,9 @@ impl Bitstamp {
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         if (status.as_deref() == Some("error")) || (error != Value::Null) {
-            let mut errors: Value = Value::from(vec![]);
+            let mut errors: crate::value::List = std::sync::Arc::new(Vec::new());
             if matches!(&error, Value::Str(_)) {
-                if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(error.clone()); }
+                std::sync::Arc::make_mut(&mut errors).push(error.clone());
             }  else if (error != Value::Null) {
                 let mut keys: Vec<Value> = Value::Array(error.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
@@ -4660,9 +4660,9 @@ impl Bitstamp {
                     let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut value: Value = self.safe_value(error.clone(), key, &[]);
                     if (matches!(&value, Value::Arr(_))) {
-                        errors = self.array_concat(errors.clone(), value.clone());
+                        errors = self.array_concat(Value::Arr(errors), value.clone()).into_list();
                     }  else {
-                        if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(value.clone()); }
+                        std::sync::Arc::make_mut(&mut errors).push(value.clone());
                     }
                 }
                 }
@@ -4672,14 +4672,14 @@ impl Bitstamp {
                 m
             })]);
             if matches!(&reasonInner, Value::Str(_)) {
-                if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(reasonInner.clone()); }
+                std::sync::Arc::make_mut(&mut errors).push(reasonInner.clone());
             }  else {
                 let mut all: crate::value::List = self.safe_list_k(reasonInner, "__all__", &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_439: bool = true;
                     while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (all.len() as i64) } {
-                    if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(all.get(i as usize).cloned().unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut errors).push(all.get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
             }
@@ -4692,7 +4692,7 @@ impl Bitstamp {
                                 let mut i: i64 = 0;
                 let mut __for_first_440: bool = true;
                 while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (errors.len() as i64) } {
-                let mut value: Option<String> = self.safe_string_opt(errors.clone(), Value::Int(i), &[]);
+                let mut value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             }

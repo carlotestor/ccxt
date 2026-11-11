@@ -1414,7 +1414,7 @@ impl Upbit {
         let mut tickers: Value = Value::from(vec![]);
         if (symbolsNormalized.is_none()) {
             // ticker/all returns every market of the requested quote currencies with a single request
-            let mut quoteIds: Value = Value::from(vec![]);
+            let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut marketSymbols: Value = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
@@ -1422,12 +1422,12 @@ impl Upbit {
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Value = Value::from((market).quote_id.clone());
-                if !(self.in_array(quoteId.clone(), quoteIds.clone()).as_bool() == Some(true)) {
-                    if let Value::Arr(__a) = &mut quoteIds { std::sync::Arc::make_mut(__a).push(quoteId); }
+                if !(self.in_array(quoteId.clone(), Value::Arr(quoteIds.clone())).as_bool() == Some(true)) {
+                    std::sync::Arc::make_mut(&mut quoteIds).push(quoteId);
                 }
             }
             }
-            let mut sortedQuoteIds: Value = self.sort(quoteIds, &[]); // market iteration order differs per language
+            let mut sortedQuoteIds: Value = self.sort(Value::Arr(quoteIds), &[]); // market iteration order differs per language
             let mut quoteCurrencies: String = "".to_string();
             {
                                 let mut i: i64 = 0;

@@ -5047,13 +5047,13 @@ impl Extended {
 }
 
     pub fn get_extended_decimal_to_base16(&self, mut value: Value) -> Value {
-        let mut decimalString: Value = value;
-        let mut hexChars: Value = Value::from(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
+        let mut decimalString: Value = value.clone();
+        let mut hexChars: crate::value::List = std::sync::Arc::new(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
         let mut result: String = "".to_string();
         while crate::precise::Precise::stringGt(&decimalString, &Value::Str("0".into())).as_bool() == Some(true) {
             let mut remainder: Value = self.parse_to_int(crate::precise::Precise::stringMod(&decimalString, &Value::Str("16".into())));
-            let mut hexChar: String = self.safe_string(hexChars.clone(), remainder, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut hexChar: String = self.safe_string(&hexChars, remainder, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result = format!("{}{}", hexChar, result);
             decimalString = crate::precise::Precise::stringDivPrec(&decimalString, &Value::Str("16".into()), &Value::Int(0));
         }

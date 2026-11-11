@@ -2783,13 +2783,13 @@ impl Hyperliquid {
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
-        let mut lowerQueries: Value = Value::from(vec![]);
+        let mut lowerQueries: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1252: bool = true;
             while { if !__for_first_1252 { i += 1; } __for_first_1252 = false; i < (queries.len() as i64) } {
             let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut lowerQueries { std::sync::Arc::make_mut(__a).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })); }
+            std::sync::Arc::make_mut(&mut lowerQueries).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
         }
         let mut lowerQueriesLength: f64 = ((lowerQueries.len() as i64) as f64);
@@ -2819,7 +2819,7 @@ impl Hyperliquid {
                                         let mut qi: i64 = 0;
                     let mut __for_first_1254: bool = true;
                     while { if !__for_first_1254 { qi += 1; } __for_first_1254 = false; qi < (lowerQueries.len() as i64) } {
-                    let mut words: Vec<Value> = Value::Array((lowerQueries.as_array().map(Vec::as_slice).unwrap_or_default().get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                    let mut words: Vec<Value> = Value::Array((lowerQueries.get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut wordsLength: f64 = ((words.len() as i64) as f64);
                     let mut allWords: bool = true;
                     {

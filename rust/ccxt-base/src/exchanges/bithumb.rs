@@ -1591,7 +1591,7 @@ impl Bithumb {
             if (marketIdsLength.as_f64() == Some(0.0)) {
                 return Value::Map(result);
             }
-            let mut marketIdsChunks: Value = Value::from(vec![]);
+            let mut marketIdsChunks: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut promises: Vec<Value> = Vec::new();
             // the exchange rejects more than 200 market ids per request
             let mut maxMarketIdsOption: Value = self.safe_integer_k(self.options.clone(), "fetchTickersGeneration2MaxMarketIdsPerRequest", &[Value::Int(200)]);
@@ -1605,7 +1605,7 @@ impl Bithumb {
                 let mut marketIdsChunkLength: f64 = ((marketIdsChunk.len() as i64) as f64);
                 let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
                 if (marketIdsChunkLength >= maxMarketIdsPerRequest.as_f64().unwrap_or(f64::NAN)) || isLastMarketId {
-                    if let Value::Arr(__a) = &mut marketIdsChunks { std::sync::Arc::make_mut(__a).push(marketIdsChunk.clone()); }
+                    std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                     let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                     promises.push(self.public_get_v1_ticker(&[__ws_arg_5]).await);
@@ -1656,7 +1656,7 @@ impl Bithumb {
                     response = self.safe_value_k(response.clone(), "data", &[]);
                 }
                 let mut expectedMarketId: Value = Value::Null;
-                let mut requestedMarketIds: crate::value::List = self.safe_list(marketIdsChunks.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
+                let mut requestedMarketIds: crate::value::List = self.safe_list(Value::Arr(marketIdsChunks.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
                 let mut firstMarketId: Option<String> = self.safe_string(&requestedMarketIds, Value::Int(0), &[]).as_str().map(str::to_owned);
                 if (firstMarketId.is_some()) && (self.safe_string(&requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
                     expectedMarketId = firstMarketId.map(Value::from).unwrap_or(Value::Null);

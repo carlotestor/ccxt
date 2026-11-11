@@ -2537,13 +2537,13 @@ impl Backpack {
         });
         let mut requestLimit: Value = Value::Null;
         if (limit != Value::Null) {
-            let mut supportedLimits: Value = Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500)]);
+            let mut supportedLimits: crate::value::List = std::sync::Arc::new(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500)]);
             requestLimit = Value::Int(500);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_253: bool = true;
                 while { if !__for_first_253 { i += 1; } __for_first_253 = false; i < (supportedLimits.len() as i64) } {
-                let mut supportedLimit: Value = self.safe_integer(supportedLimits.clone(), Value::Int(i), &[Value::Int(0)]);
+                let mut supportedLimit: Value = self.safe_integer(&supportedLimits, Value::Int(i), &[Value::Int(0)]);
                 if limit.as_f64().unwrap_or(f64::NAN) <= supportedLimit.as_f64().unwrap_or(f64::NAN) {
                     requestLimit = supportedLimit;
                     break;

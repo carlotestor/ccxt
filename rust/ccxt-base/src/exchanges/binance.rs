@@ -7373,7 +7373,7 @@ impl Binance {
         }
         }
         let mut results: Value = promise_all(&Value::from(promisesRaw)).await;
-        let mut markets: Value = Value::from(vec![]);
+        let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::from(vec![])); }
         {
@@ -7392,7 +7392,7 @@ impl Binance {
                 }
             }  else {
                 let mut resultMarkets: Value = self.safe_list2(res, Value::Str("symbols".into()), Value::Str("optionSymbols".into()), &[Value::from(vec![])]);
-                markets = self.array_concat(markets.clone(), resultMarkets);
+                markets = self.array_concat(Value::Arr(markets), resultMarkets).into_list();
             }
         }
         }
@@ -7645,7 +7645,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_276: bool = true;
             while { if !__for_first_276 { i += 1; } __for_first_276 = false; i < (markets.len() as i64) } {
-            let mut parsed: Value = self.parse_market(markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut parsed: Value = self.parse_market(markets.get(i as usize).cloned().unwrap_or(Value::Null));
             if (parsed != Value::Null) {
                 result.push(parsed);
             }
@@ -11319,19 +11319,19 @@ impl Binance {
             }
         }  else if (path.as_str() == Some("order/oco")) || (path.as_str() == Some("margin/order/oco")) || (path.as_str() == Some("orderList/oco")) || (path.as_str() == Some("orderList/oto")) || (path.as_str() == Some("orderList/otoco")) || (path.as_str() == Some("orderList/opo")) || (path.as_str() == Some("orderList/opoco")) {
             // the order list endpoints take a listClientOrderId and one client order id per leg
-            let mut clientOrderIdKeys: Value = Value::from(vec![Value::Str("listClientOrderId".into()), Value::Str("limitClientOrderId".into()), Value::Str("stopClientOrderId".into())]);
+            let mut clientOrderIdKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("listClientOrderId".into()), Value::Str("limitClientOrderId".into()), Value::Str("stopClientOrderId".into())]);
             if (path.as_str() == Some("orderList/oco")) {
-                clientOrderIdKeys = Value::from(vec![Value::Str("listClientOrderId".into()), Value::Str("aboveClientOrderId".into()), Value::Str("belowClientOrderId".into())]);
+                clientOrderIdKeys = std::sync::Arc::new(vec![Value::Str("listClientOrderId".into()), Value::Str("aboveClientOrderId".into()), Value::Str("belowClientOrderId".into())]);
             }  else if (path.as_str() == Some("orderList/oto")) || (path.as_str() == Some("orderList/opo")) {
-                clientOrderIdKeys = Value::from(vec![Value::Str("listClientOrderId".into()), Value::Str("workingClientOrderId".into()), Value::Str("pendingClientOrderId".into())]);
+                clientOrderIdKeys = std::sync::Arc::new(vec![Value::Str("listClientOrderId".into()), Value::Str("workingClientOrderId".into()), Value::Str("pendingClientOrderId".into())]);
             }  else if (path.as_str() == Some("orderList/otoco")) || (path.as_str() == Some("orderList/opoco")) {
-                clientOrderIdKeys = Value::from(vec![Value::Str("listClientOrderId".into()), Value::Str("workingClientOrderId".into()), Value::Str("pendingAboveClientOrderId".into()), Value::Str("pendingBelowClientOrderId".into())]);
+                clientOrderIdKeys = std::sync::Arc::new(vec![Value::Str("listClientOrderId".into()), Value::Str("workingClientOrderId".into()), Value::Str("pendingAboveClientOrderId".into()), Value::Str("pendingBelowClientOrderId".into())]);
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_289: bool = true;
                 while { if !__for_first_289 { i += 1; } __for_first_289 = false; i < (clientOrderIdKeys.len() as i64) } {
-                let mut currentClientOrderIdKey: Value = clientOrderIdKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut currentClientOrderIdKey: Value = clientOrderIdKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currentClientOrderId: Option<String> = self.safe_string(params.clone(), currentClientOrderIdKey.clone(), &[]).as_str().map(str::to_owned);
                 if (currentClientOrderId.is_none()) {
                     if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currentClientOrderIdKey), self.generate_client_order_id(&[Value::Null, api.clone(), path.clone()]).map(Value::from).unwrap_or(Value::Null)); }

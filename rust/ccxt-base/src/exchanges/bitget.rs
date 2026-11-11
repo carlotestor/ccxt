@@ -5887,14 +5887,14 @@ if _try_result.is_err() {
             while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (types.len() as i64) } {
             let mut type_var: Option<String> = self.safe_string(types.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
-                let mut subTypes: Value = Value::from(vec![Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into()), Value::Str("SUSDT-FUTURES".into()), Value::Str("SCOIN-FUTURES".into()), Value::Str("SUSDC-FUTURES".into())]);
+                let mut subTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into()), Value::Str("SUSDT-FUTURES".into()), Value::Str("SCOIN-FUTURES".into()), Value::Str("SUSDC-FUTURES".into())]);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_365: bool = true;
                     while { if !__for_first_365 { j += 1; } __for_first_365 = false; j < (subTypes.len() as i64) } {
                     let __ws_arg_0 = self.extend(params.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("productType".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
+                            m.insert("productType".to_string(), subTypes.get(j as usize).cloned().unwrap_or(Value::Null));
                         m
                     })]);
                     promises.push(self.public_mix_get_v2_mix_market_contracts(&[__ws_arg_0]).await);
@@ -5927,7 +5927,7 @@ if _try_result.is_err() {
             let mut instruments: Value = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]);
             spotInstruments = self.index_by(instruments, Value::Str("symbol".into()));
         }
-        let mut markets: Value = Value::from(vec![]);
+        let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::from(vec![])); }
         {
@@ -5975,7 +5975,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), crossKeys); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), isolatedKeys); }
             }  else {
-                markets = self.array_concat(markets.clone(), Value::Arr(data));
+                markets = self.array_concat(Value::Arr(markets), Value::Arr(data)).into_list();
             }
         }
         }
@@ -6041,7 +6041,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_369: bool = true;
             while { if !__for_first_369 { i += 1; } __for_first_369 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteCoin", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCoin", &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -6267,7 +6267,7 @@ if _try_result.is_err() {
 
     pub async fn fetch_uta_markets(&mut self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
-        let mut subTypes: Value = Value::from(vec![Value::Str("SPOT".into()), Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into())]);
+        let mut subTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("SPOT".into()), Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into())]);
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -6275,21 +6275,21 @@ if _try_result.is_err() {
             while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (subTypes.len() as i64) } {
             let mut req: Value = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("category".to_string(), subTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                    m.insert("category".to_string(), subTypes.get(i as usize).cloned().unwrap_or(Value::Null));
                 m
             })]);
             promises.push(self.public_uta_get_v3_market_instruments(&[req]).await);
         }
         }
         let mut results: Value = promise_all(&Value::from(promises)).await;
-        let mut markets: Value = Value::from(vec![]);
+        let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_371: bool = true;
             while { if !__for_first_371 { i += 1; } __for_first_371 = false; i < (results.len() as i64) } {
             let mut res: crate::value::Dict = self.safe_dict(results.clone(), Value::Int(i), &[]).into_dict();
             let mut data: Value = self.safe_list_k(&res, "data", &[Value::from(vec![])]);
-            markets = self.array_concat(markets.clone(), data);
+            markets = self.array_concat(Value::Arr(markets), data).into_list();
         }
         }
         //
@@ -6391,7 +6391,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_372: bool = true;
             while { if !__for_first_372 { i += 1; } __for_first_372 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteCoin", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCoin", &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -13828,22 +13828,22 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut position: Value = Value::from(vec![]);
+        let mut position: crate::value::List = std::sync::Arc::new(Vec::new());
         if (uta == Some(true)) || isHistory {
             let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            position = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+            position = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         }  else {
-            position = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            position = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_385: bool = true;
             while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (position.len() as i64) } {
-            let mut parsedPosition: Value = self.parse_position(position.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let mut parsedPosition: Value = self.parse_position(position.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             result.push(parsedPosition);
         }
         }

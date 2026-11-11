@@ -2421,12 +2421,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut rawPositions: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if self.is_empty(Value::Arr(rawPositions.clone())).as_bool() == Some(true) {
-            let mut prefixes: Value = Value::from(vec![Value::Str("cross:positions".into()), Value::Str("isolated:positions".into())]);
+            let mut prefixes: crate::value::List = std::sync::Arc::new(vec![Value::Str("cross:positions".into()), Value::Str("isolated:positions".into())]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_388: bool = true;
                 while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (prefixes.len() as i64) } {
-                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.get(i as usize).cloned().unwrap_or(Value::Null));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_387: bool = true;

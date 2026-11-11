@@ -792,12 +792,12 @@ impl Luno {
         if (subscriptionsLength == 0.0) {
             return;
         }
-        let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
+        let mut handlers: crate::value::List = std::sync::Arc::new(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
         {
                         let mut j: i64 = 0;
             let mut __for_first_484: bool = true;
             while { if !__for_first_484 { j += 1; } __for_first_484 = false; j < (handlers.len() as i64) } {
-            let mut handler: Value = handlers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut handler: Value = handlers.get(j as usize).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
         }
         }

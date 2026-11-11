@@ -3778,18 +3778,18 @@ impl Predictfun {
         }
         if (side.as_deref() == Some("sell")) {
             let mut ctfToken: Value = self.safe_string_k(params.clone(), "token", &[self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);
-            let mut operators: Value = Value::from(vec![]);
+            let mut operators: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut explicitOperator: Option<String> = self.safe_string_k(params.clone(), "spender", &[]).as_str().map(str::to_owned);
             if (explicitOperator.is_some()) {
-                if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(explicitOperator.map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut operators).push(explicitOperator.map(Value::from).unwrap_or(Value::Null));
             }  else if (outcome == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter".into()))));
             }  else {
-                if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut operators).push(self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 // a neg risk match mints and merges through the adapter, which moves the seller's
                 // shares itself, so approving the exchange alone leaves the sell side half open
                 if isNegRisk {
-                    if let Value::Arr(__a) = &mut operators { std::sync::Arc::make_mut(__a).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut operators).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 }
             }
             if (rpcUrl == Value::Null) || (ctfToken == Value::Null) {
@@ -3806,7 +3806,7 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1478: bool = true;
                 while { if !__for_first_1478 { i += 1; } __for_first_1478 = false; (i as f64) < operatorsLength } {
-                let mut operatorAddress: Option<String> = self.safe_string(operators.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+                let mut operatorAddress: Option<String> = self.safe_string(&operators, Value::Int(i), &[]).as_str().map(str::to_owned);
                 if (operatorAddress.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the operator to approve for chain ".into())).into()), chainKey.clone().map(Value::from).unwrap_or(Value::Null))));
                 }
@@ -4565,8 +4565,8 @@ impl Predictfun {
         // arrive already sorted, best first
         let mut yesBids: Value = Value::from(vec![]);
         let mut yesAsks: Value = Value::from(vec![]);
-        let mut noBids: Value = Value::from(vec![]);
-        let mut noAsks: Value = Value::from(vec![]);
+        let mut noBids: crate::value::List = std::sync::Arc::new(Vec::new());
+        let mut noAsks: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut bidsLength: f64 = ((rawBids.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -4577,7 +4577,7 @@ impl Predictfun {
             let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(bidPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), bidSize.clone()])); }
             // a bid for yes at p is an offer of no at 1 - p
-            if let Value::Arr(__a) = &mut noAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.map(Value::from).unwrap_or(Value::Null)), &[]), bidSize])); }
+            std::sync::Arc::make_mut(&mut noAsks).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.map(Value::from).unwrap_or(Value::Null)), &[]), bidSize]));
         }
         }
         let mut asksLength: f64 = ((rawAsks.len() as i64) as f64);
@@ -4589,7 +4589,7 @@ impl Predictfun {
             let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(askPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), askSize.clone()])); }
-            if let Value::Arr(__a) = &mut noBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.map(Value::from).unwrap_or(Value::Null)), &[]), askSize])); }
+            std::sync::Arc::make_mut(&mut noBids).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.map(Value::from).unwrap_or(Value::Null)), &[]), askSize]));
         }
         }
         let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
@@ -4616,8 +4616,8 @@ impl Predictfun {
                 let mut bids: Value = yesBids.clone();
                 let mut asks: Value = yesAsks.clone();
                 if !isYesOutcome {
-                    bids = self.sort_by(noBids.clone(), Value::Int(0), &[Value::Bool(true)]);
-                    asks = self.sort_by(noAsks.clone(), Value::Int(0), &[]);
+                    bids = self.sort_by(Value::Arr(noBids.clone()), Value::Int(0), &[Value::Bool(true)]);
+                    asks = self.sort_by(Value::Arr(noAsks.clone()), Value::Int(0), &[]);
                 }
                 orderbook.reset(Value::Map({
                     let mut m = indexmap::IndexMap::new();

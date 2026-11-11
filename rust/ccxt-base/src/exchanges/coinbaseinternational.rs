@@ -2136,7 +2136,7 @@ impl Coinbaseinternational {
         if (limit != Value::Null) {
             request.insert("depth".into(), limit.clone());
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
-                let mut depths: Value = Value::from(vec![Value::Int(1), Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(1000), Value::Int(10000)]);
+                let mut depths: crate::value::List = std::sync::Arc::new(vec![Value::Int(1), Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(1000), Value::Int(10000)]);
                 if (limit.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (limit.as_f64().unwrap_or(f64::NAN) > ((10000i64) as f64)) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() limit must be between 1 and 10000".into()))));
                 }
@@ -2144,8 +2144,8 @@ impl Coinbaseinternational {
                                         let mut i: i64 = 0;
                     let mut __for_first_560: bool = true;
                     while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (depths.len() as i64) } {
-                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
-                        request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
+                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
+                        request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
                     }
                 }

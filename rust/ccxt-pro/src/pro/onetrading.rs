@@ -1459,12 +1459,12 @@ impl Onetrading {
         client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())));
         client.resolve(self.orders.clone(), "orders");
         // update balance
-        let mut balanceKeys: Value = Value::from(vec![Value::Str("locked".into()), Value::Str("unlocked".into()), Value::Str("spent".into()), Value::Str("spent_on_fees".into()), Value::Str("credited".into()), Value::Str("deducted".into())]);
+        let mut balanceKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("locked".into()), Value::Str("unlocked".into()), Value::Str("spent".into()), Value::Str("spent_on_fees".into()), Value::Str("credited".into()), Value::Str("deducted".into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (balanceKeys.len() as i64) } {
-            let mut newBalance: Value = self.safe_dict(update.clone(), balanceKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut newBalance: Value = self.safe_dict(update.clone(), balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance);
             }

@@ -1069,23 +1069,23 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("flex".into()), &[Value::from(vec![])]).into_list();
-        let mut currencies: Value = Value::from(vec![]);
+        let mut currencies: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_867: bool = true;
             while { if !__for_first_867 { i += 1; } __for_first_867 = false; i < (settlementCurrencies.len() as i64) } {
             let mut code: String = self.safe_string(&settlementCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
+            std::sync::Arc::make_mut(&mut currencies).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(code.to_lowercase()));
                     m.insert("numericId".to_string(), Value::Null);
                     m.insert("code".to_string(), Value::from(code));
                     m.insert("precision".to_string(), Value::Null);
                 m
-            })); }
+            }));
         }
         }
-        { let __t = self.map_to_safe_map(self.deep_extend(currencies.clone(), &[self.currencies.clone()])); self.currencies = __t; }
+        { let __t = self.map_to_safe_map(self.deep_extend(Value::Arr(currencies), &[self.currencies.clone()])); self.currencies = __t; }
         return Value::from(result);
         Value::Null
         }).await?))
@@ -1674,7 +1674,7 @@ impl Krakenfutures {
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("historyGetMarketSymbolExecutions".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut rawTrades: Value = Value::from(vec![]);
+        let mut rawTrades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut isFullHistoryEndpoint: bool = method.as_deref() == Some("historyGetMarketSymbolExecutions");
         if isFullHistoryEndpoint {
             // handleUntilOption returns the request it was given, so the filters
@@ -1742,7 +1742,7 @@ impl Krakenfutures {
             //
             let mut elements: crate::value::List = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).into_list();
             // we need to reverse the list to fix chronology
-            rawTrades = Value::from(vec![]);
+            rawTrades = std::sync::Arc::new(Vec::new());
             let mut length: Value = Value::Int(elements.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1763,7 +1763,7 @@ impl Krakenfutures {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                if let Value::Arr(__a) = &mut rawTrades { std::sync::Arc::make_mut(__a).push(rawTrade); }
+                std::sync::Arc::make_mut(&mut rawTrades).push(rawTrade);
             }
             }
         }  else {
@@ -1790,9 +1790,9 @@ impl Krakenfutures {
             //        "serverTime": "2022-03-18T06:39:18.056Z"
             //    }
             //
-            rawTrades = self.safe_list_k(&response, "history", &[Value::from(vec![])]);
+            rawTrades = self.safe_list_k(&response, "history", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_trades(rawTrades, &[(market).raw.clone(), since, limit]);
+        return self.parse_trades(Value::Arr(rawTrades), &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

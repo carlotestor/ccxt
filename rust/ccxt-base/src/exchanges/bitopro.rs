@@ -1330,7 +1330,7 @@ impl Bitopro {
         if (length == 0.0) {
             return candles;
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut firstCandle: Value = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut copyFrom: Value = firstCandle.clone();
         let mut timestamp: Value = Value::Null;
@@ -1345,18 +1345,18 @@ impl Bitopro {
         while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i.as_f64().unwrap_or(f64::NAN) < candleLength) {
             let mut candle: Value = self.safe_list(candles.clone(), i.clone(), &[Value::from(vec![])]);
             if is_equal(&candle.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &timestamp) {
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(candle.clone()); }
+                std::sync::Arc::make_mut(&mut result).push(candle.clone());
                 i = self.sum(&[i.clone(), Value::Int(1)]);
             }  else {
                 // set open, high, low to close
                 let mut closeValue: Value = self.safe_value(copyFrom.clone(), Value::Int(4), &[]);
-                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::from(vec![timestamp.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), self.parse_number(Value::Str("0".into()), &[])])); }
+                std::sync::Arc::make_mut(&mut result).push(Value::from(vec![timestamp.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), self.parse_number(Value::Str("0".into()), &[])]));
             }
             timestamp = self.sum(&[timestamp.clone(), distanceInMs.clone()]);
             resultLength = Value::Int(result.len() as i64);
-            copyFrom = self.safe_value(result.clone(), (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+            copyFrom = self.safe_value(&result, (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         }
-        return result;
+        return Value::Arr(result);
 
     Value::Null
 }

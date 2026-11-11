@@ -2777,11 +2777,11 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut data: Value = Value::from(vec![]);
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).swap {
-            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }  else {
-            data = self.safe_list_k(&response, "order_ids", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "order_ids", &[Value::from(vec![])]).into_list();
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -2793,7 +2793,7 @@ impl Digifinex {
                 let mut m = indexmap::IndexMap::new();
                 m
             };
-            individualOrder.insert("order_id".into(), self.safe_string(data.clone(), Value::Int(i), &[]));
+            individualOrder.insert("order_id".into(), self.safe_string(&data, Value::Int(i), &[]));
             individualOrder.insert("instrument_id".into(), Value::from((market).id.clone()));
             individualOrder.insert("amount".into(), self.safe_number_k(rawOrder.clone(), "amount", &[]));
             individualOrder.insert("price".into(), self.safe_number_k(rawOrder, "price", &[]));
