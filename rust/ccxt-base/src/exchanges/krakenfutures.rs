@@ -1690,7 +1690,7 @@ impl Krakenfutures {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_3 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
-            let mut response: Value = self.history_get_market_symbol_executions(&[__ws_arg_3]).await;
+            let mut response: crate::value::Dict = self.history_get_market_symbol_executions(&[__ws_arg_3]).await.into_dict();
             //
             //    {
             //        "elements": [
@@ -1740,7 +1740,7 @@ impl Krakenfutures {
             //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
             //    }
             //
-            let mut elements: Vec<Value> = self.safe_list_k(response.clone(), "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut elements: Vec<Value> = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             // we need to reverse the list to fix chronology
             rawTrades = Value::from(vec![]);
             let mut length: Value = Value::Int(elements.len() as i64);
@@ -1771,7 +1771,7 @@ impl Krakenfutures {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_4 = self.extend(requestUntil, &[paramsUntil]);
-            let mut response: Value = self.public_get_history(&[__ws_arg_4]).await;
+            let mut response: crate::value::Dict = self.public_get_history(&[__ws_arg_4]).await.into_dict();
             //
             //    {
             //        "result": "success",
@@ -1790,7 +1790,7 @@ impl Krakenfutures {
             //        "serverTime": "2022-03-18T06:39:18.056Z"
             //    }
             //
-            rawTrades = self.safe_list_k(response, "history", &[Value::from(vec![])]);
+            rawTrades = self.safe_list_k(&response, "history", &[Value::from(vec![])]);
         }
         return self.parse_trades(rawTrades, &[(market).raw.clone(), since, limit]);
         Value::Null

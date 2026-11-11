@@ -1546,7 +1546,7 @@ impl Cex {
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut accountBalance: Value = Value::Null;
         if (method.as_deref() == Some("privatePostGetMyAccountStatusV3")) {
-            let mut response: Value = self.private_post_get_my_account_status_v3(&[paramsMethod.clone()]).await;
+            let mut response: crate::value::Dict = self.private_post_get_my_account_status_v3(&[paramsMethod.clone()]).await.into_dict();
             //
             //    {
             //        "ok": "ok",
@@ -1560,10 +1560,10 @@ impl Cex {
             //                    },
             //                    ....
             //
-            let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut balances: Value = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1573,7 +1573,7 @@ impl Cex {
     m
 })]);
         }  else {
-            let mut response: Value = self.private_post_get_my_wallet_balance(&[paramsMethod]).await;
+            let mut response: crate::value::Dict = self.private_post_get_my_wallet_balance(&[paramsMethod]).await.into_dict();
             //
             //    {
             //        "ok": "ok",
@@ -1586,10 +1586,10 @@ impl Cex {
             //            },
             //            ...
             //
-            accountBalance = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            accountBalance = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
         }
         return self.parse_balance(accountBalance);
         Value::Null

@@ -3644,13 +3644,13 @@ impl Htx {
         let mut defaultType: String = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Value = self.safe_string_k(&options, "type", &[Value::from(defaultType)]);
         type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("future")) || (type_var.as_str() == Some("swap")) {
-            response = self.contract_public_get_api_v1_timestamp(&[params.clone()]).await;
+            response = self.contract_public_get_api_v1_timestamp(&[params.clone()]).await.into_opt_dict();
         }  else {
-            response = self.spot_public_get_v1_common_timestamp(&[params]).await;
+            response = self.spot_public_get_v1_common_timestamp(&[params]).await.into_opt_dict();
         }
-        return self.safe_integer2(response, Value::Str("data".into()), Value::Str("ts".into()), &[]);
+        return self.safe_integer2(&response, Value::Str("data".into()), Value::Str("ts".into()), &[]);
         Value::Null
         }).await?))
     }

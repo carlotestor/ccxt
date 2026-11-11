@@ -1164,9 +1164,9 @@ impl Coinbase {
         let mut defaultMethod: String = self.safe_string_k(self.options.clone(), "fetchTime", &[Value::Str("v2PublicGetTime".into())]).as_str().unwrap_or("v2PublicGetTime").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("v2PublicGetTime")) {
-            response = self.v2_public_get_time(&[paramsOmitted.clone()]).await;
+            response = self.v2_public_get_time(&[paramsOmitted.clone()]).await.into_opt_dict();
             //
             //     {
             //         "data": {
@@ -1175,14 +1175,14 @@ impl Coinbase {
             //         }
             //     }
             //
-            response = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            response = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }  else {
-            response = self.v3_public_get_brokerage_time(&[paramsOmitted]).await;
+            response = self.v3_public_get_brokerage_time(&[paramsOmitted]).await.into_opt_dict();
         }
-        return self.safe_timestamp2(response, Value::Str("epoch".into()), Value::Str("epochSeconds".into()), &[]);
+        return self.safe_timestamp2(&response, Value::Str("epoch".into()), Value::Str("epochSeconds".into()), &[]);
         Value::Null
         }).await?))
     }

@@ -3188,8 +3188,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v4_public_get_time(&[params]).await;
-        return self.safe_integer_product_k(response, "time", Value::Int(1000), &[]);
+        let mut response: crate::value::Dict = self.v4_public_get_time(&[params]).await.into_dict();
+        return self.safe_integer_product_k(&response, "time", Value::Int(1000), &[]);
         Value::Null
         }).await?))
     }

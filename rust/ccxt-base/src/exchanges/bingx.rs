@@ -3888,19 +3888,19 @@ impl Bingx {
                 request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             }
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            let mut response: Value = self.spot_v2_public_get_quote_book_ticker(&[__ws_arg_18]).await;
-            rows = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+            let mut response: crate::value::Dict = self.spot_v2_public_get_quote_book_ticker(&[__ws_arg_18]).await.into_dict();
+            rows = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
             if (market == Value::Null) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) || (symbolsLength.as_f64() != Some(1.0)) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() requires exactly one linear swap symbol for contract markets".into()))));
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: Value = self.swap_v2_public_get_quote_book_ticker(&[__ws_arg_19]).await;
-            let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut response: crate::value::Dict = self.swap_v2_public_get_quote_book_ticker(&[__ws_arg_19]).await.into_dict();
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             rows = Value::from(vec![self.safe_dict_k(&data, "book_ticker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

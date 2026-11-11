@@ -1510,7 +1510,7 @@ impl Bitstamp {
             }
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: Value = self.parent.private_post_websockets_token(&[params]).await;
+                let mut response: crate::value::Dict = self.parent.private_post_websockets_token(&[params]).await.into_dict();
                 //
                 // {
                 //     "valid_sec":60,
@@ -1518,12 +1518,12 @@ impl Bitstamp {
                 //     "user_id":4848701
                 // }
                 //
-                let mut sessionToken: Option<String> = self.safe_string_k_opt(response.clone(), "token", &[]);
+                let mut sessionToken: Option<String> = self.safe_string_k_opt(&response, "token", &[]);
                 if (sessionToken.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
-                let mut userId: Option<String> = self.safe_string_k_opt(response.clone(), "user_id", &[]);
-                let mut validity: Value = self.safe_integer_product_k(response, "valid_sec", Value::Int(1000), &[]);
+                let mut userId: Option<String> = self.safe_string_k_opt(&response, "user_id", &[]);
+                let mut validity: Value = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]);
                 { let __be_tmp = self.sum(&[time, validity]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }

@@ -1368,7 +1368,7 @@ impl Hollaex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_tiers(&[params]).await.into_dict();
+        let mut response: Value = self.public_get_tiers(&[params]).await;
         //
         //     {
         //         "1": {
@@ -1397,10 +1397,10 @@ impl Hollaex {
         //         ...
         //     }
         //
-        let mut firstTier: crate::value::Dict = self.safe_dict_k(&response, "1", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut firstTier: crate::value::Dict = self.safe_dict_k(response, "1", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
         let mut fees: Value = self.safe_dict_k(&firstTier, "fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

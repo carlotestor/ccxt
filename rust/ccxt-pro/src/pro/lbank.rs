@@ -1638,17 +1638,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_opt_dict();
             if (authenticated.is_none()) {
-                let mut response: Value = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await;
+                let mut response: crate::value::Dict = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await.into_dict();
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                let mut result: bool = self.safe_bool_k(response.clone(), "result", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut result: bool = self.safe_bool_k(&response, "result", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if !result {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to get subscribe key".into()))));
                 }
                 __ch.add_subscription(&Value::Str("authenticated".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("key".to_string(), self.safe_string_k(response.clone(), "data", &[]));
+        m.insert("key".to_string(), self.safe_string_k(&response, "data", &[]));
         m.insert("expires".to_string(), self.sum(&[now.clone(), Value::Int(3300000)]));
     m
 }));
@@ -1661,11 +1661,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     });
                     let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await;
+                    let mut response: crate::value::Dict = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await.into_dict();
                     //
                     //    {"result": "true"}
                     //
-                    let mut result: Option<String> = self.safe_string_k(response, "result", &[]).as_str().map(str::to_owned);
+                    let mut result: Option<String> = self.safe_string_k(&response, "result", &[]).as_str().map(str::to_owned);
                     if (result.as_deref() != Some("true")) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to refresh the SubscribeKey".into()))));
                     }

@@ -1291,7 +1291,7 @@ impl Alpaca {
                 request.insert("limit".into(), limit.clone());
             }
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            let mut response: Value = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await;
+            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await.into_dict();
             //
             //    {
             //        "next_page_token": null,
@@ -1308,14 +1308,14 @@ impl Alpaca {
             //        }
             //    }
             //
-            let mut trades: Value = self.safe_dict_k(response.clone(), "trades", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut trades: Value = self.safe_dict_k(&response, "trades", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             symbolTrades = self.safe_list(trades.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await;
+            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await.into_dict();
             //
             //    {
             //       "trades": {
@@ -1329,10 +1329,10 @@ impl Alpaca {
             //        }
             //    }
             //
-            let mut trades: Value = self.safe_dict_k(response, "trades", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut trades: Value = self.safe_dict_k(&response, "trades", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut symbolTrade: Value = self.safe_dict(trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1571,7 +1571,7 @@ impl Alpaca {
             }
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestBars") {
             let __ws_arg_6 = self.extend(Value::Map(request), &[query]);
-            let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_bars(&[__ws_arg_6]).await;
+            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_bars(&[__ws_arg_6]).await.into_dict();
             //
             //    {
             //        "bars": {
@@ -1588,10 +1588,10 @@ impl Alpaca {
             //        }
             //     }
             //
-            let mut bars: Value = self.safe_dict_k(response, "bars", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut bars: Value = self.safe_dict_k(&response, "bars", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut bar: Value = self.safe_dict(bars, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

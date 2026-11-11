@@ -2798,7 +2798,7 @@ impl Mexc {
             return Value::Map(spotOrderbook);
         }  else if (market).swap {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            let mut response: Value = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await;
+            let mut response: crate::value::Dict = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await.into_dict();
             //
             //     {
             //         "success":true,
@@ -2817,7 +2817,7 @@ impl Mexc {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict_k(response, "data", &[]);
+            let mut data: Value = self.safe_dict_k(&response, "data", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
             let mut swapOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
             swapOrderbook.insert("nonce".into(), self.safe_integer_k(data, "version", &[]));
@@ -4342,7 +4342,7 @@ impl Mexc {
             let mut ordersOfTrigger: Value = Value::from(vec![]);
             if (method.as_str() == Some("contractPrivateGetOrderListHistoryOrders")) {
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&query]);
-                let mut response: Value = self.contract_private_get_order_list_history_orders(&[__ws_arg_23]).await;
+                let mut response: crate::value::Dict = self.contract_private_get_order_list_history_orders(&[__ws_arg_23]).await.into_dict();
                 //
                 //     {
                 //         "success": true,
@@ -4377,11 +4377,11 @@ impl Mexc {
                 //          ]
                 //     }
                 //
-                ordersOfRegular = self.safe_value_k(response.clone(), "data", &[]);
+                ordersOfRegular = self.safe_value_k(&response, "data", &[]);
             }  else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
-                let mut response: Value = self.contract_private_get_planorder_list_orders(&[__ws_arg_24]).await;
+                let mut response: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[__ws_arg_24]).await.into_dict();
                 //
                 //     {
                 //         "success": true,
@@ -4408,7 +4408,7 @@ impl Mexc {
                 //         ]
                 //     }
                 //
-                ordersOfTrigger = self.safe_value_k(response, "data", &[]);
+                ordersOfTrigger = self.safe_value_k(&response, "data", &[]);
             }
             let mut merged: Value = self.array_concat(ordersOfTrigger, ordersOfRegular);
             return self.parse_orders(merged, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, paramsOmitted]);
@@ -7289,7 +7289,7 @@ impl Mexc {
                 request.insert("size".into(), limit.clone());
             }
             let __ws_arg_55 = self.extend(Value::Map(request.clone()), &[&paramsToAccountType]);
-            let mut response: Value = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await;
+            let mut response: crate::value::Dict = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await.into_dict();
             //
             //
             // {
@@ -7308,14 +7308,14 @@ impl Mexc {
             //     ],
             //     "total": 1
             // }
-            resultList = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
+            resultList = self.safe_list_k(&response, "rows", &[Value::from(vec![])]);
         }  else if (marketType.as_deref() == Some("swap")) {
             if (limit != Value::Null) {
                 request.insert("page_size".into(), limit.clone());
             }
             let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsToAccountType]);
-            let mut response: Value = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await;
-            let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
+            let mut response: crate::value::Dict = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await.into_dict();
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
             resultList = self.safe_value_k(&data, "resultList", &[]);
         }
         return self.parse_transfers(resultList, &[currency, since, limit]);

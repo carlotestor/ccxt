@@ -918,7 +918,7 @@ impl P2b {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_depth_result(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_depth_result(&[__ws_arg_1]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -944,11 +944,11 @@ impl P2b {
         //        "current_time": 1698733470.469274
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut timestamp: Value = self.safe_integer_product_k(response, "current_time", Value::Int(1000), &[]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut timestamp: Value = self.safe_integer_product_k(&response, "current_time", Value::Int(1000), &[]);
         return self.parse_order_book(result, Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
         }).await?))

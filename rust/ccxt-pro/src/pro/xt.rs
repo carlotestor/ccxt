@@ -408,7 +408,7 @@ impl Xt {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut listenKey: Value = Value::Null;
                 if isContract {
-                    let mut response: Value = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await;
+                    let mut response: crate::value::Dict = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await.into_dict();
                     //
                     //    {
                     //        returnCode: '0',
@@ -417,9 +417,9 @@ impl Xt {
                     //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
                     //    }
                     //
-                    listenKey = self.safe_string_k(response.clone(), "result", &[]);
+                    listenKey = self.safe_string_k(&response, "result", &[]);
                 }  else {
-                    let mut response: Value = self.parent.private_spot_post_ws_token(&[]).await;
+                    let mut response: crate::value::Dict = self.parent.private_spot_post_ws_token(&[]).await.into_dict();
                     //
                     //    {
                     //        "rc": 0,
@@ -431,7 +431,7 @@ impl Xt {
                     //        }
                     //    }
                     //
-                    let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[]).into_dict();
+                    let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
                     listenKey = self.safe_string_k(&result, "accessToken", &[]);
                 }
                 if (listenKey == Value::Null) {

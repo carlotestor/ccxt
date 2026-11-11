@@ -14125,7 +14125,7 @@ if _try_result.is_err() {
             }
             { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), request.clone(), paramsRequest.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let __ws_arg_134 = self.extend(request.clone(), &[paramsRequest.clone()]);
-            let mut response: Value = self.uta_private_get_position_funding_history(&[__ws_arg_134]).await;
+            let mut response: crate::value::Dict = self.uta_private_get_position_funding_history(&[__ws_arg_134]).await.into_dict();
             //
             //     {
             //         "code": "200000",
@@ -14146,7 +14146,7 @@ if _try_result.is_err() {
             //             ]
             //         }
             //     }
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+            let mut data: Value = self.safe_dict_k(&response, "data", &[]);
             dataList = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
         }  else {
             if (limit != Value::Null) {
@@ -14154,7 +14154,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("maxCount".into(), limit); }
             }
             let __ws_arg_135 = self.extend(request, &[paramsRequest]);
-            let mut response: Value = self.futures_private_get_funding_history(&[__ws_arg_135]).await;
+            let mut response: crate::value::Dict = self.futures_private_get_funding_history(&[__ws_arg_135]).await.into_dict();
             //
             //    {
             //        "code": "200000",
@@ -14177,7 +14177,7 @@ if _try_result.is_err() {
             //        }
             //    }
             //
-            let mut data: Value = self.safe_dict_k(response, "data", &[]);
+            let mut data: Value = self.safe_dict_k(&response, "data", &[]);
             dataList = self.safe_list_k(data, "dataList", &[Value::from(vec![])]);
         }
         let mut fees: Vec<Value> = Vec::new();

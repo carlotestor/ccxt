@@ -2199,11 +2199,11 @@ impl Apex {
                 m
             });
             let __ws_arg_7 = self.extend(request.clone(), &[&paramsOmitted]);
-            let mut response: Value = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await;
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut response: crate::value::Dict = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await.into_dict();
+            let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut currentTime: Option<i64> = self.milliseconds().as_i64();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
             let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
@@ -2252,11 +2252,11 @@ impl Apex {
                 m
             });
             let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
-            let mut response: Value = self.private_post_v3_transfer_out(&[__ws_arg_10]).await;
-            let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut response: crate::value::Dict = self.private_post_v3_transfer_out(&[__ws_arg_10]).await.into_dict();
+            let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut currentTime: Option<i64> = self.milliseconds().as_i64();
             let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
             let __ws_arg_12 = self.iso8601(Value::from(currentTime));

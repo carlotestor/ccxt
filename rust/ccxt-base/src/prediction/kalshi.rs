@@ -3504,12 +3504,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut ti: i64 = 0;
             let mut __for_first_1291: bool = true;
             while { if !__for_first_1291 { ti += 1; } __for_first_1291 = false; (ti as f64) < tagsLength } {
-            let mut seriesResponse: Value = self.kalshi_public_get_series(&[Value::Map({
+            let mut seriesResponse: crate::value::Dict = self.kalshi_public_get_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tags".to_string(), tags.get(ti as usize).cloned().unwrap_or(Value::Null));
                 m
-            })]).await;
-            let mut seriesList: Value = self.safe_list_k(seriesResponse.clone(), "series", &[Value::from(vec![])]);
+            })]).await.into_dict();
+            let mut seriesList: Value = self.safe_list_k(&seriesResponse, "series", &[Value::from(vec![])]);
             let mut seriesListLength: f64 = ((seriesList.len() as i64) as f64);
             {
                                 let mut si: i64 = 0;
@@ -3525,12 +3525,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut category: Option<String> = (match params.get("category") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (category.is_some()) {
-            let mut seriesResponse: Value = self.kalshi_public_get_series(&[Value::Map({
+            let mut seriesResponse: crate::value::Dict = self.kalshi_public_get_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("category".to_string(), category.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            })]).await;
-            let mut seriesList: Value = self.safe_list_k(seriesResponse, "series", &[Value::from(vec![])]);
+            })]).await.into_dict();
+            let mut seriesList: Value = self.safe_list_k(&seriesResponse, "series", &[Value::from(vec![])]);
             let mut seriesListLength: f64 = ((seriesList.len() as i64) as f64);
             {
                                 let mut si: i64 = 0;

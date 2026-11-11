@@ -6450,7 +6450,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
-            let mut response: Value = self.private_post_assets_transfer(&[__ws_arg_58]).await;
+            let mut response: crate::value::Dict = self.private_post_assets_transfer(&[__ws_arg_58]).await.into_dict();
             //
             //     {
             //         "code": "0",
@@ -6465,10 +6465,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             transfer = self.parse_transfer(data, &[currency.clone()]);
         }  else {
             let mut request: Value = Value::Map({

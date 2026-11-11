@@ -11199,7 +11199,7 @@ impl Bybit {
             m
         });
         let __ws_arg_59 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_v5_asset_transfer_inter_transfer(&[__ws_arg_59]).await;
+        let mut response: crate::value::Dict = self.private_post_v5_asset_transfer_inter_transfer(&[__ws_arg_59]).await.into_dict();
         //
         // {
         //     "retCode": 0,
@@ -11211,12 +11211,12 @@ impl Bybit {
         //     "time": 1666875857205
         // }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "time", &[]).as_i64();
-        let mut transfer: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut statusRaw: Option<String> = self.safe_string2(response, Value::Str("retCode".into()), Value::Str("retMsg".into()), &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
+        let mut transfer: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut statusRaw: Option<String> = self.safe_string2(&response, Value::Str("retCode".into()), Value::Str("retMsg".into()), &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_transfer_status(statusRaw.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let __ws_arg_60 = self.parse_transfer(transfer, &[currency]);
         let __ws_arg_61 = self.iso8601(Value::from(timestamp));

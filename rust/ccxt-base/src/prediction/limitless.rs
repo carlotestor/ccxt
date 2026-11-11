@@ -649,8 +649,8 @@ impl Limitless {
                         m.insert("limit".to_string(), limit.clone());
                     m
                 }), &[&searchRest]);
-                let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_0]).await;
-                let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.limitless_public_get_markets_search(&[__ws_arg_0]).await.into_dict();
+                let mut found: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_1299: bool = true;
@@ -4045,8 +4045,8 @@ if _try_result.is_err() {
                         m.insert("limit".to_string(), limit.clone());
                     m
                 }), &[&rest]);
-                let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_30]).await;
-                let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.limitless_public_get_markets_search(&[__ws_arg_30]).await.into_dict();
+                let mut found: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_1328: bool = true;
