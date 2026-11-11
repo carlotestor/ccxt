@@ -1814,8 +1814,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut bi: i64 = 0;
                 let mut __for_first_1271: bool = true;
                 while { if !__for_first_1271 { bi += 1; } __for_first_1271 = false; bi < (rawNo.len() as i64) } {
-                let mut price: Option<f64> = self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
-                bids.push(Value::from(vec![Value::from(price), self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Value = self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
+                bids.push(Value::from(vec![price.clone(), self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
             {
@@ -1832,8 +1832,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut bi: i64 = 0;
                 let mut __for_first_1273: bool = true;
                 while { if !__for_first_1273 { bi += 1; } __for_first_1273 = false; bi < (rawYes.len() as i64) } {
-                let mut price: Option<f64> = self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
-                bids.push(Value::from(vec![Value::from(price), self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Value = self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
+                bids.push(Value::from(vec![price.clone(), self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
             {

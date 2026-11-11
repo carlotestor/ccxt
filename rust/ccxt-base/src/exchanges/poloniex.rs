@@ -3942,9 +3942,9 @@ impl Poloniex {
             let mut __for_first_1092: bool = true;
             while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Option<f64> = self.safe_number(asks.clone().into(), i.clone(), &[]).as_f64();
-                let mut amount: Option<f64> = self.safe_number(asks.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]).as_f64();
-                asksResult.push(Value::from(vec![Value::from(price), Value::from(amount)]));
+                let mut price: Value = self.safe_number(asks.clone().into(), i.clone(), &[]);
+                let mut amount: Value = self.safe_number(asks.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                asksResult.push(Value::from(vec![price.clone(), amount.clone()]));
             }
         }
         }
@@ -3953,9 +3953,9 @@ impl Poloniex {
             let mut __for_first_1093: bool = true;
             while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
-                let mut price: Option<f64> = self.safe_number(bids.clone().into(), i.clone(), &[]).as_f64();
-                let mut amount: Option<f64> = self.safe_number(bids.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]).as_f64();
-                bidsResult.push(Value::from(vec![Value::from(price), Value::from(amount)]));
+                let mut price: Value = self.safe_number(bids.clone().into(), i.clone(), &[]);
+                let mut amount: Value = self.safe_number(bids.clone().into(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
+                bidsResult.push(Value::from(vec![price, amount]));
             }
         }
         }
