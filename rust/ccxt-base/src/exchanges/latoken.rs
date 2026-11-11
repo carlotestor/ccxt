@@ -910,8 +910,8 @@ impl Latoken {
                 if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
-                let mut lowercaseQuote: Option<String> = quote.as_deref().map(str::to_lowercase);
-                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut lowercaseQuote: Value = quote.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null);
+                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote);
                 let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1547,7 +1547,7 @@ impl Latoken {
         }
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut isMaker: bool = makerBuyer && isBuy;
-        let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
+        let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1581,7 +1581,7 @@ impl Latoken {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
-        m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
+        m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));

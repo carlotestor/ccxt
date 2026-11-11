@@ -2256,10 +2256,10 @@ impl Gemini {
         //
         let mut makerBps: Option<String> = self.safe_string_k(response.clone(), "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
-        let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
-        let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
-        let mut maker: Value = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut taker: Value = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut makerString: Value = crate::precise::Precise::stringDiv(&makerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
+        let mut takerString: Value = crate::precise::Precise::stringDiv(&takerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
+        let mut maker: Value = self.parse_number(makerString, &[]);
+        let mut taker: Value = self.parse_number(takerString, &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3094,10 +3094,10 @@ impl Gemini {
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
             let mut nonceValue: Value = self.incrementing_nonce();
             let mut nonce: Option<String> = self.number_to_string(nonceValue).as_str().map(str::to_owned);
-            let mut finalUrl: String = url.clone();
+            let mut finalUrl: Value = Value::from(url.clone());
             let mut request: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("request".to_string(), Value::from(finalUrl));
+                    m.insert("request".to_string(), finalUrl);
                     m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[query.clone()]);

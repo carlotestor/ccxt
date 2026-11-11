@@ -3029,8 +3029,8 @@ impl Btse {
             request.insert("timeInForce".into(), timeInForce);
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(query.clone(), "takeProfitPrice", &[]);
-        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(query.clone(), "stopLossPrice", &[]);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(query.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
@@ -3099,14 +3099,14 @@ impl Btse {
                 // the futures conditional variant has no trigger direction field,
                 // it takes a plain trigger price with an optional limit price
                 request.insert("orderType".into(), Value::Str("CONDITIONAL".into()));
-                let mut triggerPriceToSend: Value = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
-                if (triggerPriceToSend == Value::Null) {
-                    triggerPriceToSend = takeProfitPrice.map(Value::from).unwrap_or(Value::Null);
+                let mut triggerPriceToSend: Option<String> = triggerPrice.clone();
+                if (triggerPriceToSend.is_none()) {
+                    triggerPriceToSend = takeProfitPrice;
                 }
-                if (triggerPriceToSend == Value::Null) {
-                    triggerPriceToSend = stopLossPrice.map(Value::from).unwrap_or(Value::Null);
+                if (triggerPriceToSend.is_none()) {
+                    triggerPriceToSend = stopLossPrice;
                 }
-                request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPriceToSend));
+                request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPriceToSend.clone().map(Value::from).unwrap_or(Value::Null)));
                 let mut triggerPriceType: Value = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("mark".into())]);
                 request.insert("triggerType".into(), self.encode_trigger_price_type(triggerPriceType.clone()).map(Value::from).unwrap_or(Value::Null));
                 if isLimitOrder {

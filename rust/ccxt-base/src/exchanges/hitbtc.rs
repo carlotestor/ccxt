@@ -2405,14 +2405,14 @@ impl Hitbtc {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut txhash: Option<String> = self.safe_string_k(native.clone(), "hash", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(native.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut addressTo: Option<String> = address.clone();
+        let mut addressTo: Value = address.clone().map(Value::from).unwrap_or(Value::Null);
         let mut tag: Option<String> = self.safe_string_k(native.clone(), "payment_id", &[]).as_str().map(str::to_owned);
-        let mut tagTo: Option<String> = tag.clone();
+        let mut tagTo: Value = tag.clone().map(Value::from).unwrap_or(Value::Null);
         let mut sender: Value = self.safe_list_k(native.clone(), "senders", &[]);
         let mut addressFrom: Option<String> = self.safe_string(sender, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(native.clone(), "amount", &[]).as_f64();
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
-        let mut internal: bool = subType.as_deref() == Some("OFFCHAIN");
+        let mut internal: Value = Value::Bool(subType.as_deref() == Some("OFFCHAIN"));
         // https://api.hitbtc.com/#check-if-offchain-is-available
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2440,13 +2440,13 @@ impl Hitbtc {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), addressFrom.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo);
         m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), tagTo);
         m.insert("updated".to_string(), updated);
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), Value::Bool(internal));
+        m.insert("internal".to_string(), internal);
         m.insert("fee".to_string(), Value::Map(fee));
     m
 });

@@ -1180,8 +1180,8 @@ impl Hyperliquid {
         let mut topAsk: Value = self.safe_dict(rawAsks, Value::Int(0), &[]);
         let mut bid: Value = (if (topBid != Value::Null) { self.safe_number_k(topBid.clone(), "px", &[]) } else { Value::Null });
         let mut ask: Value = (if (topAsk != Value::Null) { self.safe_number_k(topAsk.clone(), "px", &[]) } else { Value::Null });
-        let mut bidVolume: Option<f64> = (if (topBid != Value::Null) { self.safe_number_k(topBid, "sz", &[]).as_f64() } else { None });
-        let mut askVolume: Option<f64> = (if (topAsk != Value::Null) { self.safe_number_k(topAsk, "sz", &[]).as_f64() } else { None });
+        let mut bidVolume: Value = (if (topBid != Value::Null) { self.safe_number_k(topBid, "sz", &[]) } else { Value::Null });
+        let mut askVolume: Value = (if (topAsk != Value::Null) { self.safe_number_k(topAsk, "sz", &[]) } else { Value::Null });
         // Use synthetic mid if no l2Book
         let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
         if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
@@ -1215,9 +1215,9 @@ impl Hyperliquid {
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), Value::from(bidVolume));
+        m.insert("bidVolume".to_string(), bidVolume);
         m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), Value::from(askVolume));
+        m.insert("askVolume".to_string(), askVolume);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), mid.clone());
@@ -2457,7 +2457,7 @@ impl Hyperliquid {
         let mut tif: Value = self.parse_time_in_force(tifRaw.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
         let mut isTrigger: bool = self.safe_bool_k(entry.clone(), "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut triggerPrice: Option<f64> = (if isTrigger { self.safe_number_k(entry.clone(), "triggerPx", &[]).as_f64() } else { None });
+        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(entry.clone(), "triggerPx", &[]) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(entry.clone(), "oid", &[]));
@@ -2477,7 +2477,7 @@ impl Hyperliquid {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(entry.clone(), "reduceOnly", &[Value::Bool(false)]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), self.safe_number_k(entry.clone(), "limitPx", &[]));
-        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
+        m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("amount".to_string(), self.parse_number(totalAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_number_k(entry, "avgPx", &[]));

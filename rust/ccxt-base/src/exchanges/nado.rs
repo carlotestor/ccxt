@@ -863,12 +863,12 @@ impl Nado {
             placeOrder.insert("spot_leverage".into(), spotLeverage.map(Value::Bool).unwrap_or(Value::Null));
         }
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut triggerPrice: Value = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2(paramsRecvWindow.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopOrder: bool = triggerPrice != Value::Null;
+        let mut isStopOrder: bool = triggerPrice.is_some();
         let mut isTriggerOrder: bool = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if isStopOrder {
             // the final omit drops triggerDirection from the request
@@ -877,7 +877,7 @@ impl Nado {
             if (triggerDirection.as_deref() == Some("ascending")) {
                 directionSuffix = "above".to_string();
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -901,11 +901,11 @@ impl Nado {
                 oracleSide = (if isStopLossOrder { "below".to_string() } else { "above".to_string() });
             }
             if isStopLossOrder {
-                triggerPrice = stopLossTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                triggerPrice = stopLossTriggerPrice;
             }  else {
-                triggerPrice = takeProfitTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                triggerPrice = takeProfitTriggerPrice;
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             let mut priceRequirement: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1075,7 +1075,7 @@ impl Nado {
         let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut cancelNonce: Value = self.create_order_nonce(recvWindow).map(Value::from).unwrap_or(Value::Null);
-        let mut orderNonce: Option<String> = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into())).as_str().map(str::to_owned);
+        let mut orderNonce: Value = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into()));
         let mut rawAppendix: Option<String> = self.safe_string_k(paramsRecvWindow.clone(), "appendix", &[]).as_str().map(str::to_owned);
         let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
         if (rawAppendix.is_none()) {
@@ -1101,7 +1101,7 @@ impl Nado {
                 m.insert("priceX18".to_string(), priceX18);
                 m.insert("amount".to_string(), amountX18);
                 m.insert("expiration".to_string(), expiration);
-                m.insert("nonce".to_string(), orderNonce.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("nonce".to_string(), orderNonce);
                 m.insert("appendix".to_string(), appendix);
             m
         });
@@ -2551,13 +2551,13 @@ impl Nado {
             let mut baseId: Value = self.safe_string_k(baseAsset, "product_id", &[rawBaseId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut quoteId: Value = self.safe_string_k(quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
             let mut settleId: Value = (if contract { quoteId.clone() } else { Value::Null });
-            let mut settle: Option<String> = (if contract { quote.clone() } else { None });
+            let mut settle: Value = (if contract { quote.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             if contract {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let mut tradingStatus: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
-            let mut active: bool = tradingStatus.as_deref() != Some("not_tradable");
+            let mut active: Value = (Value::Bool(tradingStatus.as_deref() != Some("not_tradable")));
             let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "price_increment_x18", &[]));
             let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "size_increment", &[]));
             let mut minCost: Value = self.parse_x18(self.safe_string_k(market.clone(), "min_size", &[]));
@@ -2568,7 +2568,7 @@ impl Nado {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("settle".to_string(), settle);
         m.insert("baseId".to_string(), baseId);
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
@@ -2578,7 +2578,7 @@ impl Nado {
         m.insert("swap".to_string(), Value::Bool(contract));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), (if contract { Value::Bool(true) } else { Value::Null }));
         m.insert("inverse".to_string(), (if contract { Value::Bool(false) } else { Value::Null }));
@@ -3802,8 +3802,8 @@ impl Nado {
             }
             if (markPriceX18.is_some()) {
                 markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut notionalX36: Option<String> = crate::precise::Precise::stringMul(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &markPriceX18.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000000000000000000000".into())), &[]);
+                let mut notionalX36: Value = crate::precise::Precise::stringMul(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
+                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36, &Value::Str("1000000000000000000000000000000000000".into())), &[]);
             }
         }
         return self.safe_position(Value::Map({
@@ -4096,12 +4096,12 @@ impl Nado {
 
     pub fn create_order_nonce(&self, mut recvWindow: Value) -> Option<String> {
         let mut expires: Value = self.sum(&[self.milliseconds(), recvWindow]);
-        let mut highBits: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(expires), &Value::Str("1048576".into())).as_str().map(str::to_owned);
+        let mut highBits: Value = crate::precise::Precise::stringMul(&self.number_to_string(expires), &Value::Str("1048576".into()));
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected
         let mut entropy: Value = self.rand_number(Value::Int(6));
-        return crate::precise::Precise::stringAdd(&highBits.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(entropy)).as_str().map(str::to_owned);
+        return crate::precise::Precise::stringAdd(&highBits, &self.number_to_string(entropy)).as_str().map(str::to_owned);
 }
 
     pub fn create_order_appendix(&self, isTriggerOrder: bool, optional_args: &[Value]) -> Value {

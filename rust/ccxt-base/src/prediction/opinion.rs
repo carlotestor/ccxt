@@ -1013,8 +1013,8 @@ impl Opinion {
         }
         }
         let mut statusEnum: Option<String> = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
-        let mut active: bool = statusEnum.as_deref() == Some("Activated");
-        let mut resolved: bool = statusEnum.as_deref() == Some("Resolved");
+        let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
+        let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
         let mut end: Option<i64> = None;
         if (self.safe_integer_k(rawEvent.clone(), "cutoffAt", &[Value::Int(0)]).as_f64() != Some(0.0)) {
             end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]).as_i64();
@@ -1037,8 +1037,8 @@ impl Opinion {
         m.insert("category".to_string(), __ws_arg_7);
         m.insert("tags".to_string(), labels);
         m.insert("markets".to_string(), Value::from(marketsList));
-        m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), Value::Bool(resolved));
+        m.insert("active".to_string(), active);
+        m.insert("resolved".to_string(), resolved);
         m.insert("volume".to_string(), __ws_arg_8);
         m.insert("created".to_string(), Value::from(created));
         m.insert("createdDatetime".to_string(), __ws_arg_9);
@@ -1805,11 +1805,11 @@ impl Opinion {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        let mut status: Option<String> = (if canceled { Some("canceled".to_string()) } else { None });
+        let mut status: Value = (if canceled { Value::Str("canceled".into()) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
-        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), status);
         m.insert("info".to_string(), response);
     m
 }), &[]);
@@ -2734,8 +2734,8 @@ if _try_result.is_err() {
 })]);
             if (self.safe_integer_k(info, "marketId", &[]).as_f64() == marketId.as_f64()) {
                 let mut outcomes: Value = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]);
-                let mut index: i64 = (if (outcomeSide.as_f64() == Some(2.0)) { 1 } else { 0 });
-                return self.safe_dict(outcomes, Value::from(index), &[]);
+                let mut index: Value = (if (outcomeSide.as_f64() == Some(2.0)) { Value::Int(1) } else { Value::Int(0) });
+                return self.safe_dict(outcomes, index, &[]);
             }
         }
         }

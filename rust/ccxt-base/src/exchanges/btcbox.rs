@@ -480,7 +480,7 @@ impl Btcbox {
             let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseCurr: String = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quote: String = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut quoteId: String = quote.to_lowercase();
+            let mut quoteId: Value = Value::from(quote.to_lowercase());
             let mut id: String = baseCurr.to_lowercase();
             let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -504,7 +504,7 @@ impl Btcbox {
         m.insert("base".to_string(), Value::from(baseCurr));
         m.insert("baseId".to_string(), Value::from(id));
         m.insert("quote".to_string(), Value::from(quote));
-        m.insert("quoteId".to_string(), Value::from(quoteId));
+        m.insert("quoteId".to_string(), quoteId);
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));

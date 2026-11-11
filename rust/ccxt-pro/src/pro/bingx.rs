@@ -665,7 +665,7 @@ impl Bingx {
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
         let mut inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)));
-        let mut baseVolumeKey: String = (if inverse { "m".to_string() } else { "v".to_string() });
+        let mut baseVolumeKey: Value = (if inverse { Value::Str("m".into()) } else { Value::Str("v".into()) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -685,7 +685,7 @@ impl Bingx {
         m.insert("change".to_string(), self.safe_string_k(message.clone(), "p", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string(message.clone(), Value::from(baseVolumeKey), &[]));
+        m.insert("baseVolume".to_string(), self.safe_string(message.clone(), baseVolumeKey, &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(message.clone(), "q", &[]));
         m.insert("info".to_string(), message);
     m
@@ -1569,15 +1569,15 @@ impl Bingx {
         }
         let mut spotMessageHash: String = "spot:order".to_string();
         let mut swapMessageHash: String = "swap:order".to_string();
-        let mut messageHash: Value = Value::from(swapMessageHash.clone());
+        let mut messageHash: String = swapMessageHash.clone();
         if isSpot {
-            messageHash = Value::from(spotMessageHash.clone());
+            messageHash = spotMessageHash.clone();
         }
         if (market.is_some()) {
             if isSpot {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into());
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
             }  else {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into());
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
             }
         }
         let mut uuid: Value = self.uuid(&[]);
@@ -1609,7 +1609,7 @@ impl Bingx {
                 m.insert("id".to_string(), uuid);
             m
         });
-        let mut orders: Value = self.watch(Value::from(url), messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
+        let mut orders: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, subscriptionHash, Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -1668,15 +1668,15 @@ impl Bingx {
         }
         let mut spotMessageHash: String = "spot:mytrades".to_string();
         let mut swapMessageHash: String = "swap:mytrades".to_string();
-        let mut messageHash: Value = Value::from(swapMessageHash.clone());
+        let mut messageHash: String = swapMessageHash.clone();
         if isSpot {
-            messageHash = Value::from(spotMessageHash.clone());
+            messageHash = spotMessageHash.clone();
         }
         if (market.is_some()) {
             if isSpot {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into());
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
             }  else {
-                messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into());
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
             }
         }
         let mut uuid: Value = self.uuid(&[]);
@@ -1708,7 +1708,7 @@ impl Bingx {
                 m.insert("id".to_string(), uuid);
             m
         });
-        let mut trades: Value = self.watch(Value::from(url), messageHash, &[request, subscriptionHash, Value::Map(subscription)]).await;
+        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash), &[request, subscriptionHash, Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -1996,7 +1996,7 @@ impl Bingx {
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "pa", &[]).as_str().map(str::to_owned);
-        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&contracts.clone().map(Value::from).unwrap_or(Value::Null));
         let mut positionSide: Option<String> = self.safe_string_lower_k(position.clone(), "ps", &[]).as_str().map(str::to_owned);
         let mut hedged: bool = true;
         if (positionSide.as_deref() == Some("both")) {
@@ -2010,7 +2010,7 @@ impl Bingx {
             }
         }
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "mt", &[]).as_str().map(str::to_owned);
-        let mut collateral: Option<f64> = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(position.clone(), "iw", &[]).as_f64() } else { None });
+        let mut collateral: Value = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(position.clone(), "iw", &[]) } else { Value::Null });
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -2022,7 +2022,7 @@ impl Bingx {
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "ep", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "up", &[]));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("contracts".to_string(), self.parse_number(contractsAbs.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("contracts".to_string(), self.parse_number(contractsAbs, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("side".to_string(), positionSide.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2031,7 +2031,7 @@ impl Bingx {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), Value::from(collateral));
+        m.insert("collateral".to_string(), collateral);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);

@@ -1596,7 +1596,7 @@ impl Bitrue {
         if (minCost.is_none()) {
             minCost = self.safe_number_k(market.clone(), "minOrderMoney", &[]).as_f64();
         }
-        let mut isSpot: bool = type_var == "spot";
+        let mut isSpot: Value = (Value::Bool(type_var == "spot"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -1609,7 +1609,7 @@ impl Bitrue {
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("spot".to_string(), Value::Bool(isSpot));
+        m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(isContract));
         m.insert("future".to_string(), Value::Bool(false));
@@ -2773,7 +2773,7 @@ impl Bitrue {
                 paramsNoCost = self.omit(paramsRequiresPrice.clone(), Value::Str("cost".into()), &[]);
             }
             if isMarketBuyWithPrice {
-                let mut cost: Option<String> = self.safe_string_k_opt(paramsRequiresPrice, "cost", &[]);
+                let mut cost: Option<String> = self.safe_string_k(paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
                         Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add \
@@ -2781,10 +2781,10 @@ impl Bitrue {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
-                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    let mut requestAmount: Value = quoteAmount.clone().map(Value::from).unwrap_or(Value::Null);
+                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
+                    let mut requestAmount: Value = quoteAmount;
                     if (cost.is_some()) {
-                        requestAmount = cost.map(Value::from).unwrap_or(Value::Null);
+                        requestAmount = cost.clone().map(Value::from).unwrap_or(Value::Null);
                     }
                     request.insert("amount".into(), self.cost_to_precision(symbol.clone(), requestAmount.clone()));
                     request.insert("volume".into(), self.cost_to_precision(symbol.clone(), requestAmount));

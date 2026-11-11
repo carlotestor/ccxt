@@ -894,8 +894,8 @@ impl Grvt {
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut secondPart: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut timeframeId: String = secondPart.replace("-TRADE", "");
-        let mut timeframe: Value = self.find_timeframe(Value::from(timeframeId), &[]);
+        let mut timeframeId: Value = Value::from(secondPart.replace("-TRADE", ""));
+        let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
         if (timeframe == Value::Null) {
             return;
         }

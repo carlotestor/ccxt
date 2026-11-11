@@ -1639,7 +1639,7 @@ impl Hashkey {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), suffix);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: bool = status.as_deref() == Some("TRADING");
+        let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
         let mut isLinear: Option<bool> = None;
         let mut subType: Option<String> = None;
         let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
@@ -1682,15 +1682,15 @@ impl Hashkey {
                 let mut first: Value = self.safe_dict(riskLimits.clone(), Value::Int(0), &[]);
                 let mut arrayLength: Value = Value::Int(riskLimits.len() as i64);
                 let mut last: Value = self.safe_dict(riskLimits, (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-                let mut minInitialMargin: Value = self.safe_string_k(first, "initialMargin", &[]);
-                let mut maxInitialMargin: Value = self.safe_string_k(last, "initialMargin", &[]);
-                if crate::precise::Precise::stringGt(&minInitialMargin, &maxInitialMargin).as_bool() == Some(true) {
-                    let mut initialMarginsSwapped: Value = minInitialMargin.clone();
+                let mut minInitialMargin: Option<String> = self.safe_string_k(first, "initialMargin", &[]).as_str().map(str::to_owned);
+                let mut maxInitialMargin: Option<String> = self.safe_string_k(last, "initialMargin", &[]).as_str().map(str::to_owned);
+                if crate::precise::Precise::stringGt(&minInitialMargin.clone().map(Value::from).unwrap_or(Value::Null), &maxInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    let mut initialMarginsSwapped: Option<String> = minInitialMargin.clone();
                     minInitialMargin = maxInitialMargin.clone();
                     maxInitialMargin = initialMarginsSwapped;
                 }
-                minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin));
-                maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin));
+                minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)));
+                maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)));
             }
         }
         let mut tradingFees: Value = self.safe_dict_k(self.fees.clone(), "trading", &[]);
@@ -1708,7 +1708,7 @@ impl Hashkey {
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("active".to_string(), active);
         m.insert("type".to_string(), Value::from(marketType));
         m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));

@@ -1614,15 +1614,15 @@ impl Derive {
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
         let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
-        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&Value::from(newSize)).as_str().map(str::to_owned);
+        let mut contracts: Value = crate::precise::Precise::stringAbs(&Value::from(newSize));
         let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey, &[]);
         let mut symbolPositions: Value = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         // a fill through zero flattens the opposite side first
-        let mut oppositeSide: String = (if isShort.as_bool() == Some(true) { "long".to_string() } else { "short".to_string() });
-        let mut opposite: Value = self.safe_dict(symbolPositions.clone(), Value::from(oppositeSide), &[]);
+        let mut oppositeSide: Value = (if isShort.as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut opposite: Value = self.safe_dict(symbolPositions.clone(), oppositeSide, &[]);
         if (opposite != Value::Null) {
             let mut oppositeContracts: Option<String> = self.safe_string_k(opposite.clone(), "contracts", &[]).as_str().map(str::to_owned);
             if (oppositeContracts.is_some()) && (oppositeContracts.as_deref() != Some("0")) {
@@ -1645,7 +1645,7 @@ impl Derive {
                 m
             }));
         }
-        add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
+        add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts, &[]));
         add_element_to_object(&mut position, &Value::Str("side".into()), Value::from(side));
         add_element_to_object(&mut position, &Value::Str("lastUpdateTimestamp".into()), self.milliseconds());
         add_element_to_object(&mut position, &Value::Str("info".into()), entry);

@@ -1480,10 +1480,10 @@ impl Deepcoin {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open24h", &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "volCcy24h", &[]);
-        let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
+        let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "volCcy24h", &[]).as_str().map(str::to_owned);
+        let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "vol24h", &[]).as_str().map(str::to_owned);
         if matches!((self.safe_bool_k(marketResolved.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
-            let mut temp: Value = baseVolume.clone();
+            let mut temp: Option<String> = baseVolume.clone();
             baseVolume = quoteVolume.clone();
             quoteVolume = temp;
         }
@@ -1508,8 +1508,8 @@ impl Deepcoin {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume);
-        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("baseVolume".to_string(), baseVolume.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteVolume".to_string(), quoteVolume.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
@@ -2060,7 +2060,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut defaultNetwork: Option<String> = self.safe_string(defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
+        let mut defaultNetwork: Option<String> = self.safe_string_opt(defaultNetworks, code.clone(), &[]);
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null);
         }
@@ -2235,7 +2235,7 @@ impl Deepcoin {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "ts", &[]).as_i64();
         let mut change: Option<String> = self.safe_string_k(item.clone(), "balChg", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&change.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amount: Value = crate::precise::Precise::stringAbs(&change.clone().map(Value::from).unwrap_or(Value::Null));
         let mut direction: String = "in".to_string();
         if crate::precise::Precise::stringLt(&change.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = "out".to_string();
@@ -2253,7 +2253,7 @@ impl Deepcoin {
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("before".to_string(), Value::Null);
@@ -3461,18 +3461,18 @@ impl Deepcoin {
         }
         let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
-        let mut encodedMarginMode: i64 = (if (marginMode.as_deref() == Some("isolated")) { 0 } else { 1 });
+        let mut encodedMarginMode: Value = (if (marginMode.as_deref() == Some("isolated")) { Value::Int(0) } else { Value::Int(1) });
         let mut paramsOmitted: Value = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params });
         let mergedparamsMergedVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut merged: bool = mergedparamsMergedVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsMerged: Value = mergedparamsMergedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isMergedMode: i64 = (if merged { 1 } else { 0 });
+        let mut isMergedMode: Value = (if merged { Value::Int(1) } else { Value::Int(0) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentID".to_string(), Value::from((market).id.clone()));
                 m.insert("ProductGroup".to_string(), productGroup);
-                m.insert("IsCrossMargin".to_string(), Value::from(encodedMarginMode));
-                m.insert("IsMergeMode".to_string(), Value::from(isMergedMode));
+                m.insert("IsCrossMargin".to_string(), encodedMarginMode);
+                m.insert("IsMergeMode".to_string(), isMergedMode);
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[paramsMerged]);
@@ -4564,13 +4564,13 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut msg: Value = self.safe_string_k(response.clone(), "msg", &[]);
+        let mut msg: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
         let mut messageCode: Option<String> = self.safe_string_k(response, "code", &[]).as_str().map(str::to_owned);
-        let mut sCode: Value = self.safe_string_k(data.clone(), "sCode", &[]);
+        let mut sCode: Option<String> = self.safe_string_k(data.clone(), "sCode", &[]).as_str().map(str::to_owned);
         let mut sMsg: Option<String> = self.safe_string_k(data.clone(), "sMsg", &[]).as_str().map(str::to_owned);
         let mut errorCode: Option<String> = self.safe_string_k(data.clone(), "errorCode", &[]).as_str().map(str::to_owned);
-        if (msg != Value::Null) && (msg.as_str() == Some("")) && (sMsg.is_some()) {
-            msg = sMsg.clone().map(Value::from).unwrap_or(Value::Null);
+        if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
+            msg = sMsg;
         }
         let mut errorList: Value = self.safe_list_k(data.clone(), "errorList", &[]);
         if (errorList != Value::Null) {
@@ -4587,18 +4587,18 @@ impl Deepcoin {
             }
         }
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-        if (sCode == Value::Null) && (errorCode.is_some()) {
-            sCode = errorCode.clone().map(Value::from).unwrap_or(Value::Null);
+        if (sCode.is_none()) && (errorCode.is_some()) {
+            sCode = errorCode;
         }
         let mut retCode: Option<String> = self.safe_string_k(data.clone(), "retCode", &[]).as_str().map(str::to_owned);
-        if (sCode == Value::Null) && (retCode.is_some()) {
-            sCode = retCode.clone().map(Value::from).unwrap_or(Value::Null);
+        if (sCode.is_none()) && (retCode.is_some()) {
+            sCode = retCode;
         }
-        if (code.as_f64() != Some(200.0)) || (messageCode.as_deref() != Some("0")) || ((sCode != Value::Null) && (sCode.as_str() != Some("0"))) {
+        if (code.as_f64() != Some(200.0)) || (messageCode.as_deref() != Some("0")) || ((sCode.is_some()) && (sCode.as_deref() != Some("0"))) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), messageCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), sCode, Value::from(feedback.clone()));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), msg.clone(), Value::from(feedback.clone()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg, Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), sCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), msg.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }  else {
             let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);

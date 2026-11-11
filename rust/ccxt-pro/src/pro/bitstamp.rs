@@ -1181,20 +1181,20 @@ impl Bitstamp {
         }
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price_str", &[]).as_str().map(str::to_owned);
         let mut amountLeft: Option<String> = self.safe_string_k(order.clone(), "amount_str", &[]).as_str().map(str::to_owned);
-        let mut amountAtCreate: Option<String> = self.safe_string_k_opt(order.clone(), "amount_at_create", &[]);
+        let mut amountAtCreate: Option<String> = self.safe_string_k(order.clone(), "amount_at_create", &[]).as_str().map(str::to_owned);
         // amount_str carries the amount left to be executed, while
         // amount_at_create is the original order amount - older messages
         // do not carry amount_at_create, so fall back to the old behaviour
-        let mut amount: Value = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut amount: Option<String> = amountLeft.clone();
         let mut remaining: Value = Value::Null;
         if (amountAtCreate.is_some()) {
-            amount = amountAtCreate.map(Value::from).unwrap_or(Value::Null);
+            amount = amountAtCreate;
             remaining = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "amount_traded", &[]).as_str().map(str::to_owned);
         let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = None;
-        if crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             status = Some("closed".to_string());
         }  else if (event.as_deref() == Some("order_deleted")) {
             status = Some("canceled".to_string());
@@ -1219,7 +1219,7 @@ impl Bitstamp {
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));

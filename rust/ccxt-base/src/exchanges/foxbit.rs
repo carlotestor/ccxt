@@ -2585,7 +2585,7 @@ impl Foxbit {
         let mut amount: Value = self.safe_string_k(trade.clone(), "volume", &[self.safe_string(trade.clone(), Value::Str("quantity".into()), &[])]);
         let mut privateSideField: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "taker_side", &[privateSideField.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut cost: Option<String> = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_str().map(str::to_owned);
+        let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_symbol(self.safe_string_k(trade.clone(), "fee_currency_symbol", &[]), &[]));
@@ -2606,7 +2606,7 @@ impl Foxbit {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), Value::Map(fee));
     m
 }), &[market]);
@@ -2758,12 +2758,12 @@ impl Foxbit {
             // actualAmount = amount - fee;
             actualAmount = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &fee).as_str().map(str::to_owned);
         }
-        let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&fee, &actualAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeRate: Value = crate::precise::Precise::stringDiv(&fee, &actualAmount.clone().map(Value::from).unwrap_or(Value::Null));
         let mut feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.parse_number(fee, &[]));
                 m.insert("currency".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("rate".to_string(), self.parse_number(feeRate.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("rate".to_string(), self.parse_number(feeRate, &[]));
             m
         });
         return Value::Map({

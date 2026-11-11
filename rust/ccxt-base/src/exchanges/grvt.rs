@@ -1540,7 +1540,7 @@ if _try_result.is_err() {
         if (typeRaw.as_deref() == Some("PERPETUAL")) {
             type_var = Some("swap".to_string());
         }
-        let mut isSpot: bool = type_var.as_deref() == Some("spot");
+        let mut isSpot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
         let mut isSwap: Value = (Value::Bool(type_var.as_deref() == Some("swap")));
         let mut isFuture: Value = (Value::Bool(type_var.as_deref() == Some("future")));
         let mut isContract: Value = Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true)));
@@ -1555,7 +1555,7 @@ if _try_result.is_err() {
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), Value::Bool(isSpot));
+        m.insert("spot".to_string(), isSpot);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), isSwap.clone());
         m.insert("future".to_string(), isFuture);
