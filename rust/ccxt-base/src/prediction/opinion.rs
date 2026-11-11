@@ -1350,8 +1350,8 @@ impl Opinion {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".into())).into()), timeframe).into()), Value::Str(", supported timeframes are ".into())).into()),
                 Value::Str(supportedKeys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: Option<String> = self.safe_string_k(outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let __ws_arg_16 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2205,7 +2205,7 @@ impl Opinion {
     pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "createdAt", &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_trade(Value::Map({
@@ -2222,10 +2222,10 @@ impl Opinion {
         m.insert("currency".to_string(), Value::Str("USDT".into()));
     m
 }));
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string2(outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string2(&outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
     m
 }), &[]);
 
@@ -2374,8 +2374,8 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1401: bool = true;
             while { if !__for_first_1401 { i += 1; } __for_first_1401 = false; i < (outcomesList.len() as i64) } {
-            let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj, "outcomeId", &[]);
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
                 wantedTokenIds.insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -2414,7 +2414,7 @@ impl Opinion {
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(position.clone(), "tokenId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
         let mut outcomeSideEnum: Option<String> = self.safe_string_lower_k(position.clone(), "outcomeSideEnum", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2422,10 +2422,10 @@ impl Opinion {
         m.insert("side".to_string(), outcomeSideEnum.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPnl", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgEntryPrice", &[]));
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string2(outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string2(&outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("info".to_string(), position);
     m
 }));

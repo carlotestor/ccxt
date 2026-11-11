@@ -2303,7 +2303,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).into_dict();
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut fillOdds: Option<String> = self.safe_string_k(fill.clone(), "fillOdds", &[]).as_str().map(str::to_owned);
@@ -2323,10 +2323,10 @@ impl Sxbet {
         m.insert("info".to_string(), fill.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("order".to_string(), self.safe_string_k(fill, "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
@@ -2516,7 +2516,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut odds: crate::value::Dict = self.safe_dict_k(raw.clone(), "odds", &[Value::Map({
@@ -2535,10 +2535,10 @@ impl Sxbet {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(raw.clone(), "betTime", &[]));
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(raw.clone(), "updatedAt", &[])));
@@ -2655,7 +2655,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
         let mut settlement: crate::value::Dict = self.safe_dict_k(trade.clone(), "settlement", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2673,10 +2673,10 @@ impl Sxbet {
         if isVoid {
             resultLabel = Value::Str("VOID".into());
         }  else if (winner.is_some()) {
-            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut labelKey: String = "outcomeTwoName".to_string();
             if (winner == Some(1)) {
                 labelKey = "outcomeOneName".to_string();
@@ -2694,9 +2694,9 @@ impl Sxbet {
         m.insert("id".to_string(), self.safe_string_k(trade, "tradeId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), resultLabel);
         m.insert("won".to_string(), won);
@@ -2999,8 +2999,8 @@ impl Sxbet {
         //     }
         //
         let mut marketAny: Value = market.clone();
-        let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
-        let mut outcomeId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut marketHash: Option<String> = self.safe_string_k(raw.clone(), "marketHash", &[]).as_str().map(str::to_owned);
         let mut isOutcomeOne: bool = outcomeId == marketHash;
         let mut outcomeOneOdds: Value = self.safe_dict_k(raw.clone(), "outcomeOne", &[Value::Map({
@@ -3035,10 +3035,10 @@ impl Sxbet {
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
         m.insert("outcomeId".to_string(), outcomeId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
@@ -3538,8 +3538,8 @@ impl Sxbet {
             if (self.safe_string(watchedBooks.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
                 continue;
             }
-            let mut outcomeObj: Value = self.outcome(sym.clone());
-            let mut outcomeId: Value = self.safe_string_k(outcomeObj, "outcomeId", &[]);
+            let mut outcomeObj: crate::value::Dict = self.outcome(sym.clone()).into_dict();
+            let mut outcomeId: Value = self.safe_string_k(&outcomeObj, "outcomeId", &[]);
             let mut isOutcomeOne: bool = outcomeId == marketHash;
             let mut sides: Value = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne);
             let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), sym.clone(), &[]);
@@ -3760,8 +3760,8 @@ impl Sxbet {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut sym: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::Str("recent_trades_v3:global".into())).await;
         return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -3786,7 +3786,7 @@ impl Sxbet {
         }  else {
             outcomeId = Some(format!("{}{}", marketHash, Value::Str("-2".into())));
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut odds: Option<String> = self.safe_string_k(trade.clone(), "weightedAverageOdds", &[]).as_str().map(str::to_owned);
@@ -3800,10 +3800,10 @@ impl Sxbet {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
@@ -3882,8 +3882,8 @@ impl Sxbet {
         let mut messageHash: String = "myTrades".to_string();
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcome.clone());
-            let mut sym: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+            let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("myTrades::".into()), sym);
         }
         let mut channel: String = format!("{}{}", Value::Str("account:fills_v3_#".into()), self.walletAddress.clone());
@@ -3953,8 +3953,8 @@ impl Sxbet {
         let mut messageHash: String = "orders".to_string();
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcome.clone());
-            let mut sym: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+            let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("orders::".into()), sym);
         }
         let mut channel: String = format!("{}{}", Value::Str("account:orders_v3_#".into()), self.walletAddress.clone());

@@ -1215,19 +1215,19 @@ impl Binance {
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         let mut marketAny: Value = market.clone();
-        let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
-        let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut outcomeIndex: Option<String> = self.safe_string_k(&outcomeInfo, "index", &[]).as_str().map(str::to_owned);
         let mut isMirrored: bool = false;
         if (outcomeIndex.is_some()) {
             isMirrored = outcomeIndex.as_deref() != Some("0");
         }  else {
-            let mut label: Option<String> = self.safe_string_upper_k(outcomeObj.clone(), "label", &[Value::Str("YES".into())]).as_str().map(str::to_owned);
+            let mut label: Option<String> = self.safe_string_upper_k(&outcomeObj, "label", &[Value::Str("YES".into())]).as_str().map(str::to_owned);
             isMirrored = (label.as_deref() == Some("NO")) || (label.as_deref() == Some("DOWN"));
         }
         let mut lastString: Option<String> = self.safe_string_k(raw.clone(), "lastTradePrice", &[]).as_str().map(str::to_owned);
@@ -1241,10 +1241,10 @@ impl Binance {
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
@@ -1807,8 +1807,8 @@ impl Binance {
                 let mut __for_first_1223: bool = true;
                 while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
-                let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
+                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
+                let mut requestedOutcome: Value = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]);
                 requestedOutcomeSymbols.insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true));
             }
             }

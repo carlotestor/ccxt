@@ -521,8 +521,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -596,8 +596,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -719,8 +719,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
@@ -799,8 +799,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
@@ -955,8 +955,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -1027,8 +1027,8 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsList: Value = symbolsNormalized;
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsList.clone()]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -1195,8 +1195,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchTradesForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1268,8 +1268,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("unWatchTradesForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1588,8 +1588,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchOrderBookForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1659,8 +1659,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+        let mut type_var: String = self.safe_string_k(&firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("unWatchOrderBookForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);

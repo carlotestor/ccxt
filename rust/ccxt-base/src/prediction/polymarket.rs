@@ -2226,8 +2226,8 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".into())).into()), timeframe).into()), Value::Str(", supported timeframes are ".into())).into()),
                 Value::Str(supportedKeys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: Option<String> = self.safe_string_k(outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut fidelityMin: Value = self.safe_integer(self.timeframes.clone(), timeframe, &[Value::Int(1)]); // fidelity in minutes
         let mut nowS: Value = self.seconds();
         let mut startS: Value = Value::Null;
@@ -2568,12 +2568,12 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: String = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut conditionId: Option<String> = self.safe_string_k(&outcomeInfo, "conditionId", &[]).as_str().map(str::to_owned);
         if (conditionId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires outcome.info.conditionId for an outcome ".into())).into()), tokenId)));
@@ -2970,7 +2970,7 @@ impl Polymarket {
     pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(position.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut marketData: Value = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut marketData: crate::value::Dict = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
         let mut size: Value = self.safe_number_k(position.clone(), "size", &[]);
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "avgPrice", &[]).as_f64();
         let mut curPrice: Value = self.safe_number_k(position.clone(), "currentPrice", &[]);
@@ -2981,11 +2981,11 @@ impl Polymarket {
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
-        m.insert("outcome".to_string(), self.safe_string_k(marketData.clone(), "outcome", &[]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(marketData.clone(), "outcomeId", &[]));
-        m.insert("market".to_string(), self.safe_string_k(marketData.clone(), "market", &[]));
-        m.insert("label".to_string(), self.safe_string_k(marketData.clone(), "label", &[]));
-        m.insert("event".to_string(), self.safe_string_k(marketData, "event", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&marketData, "outcome", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&marketData, "outcomeId", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&marketData, "market", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&marketData, "label", &[]));
+        m.insert("event".to_string(), self.safe_string_k(&marketData, "event", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("contracts".to_string(), size);
@@ -3917,10 +3917,10 @@ impl Polymarket {
         let mut response: Value = Value::Null;
         if (outcome != Value::Null) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-            let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
+            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asset_id".to_string(), self.safe_string_k(outcomeObj, "outcomeId", &[]));
+                    m.insert("asset_id".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
                 m
             });
             let __ws_arg_15 = self.extend(Value::Map(request), &[params.clone()]);
@@ -4791,7 +4791,7 @@ if _try_result.is_err() {
             asks.push(Value::from(vec![self.safe_number_k(&a, "price", &[]), self.safe_number_k(&a, "size", &[])]));
         }
         }
-        let mut outcomeObj: Value = self.safe_outcome(outcome.clone(), &[]);
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(outcome.clone(), &[]).into_dict();
         orderbook.reset(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), Value::from(bids));
@@ -4800,7 +4800,7 @@ if _try_result.is_err() {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("outcome".to_string(), outcome.clone());
                 m.insert("outcomeId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
+                m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
             m
         }));
         client.resolve(&[orderbook.clone(), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())]);
@@ -4921,9 +4921,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: String = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut outcomeValue: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeValue: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), outcomeValue);
         let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe::".into()), tokenId);
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
@@ -4962,9 +4962,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: String = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut outcomeValue: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeValue: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), outcomeValue);
         let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe::".into()), tokenId);
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
@@ -4999,9 +4999,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: String = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut outcomeValue: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
+        let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+        let mut tokenId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut outcomeValue: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         if (outcomeValue.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() missing outcome".into()))));
         }
@@ -5115,9 +5115,9 @@ if _try_result.is_err() {
         let mut messageHash: String = "orders".to_string();
         let mut outcomeResolved: Value = outcome;
         if (outcomeResolved != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
-            outcomeResolved = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            let mut outcomeName: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcomeResolved.clone(), &[]).await.into_dict();
+            outcomeResolved = self.safe_string_k(&outcomeObj, "outcome", &[]);
+            let mut outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("orders::".into()), outcomeName);
         }
         let mut orders: Value = self.subscribe_user_channel(Value::from(messageHash), &[params]).await;
@@ -5158,9 +5158,9 @@ if _try_result.is_err() {
         let mut messageHash: String = "myTrades".to_string();
         let mut outcomeResolved: Value = outcome;
         if (outcomeResolved != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcomeResolved.clone(), &[]).await;
-            outcomeResolved = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            let mut outcomeName: String = self.safe_string_k(outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcomeResolved.clone(), &[]).await.into_dict();
+            outcomeResolved = self.safe_string_k(&outcomeObj, "outcome", &[]);
+            let mut outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("myTrades::".into()), outcomeName);
         }
         let mut trades: Value = self.subscribe_user_channel(Value::from(messageHash), &[params]).await;

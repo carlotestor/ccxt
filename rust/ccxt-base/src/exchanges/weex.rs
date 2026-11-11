@@ -2789,8 +2789,8 @@ impl Weex {
             m
         });
         if (((symbolsLength as f64) == 1.0)) {
-            let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-            request.insert("symbol".into(), self.safe_string_k(market, "id", &[]));
+            let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await;

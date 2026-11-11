@@ -2276,8 +2276,8 @@ impl Limitless {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders requires an outcome argument".into()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("slug".to_string(), self.safe_string_k(&info, "slug", &[]));
@@ -2695,8 +2695,8 @@ impl Limitless {
         }
         let mut id: Option<String> = self.safe_string_k(rawOrder.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut tokenId: Option<String> = self.safe_string2(rawOrder.clone(), Value::Str("token".into()), Value::Str("tokenId".into()), &[]).as_str().map(str::to_owned);
-        let mut mkt: Value = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
-        let mut outcomeSymbol: Option<String> = self.safe_string_k(mkt.clone(), "outcome", &[]).as_str().map(str::to_owned);
+        let mut mkt: crate::value::Dict = self.safe_outcome(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut outcomeSymbol: Option<String> = self.safe_string_k(&mkt, "outcome", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.parse_order_side(rawSide.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k(rawOrder.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -2749,9 +2749,9 @@ impl Limitless {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), outcomeSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string_k(mkt.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(mkt, "market", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&mkt, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&mkt, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&mkt, "market", &[]));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(timeInForce.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
@@ -3330,8 +3330,8 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" redeem() requires an outcome or a params.conditionId".into()))));
             }
             self.load_outcome(outcome.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcome.clone());
-            conditionId = self.safe_string(self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+            conditionId = self.safe_string(self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("conditionId".into()), &[]).as_str().map(str::to_owned);
@@ -3481,8 +3481,8 @@ if _try_result.is_err() {
         // resolve the handle for the final filter — the caller may have passed an outcomeId
         let mut outcomeSymbol: Value = outcome.clone();
         if (outcome != Value::Null) {
-            let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-            outcomeSymbol = self.safe_string_k(outcomeObj, "outcome", &[]);
+            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome.clone(), &[]).await.into_dict();
+            outcomeSymbol = self.safe_string_k(&outcomeObj, "outcome", &[]);
         }
         let mut paginate: Value = Value::Bool(false);
         let mut maxLimit: i64 = 100;

@@ -2624,8 +2624,8 @@ impl Predictfun {
 }));
         self.authenticate(&[]).await;
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut tokenId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         if (tokenId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not resolve the on chain token id of ".into())).into()), outcome)));
         }
@@ -2688,7 +2688,7 @@ impl Predictfun {
         // feeRateBps and the two exchange selectors live on the market row, not on the outcome
         // row - signing with the wrong pair places the order under a different verifying contract
         // and the venue answers create_order_hash_mismatch
-        let mut marketSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "market", &[]).as_str().map(str::to_owned);
+        let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
         let mut marketObj: crate::value::Dict = self.safe_dict(self.markets.clone(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2802,11 +2802,11 @@ impl Predictfun {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
-        m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]));
-        m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-        m.insert("event".to_string(), self.safe_string_k(outcomeObj, "event", &[]));
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[outcome]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
+        m.insert("event".to_string(), self.safe_string_k(&outcomeObj, "event", &[]));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2910,8 +2910,8 @@ impl Predictfun {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1474: bool = true;
             while { if !__for_first_1474 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1474 = false; i.as_f64().unwrap_or(f64::NAN) < (outcomesLength as f64) } {
-            let mut outcomeObj: Value = self.outcome(self.safe_string(wantedOutcomes.clone(), i.clone(), &[]));
-            let mut wantedId: String = self.safe_string_k(outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut outcomeObj: crate::value::Dict = self.outcome(self.safe_string(wantedOutcomes.clone(), i.clone(), &[])).into_dict();
+            let mut wantedId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut wanted { std::sync::Arc::make_mut(__d).insert(wantedId, Value::Bool(true)); }
         }
         }
@@ -2955,11 +2955,11 @@ impl Predictfun {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         // scope the call to the outcome's market so the wallet's other positions are not paged through
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3763,8 +3763,8 @@ impl Predictfun {
         let mut isYieldBearing: bool = false;
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcome.clone());
-            let mut marketSymbol: Option<String> = self.safe_string_k(outcomeObj, "market", &[]).as_str().map(str::to_owned);
+            let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+            let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
             let mut marketObj: crate::value::Dict = self.safe_dict(self.markets.clone(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
