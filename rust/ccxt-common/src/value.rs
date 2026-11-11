@@ -682,7 +682,8 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 /// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
 pub type Dict = Arc<HashMap<String, Value>>;
 
-/// A container the literal-key `safe_*_k` readers accept: a `Value` by value, or a map by reference.
+/// A container the literal-key `safe_*_k` readers accept: a `Value` by value, a map or list by reference
+/// (a string key on a list reads nothing, as `get_value_k` does).
 pub trait KeyRead {
     fn key_read(&self, key: &str) -> Value;
 }
@@ -690,6 +691,7 @@ impl KeyRead for Value { fn key_read(&self, key: &str) -> Value { get_value_k(se
 impl KeyRead for &Value { fn key_read(&self, key: &str) -> Value { get_value_k(self, key) } }
 impl KeyRead for &Dict { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
 impl KeyRead for &HashMap<String, Value> { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
+impl KeyRead for &Vec<Value> { fn key_read(&self, _key: &str) -> Value { Value::Null } }
 
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
