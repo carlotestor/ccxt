@@ -1691,9 +1691,9 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1794,9 +1794,9 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4340,12 +4340,12 @@ impl Extended {
         if (priceValue.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument or an existing order with price".into()))));
         }
-        let mut paramsExtended: Value = self.extend(Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
                 m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
             m
-        }), &[params]);
+        }), &[params]).into_dict();
         let mut requestParams: Value = self.extend(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cancelId".to_string(), cancelId.map(Value::from).unwrap_or(Value::Null));
@@ -4751,9 +4751,9 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({

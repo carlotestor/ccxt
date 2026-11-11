@@ -2193,10 +2193,10 @@ impl Krakenfutures {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if !(matches!(&extendedParams, Value::Dict(__d) if __d.contains_key("order_tag"))) {
                 // order tag is mandatory so we will generate one if not provided

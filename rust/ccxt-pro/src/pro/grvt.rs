@@ -479,7 +479,7 @@ impl Grvt {
         let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchTickers".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

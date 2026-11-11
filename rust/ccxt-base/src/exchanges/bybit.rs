@@ -8942,7 +8942,7 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsValue, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_39 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_39]).await;
@@ -9181,7 +9181,7 @@ impl Bybit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_deposit_query_record(&[__ws_arg_41]).await;
@@ -9269,7 +9269,7 @@ impl Bybit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_withdraw_query_record(&[__ws_arg_42]).await;
@@ -11283,7 +11283,7 @@ impl Bybit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_63 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_transfer_query_inter_transfer_list(&[__ws_arg_63]).await;
@@ -12540,7 +12540,7 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsValue, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_74 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_74]).await;
@@ -12896,7 +12896,7 @@ impl Bybit {
             request.insert("size".into(), Value::Int(100));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsValue, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_77 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_77]).await;

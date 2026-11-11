@@ -3500,17 +3500,17 @@ impl Toobit {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_25 = self.extend(requestUntil.clone(), &[&paramsMarketType]);
+            let __ws_arg_25 = self.extend(&requestUntil, &[&paramsMarketType]);
             response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
@@ -3731,11 +3731,11 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (type_var.as_str() == Some("deposits")) {
-            let __ws_arg_28 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_28 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await;
         }  else if (type_var.as_str() == Some("withdrawals")) {
             let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);

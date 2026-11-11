@@ -2745,24 +2745,24 @@ pub trait ExchangeBase:
                 }
                 // limits
                 let mut limits: crate::value::Dict = self.safe_dict_k(&network, "limits", &[]).into_dict();
-                let mut limitsMain: Value = self.safe_dict_k(currency.clone(), "limits", &[Value::Map({
+                let mut limitsMain: crate::value::Dict = self.safe_dict_k(currency.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                 // deposits
                 let mut limitsDeposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
-                let mut limitsDepositMain: Value = self.safe_dict_k(limitsMain.clone(), "deposit", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+                let mut limitsDepositMain: crate::value::Dict = self.safe_dict_k(&limitsMain, "deposit", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 let mut limitsDepositNew: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
                 let mut limitsDepositMin: Option<String> = self.safe_string_k(&limitsDeposit, "min", &[]).as_str().map(str::to_owned);
                 let mut limitsDepositMax: Option<String> = self.safe_string_k(&limitsDeposit, "max", &[]).as_str().map(str::to_owned);
-                let mut limitsDepositMinMain: Option<String> = self.safe_string_k(limitsDepositMain.clone(), "min", &[]).as_str().map(str::to_owned);
-                let mut limitsDepositMaxMain: Option<String> = self.safe_string_k(limitsDepositMain.clone(), "max", &[]).as_str().map(str::to_owned);
+                let mut limitsDepositMinMain: Option<String> = self.safe_string_k(&limitsDepositMain, "min", &[]).as_str().map(str::to_owned);
+                let mut limitsDepositMaxMain: Option<String> = self.safe_string_k(&limitsDepositMain, "max", &[]).as_str().map(str::to_owned);
                 // find min
                 if (limitsDepositMinMain.is_none()) || crate::precise::Precise::stringLt(&limitsDepositMin.clone().map(Value::from).unwrap_or(Value::Null), &limitsDepositMinMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                     limitsDepositNew.insert("min".into(), self.parse_number(limitsDepositMin.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2773,18 +2773,18 @@ pub trait ExchangeBase:
                 }
                 // withdrawals
                 let mut limitsWithdraw: crate::value::Dict = self.safe_dict_k(&limits, "withdraw", &[]).into_dict();
-                let mut limitsWithdrawMain: Value = self.safe_dict_k(limitsMain.clone(), "withdraw", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+                let mut limitsWithdrawMain: crate::value::Dict = self.safe_dict_k(&limitsMain, "withdraw", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 let mut limitsWithdrawNew: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
                 let mut limitsWithdrawMin: Option<String> = self.safe_string_k(&limitsWithdraw, "min", &[]).as_str().map(str::to_owned);
                 let mut limitsWithdrawMax: Option<String> = self.safe_string_k(&limitsWithdraw, "max", &[]).as_str().map(str::to_owned);
-                let mut limitsWithdrawMinMain: Option<String> = self.safe_string_k(limitsWithdrawMain.clone(), "min", &[]).as_str().map(str::to_owned);
-                let mut limitsWithdrawMaxMain: Option<String> = self.safe_string_k(limitsWithdrawMain.clone(), "max", &[]).as_str().map(str::to_owned);
+                let mut limitsWithdrawMinMain: Option<String> = self.safe_string_k(&limitsWithdrawMain, "min", &[]).as_str().map(str::to_owned);
+                let mut limitsWithdrawMaxMain: Option<String> = self.safe_string_k(&limitsWithdrawMain, "max", &[]).as_str().map(str::to_owned);
                 // find min
                 if (limitsWithdrawMinMain.is_none()) || crate::precise::Precise::stringLt(&limitsWithdrawMin.clone().map(Value::from).unwrap_or(Value::Null), &limitsWithdrawMinMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                     limitsWithdrawNew.insert("min".into(), self.parse_number(limitsWithdrawMin.map(Value::from).unwrap_or(Value::Null), &[]));

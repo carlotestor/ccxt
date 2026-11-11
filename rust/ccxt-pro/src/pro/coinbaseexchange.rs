@@ -795,7 +795,7 @@ impl Coinbaseexchange {
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name.clone())]));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(name));
@@ -848,7 +848,7 @@ impl Coinbaseexchange {
                 m.insert("channels".to_string(), Value::from(vec![Value::from(name)]));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
@@ -1155,11 +1155,11 @@ impl Coinbaseexchange {
                 if (sequence == Value::Null) {
                     return;
                 }
-                let mut previousInfo: Value = self.safe_dict_k(previousOrder.clone(), "info", &[Value::Map({
+                let mut previousInfo: crate::value::Dict = self.safe_dict_k(previousOrder.clone(), "info", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut previousSequence: Value = self.safe_integer_k(previousInfo.clone(), "sequence", &[]);
+                })]).into_dict();
+                let mut previousSequence: Value = self.safe_integer_k(&previousInfo, "sequence", &[]);
                 if (previousSequence == Value::Null) || (sequence.as_f64().unwrap_or(f64::NAN) > previousSequence.as_f64().unwrap_or(f64::NAN)) {
                     if (type_var.as_deref() == Some("match")) {
                         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);

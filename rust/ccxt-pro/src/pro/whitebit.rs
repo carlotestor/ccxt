@@ -1037,7 +1037,7 @@ impl Whitebit {
         // }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut data: Value = self.safe_dict(Value::Arr(params.clone()), Value::Int(1), &[]);
+        let mut data: crate::value::Dict = self.safe_dict(Value::Arr(params.clone()), Value::Int(1), &[]).into_dict();
         if (self.orders.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);

@@ -2140,7 +2140,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // depth: '1', '5', '50' or 'increment'
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsUta.clone(), Value::Str("watchOrderBook".into()), Value::Str("utaDepth".into()), &[Value::Str("increment".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsDepth: crate::value::Dict = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("uta:orderbook:".into()), symbolResolved).into()), Value::Str(":depth:".into())).into()), depth);
             let mut channel: String = "obu".to_string();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -2207,7 +2207,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // depth: '1', '5', '50' or 'increment'
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsUta.clone(), Value::Str("watchOrderBook".into()), Value::Str("utaDepth".into()), &[Value::Str("increment".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsDepth: crate::value::Dict = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsExtended: Value = self.extend(paramsDepth, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("depth".to_string(), depth.clone());
@@ -3338,10 +3338,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut utaEnabled: Value = self.is_uta_enabled(&[]).await;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchMyTrades".into()), Value::Str("uta".into()), &[utaEnabled]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut trades: Value = Value::Null;
         if uta {
-            let mut paramsExtended: Value = self.extend(paramsUta.clone(), &[Value::Map({
+            let mut paramsExtended: Value = self.extend(&paramsUta, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tradeType".to_string(), Value::Str("UNIFIED".into()));
                 m
@@ -3359,7 +3359,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if matches!(&isFuturesMethod, Value::Bool(true)) {
                 optionName = "contractMethod".to_string();
             }
-            let topicparamsTopicVariable: Vec<Value> = self.handle_option_string_and_params2(paramsUta, Value::Str("watchMyTrades".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultTopic)]).as_array().cloned().unwrap_or_default();
+            let topicparamsTopicVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsUta, Value::Str("watchMyTrades".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultTopic)]).as_array().cloned().unwrap_or_default();
             let mut topic: Value = topicparamsTopicVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTopic: crate::value::Dict = topicparamsTopicVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3948,7 +3948,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("uta".into()), &[uta]).as_array().cloned().unwrap_or_default();
         let mut utaOption: Option<bool> = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool);
-        let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tradeType: String = "TRADE".to_string();
         if (utaOption == Some(true)) {
             tradeType = "UNIFIED".to_string();

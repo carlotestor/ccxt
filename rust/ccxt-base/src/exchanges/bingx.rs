@@ -3462,7 +3462,7 @@ impl Bingx {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_11 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.swap_v2_public_get_quote_funding_rate(&[__ws_arg_11]).await.into_dict();
@@ -4483,7 +4483,7 @@ impl Bingx {
             request.insert("startTs".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTs".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
@@ -6459,7 +6459,7 @@ impl Bingx {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsSubType, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_40 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.swap_v1_private_get_trade_full_order(&[__ws_arg_40]).await.into_dict();
@@ -7059,7 +7059,7 @@ impl Bingx {
             request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &maxLimit));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_51 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.api_v3_private_get_asset_transfer_record(&[__ws_arg_51]).await.into_dict();
@@ -7315,7 +7315,7 @@ impl Bingx {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_53 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.spot_v3_private_get_capital_deposit_hisrec(&[__ws_arg_53]).await;
@@ -7368,7 +7368,7 @@ impl Bingx {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_54 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.spot_v3_private_get_capital_withdraw_history(&[__ws_arg_54]).await;
@@ -8270,18 +8270,18 @@ impl Bingx {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); }; // api maximum 100
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // api maximum 100
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMyLiquidations".into()), &[market.clone(), paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -8289,7 +8289,7 @@ impl Bingx {
         let mut response: Option<crate::value::Dict> = None;
         let mut liquidations: Value = Value::Null;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_70 = self.extend(requestUntil.clone(), &[&paramsSubType]);
+            let __ws_arg_70 = self.extend(&requestUntil, &[&paramsSubType]);
             response = self.cswap_v1_private_get_trade_force_orders(&[__ws_arg_70]).await.into_opt_dict();
             //
             //     {

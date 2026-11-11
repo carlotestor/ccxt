@@ -1313,10 +1313,10 @@ impl Apex {
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Some(200) } else { limit.as_i64() });
         request.insert("limit".into(), Value::from(limitResolved));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_v3_klines(&[__ws_arg_1]).await.into_dict();

@@ -1566,16 +1566,16 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1242: bool = true;
             while { if !__for_first_1242 { i += 1; } __for_first_1242 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut coin: Value = self.safe_string_k(balance.clone(), "coin", &[Value::Str("".into())]);
+})]).into_dict();
+            let mut coin: Value = self.safe_string_k(&balance, "coin", &[Value::Str("".into())]);
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
             if (Value::Int(coin.as_str().and_then(|__s| __s.find("+")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {
                 continue;
             }
-            let mut totalStr: Option<String> = self.safe_string_k(balance.clone(), "total", &[]).as_str().map(str::to_owned);
+            let mut totalStr: Option<String> = self.safe_string_k(&balance, "total", &[]).as_str().map(str::to_owned);
             if (totalStr.is_none()) || crate::precise::Precise::stringEq(&totalStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }

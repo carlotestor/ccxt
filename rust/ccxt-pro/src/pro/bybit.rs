@@ -1141,10 +1141,10 @@ impl Bybit {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut rawTicker: Value = self.safe_dict_k(&ticker, "info", &[Value::Map({
+            let mut rawTicker: crate::value::Dict = self.safe_dict_k(&ticker, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut merged: Value = self.extend(rawTicker, &[data]);
             parsed = self.parse_ticker(merged, &[]);
         }

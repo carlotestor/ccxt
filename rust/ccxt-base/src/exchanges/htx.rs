@@ -6612,14 +6612,14 @@ impl Htx {
                 _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end-time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("size".into(), limit.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spot_private_get_v1_order_orders")) {
-            let __ws_arg_54 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_54 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.spot_private_get_v1_order_orders(&[__ws_arg_54]).await.into_opt_dict();
         }  else {
             let __ws_arg_55 = self.extend(requestUntil, &[&paramsUntil]);
@@ -11038,13 +11038,13 @@ impl Htx {
             m
         });
         let requestparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(initialRequest), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
             if ((market).linear == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
+                std::sync::Arc::make_mut(&mut request).insert("start_time".into(), since.clone());
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_date".into(), since.clone()); }
+                std::sync::Arc::make_mut(&mut request).insert("start_date".into(), since.clone());
             }
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -11053,15 +11053,15 @@ impl Htx {
                 let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchFundingHistory".into()), &[Value::from(&paramsUntil), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
                 let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
                 let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_mode".into(), marginMode); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), Value::from((market).id.clone())); }
+                std::sync::Arc::make_mut(&mut request).insert("margin_mode".into(), marginMode);
+                std::sync::Arc::make_mut(&mut request).insert("contract_code".into(), Value::from((market).id.clone()));
                 if (limit != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+                    std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
                 }
-                let __ws_arg_130 = self.extend(request.clone(), &[&paramsMarginMode]);
+                let __ws_arg_130 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.contract_private_get_v5_account_bills(&[__ws_arg_130]).await.into_opt_dict();
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::from((market).id.clone())); }
+                std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::from((market).id.clone()));
                 //
                 //     {
                 //         "code": 200,
@@ -11082,11 +11082,11 @@ impl Htx {
                 //         "ts": 1604312615051
                 //     }
                 //
-                let __ws_arg_131 = self.extend(request.clone(), &[&paramsUntil]);
+                let __ws_arg_131 = self.extend(&request, &[&paramsUntil]);
                 response = self.contract_private_post_swap_api_v3_swap_financial_record_exact(&[__ws_arg_131]).await.into_opt_dict();
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.clone())); }
+            std::sync::Arc::make_mut(&mut request).insert("symbol".into(), Value::from((market).id.clone()));
             let __ws_arg_132 = self.extend(request, &[&paramsUntil]);
             response = self.contract_private_post_api_v3_contract_financial_record_exact(&[__ws_arg_132]).await.into_opt_dict();
         }
@@ -11666,7 +11666,7 @@ impl Htx {
             request.insert("limit".into(), limit.clone()); // max 500
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_141 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.spot_private_get_v2_account_ledger(&[__ws_arg_141]).await.into_dict();
@@ -12526,15 +12526,15 @@ impl Htx {
             request.insert("start_time".into(), since);
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if ((market).linear == Some(true)) {
-                let __ws_arg_156 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_156 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_v5_market_settlement_history(&[__ws_arg_156]).await.into_opt_dict();
             }  else {
-                let __ws_arg_157 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_157 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_swap_api_v1_swap_settlement_records(&[__ws_arg_157]).await.into_opt_dict();
             }
         }  else {
@@ -12953,24 +12953,24 @@ impl Htx {
             request.insert("start_time".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if ((market).linear == Some(true)) {
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("contract_code".into(), Value::from((market).id.clone())); }
+                std::sync::Arc::make_mut(&mut requestUntil).insert("contract_code".into(), Value::from((market).id.clone()));
                 if (limit != Value::Null) {
-                    if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+                    std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
                 }
-                let __ws_arg_159 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_159 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_v5_market_liquidation_orders(&[__ws_arg_159]).await.into_opt_dict();
             }  else {
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::from((market).id.clone())); }
-                let __ws_arg_160 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                std::sync::Arc::make_mut(&mut requestUntil).insert("contract".into(), Value::from((market).id.clone()));
+                let __ws_arg_160 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_swap_api_v3_swap_liquidation_orders(&[__ws_arg_160]).await.into_opt_dict();
             }
         }  else if (market).future {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.clone())); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.clone()));
             let __ws_arg_161 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_public_get_api_v3_contract_liquidation_orders(&[__ws_arg_161]).await.into_opt_dict();
         }  else {

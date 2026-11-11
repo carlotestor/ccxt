@@ -1980,7 +1980,7 @@ impl Mudrex {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_19]).await.into_dict();
         return self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

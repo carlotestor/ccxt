@@ -4228,11 +4228,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut options: Value = self.safe_dict(self.options.clone(), marketType.clone(), &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), marketType.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut lastAuthenticatedTime: Value = self.safe_integer_k(options.clone(), "lastAuthenticatedTime", &[Value::Int(0)]);
+        })]).into_dict();
+        let mut lastAuthenticatedTime: Value = self.safe_integer_k(&options, "lastAuthenticatedTime", &[Value::Int(0)]);
         let mut listenTokenRefreshRate: i64 = self.safe_integer_k(self.options.clone(), "listenTokenRefreshRate", &[Value::Int(82800000)]).as_i64().unwrap_or(82800000); // 23 hours default
         let mut time: Value = self.milliseconds();
         let mut delay: i64 = (listenTokenRefreshRate + 10000);
@@ -4296,7 +4296,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 });
                 self.watch(url.as_deref(), requestHash.clone(), &[Value::Map(message), requestHash, Value::Map(subscription)]).await;
-                { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+                { let __be_tmp = self.extend(&options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("listenToken".to_string(), listenToken.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("expirationTime".to_string(), expirationTime.clone());
@@ -4407,11 +4407,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut paramsOmitted: Value = self.omit(&paramsMarginMode, Value::Str("symbol".into()), &[]);
         let mut isStock: bool = type_var.as_str() == Some("stock");
-        let mut options: Value = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut lastAuthenticatedTime: Value = self.safe_integer_k(options.clone(), "lastAuthenticatedTime", &[Value::Int(0)]);
+        })]).into_dict();
+        let mut lastAuthenticatedTime: Value = self.safe_integer_k(&options, "lastAuthenticatedTime", &[Value::Int(0)]);
         let mut refreshRateKey: String = "listenKeyRefreshRate".to_string();
         if isStock {
             refreshRateKey = "stockListenKeyRefreshRate".to_string();
@@ -4529,11 +4529,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         let mut isStock: bool = type_var.as_str() == Some("stock");
-        let mut options: Value = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut listenKey: Option<String> = self.safe_string_k_opt(options.clone(), "listenKey", &[]);
+        })]).into_dict();
+        let mut listenKey: Option<String> = self.safe_string_k_opt(&options, "listenKey", &[]);
         if (listenKey.is_none()) {
             return Value::Null;
         }
@@ -4598,7 +4598,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 client.reject(error.clone(), messageHash.as_deref());
             }
             }
-            { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+            { let __be_tmp = self.extend(&options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), Value::Null);
         m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));

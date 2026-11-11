@@ -2563,7 +2563,7 @@ impl Woofipro {
             request.insert("start_t".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_4 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v1_public_get_public_funding_rate_history(&[__ws_arg_4]).await.into_dict();
@@ -3897,11 +3897,11 @@ impl Woofipro {
             request.insert("algo_type".into(), Value::Str("STOP".into()));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if isTrigger {
-            let __ws_arg_25 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_25 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
@@ -4158,7 +4158,7 @@ impl Woofipro {
             request.insert("size".into(), Value::Int(500));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_28 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.v1_private_get_trades(&[__ws_arg_28]).await.into_dict();

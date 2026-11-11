@@ -2036,12 +2036,12 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1471: bool = true;
             while { if !__for_first_1471 { i += 1; } __for_first_1471 = false; (i as f64) < dataLength } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut taker: Value = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(taker.clone(), "signer", &[]);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(&taker, "signer", &[]);
             if (takerSigner.as_deref() == wallet.as_str()) {
                 let mut takerParty: Value = self.extend(taker, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2050,20 +2050,20 @@ impl Predictfun {
                         m.insert("type".to_string(), Value::Str("market".into()));
                     m
                 })]);
-                flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                flattenTrades.push(self.extend(&entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("partyToParse".to_string(), takerParty);
                     m
                 })]));
             }
-            let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
+            let mut makers: crate::value::List = self.safe_list_k(&entry, "makers", &[Value::from(vec![])]).into_list();
             let mut makersLength: f64 = ((makers.len() as i64) as f64);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1470: bool = true;
                 while { if !__for_first_1470 { j += 1; } __for_first_1470 = false; (j as f64) < makersLength } {
-                let mut maker: Value = makers.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(maker.clone(), "signer", &[]);
+                let mut maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
                 if (makerSigner.as_deref() == wallet.as_str()) {
                     let mut makerParty: Value = self.extend(maker, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2072,7 +2072,7 @@ impl Predictfun {
                             m.insert("type".to_string(), Value::Str("limit".into()));
                         m
                     })]);
-                    flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                    flattenTrades.push(self.extend(&entry, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("partyToParse".to_string(), makerParty);
                         m
@@ -2171,21 +2171,21 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1473: bool = true;
             while { if !__for_first_1473 { i += 1; } __for_first_1473 = false; (i as f64) < dataLength } {
-            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
-            let mut taker: crate::value::Dict = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+            let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut takerOutcome: crate::value::Dict = self.safe_dict_k(&taker, "outcome", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
             let mut takerIndexSet: Option<i64> = self.safe_integer_k(&takerOutcome, "indexSet", &[]).as_i64();
             let mut outcomeIndexSet: Option<i64> = self.safe_integer_k(&info, "indexSet", &[]).as_i64();
-            let mut partyToParse: Value = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut partyToParse: Value = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             if (takerIndexSet == outcomeIndexSet) {
                 // a public print carries no takerOrMaker: the unified fetchTrades contract allows
                 // only 'taker' or nothing there, and the leg that matches the requested outcome is
@@ -2198,13 +2198,13 @@ impl Predictfun {
                     m
                 });
                 partyToParse = self.extend(partyToParse.clone(), &[Value::Map(takerParty)]);
-                flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                flattenTrades.push(self.extend(&entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("partyToParse".to_string(), partyToParse.clone());
                     m
                 })]));
             }  else {
-                let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
+                let mut makers: crate::value::List = self.safe_list_k(&entry, "makers", &[Value::from(vec![])]).into_list();
                 let mut makersLength: f64 = ((makers.len() as i64) as f64);
                 let mut makerParty: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2225,7 +2225,7 @@ impl Predictfun {
                     if (makerIndexSet == outcomeIndexSet) {
                         partyToParse = maker;
                         partyToParse = self.extend(partyToParse.clone(), &[Value::Map(makerParty.clone())]);
-                        flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                        flattenTrades.push(self.extend(&entry, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("partyToParse".to_string(), partyToParse.clone());
                             m
@@ -3137,7 +3137,7 @@ impl Predictfun {
         });
         // this only pulls the orders off the book, it does not cancel them on chain
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
@@ -3146,22 +3146,22 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut rejected: crate::value::List = self.safe_list_k(response.clone(), "rejected", &[Value::from(vec![])]).into_list();
+        let mut rejected: crate::value::List = self.safe_list_k(&response, "rejected", &[Value::from(vec![])]).into_list();
         let mut rejectedLength: f64 = ((rejected.len() as i64) as f64);
         if rejectedLength > ((0i64) as f64) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() was refused for ".into())).into()), json_stringify(&Value::Arr(rejected)))));
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
         // read: it takes the hash off orderHash and the status through parseOrderStatus
-        let mut removed: crate::value::List = self.safe_list_k(response.clone(), "removed", &[Value::from(vec![])]).into_list();
-        let mut noop: crate::value::List = self.safe_list_k(response.clone(), "noop", &[Value::from(vec![])]).into_list();
+        let mut removed: crate::value::List = self.safe_list_k(&response, "removed", &[Value::from(vec![])]).into_list();
+        let mut noop: crate::value::List = self.safe_list_k(&response, "noop", &[Value::from(vec![])]).into_list();
         let mut rows: Vec<Value> = Vec::new();
         let mut removedLength: f64 = ((removed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1476: bool = true;
             while { if !__for_first_1476 { i += 1; } __for_first_1476 = false; (i as f64) < removedLength } {
-            rows.push(self.extend(response.clone(), &[Value::Map({
+            rows.push(self.extend(&response, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderHash".to_string(), removed.get(i as usize).cloned().unwrap_or(Value::Null));
                     m.insert("status".to_string(), Value::Str("CANCELLED".into()));
@@ -3176,7 +3176,7 @@ impl Predictfun {
             while { if !__for_first_1477 { i += 1; } __for_first_1477 = false; (i as f64) < noopLength } {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
-            rows.push(self.extend(response.clone(), &[Value::Map({
+            rows.push(self.extend(&response, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderHash".to_string(), noop.get(i as usize).cloned().unwrap_or(Value::Null));
                 m

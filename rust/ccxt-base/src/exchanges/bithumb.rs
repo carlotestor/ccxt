@@ -2603,7 +2603,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createMarketBuyOrderWithCost".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is only supported for the generation 2 API".into()))));
         }
@@ -3132,7 +3132,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3141,8 +3141,8 @@ impl Bithumb {
         let mut market: Value = Value::Null;
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2.0)) {
-            let mut twap: bool = self.safe_bool_k(paramsGeneration.clone(), "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let __ws_arg_26 = self.extend(paramsGeneration.clone(), &[Value::Map({
+            let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let __ws_arg_26 = self.extend(&paramsGeneration, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("state".to_string(), (if twap { Value::Str("progress".into()) } else { Value::Str("wait".into()) }));
     m
@@ -3160,7 +3160,7 @@ impl Bithumb {
             request.insert("count".into(), Value::from(limitResolved));
             request.insert("order_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             request.insert("payment_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_27 = self.extend(Value::Map(request), &[paramsGeneration]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_post_info_orders(&[__ws_arg_27]).await.into_opt_dict();
         }
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);

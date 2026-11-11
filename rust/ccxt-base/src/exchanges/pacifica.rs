@@ -2235,17 +2235,17 @@ if _try_result.is_err() {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsOriginAndSingleAddress, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("account".into(), userAddress); }
+        std::sync::Arc::make_mut(&mut requestUntil).insert("account".into(), userAddress);
         if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_time".into(), since.clone());
         }
         let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_trades_history(&[__ws_arg_7]).await;

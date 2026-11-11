@@ -7605,14 +7605,14 @@ impl Xt {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsHistory".into()), &[market, paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_103 = self.extend(requestUntil.clone(), &[&paramsSubType]);
+            let __ws_arg_103 = self.extend(&requestUntil, &[&paramsSubType]);
             response = self.private_inverse_get_future_trade_v1_position_list_history(&[__ws_arg_103]).await.into_opt_dict();
         }  else {
             let __ws_arg_104 = self.extend(requestUntil, &[&paramsSubType]);

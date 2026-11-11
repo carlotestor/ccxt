@@ -2407,17 +2407,17 @@ impl Weex {
         let mut maxHistoricalLimit: Value = Value::Int(100);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsExtended: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
+            let mut paramsExtended: Value = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("historical".to_string(), Value::Bool(true));
                 m
             })]);
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsExtended, maxHistoricalLimit.clone()]).await;
         }
-        let mut until: Value = self.safe_integer_k(paramsPaginate.clone(), "until", &[]);
-        let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
+        let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut historical: Value = historicalparamsHistoricalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHistorical: crate::value::Dict = historicalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut timeframeOption: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -2880,7 +2880,7 @@ impl Weex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await;
@@ -3083,7 +3083,7 @@ impl Weex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
@@ -3899,7 +3899,7 @@ impl Weex {
                 request.insert("limit".into(), limit.clone());
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut trigger: bool = self.safe_bool_k(&paramsUntil, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if trigger {
@@ -3935,7 +3935,7 @@ impl Weex {
                 //         }
                 //     ]
                 //
-                let __ws_arg_27 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+                let __ws_arg_27 = self.extend(&requestUntil, &[&paramsOmitted]);
                 response = self.contract_private_get_capi_v3_open_algo_orders(&[__ws_arg_27]).await;
             }  else {
                 //
@@ -4135,7 +4135,7 @@ impl Weex {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await;
@@ -4206,12 +4206,12 @@ impl Weex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
         if sandboxMode {
-            let __ws_arg_30 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_30 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await;
         }  else {
             let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
@@ -4540,7 +4540,7 @@ impl Weex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if isSpot {
@@ -4559,7 +4559,7 @@ impl Weex {
             //         }
             //     ]
             //
-            let __ws_arg_33 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_33 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_get_api_v3_my_trades(&[__ws_arg_33]).await;
         }  else {
             //
@@ -4866,14 +4866,14 @@ impl Weex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate.clone(), &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
         let mut hasSince: bool = since != Value::Null;
         let mut until: Option<i64> = self.safe_integer2(paramsPaginate, Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
         let mut hasUntil: bool = until.is_some();
         if hasSince && !hasUntil {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("endTime".into(), self.milliseconds()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("endTime".into(), self.milliseconds());
         }  else if hasUntil && !hasSince {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires since to be set when until is used".into()))));
         }

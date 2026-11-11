@@ -2813,10 +2813,10 @@ impl Blofin {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: Value = self.create_order_request(marketId.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), extendedParams]);
             ordersRequests.push(orderRequest);
@@ -3016,10 +3016,10 @@ impl Blofin {
             request.insert("begin".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100, max 100
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let mut type_var: String = "swap".to_string();
         let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil, Value::from(type_var)]).as_array().cloned().unwrap_or_default();
@@ -3027,7 +3027,7 @@ impl Blofin {
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (typeMarketType.as_deref() == Some("spot")) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("instType".into(), Value::Str("SPOT".into())); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("instType".into(), Value::Str("SPOT".into()));
             //
             //     {
             //         "code": "0",
@@ -3049,7 +3049,7 @@ impl Blofin {
             //         ]
             //     }
             //
-            let __ws_arg_17 = self.extend(requestUntil.clone(), &[&paramsMarketType]);
+            let __ws_arg_17 = self.extend(&requestUntil, &[&paramsMarketType]);
             response = self.private_get_spot_trade_fills_history(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             let __ws_arg_18 = self.extend(requestUntil, &[&paramsMarketType]);
@@ -3112,7 +3112,7 @@ impl Blofin {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_19]).await.into_dict();
@@ -3173,7 +3173,7 @@ impl Blofin {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_20 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_20]).await.into_dict();
@@ -3844,7 +3844,7 @@ impl Blofin {
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_bills(&[__ws_arg_26]).await.into_dict();
@@ -4347,7 +4347,7 @@ impl Blofin {
             request.insert("begin".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.private_get_account_positions_history(&[__ws_arg_29]).await.into_dict();

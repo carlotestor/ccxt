@@ -639,7 +639,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             tradeType = "contract".to_string();
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType);
-        let mut request: Value = self.extend(Value::Map(unsubscribe), &[&paramsMarketType]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(unsubscribe), &[&paramsMarketType]).into_dict();
         let mut tail: Value = access;
         if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });

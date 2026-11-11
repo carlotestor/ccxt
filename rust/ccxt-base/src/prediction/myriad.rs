@@ -1179,7 +1179,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("slippage".into())]), &[]).into_dict();
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.myriad_public_post_markets_quote(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.myriad_public_post_markets_quote(&[__ws_arg_8]).await.into_dict();
         let __ws_arg_9 = self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("action".to_string(), sideStr);
@@ -1394,7 +1394,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("time_in_force".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.myriad_public_post_orders(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.myriad_public_post_orders(&[Value::Map(request)]).await.into_dict();
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1577,10 +1577,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut side: Option<String> = self.safe_string_k(&o, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(&o, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&o, "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(&o, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&o, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let __ws_arg_11 = self.extend(orderParams, &[params.clone()]);
             let mut placed: Value = self.create_orderbook_order(outcome.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), __ws_arg_11]).await;
             result.push(placed);

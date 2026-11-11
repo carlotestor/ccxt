@@ -2936,12 +2936,12 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchCurrencies", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchCurrencies", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Value = self.safe_integer_k(options.clone(), "timestamp", &[]);
-        let mut expires: Value = self.safe_integer_k(options.clone(), "expires", &[Value::Int(1000)]);
+})]).into_dict();
+        let mut timestamp: Value = self.safe_integer_k(&options, "timestamp", &[]);
+        let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
         let mut now: Value = self.milliseconds();
         if (timestamp == Value::Null) || (((match (&(now), &(timestamp)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN)) {
@@ -3806,23 +3806,23 @@ if _try_result.is_err() {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("v3".into())]), &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("v3PrivateGetBrokerageAccounts".into())]).as_str().map(str::to_owned);
         if (marketType.as_deref() == Some("future")) || (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_26]).await;
         }  else if isV3 || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
             request.insert("limit".into(), Value::Int(250));
-            let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.v3_private_get_brokerage_accounts(&[__ws_arg_27]).await;
             // an explicit params.cursor means the caller pages manually
-            if (self.safe_string_k(paramsMarketType.clone(), "cursor", &[]) == Value::Null) {
+            if (self.safe_string_k(&paramsMarketType, "cursor", &[]) == Value::Null) {
                 let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]);
                 let mut page: Value = response.clone();
                 let mut cursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
                 while matches!(self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]), Value::Bool(true)) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
                     request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+                    let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
                     page = self.v3_private_get_brokerage_accounts(&[__ws_arg_28]).await;
                     accounts = self.array_concat(accounts.clone(), self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])]));
                     let mut nextCursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
@@ -3843,7 +3843,7 @@ if _try_result.is_err() {
             }
         }  else {
             request.insert("limit".into(), Value::Int(250));
-            let __ws_arg_31 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.v2_private_get_accounts(&[__ws_arg_31]).await;
         }
         let __ws_arg_32 = self.extend(paramsMarketType, &[Value::Map({

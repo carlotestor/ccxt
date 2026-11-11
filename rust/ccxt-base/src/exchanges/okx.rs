@@ -4256,10 +4256,10 @@ impl Okx {
             }
         }
         let mut feesType: Value = (if (type_var.is_none()) { Value::Str("".into()) } else { type_var.clone().map(Value::from).unwrap_or(Value::Null) });
-        let mut fees: Value = self.safe_dict2(self.fees.clone(), feesType, Value::Str("trading".into()), &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict2(self.fees.clone(), feesType, Value::Str("trading".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".into())]).as_str().map(str::to_owned);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxSpotCost: Option<f64> = self.safe_number_k(market.clone(), "maxMktSz", &[]).as_f64();
@@ -6277,10 +6277,10 @@ impl Okx {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: Value = self.create_order_request(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(type_var), side.map(Value::from).unwrap_or(Value::Null), Value::from(amount), &[Value::from(price), extendedParams]);
             ordersRequests.push(orderRequest);
@@ -6551,11 +6551,11 @@ impl Okx {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrders() requires a symbol for each order".into()))));
             }
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut clientOrderId: Option<String> = self.safe_string2(&orderParams, Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
             if (id.is_none()) && (clientOrderId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrders() requires an id or params.clientOrderId for each order".into()))));
             }
@@ -8107,14 +8107,14 @@ impl Okx {
             request.insert("begin".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("instType".into(), self.convert_to_instrument_type(type_var).map(Value::from).unwrap_or(Value::Null)); }
+        std::sync::Arc::make_mut(&mut requestUntil).insert("instType".into(), self.convert_to_instrument_type(type_var).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) && (since == Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100, max 100
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let __ws_arg_47 = self.extend(requestUntil, &[query.clone()]);
         let mut response: crate::value::Dict = self.private_get_trade_fills_history(&[__ws_arg_47]).await.into_dict();
@@ -8795,7 +8795,7 @@ impl Okx {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_54 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_54]).await.into_dict();
@@ -8935,7 +8935,7 @@ impl Okx {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let __ws_arg_56 = self.extend(requestUntil, &[paramsUntil.clone()]);
         let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_56]).await.into_dict();
@@ -10439,14 +10439,14 @@ impl Okx {
             request.insert("begin".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { symbol });
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), &[market, paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() == Some("swap")) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("instType".into(), self.convert_to_instrument_type(type_var.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("instType".into(), self.convert_to_instrument_type(type_var.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
         let __ws_arg_67 = self.extend(requestUntil, &[&query]);
@@ -13249,13 +13249,13 @@ impl Okx {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("before".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("before".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_99 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_convert_history(&[__ws_arg_99]).await.into_dict();

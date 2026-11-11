@@ -678,12 +678,12 @@ impl Revolutx {
             let mut __for_first_1115: bool = true;
             while { if !__for_first_1115 { i += 1; } __for_first_1115 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_dict(markets.clone(), key, &[Value::Map({
+            let mut market: crate::value::Dict = self.safe_dict(markets.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut base: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
-            let mut quote: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut base: Option<String> = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
+            let mut quote: Option<String> = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
@@ -809,10 +809,10 @@ impl Revolutx {
             let mut __for_first_1116: bool = true;
             while { if !__for_first_1116 { i += 1; } __for_first_1116 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = self.safe_dict(currencies.clone(), key.clone(), &[Value::Map({
+            let mut currency: crate::value::Dict = self.safe_dict(currencies.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut currencyData: Value = self.extend(currency, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), key);

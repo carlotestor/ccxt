@@ -2571,7 +2571,7 @@ impl Bitfinex {
         }
         request.insert("sort".into(), Value::from(sort));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_trades_symbol_hist(&[__ws_arg_5]).await;
@@ -2655,7 +2655,7 @@ impl Bitfinex {
             request.insert("sort".into(), Value::Int(1));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_6 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_candles_trade_timeframe_symbol_hist(&[__ws_arg_6]).await;
@@ -3556,16 +3556,16 @@ impl Bitfinex {
             request.insert("limit".into(), limit.clone()); // default 25, max 2500
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
         if (symbol == Value::Null) {
-            let __ws_arg_14 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_14 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_post_auth_r_orders_hist(&[__ws_arg_14]).await;
         }  else {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_post_auth_r_orders_symbol_hist(&[__ws_arg_15]).await;
         }
@@ -4724,13 +4724,13 @@ impl Bitfinex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            let __ws_arg_24 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            std::sync::Arc::make_mut(&mut requestUntil).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let __ws_arg_24 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;
         }  else {
             let __ws_arg_25 = self.extend(requestUntil, &[&paramsUntil]);
@@ -4855,7 +4855,7 @@ impl Bitfinex {
             request.insert("start".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_27]).await;
@@ -5177,7 +5177,7 @@ impl Bitfinex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_30 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_30]).await;
@@ -5311,7 +5311,7 @@ impl Bitfinex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_liquidations_hist(&[__ws_arg_31]).await;

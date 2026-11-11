@@ -2839,19 +2839,19 @@ impl Hitbtc {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (price.as_deref() == Some("mark")) {
-            let __ws_arg_15 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+            let __ws_arg_15 = self.extend(&requestUntil, &[&paramsOmitted]);
             response = self.public_get_public_futures_candles_mark_price_symbol(&[__ws_arg_15]).await;
         }  else if (price.as_deref() == Some("index")) {
-            let __ws_arg_16 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+            let __ws_arg_16 = self.extend(&requestUntil, &[&paramsOmitted]);
             response = self.public_get_public_futures_candles_index_price_symbol(&[__ws_arg_16]).await;
         }  else if (price.as_deref() == Some("premiumIndex")) {
-            let __ws_arg_17 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+            let __ws_arg_17 = self.extend(&requestUntil, &[&paramsOmitted]);
             response = self.public_get_public_futures_candles_premium_index_symbol(&[__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(requestUntil, &[&paramsOmitted]);
@@ -4141,17 +4141,17 @@ impl Hitbtc {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("from".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("from".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_58 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_public_futures_history_funding(&[__ws_arg_58]).await;

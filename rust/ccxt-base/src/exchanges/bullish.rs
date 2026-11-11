@@ -2254,7 +2254,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) && (since.as_f64().unwrap_or(f64::NAN) < (allowedSince as f64)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), method).into()), Value::Str("() only allows fetching entries up to 90 days in the past".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("paginate".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("paginate".into()), &[]).into_dict();
         let mut paramsExtended: Value = self.extend(paramsOmitted, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("paginationDirection".to_string(), Value::Str("backward".into()));
@@ -2576,7 +2576,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceRawVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForceRaw: Value = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null); // is mandatory
+        let mut paramsTimeInForceRaw: crate::value::Dict = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // is mandatory
         let mut paramsTimeInForce: Value = self.extend(paramsTimeInForceRaw, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeInForce".to_string(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));

@@ -1112,10 +1112,10 @@ impl Deepcoin {
             }
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
         }
-        let mut fees: Value = self.safe_dict2(self.fees.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()), &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict2(self.fees.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".into())]).as_str().map(str::to_owned);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxMarketSize: Option<String> = self.safe_string_k(market.clone(), "maxMktSz", &[]).as_str().map(str::to_owned);
@@ -1321,14 +1321,14 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut price: Option<String> = self.safe_string_k(paramsPaginate.clone(), "price", &[]).as_str().map(str::to_owned);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut price: Option<String> = self.safe_string_k(&paramsPaginate, "price", &[]).as_str().map(str::to_owned);
         let mut maxLimit: Value = Value::Int(300);
         if (market).swap && (price.is_none()) {
             maxLimit = Value::Int(1000);
         }
         if paginate {
-            let mut paramsExtended: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
+            let mut paramsExtended: Value = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("calculateUntil".to_string(), Value::Bool(true));
                 m
@@ -1345,13 +1345,13 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
         }
-        let mut until: Value = self.safe_integer_k(paramsPaginate.clone(), "until", &[]);
+        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
         if (until != Value::Null) {
             request.insert("after".into(), until.clone());
         }
-        let mut calculateUntil: bool = self.safe_bool_k(paramsPaginate.clone(), "calculateUntil", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut calculateUntil: bool = self.safe_bool_k(&paramsPaginate, "calculateUntil", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut keysToOmit: Value = (if calculateUntil { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, keysToOmit, &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, keysToOmit, &[]).into_dict();
         if calculateUntil {
             if (since != Value::Null) {
                 // the exchange do not have a since param for this endpoint
@@ -3174,11 +3174,11 @@ impl Deepcoin {
     m
 }));
         let mut methodName: String = "fetchCanceledOrders".to_string();
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("methodName".to_string(), Value::from(methodName));
             m
-        })]);
+        })]).into_dict();
         let mut paramsExtended2: Value = self.extend(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("canceled".into()));
@@ -3215,11 +3215,11 @@ impl Deepcoin {
     m
 }));
         let mut methodName: String = "fetchClosedOrders".to_string();
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("methodName".to_string(), Value::from(methodName));
             m
-        })]);
+        })]).into_dict();
         let mut paramsExtended2: Value = self.extend(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("filled".into()));

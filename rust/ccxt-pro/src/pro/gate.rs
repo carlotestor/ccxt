@@ -927,7 +927,7 @@ impl Gate {
         let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut newRequest: Value = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]);
+        let mut newRequest: crate::value::Dict = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
         let mut messageType: Value = self.get_type_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_list".into()));
         let mut url: Value = self.get_url_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());

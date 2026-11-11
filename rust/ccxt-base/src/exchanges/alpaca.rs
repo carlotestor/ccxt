@@ -2513,7 +2513,7 @@ impl Alpaca {
             request.insert("page_size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await;

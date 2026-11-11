@@ -1121,12 +1121,12 @@ impl Btcbox {
         // a special case for btcbox – default symbol is BTC/JPY
         let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
         let mut market: crate::types::Market = (match self.market(symbolResolved.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.extend(Value::Map({
+        let mut request: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("coin".to_string(), Value::from((market).base_id.clone()));
             m
-        }), &[params.clone()]);
+        }), &[params.clone()]).into_dict();
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trade_view(&[__ws_arg_5]).await;
         return self.parse_order(response, &[(market).raw.clone()]);

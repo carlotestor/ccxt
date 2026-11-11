@@ -473,10 +473,10 @@ impl Backpack {
             }
             let mut marketSelection: Value = self.parent.handle_stock_params(methodName.clone(), query.clone(), &[(market).raw.clone()]);
             let mut marketStock: bool = self.safe_bool(marketSelection.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut marketParams: Value = self.safe_dict(marketSelection, Value::Int(1), &[Value::Map({
+            let mut marketParams: crate::value::Dict = self.safe_dict(marketSelection, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut isRfq: bool = self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ");
             let mut source: Option<String> = explicitSource.clone();
             if (source.is_none()) {

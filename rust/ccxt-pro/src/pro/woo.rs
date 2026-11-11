@@ -1415,8 +1415,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let __ws_arg_4 = self.extend(data, &[Value::Map({

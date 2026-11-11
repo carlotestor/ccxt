@@ -8455,10 +8455,10 @@ impl Kucoin {
             request.insert("startAt".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), paramsMarginMode, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("pageSize".into(), limit.clone());
         }
         let mut lowercaseStatus: Value = (if let Some(__s) = (status).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         if (lowercaseStatus.as_str() == Some("open")) {
@@ -8516,7 +8516,7 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_65 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_65 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.uta_private_get_account_mode_order_open_list(&[__ws_arg_65]).await.into_opt_dict();
         }  else {
             let __ws_arg_66 = self.extend(requestUntil, &[&paramsUntil]);
@@ -9839,7 +9839,7 @@ impl Kucoin {
             request.insert("pageSize".into(), crate::runtime::Math::min(&Value::Int(1000), &limit));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_85 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.futures_private_get_fills(&[__ws_arg_85]).await.into_dict();
@@ -12914,10 +12914,10 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }; // default:50, min:10, max:500
+            std::sync::Arc::make_mut(&mut requestUntil).insert("pageSize".into(), limit.clone()); // default:50, min:10, max:500
         }
         let __ws_arg_117 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_margin_interest(&[__ws_arg_117]).await.into_dict();
@@ -12984,10 +12984,10 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pageSize".into(), limit.clone()); }; // default:50, min:10, max:500
+            std::sync::Arc::make_mut(&mut requestUntil).insert("pageSize".into(), limit.clone()); // default:50, min:10, max:500
         }
         let __ws_arg_118 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_margin_interest(&[__ws_arg_118]).await.into_dict();
@@ -15749,7 +15749,7 @@ if _try_result.is_err() {
             request.insert("pageSize".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_154 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.uta_get_market_open_interest(&[__ws_arg_154]).await.into_dict();

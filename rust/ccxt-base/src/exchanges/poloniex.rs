@@ -2408,10 +2408,10 @@ impl Poloniex {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::from(endKey), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isContract.as_bool() == Some(true) {
-            let __ws_arg_6 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_6 = self.extend(&requestUntil, &[&paramsUntil]);
             let mut raw: crate::value::Dict = self.swap_private_get_v3_trade_order_trades(&[__ws_arg_6]).await.into_dict();
             //
             //    {
@@ -2676,7 +2676,7 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut extended: Value = self.extend(order.clone().into(), &[Value::Map({
+            let mut extended: Value = self.extend(Value::Map(order.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                     m.insert("type".to_string(), Value::Str("limit".into()));
@@ -2873,7 +2873,7 @@ impl Poloniex {
             request.insert("sTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("eTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_11 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.swap_private_get_v3_trade_order_history(&[__ws_arg_11]).await.into_dict();
@@ -3042,10 +3042,10 @@ impl Poloniex {
             let mut side: Value = rawOrder.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null);
             let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(rawOrder.clone(), "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             // the request body is a bare list, so there is no room for common params - extend each order with them instead
             let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]);
             let mut request: Value = Value::Map({
@@ -4252,7 +4252,7 @@ impl Poloniex {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_accounts_transfer(&[__ws_arg_37]).await;

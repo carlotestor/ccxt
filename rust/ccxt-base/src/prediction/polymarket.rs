@@ -3409,8 +3409,8 @@ impl Polymarket {
         let mut expiration: String = self.safe_string_k(params.clone(), "expiration", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         let mut cost: Option<f64> = self.safe_number_k(params.clone(), "cost", &[]).as_f64();
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into()), Value::Str("funder".into()), Value::Str("maker".into()), Value::Str("orderType".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("tickSize".into()), Value::Str("negRisk".into()),
-            Value::Str("salt".into()), Value::Str("timestamp".into()), Value::Str("expiration".into()), Value::Str("cost".into()), Value::Str("builder".into()), Value::Str("builderCode".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into()), Value::Str("funder".into()), Value::Str("maker".into()), Value::Str("orderType".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("tickSize".into()),
+            Value::Str("negRisk".into()), Value::Str("salt".into()), Value::Str("timestamp".into()), Value::Str("expiration".into()), Value::Str("cost".into()), Value::Str("builder".into()), Value::Str("builderCode".into())]), &[]).into_dict();
         let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.clone(), amount.clone(), priceResolved.clone(), tickSize.map(Value::from).unwrap_or(Value::Null), &[Value::from(cost)]);
         let mut makerAmount: Option<String> = self.safe_string_k(amounts.clone(), "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(amounts, "takerAmount", &[]).as_str().map(str::to_owned);

@@ -6910,7 +6910,7 @@ impl Binance {
             request.insert("size".into(), limit);
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await;
@@ -11134,7 +11134,7 @@ impl Binance {
         let mut sor: bool = self.safe_bool2(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut stock: bool = self.safe_bool_k((market).raw.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("sor".into()), Value::Str("SOR".into()), Value::Str("test".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("sor".into()), Value::Str("SOR".into()), Value::Str("test".into())]), &[]).into_dict();
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
@@ -15819,11 +15819,11 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_302: bool = true;
             while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&position, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
             let mut code: Value = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
-            let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
+            let mut maintenanceMargin: Option<String> = self.safe_string_k(&position, "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
@@ -17093,13 +17093,13 @@ impl Binance {
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPapi, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let mut type_var: Value = self.safe_string_k(&paramsUntil, "type", &[Value::from(defaultType)]);
@@ -17107,15 +17107,15 @@ impl Binance {
         let mut response: Value = Value::Null;
         if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_165 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+                let __ws_arg_165 = self.extend(&requestUntil, &[&paramsOmitted]);
                 response = self.papi_get_um_income(&[__ws_arg_165]).await;
             }  else {
-                let __ws_arg_166 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+                let __ws_arg_166 = self.extend(&requestUntil, &[&paramsOmitted]);
                 response = self.fapi_private_get_income(&[__ws_arg_166]).await;
             }
         }  else if self.is_inverse(type_var, &[subType]).as_bool() == Some(true) {
             if isPortfolioMargin {
-                let __ws_arg_167 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+                let __ws_arg_167 = self.extend(&requestUntil, &[&paramsOmitted]);
                 response = self.papi_get_cm_income(&[__ws_arg_167]).await;
             }  else {
                 let __ws_arg_168 = self.extend(requestUntil, &[&paramsOmitted]);
@@ -18898,16 +18898,16 @@ if _try_result.is_err() {
             request.insert("size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPapi, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isPortfolioMargin {
-            let __ws_arg_198 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_198 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.papi_get_margin_margin_interest_history(&[__ws_arg_198]).await.into_opt_dict();
         }  else {
             if (symbol != Value::Null) {
                 market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("isolatedSymbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut requestUntil).insert("isolatedSymbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             let __ws_arg_199 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.sapi_get_margin_interest_history(&[__ws_arg_199]).await.into_opt_dict();
@@ -19517,28 +19517,28 @@ if _try_result.is_err() {
             }
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPapi, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (type_var.as_deref() == Some("spot")) {
             if isPortfolioMargin {
-                let __ws_arg_212 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_212 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.papi_get_margin_force_orders(&[__ws_arg_212]).await;
             }  else {
-                let __ws_arg_213 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_213 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.sapi_get_margin_force_liquidation_rec(&[__ws_arg_213]).await;
             }
         }  else if (subType.as_deref() == Some("linear")) {
             if isPortfolioMargin {
-                let __ws_arg_214 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_214 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.papi_get_um_force_orders(&[__ws_arg_214]).await;
             }  else {
-                let __ws_arg_215 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_215 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.fapi_private_get_force_orders(&[__ws_arg_215]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
             if isPortfolioMargin {
-                let __ws_arg_216 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+                let __ws_arg_216 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.papi_get_cm_force_orders(&[__ws_arg_216]).await;
             }  else {
                 let __ws_arg_217 = self.extend(requestUntil, &[&paramsUntil]);
@@ -20810,24 +20810,24 @@ if _try_result.is_err() {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("startTime".into(), since);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit);
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchLongShortRatioHistory".into()), &[market.clone(), paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (subType.as_deref() == Some("linear")) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            let __ws_arg_231 = self.extend(requestUntil.clone(), &[&paramsSubType]);
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let __ws_arg_231 = self.extend(&requestUntil, &[&paramsSubType]);
             response = self.fapi_data_get_global_long_short_account_ratio(&[__ws_arg_231]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "pair")); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("pair".into(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "pair"));
             let __ws_arg_232 = self.extend(requestUntil, &[&paramsSubType]);
             response = self.dapi_data_get_global_long_short_account_ratio(&[__ws_arg_232]).await;
         }  else {

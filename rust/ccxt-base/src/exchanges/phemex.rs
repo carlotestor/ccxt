@@ -6724,11 +6724,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isUsdtSettled {
-            let __ws_arg_61 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_61 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.v2_get_api_data_public_data_funding_rate_history(&[__ws_arg_61]).await.into_opt_dict();
         }  else {
             let __ws_arg_62 = self.extend(requestUntil, &[&paramsUntil]);
@@ -7161,7 +7161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_67 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_assets_convert(&[__ws_arg_67]).await.into_dict();

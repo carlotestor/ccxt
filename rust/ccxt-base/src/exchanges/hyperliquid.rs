@@ -1418,10 +1418,10 @@ impl Hyperliquid {
     m
 })]);
             let mut index: Value = self.safe_integer_k(market.clone(), "index", &[]);
-            let mut extraData: Value = self.safe_dict(second.clone(), index.clone(), &[Value::Map({
+            let mut extraData: crate::value::Dict = self.safe_dict(second.clone(), index.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut marketName: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
@@ -1466,7 +1466,7 @@ impl Hyperliquid {
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Option<String> = self.safe_string_k(&innerBaseTokenInfo, "szDecimals", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Value = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut price: Option<f64> = self.safe_number_k(extraData.clone(), "midPx", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&extraData, "midPx", &[]).as_f64();
             let mut pricePrecision: Value = Value::Int(0);
             if (price.is_some()) {
                 pricePrecision = self.calculate_price_precision(Value::from(price), amountPrecision, Value::Int(8));
@@ -4582,12 +4582,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_822: bool = true;
             while { if !__for_first_822 { i += 1; } __for_first_822 = false; i < (rawOrders.len() as i64) } {
-            let mut order: Value = self.safe_dict(rawOrders.clone(), Value::Int(i), &[]);
+            let mut order: crate::value::Dict = self.safe_dict(rawOrders.clone(), Value::Int(i), &[]).into_dict();
             let mut extendOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (self.safe_string_k(order.clone(), "status", &[]) == Value::Null) {
+            if (self.safe_string_k(&order, "status", &[]) == Value::Null) {
                 extendOrder.insert("ccxtStatus".into(), Value::Str("open".into()));
             }
             orderWithStatus.push(self.extend(order, &[Value::Map(extendOrder)]));

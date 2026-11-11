@@ -2248,26 +2248,26 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1500)));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
+        std::sync::Arc::make_mut(&mut requestUntil).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
         let mut isMark: bool = price.as_deref() == Some("mark");
         let mut isIndex: bool = price.as_deref() == Some("index");
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         if isMark {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
-            let __ws_arg_0 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]));
+            let __ws_arg_0 = self.extend(&requestUntil, &[&paramsOmitted]);
             response = self.fapi_public_get_v3_mark_price_klines(&[__ws_arg_0]).await;
         }  else if isIndex {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
-            let __ws_arg_1 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+            std::sync::Arc::make_mut(&mut requestUntil).insert("pair".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]));
+            let __ws_arg_1 = self.extend(&requestUntil, &[&paramsOmitted]);
             response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await;
         }  else {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]));
             if ((market).linear == Some(true)) {
-                let __ws_arg_2 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
+                let __ws_arg_2 = self.extend(&requestUntil, &[&paramsOmitted]);
                 response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await;
             }  else {
                 let __ws_arg_3 = self.extend(requestUntil, &[&paramsOmitted]);
@@ -2502,11 +2502,11 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_8 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_8 = self.extend(&requestUntil, &[paramsUntil.clone()]);
             response = self.fapi_private_get_v3_user_trades(&[__ws_arg_8]).await;
         }  else {
             let __ws_arg_9 = self.extend(requestUntil, &[paramsUntil.clone()]);
@@ -3105,7 +3105,7 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await;
@@ -3648,11 +3648,11 @@ impl Aster {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_26 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_26 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
@@ -4646,7 +4646,7 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_41]).await;
@@ -5110,11 +5110,11 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_237: bool = true;
             while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&position, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
             let mut code: Value = (if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
-            let mut maintenanceMargin: Option<String> = self.safe_string_k(position.clone(), "maintMargin", &[]).as_str().map(str::to_owned);
+            let mut maintenanceMargin: Option<String> = self.safe_string_k(&position, "maintMargin", &[]).as_str().map(str::to_owned);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {

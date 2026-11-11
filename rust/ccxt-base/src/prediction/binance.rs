@@ -2413,14 +2413,14 @@ impl Binance {
         let mut quote: Value = self.fetch_quote(quoteRequest, &[paramsOmitted.clone()]).await;
         let mut quoteId: Option<String> = self.safe_string_k(quote, "quoteId", &[]).as_str().map(str::to_owned);
         let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
-        let mut orderRequest: Value = self.extend(Value::Map(commonRequest), &[Value::Map({
+        let mut orderRequest: crate::value::Dict = self.extend(Value::Map(commonRequest), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletId".to_string(), __ws_arg_15);
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
-        })]);
+        })]).into_dict();
         let __ws_arg_16 = self.extend(orderRequest, &[paramsOmitted]);
         let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_16]).await;
         return self.safe_prediction_order(Value::Map({

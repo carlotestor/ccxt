@@ -2167,12 +2167,12 @@ impl Bitstamp {
 }));
         // this method is now redundant
         // currencies are now fetched before markets
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Value = self.safe_integer_k(options.clone(), "timestamp", &[]);
-        let mut expires: Value = self.safe_integer_k(options.clone(), "expires", &[Value::Int(1000)]);
+})]).into_dict();
+        let mut timestamp: Value = self.safe_integer_k(&options, "timestamp", &[]);
+        let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
         let mut now: Value = self.milliseconds();
         if (timestamp == Value::Null) || ((expires != Value::Null) && (((match (&(now), &(timestamp)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN))) {
@@ -3623,10 +3623,10 @@ impl Bitstamp {
             request.insert("since_timestamp".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await.into_dict();

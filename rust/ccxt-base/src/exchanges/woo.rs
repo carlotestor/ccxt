@@ -4190,10 +4190,10 @@ impl Woo {
         //         "timestamp": 1721300689532
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let __ws_arg_22 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
@@ -4925,14 +4925,14 @@ impl Woo {
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let __ws_arg_30 = self.safe_string_k(data.clone(), "withdrawId", &[]);
+        })]).into_dict();
+        let __ws_arg_30 = self.safe_string_k(&data, "withdrawId", &[]);
         let __ws_arg_31 = self.safe_integer_k(&response, "timestamp", &[]);
         let __ws_arg_32 = self.safe_string(self.networkAliases.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut transactionData: Value = self.extend(data, &[Value::Map({
+        let mut transactionData: Value = self.extend(&data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_30);
                 m.insert("timestamp".to_string(), __ws_arg_31);
@@ -5532,7 +5532,7 @@ impl Woo {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v3_public_get_funding_rate_history(&[__ws_arg_36]).await.into_dict();
@@ -6352,7 +6352,7 @@ impl Woo {
             request.insert("size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_47 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v3_private_get_convert_trades(&[__ws_arg_47]).await.into_dict();

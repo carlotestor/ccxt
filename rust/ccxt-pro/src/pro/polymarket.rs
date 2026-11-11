@@ -1662,10 +1662,10 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_645: bool = true;
             while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut extended: Value = self.extend(row, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));

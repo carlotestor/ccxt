@@ -1540,8 +1540,8 @@ if _try_result.is_err() {
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // c# only support int32 2147483647.
         let mut clientOrderId: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[defaultClientOrderId]);
-        let mut paramsRequest: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
-            Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
+            Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         if isConditional {
             amountStr = self.number_to_string(amount.clone());
             if (stopLossPrice.is_some()) {
@@ -1576,7 +1576,7 @@ if _try_result.is_err() {
             request.insert("integrator_maker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[]));
         }
         let mut orders: Vec<Value> = Vec::new();
-        let mut firstOrder: Value = self.extend(Value::Map(request), &[paramsRequest.clone()]);
+        let mut firstOrder: Value = self.extend(Value::Map(request), &[&paramsRequest]);
         orders.push(firstOrder.clone());
         if hasStopLoss || hasTakeProfit {
             // group order
@@ -1595,7 +1595,7 @@ if _try_result.is_err() {
             let mut takeProfitOrderLimitPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]).as_f64();
             // amount should be 0 for child orders
             if (stopLoss != Value::Null) {
-                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(paramsRequest.clone(), &[Value::Map({
+                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(&paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), Value::from(stopLossOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));

@@ -2154,10 +2154,10 @@ impl Polymarket {
     m
 })]);
             let mut marketInner: Value = ordersMarkets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut echo: Value = self.safe_dict(Value::Arr(ordersEntries.clone()), i.clone(), &[Value::Map({
+            let mut echo: crate::value::Dict = self.safe_dict(Value::Arr(ordersEntries.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
             let __ws_arg_4 = self.safe_integer_k(ack.clone(), "oid", &[]);
             let __ws_arg_5 = self.safe_string2(ack.clone(), Value::Str("coid".into()), Value::Str("c".into()), &[]);
