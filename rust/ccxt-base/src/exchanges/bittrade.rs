@@ -2131,15 +2131,15 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_449: bool = true;
             while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = balances.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(result.clone()), code.clone(), &[self.account()]).as_map().cloned().unwrap_or_default();
-            if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("trade")) {
-                account.insert("free".into(), self.safe_string_k(balance.clone(), "balance", &[]));
+            if (self.safe_string_k(&balance, "type", &[]).as_str() == Some("trade")) {
+                account.insert("free".into(), self.safe_string_k(&balance, "balance", &[]));
             }
-            if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("frozen")) {
-                account.insert("used".into(), self.safe_string_k(balance, "balance", &[]));
+            if (self.safe_string_k(&balance, "type", &[]).as_str() == Some("frozen")) {
+                account.insert("used".into(), self.safe_string_k(&balance, "balance", &[]));
             }
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));

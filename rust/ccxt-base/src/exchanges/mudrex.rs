@@ -1898,8 +1898,8 @@ impl Mudrex {
             }
             let mut numCandidates: f64 = ((candidates.len() as i64) as f64);
             if numCandidates > ((0i64) as f64) {
-                let mut found: Value = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]).as_str().map(str::to_owned);
+                let mut found: crate::value::Dict = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }
         if (positionId.is_none()) {
@@ -1965,8 +1965,8 @@ impl Mudrex {
             let mut matches: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]);
             let mut numMatches: f64 = ((matches.len() as i64) as f64);
             if numMatches > ((0i64) as f64) {
-                let mut found: Value = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]).as_str().map(str::to_owned);
+                let mut found: crate::value::Dict = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }
         if (positionId.is_none()) {
