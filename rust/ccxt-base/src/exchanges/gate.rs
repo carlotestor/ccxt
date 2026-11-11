@@ -10482,7 +10482,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isFuture {
             //
             //     [
@@ -10500,7 +10500,7 @@ if _try_result.is_err() {
             //     ]
             //
             let __ws_arg_98 = self.extend(request.clone(), &[query]);
-            response = self.private_delivery_get_settle_settlements(&[__ws_arg_98]).await;
+            response = self.private_delivery_get_settle_settlements(&[__ws_arg_98]).await.into_opt_dict();
         }  else {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), since.clone()); }
@@ -10531,12 +10531,12 @@ if _try_result.is_err() {
             //     ]
             //
             let __ws_arg_99 = self.extend(request, &[paramsMarketType]);
-            response = self.private_options_get_my_settlements(&[__ws_arg_99]).await;
+            response = self.private_options_get_my_settlements(&[__ws_arg_99]).await.into_opt_dict();
         }
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);

@@ -4628,7 +4628,7 @@ impl Extended {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut order: Value = Value::Null;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
@@ -4639,8 +4639,8 @@ impl Extended {
                 m
             });
             let __ws_arg_28 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.v1_private_get_user_orders_external_external_id(&[__ws_arg_28]).await;
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+            response = self.v1_private_get_user_orders_external_external_id(&[__ws_arg_28]).await.into_opt_dict();
+            let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
             order = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4655,11 +4655,11 @@ impl Extended {
                 m
             });
             let __ws_arg_29 = self.extend(request, &[&paramsOmitted]);
-            response = self.v1_private_get_user_orders_id(&[__ws_arg_29]).await;
-            order = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            response = self.v1_private_get_user_orders_id(&[__ws_arg_29]).await.into_opt_dict();
+            order = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
         }
         return self.parse_order(order, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null

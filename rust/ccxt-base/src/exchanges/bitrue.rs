@@ -3131,7 +3131,7 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut data: Value = Value::from(vec![]);
         if (market).swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3141,12 +3141,12 @@ impl Bitrue {
             });
             if ((market).linear == Some(true)) {
                 let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.fapi_v2_private_post_all_open_orders(&[__ws_arg_28]).await;
+                response = self.fapi_v2_private_post_all_open_orders(&[__ws_arg_28]).await.into_opt_dict();
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-                response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await;
+                response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await.into_opt_dict();
             }
-            data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders only support future markets".into()))));
         }

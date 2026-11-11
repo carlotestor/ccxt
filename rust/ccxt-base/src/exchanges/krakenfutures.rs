@@ -2717,16 +2717,16 @@ impl Krakenfutures {
             request.insert("since".into(), since.clone());
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.history_get_triggers(&[__ws_arg_12]).await;
+            response = self.history_get_triggers(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-            response = self.history_get_orders(&[__ws_arg_13]).await;
+            response = self.history_get_orders(&[__ws_arg_13]).await.into_opt_dict();
         }
-        let mut allOrders: Vec<Value> = self.safe_list_k(response, "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut allOrders: Vec<Value> = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut closedOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2809,17 +2809,17 @@ impl Krakenfutures {
         if (since != Value::Null) {
             request.insert("since".into(), since.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.history_get_triggers(&[__ws_arg_14]).await;
+            response = self.history_get_triggers(&[__ws_arg_14]).await.into_opt_dict();
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-            response = self.history_get_orders(&[__ws_arg_15]).await;
+            response = self.history_get_orders(&[__ws_arg_15]).await.into_opt_dict();
         }
-        let mut allOrders: Vec<Value> = self.safe_list_k(response, "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut allOrders: Vec<Value> = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut canceledAndRejected: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

@@ -1674,18 +1674,18 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("v2PrivateGetAccountsAccountIdTransactions")) {
             let __ws_arg_7 = self.extend(request.clone(), &[paramsValue.clone()]);
-            response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await;
+            response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await.into_opt_dict();
         }  else if (method.as_str() == Some("v2PrivateGetAccountsAccountIdWithdrawals")) {
             let __ws_arg_8 = self.extend(request.clone(), &[paramsValue.clone()]);
-            response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await;
+            response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             let __ws_arg_9 = self.extend(request, &[paramsValue]);
-            response = self.v2_private_get_accounts_account_id_deposits(&[__ws_arg_9]).await;
+            response = self.v2_private_get_accounts_account_id_deposits(&[__ws_arg_9]).await.into_opt_dict();
         }
-        return self.parse_transactions(self.safe_list_k(response, "data", &[Value::from(vec![])]), &[Value::Null, since, limit]);
+        return self.parse_transactions(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[Value::Null, since, limit]);
 
     Value::Null
 }
@@ -3293,16 +3293,16 @@ if _try_result.is_err() {
         if (marketType.is_some()) && (marketType.as_deref() != Some("default")) {
             request.insert("product_type".into(), (if (marketType.as_deref() == Some("swap")) { Value::Str("FUTURE".into()) } else { Value::Str("SPOT".into()) }));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products(&[__ws_arg_15]).await;
+            response = self.v3_private_get_brokerage_products(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products(&[__ws_arg_16]).await;
+            response = self.v3_public_get_brokerage_market_products(&[__ws_arg_16]).await.into_opt_dict();
         }
         //
         //     {
@@ -3341,7 +3341,7 @@ if _try_result.is_err() {
         //         "num_products": 549
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
@@ -3462,13 +3462,13 @@ if _try_result.is_err() {
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTicker".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if usePrivate {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_17]).await;
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_18]).await;
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_18]).await.into_opt_dict();
         }
         //
         //     {
@@ -3488,14 +3488,14 @@ if _try_result.is_err() {
         //         "best_ask": "28208.62"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "trades", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(first, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
-        ticker.insert("bid".into(), self.safe_number_k(response.clone(), "best_bid", &[]));
-        ticker.insert("ask".into(), self.safe_number_k(response, "best_ask", &[]));
+        ticker.insert("bid".into(), self.safe_number_k(&response, "best_bid", &[]));
+        ticker.insert("ask".into(), self.safe_number_k(&response, "best_ask", &[]));
         return Value::Map(ticker);
 
     Value::Null
@@ -4639,14 +4639,14 @@ if _try_result.is_err() {
         let mut paramsOmitted: Value = self.omit(paramsBase, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("stopDirection".into()), Value::Str("stop_direction".into()),
             Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("end_time".into()), Value::Str("marginMode".into())]), &[]);
         let mut preview: bool = self.safe_bool2(paramsOmitted.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if preview {
             request = self.omit(Value::Map(request.clone()), Value::Str("client_order_id".into()), &[]).as_map().cloned().unwrap_or_default();
             let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
-            response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_35]).await;
+            response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_35]).await.into_opt_dict();
         }  else {
             let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_post_brokerage_orders(&[__ws_arg_36]).await;
+            response = self.v3_private_post_brokerage_orders(&[__ws_arg_36]).await.into_opt_dict();
         }
         //
         // successful order
@@ -4685,9 +4685,9 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k(&response, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if !success {
-            let mut errorResponse: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "error_response", &[]).into_opt_dict();
+            let mut errorResponse: Option<crate::value::Dict> = self.safe_dict_k(&response, "error_response", &[]).into_opt_dict();
             let mut errorTitle: Option<String> = self.safe_string_k(&errorResponse, "error", &[]).as_str().map(str::to_owned);
             let mut errorMessage: Option<String> = self.safe_string_k(&errorResponse, "message", &[]).as_str().map(str::to_owned);
             if (errorResponse.is_some()) {
@@ -4696,10 +4696,10 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::exchange_error(errorMessage.clone().map(Value::from).unwrap_or(Value::Null)));
             }
         }
-        let mut data: Value = self.safe_dict_k(response, "success_response", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "success_response", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -5530,16 +5530,16 @@ if _try_result.is_err() {
         }  else {
             request.insert("end".into(), windowEnd.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
             let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products_product_id_candles(&[__ws_arg_45]).await;
+            response = self.v3_private_get_brokerage_products_product_id_candles(&[__ws_arg_45]).await.into_opt_dict();
         }  else {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[__ws_arg_46]).await;
+            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[__ws_arg_46]).await.into_opt_dict();
         }
         //
         //     {
@@ -5555,7 +5555,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut candles: Value = self.safe_list_k(response, "candles", &[Value::from(vec![])]);
+        let mut candles: Value = self.safe_list_k(&response, "candles", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limitValue]);
         Value::Null
         }).await?))
@@ -5617,16 +5617,16 @@ if _try_result.is_err() {
         }  else if (since != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires a `until` parameter when you use `since` argument".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUntil, Value::Str("fetchTrades".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
             let __ws_arg_47 = self.extend(Value::Map(request.clone()), &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_47]).await;
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_47]).await.into_opt_dict();
         }  else {
             let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_48]).await;
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_48]).await.into_opt_dict();
         }
         //
         //     {
@@ -5644,7 +5644,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(response, "trades", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -5786,16 +5786,16 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
             let __ws_arg_51 = self.extend(Value::Map(request.clone()), &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_product_book(&[__ws_arg_51]).await;
+            response = self.v3_private_get_brokerage_product_book(&[__ws_arg_51]).await.into_opt_dict();
         }  else {
             let __ws_arg_52 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_product_book(&[__ws_arg_52]).await;
+            response = self.v3_public_get_brokerage_market_product_book(&[__ws_arg_52]).await.into_opt_dict();
         }
         //
         //     {
@@ -5817,10 +5817,10 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "pricebook", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "pricebook", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut time: Option<String> = self.safe_string_k(data.clone(), "time", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(time.clone().map(Value::from).unwrap_or(Value::Null));
         return self.parse_order_book(data, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);

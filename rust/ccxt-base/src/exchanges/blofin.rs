@@ -1857,7 +1857,7 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
@@ -1866,9 +1866,9 @@ impl Blofin {
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (method.as_deref() == Some("publicGetMarketTrades")) {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMethod]);
-            response = self.public_get_market_trades(&[__ws_arg_3]).await;
+            response = self.public_get_market_trades(&[__ws_arg_3]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2606,29 +2606,29 @@ impl Blofin {
         let mut paramsTpsl: Value = isTpslEndpointparamsTpslVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint.as_bool() == Some(true);
         let mut isSlOrTp: bool = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(paramsTpsl.clone(), "reduceOnly", &[]);
         if (reduceOnly.is_some()) {
             if let Value::Dict(__d) = &mut paramsTpsl { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), (if reduceOnly == Some(true) { Value::Str("true".into()) } else { Value::Str("false".into()) })); }
         }
         if isCombinedSlTp {
             let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), paramsTpsl.clone()]);
-            response = self.private_post_trade_order_tpsl(&[tpslRequest]).await;
+            response = self.private_post_trade_order_tpsl(&[tpslRequest]).await.into_opt_dict();
         }  else if isTriggerOrder || isSlOrTp {
             let mut triggerRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsTpsl.clone()]);
-            response = self.private_post_trade_order_algo(&[triggerRequest]).await;
+            response = self.private_post_trade_order_algo(&[triggerRequest]).await.into_opt_dict();
         }  else {
             let mut request: Value = self.create_order_request(symbol, type_var.clone(), side.clone(), amount, &[price, paramsTpsl]);
-            response = self.private_post_trade_order(&[request]).await;
+            response = self.private_post_trade_order(&[request]).await.into_opt_dict();
         }
         if isCombinedSlTp || isSlOrTp || isTriggerOrder {
-            let mut dataDict: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut dataDict: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             return self.parse_order(dataDict, &[market.clone()]);
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(first, &[market]).as_map().cloned().unwrap_or_default();
         order.insert("type".into(), type_var);
@@ -2876,15 +2876,15 @@ impl Blofin {
             request.insert("orderId".into(), id.clone());
         }
         let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTpsl {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_trade_order_tpsl_detail(&[__ws_arg_12]).await;
+            response = self.private_get_trade_order_tpsl_detail(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_trade_order_detail(&[__ws_arg_13]).await;
+            response = self.private_get_trade_order_detail(&[__ws_arg_13]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[]);
         if (data == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".into())).into()), id)));
         }
@@ -2948,19 +2948,19 @@ impl Blofin {
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTpSl || (method.as_deref() == Some("privateGetTradeOrdersTpslPending")) {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_14]).await;
+            response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_14]).await.into_opt_dict();
         }  else if isTrigger || (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             request.insert("orderType".into(), Value::Str("trigger".into()));
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_15]).await;
+            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_trade_orders_pending(&[__ws_arg_16]).await;
+            response = self.private_get_trade_orders_pending(&[__ws_arg_16]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -3025,7 +3025,7 @@ impl Blofin {
         let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsUntil, Value::from(type_var)]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Option<String> = typeMarketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (typeMarketType.as_deref() == Some("spot")) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("instType".into(), Value::Str("SPOT".into())); }
             //
@@ -3050,12 +3050,12 @@ impl Blofin {
             //     }
             //
             let __ws_arg_17 = self.extend(requestUntil.clone(), &[&paramsMarketType]);
-            response = self.private_get_spot_trade_fills_history(&[__ws_arg_17]).await;
+            response = self.private_get_spot_trade_fills_history(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             let __ws_arg_18 = self.extend(requestUntil, &[&paramsMarketType]);
-            response = self.private_get_trade_fills_history(&[__ws_arg_18]).await;
+            response = self.private_get_trade_fills_history(&[__ws_arg_18]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -4140,13 +4140,13 @@ impl Blofin {
             }
             }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("privatePostTradeCancelTpsl")) {
-            response = self.private_post_trade_cancel_tpsl(&[Value::from(request.clone())]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.private_post_trade_cancel_tpsl(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
-            response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
-        let mut ordersData: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut ordersData: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(ordersData, &[(market).raw.clone(), Value::Null, Value::Null, params]);
         Value::Null
         }).await?))
@@ -4863,15 +4863,15 @@ impl Blofin {
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTrigger || (method.as_deref() == Some("privateGetTradeOrdersTpslHistory")) {
             let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_34]).await;
+            response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_34]).await.into_opt_dict();
         }  else {
             let __ws_arg_35 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_trade_orders_history(&[__ws_arg_35]).await;
+            response = self.private_get_trade_orders_history(&[__ws_arg_35]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))

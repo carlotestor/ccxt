@@ -2855,7 +2855,7 @@ impl Predictfun {
             self.load_outcomes(&[outcomes.clone()]).await;
         }
         let mut address: Option<String> = self.safe_string_k(params.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (address.is_some()) {
             // the by-address endpoint reads any wallet and is happy with just the api key
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2865,11 +2865,11 @@ impl Predictfun {
             });
             let mut rest: crate::value::Dict = self.omit(params.clone(), Value::Str("address".into()), &[]).into_dict();
             let __ws_arg_10 = self.extend(Value::Map(request), &[&rest]);
-            response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await;
+            response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await.into_opt_dict();
         }  else {
             // the JWT is what names the wallet whose positions come back
             self.authenticate(&[]).await;
-            response = self.predictfun_get_v1_positions(&[params]).await;
+            response = self.predictfun_get_v1_positions(&[params]).await.into_opt_dict();
         }
         //
         //     {
@@ -2895,7 +2895,7 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         if (((outcomesLength as f64) == 0.0)) {
             return self.parse_prediction_positions(rows.clone(), &[]);
         }

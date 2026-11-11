@@ -2284,13 +2284,13 @@ impl Mexc {
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            response = self.spot_public_get_time(&[query.clone()]).await;
-            return self.safe_integer_k(response.clone(), "serverTime", &[]);
+            response = self.spot_public_get_time(&[query.clone()]).await.into_opt_dict();
+            return self.safe_integer_k(&response, "serverTime", &[]);
         }  else if (marketType.as_deref() == Some("swap")) {
-            response = self.contract_public_get_ping(&[query]).await;
-            return self.safe_integer_k(response, "data", &[]);
+            response = self.contract_public_get_ping(&[query]).await.into_opt_dict();
+            return self.safe_integer_k(&response, "data", &[]);
         }
         return Value::Null;
         Value::Null
@@ -4008,7 +4008,7 @@ impl Mexc {
         }
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsReduceOnly.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
             request.insert("triggerPrice".into(), self.price_to_precision(Value::from(symbol), Value::from(triggerPrice)));
             let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(&paramsOmitted, &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
@@ -4031,10 +4031,10 @@ impl Mexc {
             }
             request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[planOrderType]));
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsTriggerDirection]);
-            response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await;
+            response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await.into_opt_dict();
         }  else {
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_post_order_create(&[__ws_arg_17]).await;
+            response = self.contract_private_post_order_create(&[__ws_arg_17]).await.into_opt_dict();
         }
         //
         // Swap
@@ -4045,10 +4045,10 @@ impl Mexc {
         //
         // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
-        let mut data: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
         let mut id: Option<String> = None;
         if (data.is_none()) {
-            id = self.safe_string_k(response, "data", &[]).as_str().map(str::to_owned); // planorder/place answers with the bare trigger order id
+            id = self.safe_string_k(&response, "data", &[]).as_str().map(str::to_owned); // planorder/place answers with the bare trigger order id
         }  else {
             id = self.safe_string_k(&data, "orderId", &[]).as_str().map(str::to_owned);
         }

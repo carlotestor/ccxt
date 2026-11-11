@@ -3181,17 +3181,17 @@ impl Modetrade {
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut childOrders: Value = self.safe_value_k(params, "childOrders", &[]);
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (childOrders != Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isConditional {
-            response = self.v1_private_post_algo_order(&[request.clone()]).await;
+            response = self.v1_private_post_algo_order(&[request.clone()]).await.into_opt_dict();
         }  else {
-            response = self.v1_private_post_order(&[request]).await;
+            response = self.v1_private_post_order(&[request]).await.into_opt_dict();
         }
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(Value::Map(data), &[market]).as_map().cloned().unwrap_or_default();
         order.insert("type".into(), type_var);
         return Value::Map(order);
@@ -3350,10 +3350,10 @@ impl Modetrade {
             request.insert(orderQtyKey, self.amount_to_precision(symbol, amount));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into())]), &[]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isConditional {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
-            response = self.v1_private_put_algo_order(&[__ws_arg_9]).await;
+            response = self.v1_private_put_algo_order(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             request.insert("symbol".into(), Value::from((market).id.clone()));
             if (side != Value::Null) {
@@ -3380,7 +3380,7 @@ impl Modetrade {
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOrder]);
-            response = self.v1_private_put_order(&[__ws_arg_10]).await;
+            response = self.v1_private_put_order(&[__ws_arg_10]).await.into_opt_dict();
         }
         //
         // {
@@ -3391,11 +3391,11 @@ impl Modetrade {
         //     }
         // }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        data.insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[]));
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
         return self.parse_order(Value::Map(data), &[(market).raw.clone()]);
         Value::Null
         }).await?))

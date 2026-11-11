@@ -3720,18 +3720,18 @@ impl Hashkey {
                 m.insert("orders".to_string(), Value::from(ordersRequests));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_api_v1_spot_batch_orders(&[__ws_arg_18]).await;
+            response = self.private_post_api_v1_spot_batch_orders(&[__ws_arg_18]).await.into_opt_dict();
         }  else if (market).swap {
             let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_api_v1_futures_batch_orders(&[__ws_arg_19]).await;
+            response = self.private_post_api_v1_futures_batch_orders(&[__ws_arg_19]).await.into_opt_dict();
         }  else {
             let mut marketTypeValue: String = self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), Value::Str("createOrderRequest() is not supported for ".into())).into()), marketTypeValue).into()), Value::Str(" type of markets".into()))));
         }
-        let mut result: Vec<Value> = self.safe_list_k(response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut result: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4459,15 +4459,15 @@ impl Hashkey {
             }
         }
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
+        let mut postOnly: Option<bool> = None;
+        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null).as_bool(); }
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[])).as_str().map(str::to_owned);
         if (price.is_none()) {
             price = average.clone();
         }
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
-        let mut reduceOnly: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut reduceOnly: Option<bool> = None;
+        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_bool(); }
         let mut feeCurrncyId: Option<String> = self.safe_string_k(order.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
         if (feeCurrncyId.as_deref() == Some("")) {
             feeCurrncyId = None.clone();
@@ -4501,8 +4501,8 @@ impl Hashkey {
         m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[])));
     m
 }));
-        m.insert("reduceOnly".to_string(), reduceOnly);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
     m
 }), &[marketResolved]);

@@ -4445,22 +4445,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // that the trailing suspension point below would panic on
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: Value = Value::Null;
+                let mut response: Option<crate::value::Dict> = None;
                 if isStock {
                     let mut requestParams: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]);
-                    response = self.parent.sapi_post_equity_listen_key(&[requestParams]).await;
+                    response = self.parent.sapi_post_equity_listen_key(&[requestParams]).await.into_opt_dict();
                 }  else if isPortfolioMargin {
-                    response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await;
+                    response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("linear")) {
-                    response = self.parent.fapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
+                    response = self.parent.fapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("inverse")) {
-                    response = self.parent.dapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
+                    response = self.parent.dapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("option")) {
-                    response = self.parent.eapi_private_post_listen_key(&[paramsOmitted.clone()]).await;
+                    response = self.parent.eapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
                 }  else {
-                    response = self.parent.public_post_user_data_stream(&[paramsOmitted.clone()]).await;
+                    response = self.parent.public_post_user_data_stream(&[paramsOmitted.clone()]).await.into_opt_dict();
                 }
-                let mut listenKey: Option<String> = self.safe_string_k_opt(response, "listenKey", &[]);
+                let mut listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }

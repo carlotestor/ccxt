@@ -2672,22 +2672,22 @@ impl Woo {
         }
         let mut paramsRequest: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
             Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isConditional {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
-            response = self.v3_private_post_trade_algo_order(&[__ws_arg_2]).await;
+            response = self.v3_private_post_trade_algo_order(&[__ws_arg_2]).await.into_opt_dict();
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.v3_private_post_trade_order(&[__ws_arg_3]).await;
+            response = self.v3_private_post_trade_order(&[__ws_arg_3]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         data = self.safe_dict(self.safe_list_k(data.clone(), "rows", &[]), Value::Int(0), &[data.clone()]);
         let __ws_arg_4 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), self.safe_string_k(response, "timestamp", &[]));
+        m.insert("timestamp".to_string(), self.safe_string_k(&response, "timestamp", &[]));
     m
 })]);
         return self.parse_order(__ws_arg_4, &[(market).raw.clone()]);
@@ -2872,7 +2872,7 @@ impl Woo {
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "client_order_id", &[clientOrderIdUnified.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             if isByClientOrder {
                 request.insert("clientAlgoOrderId".into(), clientOrderIdExchangeSpecific.clone());
@@ -2880,7 +2880,7 @@ impl Woo {
                 request.insert("algoOrderId".into(), id.clone());
             }
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-            response = self.v3_private_delete_trade_algo_order(&[__ws_arg_7]).await;
+            response = self.v3_private_delete_trade_algo_order(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             if isByClientOrder {
@@ -2889,7 +2889,7 @@ impl Woo {
                 request.insert("orderId".into(), id.clone());
             }
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.v3_private_delete_trade_order(&[__ws_arg_8]).await;
+            response = self.v3_private_delete_trade_order(&[__ws_arg_8]).await.into_opt_dict();
         }
         //
         //     {
@@ -2900,11 +2900,11 @@ impl Woo {
         //         "timestamp": 1751940315838
         //     }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        data.insert("timestamp".into(), self.safe_string_k(response, "timestamp", &[]));
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        data.insert("timestamp".into(), self.safe_string_k(&response, "timestamp", &[]));
         if isByClientOrder {
             data.insert("clientOrderId".into(), clientOrderIdExchangeSpecific);
         }  else {
@@ -2950,13 +2950,13 @@ impl Woo {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.clone()));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.v3_private_delete_trade_algo_orders(&[paramsOmitted.clone()]).await;
+            response = self.v3_private_delete_trade_algo_orders(&[paramsOmitted.clone()]).await.into_opt_dict();
         }  else {
             // cancels both regular and algo orders
             let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_delete_trade_all_orders(&[__ws_arg_9]).await;
+            response = self.v3_private_delete_trade_all_orders(&[__ws_arg_9]).await.into_opt_dict();
         }
         //
         //     {
@@ -2967,10 +2967,10 @@ impl Woo {
         //         "timestamp": 1751941988134
         //     }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
@@ -3051,7 +3051,7 @@ impl Woo {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             if (clientOrderId.is_some()) {
                 request.insert("clientAlgoOrderId".into(), id.clone());
@@ -3059,7 +3059,7 @@ impl Woo {
                 request.insert("algoOrderId".into(), id.clone());
             }
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
-            response = self.v3_private_get_trade_algo_order(&[__ws_arg_11]).await;
+            response = self.v3_private_get_trade_algo_order(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
             if (clientOrderId.is_some()) {
                 request.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3067,12 +3067,12 @@ impl Woo {
                 request.insert("orderId".into(), id);
             }
             let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_get_trade_order(&[__ws_arg_12]).await;
+            response = self.v3_private_get_trade_order(&[__ws_arg_12]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
@@ -3138,18 +3138,18 @@ impl Woo {
         if (limit != Value::Null) {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-            response = self.v3_private_get_trade_algo_orders(&[__ws_arg_13]).await;
+            response = self.v3_private_get_trade_algo_orders(&[__ws_arg_13]).await.into_opt_dict();
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.v3_private_get_trade_orders(&[__ws_arg_14]).await;
+            response = self.v3_private_get_trade_orders(&[__ws_arg_14]).await.into_opt_dict();
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut orders: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
@@ -5648,9 +5648,9 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            response = self.v3_private_get_account_info(&[params.clone()]).await;
+            response = self.v3_private_get_account_info(&[params.clone()]).await.into_opt_dict();
         }  else if (market).swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -5662,15 +5662,15 @@ impl Woo {
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.v3_private_get_futures_leverage(&[__ws_arg_38]).await;
+            response = self.v3_private_get_futures_leverage(&[__ws_arg_38]).await.into_opt_dict();
         }  else {
             let mut marketType: String = self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_leverage(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))

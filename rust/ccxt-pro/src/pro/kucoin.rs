@@ -500,18 +500,18 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if (connectId.as_str() == Some("private")) {
-                response = self.parent.private_post_bullet_private(&[params.clone()]).await;
+                response = self.parent.private_post_bullet_private(&[params.clone()]).await.into_opt_dict();
             }  else if (connectId.as_str() == Some("public")) {
-                response = self.parent.public_post_bullet_public(&[params.clone()]).await;
+                response = self.parent.public_post_bullet_public(&[params.clone()]).await.into_opt_dict();
             }  else if (connectId.as_str() == Some("privateFutures")) {
-                response = self.parent.futures_private_post_bullet_private(&[params.clone()]).await;
+                response = self.parent.futures_private_post_bullet_private(&[params.clone()]).await.into_opt_dict();
             }  else {
-                response = self.parent.futures_public_post_bullet_public(&[params]).await;
+                response = self.parent.futures_public_post_bullet_public(&[params]).await.into_opt_dict();
             }
-            let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

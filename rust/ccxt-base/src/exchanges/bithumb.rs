@@ -3139,7 +3139,7 @@ impl Bithumb {
             m
         });
         let mut market: Value = Value::Null;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (generation.as_f64() == Some(2.0)) {
             let mut twap: bool = self.safe_bool_k(paramsGeneration.clone(), "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let __ws_arg_26 = self.extend(paramsGeneration.clone(), &[Value::Map({
@@ -3161,9 +3161,9 @@ impl Bithumb {
             request.insert("order_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             request.insert("payment_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
             let __ws_arg_27 = self.extend(Value::Map(request), &[paramsGeneration]);
-            response = self.private_post_info_orders(&[__ws_arg_27]).await;
+            response = self.private_post_info_orders(&[__ws_arg_27]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limitResolved]);
         Value::Null
         }).await?))

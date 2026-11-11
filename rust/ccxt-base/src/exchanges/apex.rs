@@ -2368,20 +2368,20 @@ impl Apex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[])]);
-            response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await;
+            response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_v3_delete_order(&[__ws_arg_16]).await;
+            response = self.private_post_v3_delete_order(&[__ws_arg_16]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.safe_order(data, &[]);
         Value::Null
         }).await?))
@@ -2419,20 +2419,20 @@ impl Apex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[])]);
-            response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await;
+            response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_v3_order(&[__ws_arg_18]).await;
+            response = self.private_get_v3_order(&[__ws_arg_18]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[]);
         Value::Null
         }).await?))

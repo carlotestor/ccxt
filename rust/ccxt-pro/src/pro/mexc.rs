@@ -2764,9 +2764,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(true)); }
         client.future(&[Value::from(messageHash.clone())]); // created ahead of the request below, so concurrent callers can find it
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await;
+            response = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(false)); }
@@ -2779,7 +2779,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
         //    }
         //
-        listenKey = self.safe_string_k(response, "listenKey", &[]);
+        listenKey = self.safe_string_k(&response, "listenKey", &[]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone()); }
         client.resolve(&[listenKey.clone(), Value::from(messageHash)]);
         let mut listenKeyRefreshRate: i64 = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);

@@ -2675,7 +2675,7 @@ impl Kraken {
         }
         }
         self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(ordersRequests));
@@ -2683,7 +2683,7 @@ impl Kraken {
             m
         });
         request = self.extend(request.clone(), &[params]);
-        response = self.private_post_add_order_batch(&[request]).await;
+        response = self.private_post_add_order_batch(&[request]).await.into_opt_dict();
         //
         //         {
         //    "error":[
@@ -2705,10 +2705,10 @@ impl Kraken {
         //       ]
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.parse_orders(self.safe_list_k(&result, "orders", &[]), &[]);
         Value::Null
         }).await?))
@@ -3310,9 +3310,9 @@ impl Kraken {
             request = self.omit(Value::Map(request.clone()), Value::Str("txid".into()), &[]).as_map().cloned().unwrap_or_default();
         }
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
-        let mut postOnly: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if postOnly.as_bool() == Some(true) {
+        let mut postOnly: Option<bool> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (postOnly == Some(true)) {
             request.insert("post_only".into(), Value::Str("true".into())); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount != Value::Null) {

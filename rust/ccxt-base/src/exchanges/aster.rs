@@ -2184,13 +2184,13 @@ impl Aster {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.fapi_public_get_v3_time(&[paramsMarketType.clone()]).await;
+            response = self.fapi_public_get_v3_time(&[paramsMarketType.clone()]).await.into_opt_dict();
         }  else {
-            response = self.sapi_public_get_v3_time(&[paramsMarketType]).await;
+            response = self.sapi_public_get_v3_time(&[paramsMarketType]).await.into_opt_dict();
         }
-        return self.safe_integer_k(response, "serverTime", &[]);
+        return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -3162,13 +3162,13 @@ impl Aster {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut data: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("swap")) {
             data = self.fapi_private_get_v3_balance(&[paramsMarketType.clone()]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.sapi_private_get_v3_account(&[paramsMarketType]).await;
-            data = self.safe_list_k(response, "balances", &[Value::from(vec![])]);
+            response = self.sapi_private_get_v3_account(&[paramsMarketType]).await.into_opt_dict();
+            data = self.safe_list_k(&response, "balances", &[Value::from(vec![])]);
         }
         return self.parse_balance_list(data);
         Value::Null

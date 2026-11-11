@@ -1468,13 +1468,13 @@ impl Weex {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() != Some("spot")) {
-            response = self.contract_get_capi_v3_market_time(&[paramsMarketType.clone()]).await;
+            response = self.contract_get_capi_v3_market_time(&[paramsMarketType.clone()]).await.into_opt_dict();
         }  else {
-            response = self.public_get_api_v3_time(&[paramsMarketType]).await;
+            response = self.public_get_api_v3_time(&[paramsMarketType]).await.into_opt_dict();
         }
-        return self.safe_integer_k(response, "serverTime", &[]);
+        return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -3706,15 +3706,15 @@ impl Weex {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an ids argument or clientOrderIds parameter".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSpot {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_api_v3_order_batch(&[__ws_arg_22]).await;
+            response = self.private_delete_api_v3_order_batch(&[__ws_arg_22]).await.into_opt_dict();
         }  else {
             let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_batch_orders(&[__ws_arg_23]).await;
+            response = self.contract_private_delete_capi_v3_batch_orders(&[__ws_arg_23]).await.into_opt_dict();
         }
-        let mut ordersResponse: Value = self.safe_list_k(response, "orderList", &[Value::from(vec![])]);
+        let mut ordersResponse: Value = self.safe_list_k(&response, "orderList", &[Value::from(vec![])]);
         let mut extendedParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("canceled".into()));

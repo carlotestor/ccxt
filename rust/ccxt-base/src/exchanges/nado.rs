@@ -1208,16 +1208,16 @@ impl Nado {
         let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_all_orders_request(&[symbol, paramsOmitted]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.trigger_private_post_execute(&[request.clone()]).await;
+            response = self.trigger_private_post_execute(&[request.clone()]).await.into_opt_dict();
         }  else {
-            response = self.gateway_private_post_execute(&[request]).await;
+            response = self.gateway_private_post_execute(&[request]).await.into_opt_dict();
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1335,16 +1335,16 @@ impl Nado {
         let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut request: Value = self.cancel_orders_request(ids, &[symbol, paramsOmitted]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.trigger_private_post_execute(&[request.clone()]).await;
+            response = self.trigger_private_post_execute(&[request.clone()]).await.into_opt_dict();
         }  else {
-            response = self.gateway_private_post_execute(&[request]).await;
+            response = self.gateway_private_post_execute(&[request]).await.into_opt_dict();
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut cancelledOrders: Vec<Value> = self.safe_list_k(&data, "cancelled_orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {

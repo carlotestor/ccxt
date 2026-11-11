@@ -3138,15 +3138,15 @@ impl Delta {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_orders_client_order_id_client_oid(&[__ws_arg_9]).await;
+            response = self.private_get_orders_client_order_id_client_oid(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_order_id(&[__ws_arg_10]).await;
+            response = self.private_get_orders_order_id(&[__ws_arg_10]).await.into_opt_dict();
         }
         //
         //     {
@@ -3172,10 +3172,10 @@ impl Delta {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(result, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
@@ -3263,13 +3263,13 @@ impl Delta {
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("privateGetOrders")) {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_orders(&[__ws_arg_11]).await;
+            response = self.private_get_orders(&[__ws_arg_11]).await.into_opt_dict();
         }  else if (method.as_str() == Some("privateGetOrdersHistory")) {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_orders_history(&[__ws_arg_12]).await;
+            response = self.private_get_orders_history(&[__ws_arg_12]).await.into_opt_dict();
         }
         //
         //     {
@@ -3294,7 +3294,7 @@ impl Delta {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_orders(result, &[market, since, limit]);
 
     Value::Null

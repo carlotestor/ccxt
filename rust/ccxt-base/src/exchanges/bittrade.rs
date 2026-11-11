@@ -1224,9 +1224,9 @@ impl Bittrade {
     m
 }));
         let mut method: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchMarkets")).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("publicGetCommonSymbols".into())]).as_str().unwrap_or("publicGetCommonSymbols").to_string();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method == "publicGetCommonSymbols") {
-            response = self.public_get_common_symbols(&[params]).await;
+            response = self.public_get_common_symbols(&[params]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
@@ -1262,7 +1262,7 @@ impl Bittrade {
         //         ]
         //    }
         //
-        let mut markets: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut numMarkets: f64 = ((markets.len() as i64) as f64);
         if numMarkets < ((1i64) as f64) {
             panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&markets.clone().into()))));
@@ -2216,15 +2216,15 @@ impl Bittrade {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut method: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchOrdersByStates")).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("privateGetOrderOrders".into())]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_get_order_history")) || (method.as_deref() == Some("privateGetOrderHistory")) {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_order_history(&[__ws_arg_9]).await;
+            response = self.private_get_order_history(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_order_orders(&[__ws_arg_10]).await;
+            response = self.private_get_order_orders(&[__ws_arg_10]).await.into_opt_dict();
         }
-        return self.parse_orders(self.safe_list_k(response, "data", &[Value::from(vec![])]), &[market, since, limit]);
+        return self.parse_orders(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[market, since, limit]);
 
     Value::Null
 }

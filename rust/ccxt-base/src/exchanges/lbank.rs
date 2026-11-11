@@ -869,13 +869,13 @@ impl Lbank {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
-            response = self.contract_public_get_cfd_open_api_v1_pub_get_time(&[paramsMarketType.clone()]).await;
+            response = self.contract_public_get_cfd_open_api_v1_pub_get_time(&[paramsMarketType.clone()]).await.into_opt_dict();
         }  else {
-            response = self.spot_public_get_timestamp(&[paramsMarketType]).await;
+            response = self.spot_public_get_timestamp(&[paramsMarketType]).await.into_opt_dict();
         }
-        return self.safe_integer_k(response, "data", &[]);
+        return self.safe_integer_k(&response, "data", &[]);
         Value::Null
         }).await?))
     }
@@ -1468,15 +1468,15 @@ impl Lbank {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             request.insert("productGroup".into(), Value::Str("SwapU".into()));
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[__ws_arg_2]).await;
+            response = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[__ws_arg_2]).await.into_opt_dict();
         }  else {
             request.insert("symbol".into(), Value::Str("all".into()));
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.spot_public_get_ticker24hr(&[__ws_arg_3]).await;
+            response = self.spot_public_get_ticker24hr(&[__ws_arg_3]).await.into_opt_dict();
         }
         //
         // spot
@@ -1523,7 +1523,7 @@ impl Lbank {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_tickers(data, &[symbolsNormalized]);
         Value::Null
         }).await?))
@@ -1565,15 +1565,15 @@ impl Lbank {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             request.insert("depth".into(), limitResolved.clone());
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[__ws_arg_4]).await;
+            response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             request.insert("size".into(), limitResolved);
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.spot_public_get_depth(&[__ws_arg_5]).await;
+            response = self.spot_public_get_depth(&[__ws_arg_5]).await.into_opt_dict();
         }
         //
         // spot
@@ -1623,10 +1623,10 @@ impl Lbank {
         //         "success": true
         //     }
         //
-        let mut orderbook: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut orderbook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut timestamp: Option<i64> = self.milliseconds().as_i64();
         if (market).swap {
             return self.parse_order_book(orderbook.clone(), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
@@ -1796,13 +1796,13 @@ impl Lbank {
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("spotPublicGetTrades".into())]).as_str().unwrap_or("spotPublicGetTrades").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPublicGetSupplementTrades")) {
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.spot_public_get_supplement_trades(&[__ws_arg_6]).await;
+            response = self.spot_public_get_supplement_trades(&[__ws_arg_6]).await.into_opt_dict();
         }  else {
             let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_public_get_trades(&[__ws_arg_7]).await;
+            response = self.spot_public_get_trades(&[__ws_arg_7]).await.into_opt_dict();
         }
         //
         //      {
@@ -1820,7 +1820,7 @@ impl Lbank {
         //           "ts":1647021999308
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2521,13 +2521,13 @@ impl Lbank {
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("spotPrivatePostSupplementCreateOrder".into())]).as_str().unwrap_or("spotPrivatePostSupplementCreateOrder").to_string();
         let mut method: Option<String> = self.safe_string_k(paramsRequest.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsRequest, Value::Str("method".into()), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.spot_private_post_create_order(&[__ws_arg_12]).await;
+            response = self.spot_private_post_create_order(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_private_post_supplement_create_order(&[__ws_arg_13]).await;
+            response = self.spot_private_post_supplement_create_order(&[__ws_arg_13]).await.into_opt_dict();
         }
         //
         //      {
@@ -2540,10 +2540,10 @@ impl Lbank {
         //          "ts":1648162321043
         //      }
         //
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(result.clone(), "order_id", &[]));

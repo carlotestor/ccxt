@@ -4198,16 +4198,16 @@ if _try_result.is_err() {
                     m.insert("limit".to_string(), pageSize.clone());
                 m
             });
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             if (categoryId != Value::Null) {
                 request.insert("categoryId".into(), categoryId.clone());
                 let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&rest]);
-                response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await;
+                response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await.into_opt_dict();
             }  else {
                 let __ws_arg_33 = self.extend(Value::Map(request), &[&rest]);
-                response = self.limitless_public_get_markets_active(&[__ws_arg_33]).await;
+                response = self.limitless_public_get_markets_active(&[__ws_arg_33]).await.into_opt_dict();
             }
-            let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut dataLength: f64 = ((data.len() as i64) as f64);
             if (dataLength == 0.0) {
                 break;

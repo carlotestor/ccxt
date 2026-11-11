@@ -3790,15 +3790,15 @@ impl Hitbtc {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMarginMode".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("margin")) {
-            response = self.private_get_margin_config(&[paramsMarketType.clone()]).await;
+            response = self.private_get_margin_config(&[paramsMarketType.clone()]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("swap")) {
-            response = self.private_get_futures_config(&[paramsMarketType]).await;
+            response = self.private_get_futures_config(&[paramsMarketType]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginModes () supports swap contracts and margin only".into()))));
         }
-        let mut config: Value = self.safe_list_k(response, "config", &[Value::from(vec![])]);
+        let mut config: Value = self.safe_list_k(&response, "config", &[Value::from(vec![])]);
         return self.parse_margin_modes(config, &[symbolsNormalized, Value::Str("symbol".into())]);
         Value::Null
         }).await?))

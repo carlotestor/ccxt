@@ -2520,13 +2520,13 @@ impl Cex {
                 m.insert("clientTxId".to_string(), guid);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if fromMain {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_do_deposit_funds_from_wallet(&[__ws_arg_11]).await;
+            response = self.private_post_do_deposit_funds_from_wallet(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_do_withdrawal_funds_to_wallet(&[__ws_arg_12]).await;
+            response = self.private_post_do_withdrawal_funds_to_wallet(&[__ws_arg_12]).await.into_opt_dict();
         }
         // both endpoints return the same structure, the only difference is that
         // the "accountId" is filled with the "subAccount"
@@ -2541,10 +2541,10 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_transfer(data, &[currency]);
 
     Value::Null

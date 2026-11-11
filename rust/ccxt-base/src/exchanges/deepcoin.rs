@@ -1368,16 +1368,16 @@ impl Deepcoin {
                 request.insert("after".into(), crate::runtime::Math::min(&endTime, &now));
             }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (price.as_deref() == Some("mark")) {
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_mark_price_candles(&[__ws_arg_8]).await;
+            response = self.public_get_deepcoin_market_mark_price_candles(&[__ws_arg_8]).await.into_opt_dict();
         }  else if (price.as_deref() == Some("index")) {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_index_candles(&[__ws_arg_9]).await;
+            response = self.public_get_deepcoin_market_index_candles(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_candles(&[__ws_arg_10]).await;
+            response = self.public_get_deepcoin_market_candles(&[__ws_arg_10]).await.into_opt_dict();
         }
         //
         //     {
@@ -1405,7 +1405,7 @@ impl Deepcoin {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2450,10 +2450,10 @@ impl Deepcoin {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             // trigger orders
-            response = self.private_post_deepcoin_trade_trigger_order(&[request.clone()]).await;
+            response = self.private_post_deepcoin_trade_trigger_order(&[request.clone()]).await.into_opt_dict();
         }  else {
             // regular orders
             //
@@ -2469,12 +2469,12 @@ impl Deepcoin {
             //         }
             //     }
             //
-            response = self.private_post_deepcoin_trade_order(&[request]).await;
+            response = self.private_post_deepcoin_trade_order(&[request]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[market]);
         Value::Null
         }).await?))
@@ -3052,7 +3052,7 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if (methodName != "fetchCanceledAndClosedOrders") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() does not support trigger orders".into()))));
@@ -3089,7 +3089,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_deepcoin_trade_trigger_orders_history(&[__ws_arg_21]).await;
+            response = self.private_get_deepcoin_trade_trigger_orders_history(&[__ws_arg_21]).await.into_opt_dict();
         }  else {
             //
             //     {
@@ -3138,10 +3138,10 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_22]).await;
+            response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_22]).await.into_opt_dict();
         }
         // todo handle with since, until and pagination
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -3275,7 +3275,7 @@ impl Deepcoin {
         }
         let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::Str("trigger".into()), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if trigger {
             request.insert("instType".into(), self.convert_to_instrument_type(Value::from((market).market_type.clone())).map(Value::from).unwrap_or(Value::Null));
             //
@@ -3310,7 +3310,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_deepcoin_trade_trigger_orders_pending(&[__ws_arg_23]).await;
+            response = self.private_get_deepcoin_trade_trigger_orders_pending(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             request.insert("index".into(), Value::from(index));
             //
@@ -3360,9 +3360,9 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await;
+            response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[(market).raw.clone(), since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
@@ -3408,20 +3408,20 @@ impl Deepcoin {
                 m.insert("ordId".to_string(), id);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if trigger {
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::Str("trigger".into()), &[]).into_dict();
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_25]).await;
+            response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_25]).await.into_opt_dict();
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_deepcoin_trade_cancel_order(&[__ws_arg_26]).await;
+            response = self.private_post_deepcoin_trade_cancel_order(&[__ws_arg_26]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -3536,7 +3536,7 @@ impl Deepcoin {
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
         let mut isTPSL: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTPSL {
             if (price != Value::Null) || (amount != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.".into()))));
@@ -3549,7 +3549,7 @@ impl Deepcoin {
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await;
+            response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await.into_opt_dict();
         }  else {
             if (price != Value::Null) {
                 if (symbolResolved != Value::Null) {
@@ -3566,12 +3566,12 @@ impl Deepcoin {
                 }
             }
             let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_deepcoin_trade_replace_order(&[__ws_arg_29]).await;
+            response = self.private_post_deepcoin_trade_replace_order(&[__ws_arg_29]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[]);
         Value::Null
         }).await?))
@@ -4477,19 +4477,19 @@ impl Deepcoin {
                 m.insert("productGroup".to_string(), productGroup);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (positionId.is_none()) && (positionIds == Value::Null) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_deepcoin_trade_batch_close_position(&[__ws_arg_38]).await;
+            response = self.private_post_deepcoin_trade_batch_close_position(&[__ws_arg_38]).await.into_opt_dict();
         }  else {
             if (positionId.is_some()) {
                 request.insert("positionIds".into(), Value::from(vec![positionId.clone().map(Value::from).unwrap_or(Value::Null)]));
             }
             let mut paramsOmitted: Value = (if (positionId.is_some()) { self.omit(params.clone(), Value::Str("positionId".into()), &[]) } else { params });
             let __ws_arg_39 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;
+            response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_order(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))

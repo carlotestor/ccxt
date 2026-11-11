@@ -738,26 +738,26 @@ impl Opinion {
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (eventId.is_some()) || (slug.is_some()) {
             let mut singleRest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
-            let mut singleResponse: Value = Value::Null;
+            let mut singleResponse: Option<crate::value::Dict> = None;
             if (slug.is_some()) {
                 let __ws_arg_1 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+}), &[&singleRest]);
+                singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await.into_opt_dict();
             }  else {
                 let __ws_arg_2 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("marketId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await;
-            }
-            let mut singleResult: crate::value::Dict = self.safe_dict_k(singleResponse, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("marketId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})]).into_dict();
+}), &[&singleRest]);
+                singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await.into_opt_dict();
+            }
+            let mut singleResult: crate::value::Dict = self.safe_dict_k(&singleResponse, "result", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut singleData: Value = self.safe_dict_k(&singleResult, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -865,26 +865,26 @@ impl Opinion {
     m
 }));
         let mut isSlug: bool = id.as_str().unwrap_or("").contains("-");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSlug {
             let __ws_arg_4 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("slug".to_string(), id.clone());
-                m
-            }), &[params.clone()]);
-            response = self.opinion_public_get_market_slug_slug(&[__ws_arg_4]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), id.clone());
+    m
+}), &[params.clone()]);
+            response = self.opinion_public_get_market_slug_slug(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             let __ws_arg_5 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("marketId".to_string(), id);
-                m
-            }), &[params]);
-            response = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_5]).await;
-        }
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("marketId".to_string(), id);
     m
-})]).into_dict();
+}), &[params]);
+            response = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_5]).await.into_opt_dict();
+        }
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: Value = self.safe_dict_k(&result, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
