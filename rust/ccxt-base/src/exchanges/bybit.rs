@@ -5397,9 +5397,9 @@ impl Bybit {
             m
         });
         // default is 200 when requested with `since`
-        let mut limitResolved: Value = limit;
-        if (limitResolved == Value::Null) {
-            limitResolved = Value::Int(200);
+        let mut limitResolved: Option<i64> = limit.as_i64();
+        if (limitResolved.is_none()) {
+            limitResolved = Some(200);
         }
         if (since != Value::Null) {
             // bybit returns the candle that contains `start`, whose timestamp is
@@ -5412,7 +5412,7 @@ impl Bybit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), (match (&(self.parse_to_int(((match ((since).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null))),
                 &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })); }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limitResolved.clone()); }; // max 1000, default 1000
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::from(limitResolved)); }; // max 1000, default 1000
         let mut paramsUntil: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), request.clone(), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
@@ -5491,7 +5491,7 @@ impl Bybit {
             m
         })]).into_dict();
         let mut ohlcvs: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

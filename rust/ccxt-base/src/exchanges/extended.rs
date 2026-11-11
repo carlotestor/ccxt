@@ -4309,13 +4309,13 @@ impl Extended {
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an id argument".into()))));
         }
-        let mut amountValue: Value = amount;
-        let mut priceValue: Value = price;
+        let mut amountValue: Option<f64> = amount.as_f64();
+        let mut priceValue: Option<f64> = price.as_f64();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(params.clone(), "expiryEpochMillis", &[]).as_i64();
         let mut postOnly: Option<bool> = self.safe_bool_k(params.clone(), "postOnly", &[]).as_bool();
         let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut cancelId: Option<String> = self.safe_string2(params.clone(), Value::Str("cancelId".into()), Value::Str("previousOrderId".into()), &[]).as_str().map(str::to_owned);
-        if (amountValue == Value::Null) || (priceValue == Value::Null) || (expiryEpochMillis.is_none()) || (postOnly.is_none()) || (reduceOnly.is_none()) || (cancelId.is_none()) {
+        if (amountValue.is_none()) || (priceValue.is_none()) || (expiryEpochMillis.is_none()) || (postOnly.is_none()) || (reduceOnly.is_none()) || (cancelId.is_none()) {
             let mut response: crate::value::Dict = self.v1_private_get_user_orders_id(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -4325,11 +4325,11 @@ impl Extended {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            if (amountValue == Value::Null) {
-                amountValue = self.safe_number_k(&order, "qty", &[]);
+            if (amountValue.is_none()) {
+                amountValue = self.safe_number_k(&order, "qty", &[]).as_f64();
             }
-            if (priceValue == Value::Null) {
-                priceValue = self.safe_number_k(&order, "price", &[]);
+            if (priceValue.is_none()) {
+                priceValue = self.safe_number_k(&order, "price", &[]).as_f64();
             }
             if (expiryEpochMillis.is_none()) {
                 expiryEpochMillis = self.safe_integer_k(&order, "expireTime", &[]).as_i64();
@@ -4344,10 +4344,10 @@ impl Extended {
                 cancelId = self.safe_string_k(&order, "externalId", &[]).as_str().map(str::to_owned);
             }
         }
-        if (amountValue == Value::Null) {
+        if (amountValue.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument or an existing order with qty".into()))));
         }
-        if (priceValue == Value::Null) {
+        if (priceValue.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument or an existing order with price".into()))));
         }
         let mut paramsExtended: Value = self.extend(Value::Map({
@@ -4362,7 +4362,7 @@ impl Extended {
                 m.insert("expiryEpochMillis".to_string(), Value::from(expiryEpochMillis));
             m
         })]);
-        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.clone(), type_var, side, amountValue, &[priceValue, requestParams]).await;
+        let mut extendedOrderRequest: Value = self.create_extended_order_request(symbol.clone(), type_var, side, Value::from(amountValue), &[Value::from(priceValue), requestParams]).await;
         let mut request: Value = self.safe_dict_k(extendedOrderRequest.clone(), "request", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
