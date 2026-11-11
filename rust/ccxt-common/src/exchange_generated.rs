@@ -2610,8 +2610,8 @@ pub trait ExchangeBase:
         if !(matches!((&methodDict, &parentKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
-        let mut dictionary: Value = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]);
-        if (dictionary == Value::Null) {
+        let mut dictionary: Option<crate::value::Dict> = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]).into_opt_dict();
+        if (dictionary.is_none()) {
             return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')

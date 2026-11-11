@@ -886,8 +886,8 @@ impl Extended {
     m
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params).await;
-        let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        if (currenciesByNumericId == Value::Null) || reload.as_bool() == Some(true) {
+        let mut currenciesByNumericId: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]).into_opt_dict();
+        if (currenciesByNumericId.is_none()) || reload.as_bool() == Some(true) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
         }
         return markets;
@@ -3763,8 +3763,8 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cachedAccount: Value = self.safe_dict_k(self.options.clone(), "account", &[]);
-        if (cachedAccount != Value::Null) {
+        let mut cachedAccount: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "account", &[]).into_opt_dict();
+        if (cachedAccount.is_some()) {
             return self.safe_dict_k(self.options.clone(), "account", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

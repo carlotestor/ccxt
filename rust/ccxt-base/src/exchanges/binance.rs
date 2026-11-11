@@ -16380,8 +16380,8 @@ impl Binance {
         }
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if (leverageBrackets == Value::Null) || reload {
+        let mut leverageBrackets: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]).into_opt_dict();
+        if (leverageBrackets.is_none()) || reload {
             let mut defaultType: String = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
             let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]);
             let mut query: Value = self.omit(params.clone(), Value::Str("type".into()), &[]);
@@ -16764,8 +16764,8 @@ impl Binance {
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchPositions".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default(); defaultMethod = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMethod = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // check if there is a key in options|params
         if (defaultMethod == Value::Null) {
             // check if .options['fetchPositions'] dict exist at all
-            let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]);
-            if (options == Value::Null) {
+            let mut options: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]).into_opt_dict();
+            if (options.is_none()) {
                 // if undefined, for backward compatibility, check if it is a string
                 defaultMethod = self.safe_string_k(self.options.clone(), "fetchPositions", &[Value::Str("positionRisk".into())]);
             }  else {

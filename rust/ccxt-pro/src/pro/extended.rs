@@ -737,8 +737,8 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Value = self.safe_dict(Value::Arr(rawTrades.clone()), Value::Int(0), &[]);
-        if (first == Value::Null) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(Value::Arr(rawTrades.clone()), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_none()) {
             return;
         }
         {
@@ -860,8 +860,8 @@ impl Extended {
 }) }).into_dict();
         let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
         let mut newPositions: Value = Value::from(vec![]);
-        let mut first: Value = self.safe_dict(Value::Arr(rawPositions.clone()), Value::Int(0), &[]);
-        if (first == Value::Null) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(Value::Arr(rawPositions.clone()), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_none()) {
             return;
         }
         {
@@ -944,8 +944,8 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Value = self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]);
-        if (first == Value::Null) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_none()) {
             return;
         }
         {

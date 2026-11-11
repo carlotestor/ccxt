@@ -5058,8 +5058,8 @@ impl Aster {
         let mut paramsMethod: Value = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut defaultMethod: Value = methodOption;
         if (defaultMethod == Value::Null) {
-            let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]);
-            if (options == Value::Null) {
+            let mut options: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]).into_opt_dict();
+            if (options.is_none()) {
                 defaultMethod = self.safe_string_k(self.options.clone(), "fetchPositions", &[Value::Str("positionRisk".into())]);
             }  else {
                 defaultMethod = Value::Str("positionRisk".into());
@@ -5365,8 +5365,8 @@ impl Aster {
         self.load_markets_and_sign_in().await;
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if (leverageBrackets == Value::Null) || reload {
+        let mut leverageBrackets: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]).into_opt_dict();
+        if (leverageBrackets.is_none()) || reload {
             let mut response: Value = self.fapi_private_get_v3_leverage_bracket(&[params]).await;
             //
             //    [

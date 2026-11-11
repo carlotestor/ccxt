@@ -1096,8 +1096,8 @@ impl Upbit {
         let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (order != Value::Null) {
             // paid_fee is cumulative, so the cached fee is only a fallback
-            let mut parsedFee: Value = self.safe_dict_k(parsed.clone(), "fee", &[]);
-            if (parsedFee == Value::Null) {
+            let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(parsed.clone(), "fee", &[]).into_opt_dict();
+            if (parsedFee.is_none()) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
                     if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }

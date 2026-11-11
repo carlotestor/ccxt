@@ -2412,8 +2412,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             });
         }
-        let mut clientPositions: Value = self.safe_dict(self.positions.clone(), url.clone(), &[]);
-        if (clientPositions == Value::Null) {
+        let mut clientPositions: Option<crate::value::Dict> = self.safe_dict(self.positions.clone(), url.clone(), &[]).into_opt_dict();
+        if (clientPositions.is_none()) {
             if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&url), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

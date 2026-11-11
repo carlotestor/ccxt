@@ -1968,8 +1968,8 @@ impl Dydx {
     pub async fn fetch_dydx_account(&mut self) -> Value {
         // required in js
         self.load_dydx_protos().await;
-        let mut dydxAccount: Value = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]);
-        if (dydxAccount != Value::Null) {
+        let mut dydxAccount: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]).into_opt_dict();
+        if (dydxAccount.is_some()) {
             return self.safe_dict_k(self.options.clone(), "dydxAccount", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

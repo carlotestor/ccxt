@@ -1982,8 +1982,8 @@ impl Lbank {
         });
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
         // from spotPrivatePostUserInfo
-        let mut toBtc: Value = self.safe_dict_k(data.clone(), "toBtc", &[]);
-        if (toBtc != Value::Null) {
+        let mut toBtc: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "toBtc", &[]).into_opt_dict();
+        if (toBtc.is_some()) {
             let mut used: crate::value::Dict = self.safe_dict_k(data.clone(), "freeze", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
