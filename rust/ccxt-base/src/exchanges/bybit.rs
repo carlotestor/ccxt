@@ -7110,14 +7110,14 @@ impl Bybit {
             // UTA account can specify the cost of the order on both sides
             if (cost.is_some()) || (price != Value::Null) {
                 request.insert("marketUnit".into(), Value::Str("quoteCoin".into()));
-                let mut orderCost: Option<String> = None;
+                let mut orderCost: Value = Value::Null;
                 if (cost.is_some()) {
-                    orderCost = cost.clone();
+                    orderCost = cost.clone().map(Value::from).unwrap_or(Value::Null);
                 }  else {
-                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
+                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
                     orderCost = quoteAmount.clone();
                 }
-                request.insert("qty".into(), self.get_cost(symbolValue.clone(), orderCost.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+                request.insert("qty".into(), self.get_cost(symbolValue.clone(), orderCost).map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("marketUnit".into(), Value::Str("baseCoin".into()));
                 request.insert("qty".into(), amountString.clone());

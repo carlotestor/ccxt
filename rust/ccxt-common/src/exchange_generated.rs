@@ -7989,24 +7989,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Str("1".into());
         }
         if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            let mut parsedPrecision: String = "0.".to_string();
+            let mut parsedPrecision: Value = Value::Str("0.".into());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_142: bool = true;
                 while { if !__for_first_142 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < (match (&(precisionNumber), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
-                parsedPrecision = format!("{}{}", parsedPrecision, Value::Str("0".into()));
+                parsedPrecision = Value::Str(format!("{}{}", parsedPrecision, Value::Str("0".into())).into());
             }
             }
             return Value::Str(format!("{}{}", parsedPrecision, Value::Str("1".into())).into());
         }  else {
-            let mut parsedPrecision: String = "1".to_string();
+            let mut parsedPrecision: Value = Value::Str("1".into());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_143: bool = true;
                 while { if !__for_first_143 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < (match (&(Value::Int(-1)), &(precisionNumber)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
-                parsedPrecision = format!("{}{}", parsedPrecision, Value::Str("0".into()));
+                parsedPrecision = Value::Str(format!("{}{}", parsedPrecision, Value::Str("0".into())).into());
             }
             }
             return Value::Str(format!("{}{}", parsedPrecision, Value::Str("0".into())).into());

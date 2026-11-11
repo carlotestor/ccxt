@@ -1607,8 +1607,8 @@ impl Sxbet {
                 orderStatus = Some("canceled".to_string());
             }  else if (state.as_deref() == Some("CANCELLED")) {
                 // the documented field is cancelReason; 'reason' is kept for older responses
-                let mut reason: Option<String> = self.safe_string_upper2(&matchOutcome, Value::Str("cancelReason".into()), Value::Str("reason".into()), &[]).as_str().map(str::to_owned);
-                orderStatus = (if (reason.as_deref() == Some("EXPIRED")) { Some("expired".to_string()) } else { Some("canceled".to_string()) });
+                let mut reason: Value = self.safe_string_upper2(&matchOutcome, Value::Str("cancelReason".into()), Value::Str("reason".into()), &[]);
+                orderStatus = (if (reason.as_str() == Some("EXPIRED")) { Some("expired".to_string()) } else { Some("canceled".to_string()) });
             }
         }
         let mut now: Option<i64> = self.milliseconds().as_i64();
