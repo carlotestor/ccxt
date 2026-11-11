@@ -565,11 +565,11 @@ impl Bybit {
         let mut isSpot: Option<bool> = None;
         let mut type_var: Value = Value::Null;
         let mut market: Value = Value::Null;
-        let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut accessibilityUrls: indexmap::IndexMap<String, Value> = self.safe_dict(wsUrls, accessibility, &[Value::Map({
+        })]).into_dict();
+        let mut accessibilityUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, accessibility, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -1211,17 +1211,17 @@ impl Bybit {
         let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
         let mut bids: Value = self.sort_by(self.aggregate(orderbook.book_field("bids")), Value::Int(0), &[]);
         let mut asks: Value = self.sort_by(self.aggregate(orderbook.book_field("asks")), Value::Int(0), &[]);
-        let mut bestBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
-        let mut bestAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
+        let mut bestBid: crate::value::List = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut bestAsk: crate::value::List = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]).into_list();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("ask".to_string(), self.safe_number(bestAsk.clone(), Value::Int(0), &[]));
-        m.insert("askVolume".to_string(), self.safe_number(bestAsk, Value::Int(1), &[]));
-        m.insert("bid".to_string(), self.safe_number(bestBid.clone(), Value::Int(0), &[]));
-        m.insert("bidVolume".to_string(), self.safe_number(bestBid, Value::Int(1), &[]));
+        m.insert("ask".to_string(), self.safe_number(&bestAsk, Value::Int(0), &[]));
+        m.insert("askVolume".to_string(), self.safe_number(&bestAsk, Value::Int(1), &[]));
+        m.insert("bid".to_string(), self.safe_number(&bestBid, Value::Int(0), &[]));
+        m.insert("bidVolume".to_string(), self.safe_number(&bestBid, Value::Int(1), &[]));
         m.insert("info".to_string(), orderbook);
     m
 }), &[market]);
@@ -2704,7 +2704,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_202: bool = true;
                 while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawLiquidations.len() as i64) } {
-                let mut rawLiquidation: Value = self.safe_dict(rawLiquidations.clone().into(), Value::Int(i), &[]);
+                let mut rawLiquidation: Value = self.safe_dict(&rawLiquidations, Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k_opt(rawLiquidation.clone(), "s", &[]);
                 let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

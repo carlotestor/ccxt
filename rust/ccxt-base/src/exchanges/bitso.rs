@@ -788,8 +788,8 @@ impl Bitso {
         //     }
         let mut operation: Option<String> = self.safe_string_k(item.clone(), "operation", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = self.parse_ledger_entry_type(operation.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut balanceUpdates: Value = self.safe_list_k(item.clone(), "balance_updates", &[Value::from(vec![])]);
-        let mut firstBalance: crate::value::Dict = self.safe_dict(balanceUpdates, Value::Int(0), &[Value::Map({
+        let mut balanceUpdates: crate::value::List = self.safe_list_k(item.clone(), "balance_updates", &[Value::from(vec![])]).into_list();
+        let mut firstBalance: crate::value::Dict = self.safe_dict(&balanceUpdates, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -899,7 +899,7 @@ impl Bitso {
         //         ]
         //     }
         let mut markets: Vec<Value> = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut currencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[]);
+        let mut currencies: crate::value::Dict = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[]).into_dict();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -942,7 +942,7 @@ impl Bitso {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_419: bool = true;
                 while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-                let mut tier: crate::value::Dict = self.safe_dict(feeTiers.clone().into(), j.clone(), &[]).into_dict();
+                let mut tier: crate::value::Dict = self.safe_dict(&feeTiers, j.clone(), &[]).into_dict();
                 let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
                 let mut takerFee: Option<f64> = self.safe_number_k(&tier, "taker", &[]).as_f64();
                 let mut makerFee: Option<f64> = self.safe_number_k(&tier, "maker", &[]).as_f64();
@@ -961,7 +961,7 @@ impl Bitso {
                 m
             });
             fee.insert("tiers".into(), Value::Map(tiers));
-            let mut baseCurrency: crate::value::Dict = self.safe_dict(currencies.clone(), base.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut baseCurrency: crate::value::Dict = self.safe_dict(&currencies, base.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1146,7 +1146,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_421: bool = true;
             while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2185,8 +2185,8 @@ impl Bitso {
         //         }]
         //     }
         //
-        let mut transactions: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(transactions, Value::Int(0), &[Value::Map({
+        let mut transactions: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&transactions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2703,8 +2703,8 @@ impl Bitso {
         //         ]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(payload, Value::Int(0), &[]);
+        let mut payload: crate::value::List = self.safe_list_k(response, "payload", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&payload, Value::Int(0), &[]);
         return self.parse_transaction(first, &[currency]);
         Value::Null
         }).await?))

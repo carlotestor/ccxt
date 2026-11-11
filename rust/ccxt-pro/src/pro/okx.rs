@@ -941,7 +941,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_531: bool = true;
             while { if !__for_first_531 { i += 1; } __for_first_531 = false; i < (data.len() as i64) } {
-            let mut rawfr: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
+            let mut rawfr: Value = self.safe_dict(&data, Value::Int(i), &[]);
             let mut fundingRate: Value = self.parse_funding_rate(rawfr, &[]);
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1360,8 +1360,8 @@ impl Okx {
 }) }).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1385,14 +1385,14 @@ impl Okx {
         let mut bid: Option<String> = self.safe_string_k(ticker.clone(), "bidPx", &[]).as_str().map(str::to_owned);
         let mut bidVolume: Option<String> = self.safe_string_k(ticker.clone(), "bidSz", &[]).as_str().map(str::to_owned);
         if (ask.is_none()) {
-            let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::from(vec![])]);
-            let mut firstAsk: crate::value::List = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k(ticker.clone(), "asks", &[Value::from(vec![])]).into_list();
+            let mut firstAsk: crate::value::List = self.safe_list(&asks, Value::Int(0), &[Value::from(vec![])]).into_list();
             ask = self.safe_string(&firstAsk, Value::Int(0), &[]).as_str().map(str::to_owned);
             askVolume = self.safe_string(&firstAsk, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         if (bid.is_none()) {
-            let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::from(vec![])]);
-            let mut firstBid: crate::value::List = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(ticker.clone(), "bids", &[Value::from(vec![])]).into_list();
+            let mut firstBid: crate::value::List = self.safe_list(&bids, Value::Int(0), &[Value::from(vec![])]).into_list();
             bid = self.safe_string(&firstBid, Value::Int(0), &[]).as_str().map(str::to_owned);
             bidVolume = self.safe_string(&firstBid, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
@@ -1704,8 +1704,8 @@ impl Okx {
         //        }]
         //    }
         //
-        let mut posData: Value = self.safe_list_k(liquidation.clone(), "posData", &[Value::from(vec![])]);
-        let mut firstPosData: crate::value::Dict = self.safe_dict(posData, Value::Int(0), &[Value::Map({
+        let mut posData: crate::value::List = self.safe_list_k(liquidation.clone(), "posData", &[Value::from(vec![])]).into_list();
+        let mut firstPosData: crate::value::Dict = self.safe_dict(&posData, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1751,8 +1751,8 @@ impl Okx {
         //        "uly": "IOST-USDT"
         //    }
         //
-        let mut details: Value = self.safe_list_k(liquidation.clone(), "details", &[Value::from(vec![])]);
-        let mut liquidationDetails: crate::value::Dict = self.safe_dict(details, Value::Int(0), &[Value::Map({
+        let mut details: crate::value::List = self.safe_list_k(liquidation.clone(), "details", &[Value::from(vec![])]).into_list();
+        let mut liquidationDetails: crate::value::Dict = self.safe_dict(&details, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -3817,7 +3817,7 @@ impl Okx {
                                                 let mut i: i64 = 0;
                         let mut __for_first_557: bool = true;
                         while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (data.len() as i64) } {
-                        let mut d: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+                        let mut d: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
                         errorCode = self.safe_string_k(&d, "sCode", &[]).as_str().map(str::to_owned);
                         if (errorCode.is_some()) {
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

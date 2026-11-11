@@ -2566,7 +2566,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_727: bool = true;
             while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (balances.len() as i64) } {
-            let mut balanceEntry: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balanceEntry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balanceEntry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3737,7 +3737,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_729: bool = true;
             while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (result.len() as i64) } {
-            let mut responseEntry: crate::value::Dict = self.safe_dict(result.clone().into(), Value::Int(i), &[Value::Map({
+            let mut responseEntry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5421,7 +5421,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_732: bool = true;
             while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (data.len() as i64) } {
-            let mut fee: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut fee: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5583,7 +5583,7 @@ impl Hashkey {
                                 let mut i: i64 = 0;
                 let mut __for_first_733: bool = true;
                 while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (result.len() as i64) } {
-                let mut entry: crate::value::Dict = self.safe_dict(result.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut entry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
                     errorInArray = true;

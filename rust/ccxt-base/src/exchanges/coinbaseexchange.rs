@@ -1682,8 +1682,8 @@ impl Coinbaseexchange {
             let mut __for_first_553: bool = true;
             while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entry: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]);
-            let mut first: Value = self.safe_list(entry, Value::Int(0), &[Value::from(vec![])]);
+            let mut entry: crate::value::List = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
+            let mut first: Value = self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::from(delimiter.clone())]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(first, &[market]));
@@ -3187,8 +3187,8 @@ impl Coinbaseexchange {
             { let __be_tmp = self.index_by(accounts, Value::Str("currency".into())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
         }
         let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
-        let mut accountsByCurrencyId: Value = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]);
-        let mut account: Value = self.safe_dict(accountsByCurrencyId, currencyId.clone(), &[]);
+        let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]).into_dict();
+        let mut account: Value = self.safe_dict(&accountsByCurrencyId, currencyId.clone(), &[]);
         if (account == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".into())).into()), code).into()), Value::Str(" with id = ".into())).into()),
                 currencyId).into()), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".into()))));

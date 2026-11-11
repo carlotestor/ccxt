@@ -1701,8 +1701,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1978,8 +1978,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2466,8 +2466,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut interest: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut interest: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3289,18 +3289,18 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut responseOrders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut errors: Value = self.safe_list_k(&response, "errors", &[Value::from(vec![])]);
+        let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut errors: crate::value::List = self.safe_list_k(&response, "errors", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1059: bool = true;
             while { if !__for_first_1059 { i += 1; } __for_first_1059 = false; i < (orders.len() as i64) } {
-            let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), Value::Int(i), &[]);
+            let mut responseOrder: Value = self.safe_dict(&responseOrders, Value::Int(i), &[]);
             if (responseOrder != Value::Null) {
                 result.push(self.parse_order(responseOrder, &[]));
             }  else {
-                let mut error: Value = self.safe_dict(errors.clone(), Value::Int(i), &[]);
+                let mut error: Value = self.safe_dict(&errors, Value::Int(i), &[]);
                 result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error);
@@ -4666,8 +4666,8 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
-        return self.parse_margin_mode(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        let mut configs: crate::value::List = self.safe_list_k(&response, "configs", &[]).into_list();
+        return self.parse_margin_mode(self.safe_dict(&configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4786,8 +4786,8 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
-        return self.parse_leverage(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        let mut configs: crate::value::List = self.safe_list_k(&response, "configs", &[]).into_list();
+        return self.parse_leverage(self.safe_dict(&configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4930,8 +4930,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut greeks: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut greeks: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

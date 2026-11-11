@@ -491,7 +491,7 @@ pub trait ExchangeBase:
         self.positions = Value::Null;
 }
 
-    fn safe_bool_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -508,7 +508,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_bool2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool2(&self, dictionaryOrList: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -529,7 +529,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_bool(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_bool(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -546,7 +546,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_dict_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -566,7 +566,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_dict(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -586,7 +586,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_dict2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict2(&self, dictionaryOrList: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -607,7 +607,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_list_n(&self, mut dictionaryOrList: Value, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_list_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -627,7 +627,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_list2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_list2(&self, dictionaryOrList: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -648,7 +648,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_list(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_list(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -2302,7 +2302,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_number_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_number_omit_zero(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Option<String> = self.safe_string(obj, key, &[]).as_str().map(str::to_owned);
         let mut final_val: Value = self.parse_number(self.omit_zero(value.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -2311,7 +2311,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_integer_omit_zero(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_integer_omit_zero(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer(obj, key, &[defaultValue]);
         if (timestamp == Value::Null) || (timestamp.as_f64() == Some(0.0)) {
@@ -2647,7 +2647,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_ledger_entry(&self, mut entry: Value, optional_args: &[Value]) -> Value {
+    fn safe_ledger_entry(&self, entry: impl KeyRead, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(Value::Null, &[currency]).as_map().cloned().unwrap_or_default();
         let mut direction: Option<String> = self.safe_string_k(entry.clone(), "direction", &[]).as_str().map(str::to_owned);
@@ -4890,7 +4890,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_number2(&self, mut dictionary: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    fn safe_number2(&self, dictionary: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut d = get_arg(optional_args, 0, Value::Null);
         let mut value: Option<String> = self.safe_string2(dictionary, key1, key2, &[]).as_str().map(str::to_owned);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[d]);
@@ -7901,11 +7901,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currency: Value = (if let (Some(__m), Some(__k)) = (self.currencies.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut precision: Value = self.safe_value_k(currency.clone(), "precision", &[]);
         if (networkCode != Value::Null) {
-            let mut networks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
+            let mut networks: crate::value::Dict = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut networkItem: crate::value::Dict = self.safe_dict(networks, networkCode, &[Value::Map({
+})]).into_dict();
+            let mut networkItem: crate::value::Dict = self.safe_dict(&networks, networkCode, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -7942,7 +7942,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn safe_number(&self, mut obj: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_number(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
         let mut value: Option<String> = self.safe_string(obj, key, &[]).as_str().map(str::to_owned);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[defaultNumber]);
@@ -7950,7 +7950,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn safe_number_n(&self, mut obj: Value, mut arr: Value, optional_args: &[Value]) -> Value {
+    fn safe_number_n(&self, obj: impl KeyRead, mut arr: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
         let mut value: Option<String> = self.safe_string_n(obj, arr, &[]).as_str().map(str::to_owned);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[defaultNumber]);
@@ -13745,29 +13745,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "require_value" => self.require_value(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "resolve_path" => self.resolve_path(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "safe_balance" => self.safe_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "safe_bool" => self.safe_bool(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_bool2" => self.safe_bool2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "safe_bool_n" => self.safe_bool_n(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "safe_currency" => self.safe_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_currency_code" => self.safe_currency_code(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_currency_structure" => self.safe_currency_structure(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_deterministic_call" => self.safe_deterministic_call(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "safe_dict" => self.safe_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_dict2" => self.safe_dict2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "safe_dict_n" => self.safe_dict_n(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_integer_omit_zero" => self.safe_integer_omit_zero(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_ledger_entry" => self.safe_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_liquidation" => self.safe_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "safe_list" => self.safe_list(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_list2" => self.safe_list2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "safe_list_n" => self.safe_list_n(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "safe_market" => self.safe_market(&args[..]),
             "safe_market_structure" => self.safe_market_structure(&args[..]),
             "safe_network" => self.safe_network(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "safe_number" => self.safe_number(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_number2" => self.safe_number2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-            "safe_number_n" => self.safe_number_n(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "safe_number_omit_zero" => self.safe_number_omit_zero(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "safe_open_interest" => self.safe_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_order" => self.safe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_position" => self.safe_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),

@@ -591,7 +591,7 @@ impl Binance {
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             let mut hasOutcomes: bool = false;
             if rawMarketsLength > ((0i64) as f64) {
-                let mut firstMarket: crate::value::Dict = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
+                let mut firstMarket: crate::value::Dict = self.safe_dict(&rawMarkets, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1027,7 +1027,7 @@ impl Binance {
                         let mut oi: Value = Value::Int(0);
             let mut __for_first_1220: bool = true;
             while { if !__for_first_1220 { if let Value::Int(n) = &mut oi { *n += 1; } } __for_first_1220 = false; oi.as_f64().unwrap_or(f64::NAN) < rawOutcomesLength } {
-            let mut rawOutcome: crate::value::Dict = self.safe_dict(rawOutcomes.clone().into(), oi.clone(), &[]).into_dict();
+            let mut rawOutcome: crate::value::Dict = self.safe_dict(&rawOutcomes, oi.clone(), &[]).into_dict();
             let mut label: Option<String> = self.safe_string_upper_k(&rawOutcome, "name", &[]).as_str().map(str::to_owned);
             let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "tokenId", &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1434,7 +1434,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1222: bool = true;
             while { if !__for_first_1222 { i += 1; } __for_first_1222 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut accountType: Option<String> = self.safe_string_k_opt(&balance, "accountType", &[]);
             if (accountType.as_deref() == type_var.as_str()) {
                 let mut free: Option<String> = self.safe_string_k(&balance, "availableBalanceDisplay", &[]).as_str().map(str::to_owned);
@@ -2586,7 +2586,7 @@ impl Binance {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1227: bool = true;
                 while { if !__for_first_1227 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1227 = false; i.as_f64().unwrap_or(f64::NAN) < failedOrdersLength } {
-                let mut failedOrder: crate::value::Dict = self.safe_dict(failedOrders.clone().into(), i.clone(), &[]).into_dict();
+                let mut failedOrder: crate::value::Dict = self.safe_dict(&failedOrders, i.clone(), &[]).into_dict();
                 let mut failedOrderId: String = self.safe_string_k(&failedOrder, "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut failedReason: String = self.safe_string_k(&failedOrder, "reason", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, Value::Str(": ".into())).into()), failedReason).into()));

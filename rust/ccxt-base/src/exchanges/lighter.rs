@@ -956,9 +956,9 @@ impl Lighter {
 }
 
     pub fn get_lighter_private_key(&self, mut strAccountIndex: Value, mut strApiKeyIndex: Value) -> Value {
-        let mut auths: Value = self.safe_dict_k(self.options.clone(), "auths", &[]);
-        let mut accountAuths: Value = self.safe_dict(auths, strAccountIndex, &[]);
-        let mut apiKeyAuths: crate::value::Dict = self.safe_dict(accountAuths, strApiKeyIndex, &[]).into_dict();
+        let mut auths: crate::value::Dict = self.safe_dict_k(self.options.clone(), "auths", &[]).into_dict();
+        let mut accountAuths: crate::value::Dict = self.safe_dict(&auths, strAccountIndex, &[]).into_dict();
+        let mut apiKeyAuths: crate::value::Dict = self.safe_dict(&accountAuths, strApiKeyIndex, &[]).into_dict();
         return self.safe_string_k(&apiKeyAuths, "lighterPrivateKey", &[]);
 
     Value::Null
@@ -1146,9 +1146,9 @@ impl Lighter {
 }), Value::Str("createAuth".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
             accountIndex = self.safe_string(res, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
-        let mut auths: Value = self.safe_dict_k(self.options.clone(), "auths", &[]);
-        let mut accountAuths: Value = self.safe_dict(auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut cachedAuth: crate::value::Dict = self.safe_dict(accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut auths: crate::value::Dict = self.safe_dict_k(self.options.clone(), "auths", &[]).into_dict();
+        let mut accountAuths: crate::value::Dict = self.safe_dict(&auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut cachedAuth: crate::value::Dict = self.safe_dict(&accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut cachedDeadline: Value = self.safe_integer_k(&cachedAuth, "deadline", &[]);
         let mut minimumRemaining: Value = self.safe_integer_k(self.options.clone(), "authDeadlineMinimumRemaining", &[Value::Int(60)]);
         if (cachedDeadline != Value::Null) && (minimumRemaining != Value::Null) && ((match (&(cachedDeadline), &(minimumRemaining)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -2846,14 +2846,14 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_934: bool = true;
             while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             if (type_var.as_deref() == Some("spot")) {
                 let mut assets: Vec<Value> = self.safe_list_k(&account, "assets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_933: bool = true;
                     while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (assets.len() as i64) } {
-                    let mut asset: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(j), &[]).into_dict();
+                    let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
                     let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(codeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     let __ws_arg_17 = self.account();
@@ -3013,7 +3013,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_936: bool = true;
             while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             let mut positions: Vec<Value> = self.safe_list_k(&account, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;

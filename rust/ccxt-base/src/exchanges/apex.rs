@@ -932,13 +932,13 @@ impl Apex {
                         let mut j: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { j += 1; } __for_first_226 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(chains.clone().into(), Value::Int(j), &[]);
+            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut tokens: Vec<Value> = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut f: i64 = 0;
                 let mut __for_first_225: bool = true;
                 while { if !__for_first_225 { f += 1; } __for_first_225 = false; f < (tokens.len() as i64) } {
-                let mut token: crate::value::Dict = self.safe_dict(tokens.clone().into(), Value::Int(f), &[]).into_dict();
+                let mut token: crate::value::Dict = self.safe_dict(&tokens, Value::Int(f), &[]).into_dict();
                 let mut tokenName: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
                     let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
@@ -1232,8 +1232,8 @@ impl Apex {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_0]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut rawTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1320,11 +1320,11 @@ impl Apex {
         }
         let __ws_arg_1 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_v3_klines(&[__ws_arg_1]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut OHLCVs: Value = self.safe_list(data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut OHLCVs: Value = self.safe_list(&data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(OHLCVs, &[market, timeframe, since, limitResolved]);
         Value::Null
         }).await?))
@@ -1550,8 +1550,8 @@ impl Apex {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_4]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut rawTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

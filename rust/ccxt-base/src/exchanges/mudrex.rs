@@ -550,8 +550,8 @@ impl Mudrex {
         }
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if !success {
-            let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
-            let mut first: crate::value::Dict = self.safe_dict(errors, Value::Int(0), &[Value::Map({
+            let mut errors: crate::value::List = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]).into_list();
+            let mut first: crate::value::Dict = self.safe_dict(&errors, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -668,11 +668,11 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut assetTicks: Value = self.safe_dict_k(&data, "asset_ticks", &[Value::Map({
+        let mut assetTicks: crate::value::Dict = self.safe_dict_k(&data, "asset_ticks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut ohlcvs: Value = self.safe_list(assetTicks, Value::from(assetPair.to_lowercase()), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut ohlcvs: Value = self.safe_list(&assetTicks, Value::from(assetPair.to_lowercase()), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
         Value::Null
         }).await?))

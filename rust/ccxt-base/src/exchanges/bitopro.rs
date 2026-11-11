@@ -1143,11 +1143,11 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.public_get_provisioning_limitations_and_fees(&[params]).await.into_dict();
-        let mut tradingFeeRate: Value = self.safe_dict_k(&response, "tradingFeeRate", &[Value::Map({
+        let mut tradingFeeRate: crate::value::Dict = self.safe_dict_k(&response, "tradingFeeRate", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut first: Value = self.safe_dict(tradingFeeRate, Value::Int(0), &[]);
+        })]).into_dict();
+        let mut first: Value = self.safe_dict(&tradingFeeRate, Value::Int(0), &[]);
         //
         //     {
         //         "tradingFeeRate":[

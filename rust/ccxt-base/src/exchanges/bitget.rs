@@ -5937,7 +5937,7 @@ if _try_result.is_err() {
             }
             let mut res: crate::value::Dict = self.safe_dict(results.clone(), i.clone(), &[]).into_dict();
             let mut data: Vec<Value> = self.safe_list_k(&res, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-            let mut firstData: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(0), &[Value::Map({
+            let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5953,18 +5953,18 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_367: bool = true;
                     while { if !__for_first_367 { j += 1; } __for_first_367 = false; j < (data.len() as i64) } {
-                    let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(j), &[Value::Map({
+                    let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-                    let mut entryBorrowable: bool = self.safe_bool_k(entry.clone(), "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isCrossBorrowable: bool = self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+})]).into_dict();
+                    let mut entrySymbol: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
+                    let mut entryBorrowable: bool = self.safe_bool_k(&entry, "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isCrossBorrowable: bool = self.safe_bool_k(&entry, "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && isCrossBorrowable {
                         if let Value::Arr(__a) = &mut crossKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null)); }
                     }
-                    let mut isolatedBase: bool = self.safe_bool_k(entry.clone(), "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isolatedQuote: bool = self.safe_bool2(entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isolatedBase: bool = self.safe_bool_k(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isolatedQuote: bool = self.safe_bool2(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && (isolatedBase || isolatedQuote) {
                         if let Value::Arr(__a) = &mut isolatedKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null)); }
                     }
@@ -6655,7 +6655,7 @@ if _try_result.is_err() {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_373: bool = true;
             while { if !__for_first_373 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_373 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone().into(), j.clone(), &[]);
+            let mut chain: Value = self.safe_dict(&chains, j.clone(), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (network == Value::Null) {
@@ -11214,8 +11214,8 @@ if _try_result.is_err() {
             m
         });
         if isContractTriggerEndpoint {
-            let mut orderInfo: Value = self.safe_list_k(data.clone(), "successList", &[Value::from(vec![])]);
-            order = self.safe_dict(orderInfo, Value::Int(0), &[Value::Map({
+            let mut orderInfo: crate::value::List = self.safe_list_k(data.clone(), "successList", &[Value::from(vec![])]).into_list();
+            order = self.safe_dict(&orderInfo, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -11511,9 +11511,9 @@ if _try_result.is_err() {
                 response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_75]).await;
             }
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
-        let mut resultList: Value = self.safe_list_n(data.clone(), Value::from(vec![Value::Str("resultList".into()), Value::Str("successList".into()), Value::Str("list".into())]), &[]);
-        let mut failureList: Value = self.safe_list2(data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]);
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
+        let mut resultList: Value = self.safe_list_n(&data, Value::from(vec![Value::Str("resultList".into()), Value::Str("successList".into()), Value::Str("list".into())]), &[]);
+        let mut failureList: Value = self.safe_list2(&data, Value::Str("failure".into()), Value::Str("failureList".into()), &[]);
         let mut responseList: Value = Value::Null;
         if (resultList != Value::Null) && (failureList != Value::Null) {
             responseList = self.array_concat(resultList.clone(), failureList);
@@ -11715,7 +11715,7 @@ if _try_result.is_err() {
         if (dataListLength == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id).into()), Value::Str(" in ".into())).into()), json_stringify(&response))));
         }
-        let mut first: Value = self.safe_dict(dataList.clone().into(), Value::Int(0), &[Value::Map({
+        let mut first: Value = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -14616,11 +14616,11 @@ if _try_result.is_err() {
             let __ws_arg_121 = self.extend(requestUntil, &[paramsUntil]);
             response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_121]).await;
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut bills: Value = self.safe_list2(data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+})]).into_dict();
+        let mut bills: Value = self.safe_list2(&data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         if (uta.as_bool() == Some(true)) {
             bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), &[Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), Value::Bool(false)]);
         }
@@ -15521,7 +15521,7 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_388: bool = true;
             while { if !__for_first_388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), i.clone(), &[]).into_dict();
+            let mut chain: crate::value::Dict = self.safe_dict(&chains, i.clone(), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -16173,8 +16173,8 @@ if _try_result.is_err() {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -16329,8 +16329,8 @@ if _try_result.is_err() {
             //         ]
             //     }
             //
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-            result = self.safe_dict(data, Value::Int(0), &[Value::Map({
+            let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+            result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -16633,11 +16633,11 @@ if _try_result.is_err() {
             let __ws_arg_147 = self.extend(Value::Map(request), &[paramsUTA]);
             response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_147]).await;
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut order: Value = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+})]).into_dict();
+        let mut order: Value = self.safe_list2(&data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_order(order.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -16687,11 +16687,11 @@ if _try_result.is_err() {
             let __ws_arg_149 = self.extend(Value::Map(request), &[paramsUTA.clone()]);
             response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_149]).await;
         }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut orderInfo: Value = self.safe_list2(data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
+})]).into_dict();
+        let mut orderInfo: Value = self.safe_list2(&data, Value::Str("successList".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_positions(orderInfo, &[Value::Null, paramsUTA]);
         Value::Null
         }).await?))
@@ -17291,8 +17291,8 @@ if _try_result.is_err() {
             let __ws_arg_157 = self.extend(Value::Map(request), &[paramsUTA]);
             response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_157]).await;
         }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

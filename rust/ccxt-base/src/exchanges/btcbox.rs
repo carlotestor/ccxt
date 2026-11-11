@@ -466,10 +466,10 @@ impl Btcbox {
         let mut response1: Value = response1response2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut response2: Value = response1response2Variable.get(1).cloned().unwrap_or(Value::Null);
         //
-        let mut result2Data: Value = self.safe_dict_k(response2, "data", &[Value::Map({
+        let mut result2Data: crate::value::Dict = self.safe_dict_k(response2, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut marketIds: Vec<Value> = Value::Array(response1.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         {
@@ -488,7 +488,7 @@ impl Btcbox {
 })]).as_map().cloned().unwrap_or_default();
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
             let mut fee: Value = (if (id == "BTC") { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
-            let mut details: crate::value::Dict = self.safe_dict(result2Data.clone(), Value::from(id.clone()), &[Value::Map({
+            let mut details: crate::value::Dict = self.safe_dict(&result2Data, Value::from(id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

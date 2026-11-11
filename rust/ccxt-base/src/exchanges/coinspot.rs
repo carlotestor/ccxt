@@ -1115,10 +1115,10 @@ impl Coinspot {
         let mut response: crate::value::Dict = self.public_get_latest(&[params]).await.into_dict();
         let mut id: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         id = id.to_lowercase();
-        let mut prices: Value = self.safe_dict_k(&response, "prices", &[Value::Map({
+        let mut prices: crate::value::Dict = self.safe_dict_k(&response, "prices", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         //
         //     {
         //         "status":"ok",
@@ -1131,7 +1131,7 @@ impl Coinspot {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict(prices, Value::from(id), &[Value::Map({
+        let mut ticker: Value = self.safe_dict(&prices, Value::from(id), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

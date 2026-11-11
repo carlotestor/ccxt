@@ -3363,8 +3363,8 @@ impl Ndax {
         //         ]
         //     }
         //
-        let mut templateTypes: Value = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
-        let mut firstTemplateType: Value = self.safe_dict(templateTypes, Value::Int(0), &[]);
+        let mut templateTypes: crate::value::List = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]).into_list();
+        let mut firstTemplateType: Value = self.safe_dict(&templateTypes, Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }

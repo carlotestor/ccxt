@@ -826,7 +826,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
-            let mut tickersObj: crate::value::Dict = self.safe_dict(events.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut tickersObj: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut tickers: Vec<Value> = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
@@ -1343,8 +1343,8 @@ impl Coinbase {
             return;
         }
         let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(0), &[]).into_dict();
-        let mut trades: Value = self.safe_list_k(&event, "trades", &[]);
-        let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut trades: crate::value::List = self.safe_list_k(&event, "trades", &[]).into_list();
+        let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&trade, "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("market_trades::".into()), symbol);
@@ -1646,8 +1646,8 @@ impl Coinbase {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstEvent: Value = self.safe_dict(events, Value::Int(0), &[Value::Map({
+        let mut events: crate::value::List = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut firstEvent: Value = self.safe_dict(&events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

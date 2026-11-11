@@ -883,7 +883,7 @@ impl Coinone {
                         let mut i: i64 = 0;
             let mut __for_first_570: bool = true;
             while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (tickers.len() as i64) } {
-            let mut entry: Value = self.safe_dict(tickers.clone().into(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(&tickers, Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(entry.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_upper_k(entry.clone(), "target_currency", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_upper_k(entry.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
@@ -1231,8 +1231,8 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]);
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]).into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

@@ -1424,11 +1424,11 @@ impl Alpaca {
         //       }
         //   }
         //
-        let mut orderbooks: Value = self.safe_dict_k(&response, "orderbooks", &[Value::Map({
+        let mut orderbooks: crate::value::Dict = self.safe_dict_k(&response, "orderbooks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawOrderbook: Value = self.safe_dict(orderbooks, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        })]).into_dict();
+        let mut rawOrderbook: Value = self.safe_dict(&orderbooks, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3178,7 +3178,7 @@ impl Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_224: bool = true;
             while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (positions.len() as i64) } {
-            let mut position: crate::value::Dict = self.safe_dict(positions.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
             let mut positionSymbol: Value = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]);
             if (positionSymbol.as_str() == Some("")) {
                 continue;

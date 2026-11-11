@@ -1571,14 +1571,14 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut depositLimits: Value = self.safe_dict_k(&networkLimits, "deposit", &[Value::Map({
+        let mut depositLimits: crate::value::Dict = self.safe_dict_k(&networkLimits, "deposit", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut withdrawLimits: Value = self.safe_dict_k(&networkLimits, "withdraw", &[Value::Map({
+        })]).into_dict();
+        let mut withdrawLimits: crate::value::Dict = self.safe_dict_k(&networkLimits, "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut allNetworks: Value = self.array_concat(depositsNetworks.clone(), withdrawsNetworks.clone());
         {
                         let mut j: i64 = 0;
@@ -1586,11 +1586,11 @@ impl Whitebit {
             while { if !__for_first_1148 { j += 1; } __for_first_1148 = false; j < (allNetworks.len() as i64) } {
             let mut networkId: String = self.safe_string(allNetworks.clone(), Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut networkCode: Value = self.network_id_to_code(&[Value::from(networkId.clone()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut networkDepositLimits: crate::value::Dict = self.safe_dict(depositLimits.clone(), Value::from(networkId.clone()), &[Value::Map({
+            let mut networkDepositLimits: crate::value::Dict = self.safe_dict(&depositLimits, Value::from(networkId.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut networkWithdrawLimits: crate::value::Dict = self.safe_dict(withdrawLimits.clone(), Value::from(networkId.clone()), &[Value::Map({
+            let mut networkWithdrawLimits: crate::value::Dict = self.safe_dict(&withdrawLimits, Value::from(networkId.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -4464,7 +4464,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (subAccounts.len() as i64) } {
-            let mut subAccount: Value = self.safe_dict(subAccounts.clone().into(), Value::Int(i), &[Value::Map({
+            let mut subAccount: Value = self.safe_dict(&subAccounts, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4826,8 +4826,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(records, Value::Int(0), &[Value::Map({
+        let mut records: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&records, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5630,8 +5630,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "rate": "0.00001193"
         //     }
         //
-        let mut path: Value = self.safe_list_k(conversion.clone(), "path", &[Value::from(vec![])]);
-        let mut first: crate::value::Dict = self.safe_dict(path, Value::Int(0), &[Value::Map({
+        let mut path: crate::value::List = self.safe_list_k(conversion.clone(), "path", &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(&path, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

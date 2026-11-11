@@ -1564,11 +1564,11 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut balances: Value = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
+            let mut balances: crate::value::Dict = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            accountBalance = self.safe_dict(balances, accountName, &[Value::Map({
+            })]).into_dict();
+            accountBalance = self.safe_dict(&balances, accountName, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

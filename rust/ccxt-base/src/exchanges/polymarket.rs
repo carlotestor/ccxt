@@ -1890,7 +1890,7 @@ impl Polymarket {
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
-        let mut fallback: Value = self.safe_dict(schedule.clone().into(), Value::Int(0), &[Value::Map({
+        let mut fallback: Value = self.safe_dict(&schedule, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

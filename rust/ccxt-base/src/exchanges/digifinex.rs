@@ -2032,12 +2032,12 @@ impl Digifinex {
         //     }
         //
         let mut date: Option<i64> = self.safe_integer_k(response.clone(), "date", &[]).as_i64();
-        let mut tickers: Value = self.safe_list_k(response.clone(), "ticker", &[Value::from(vec![])]);
+        let mut tickers: crate::value::List = self.safe_list_k(response.clone(), "ticker", &[Value::from(vec![])]).into_list();
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut firstTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut firstTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4521,8 +4521,8 @@ impl Digifinex {
         //
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
-        let mut data: Value = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]);
-        let mut type_var: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
+        let mut data: crate::value::Dict = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]).into_dict();
+        let mut type_var: Option<i64> = self.safe_integer_k(&data, "type", &[]).as_i64();
         if (type_var == Some(1)) {
             fromAccount = Some("spot".to_string());
             toAccount = Some("swap".to_string());
@@ -4537,8 +4537,8 @@ impl Digifinex {
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transfer_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(data.clone(), "currency", &[]), &[currency]));
-        m.insert("amount".to_string(), self.safe_number2(data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&data, "currency", &[]), &[currency]));
+        m.insert("amount".to_string(), self.safe_number2(&data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "code", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -5924,7 +5924,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (brackets.len() as i64) } {
-            let mut tier: Value = self.safe_dict(brackets.clone().into(), Value::Int(i), &[]);
+            let mut tier: Value = self.safe_dict(&brackets, Value::Int(i), &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));

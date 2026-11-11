@@ -1076,15 +1076,15 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "market", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "market", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "last_updated_at", &[]).as_i64();
-        let mut nonce: Value = self.safe_integer_k(data.clone(), "seq_no", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "last_updated_at", &[]).as_i64();
+        let mut nonce: Value = self.safe_integer_k(&data, "seq_no", &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         let mut bids: Vec<Value> = Vec::new();
@@ -1096,12 +1096,12 @@ impl Paradex {
             let mut __for_first_588: bool = true;
             while { if !__for_first_588 { k += 1; } __for_first_588 = false; k < (levelKeys.len() as i64) } {
             let mut isDelete: bool = levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
-            let mut levels: Vec<Value> = self.safe_list(data.clone(), levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut levels: Vec<Value> = self.safe_list(&data, levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_587: bool = true;
                 while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (levels.len() as i64) } {
-                let mut level: crate::value::Dict = self.safe_dict(levels.clone().into(), Value::Int(i), &[]).into_dict();
+                let mut level: crate::value::Dict = self.safe_dict(&levels, Value::Int(i), &[]).into_dict();
                 let mut price: Option<String> = self.safe_string_k(&level, "price", &[]).as_str().map(str::to_owned);
                 let mut size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k(&level, "size", &[]).as_str().map(str::to_owned) });
                 if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {
@@ -1113,7 +1113,7 @@ impl Paradex {
             }
         }
         }
-        if (self.safe_string_k(data, "update_type", &[]).as_str() == Some("d")) {
+        if (self.safe_string_k(&data, "update_type", &[]).as_str() == Some("d")) {
             let mut deltasChannel: Value = self.get_order_book_channel(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
             let mut stored: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
             // a delta applies only to the book of the deltas feed

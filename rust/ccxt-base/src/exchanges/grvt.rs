@@ -1391,7 +1391,7 @@ impl Grvt {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), i.clone(), &[Value::Map({
+            let mut builderInfo: crate::value::Dict = self.safe_dict(&approvedBuilder, i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2388,7 +2388,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_722: bool = true;
             while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (spotBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&spotBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -4396,7 +4396,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut price: Option<String> = None;
         let mut filled: Option<String> = None;
         let mut avgPrice: Option<String> = None;
-        let mut legs: Value = self.safe_list_k(order.clone(), "legs", &[Value::from(vec![])]);
+        let mut legs: crate::value::List = self.safe_list_k(order.clone(), "legs", &[Value::from(vec![])]).into_list();
         let mut metadata: crate::value::Dict = self.safe_dict_k(order.clone(), "metadata", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4408,7 +4408,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut filledAmounts: crate::value::List = self.safe_list_k(&stateObj, "traded_size", &[Value::from(vec![])]).into_list();
         let mut avgPrices: crate::value::List = self.safe_list_k(&stateObj, "avg_fill_price", &[Value::from(vec![])]).into_list();
         let mut primaryOrderIndex: i64 = 0;
-        let mut firstLeg: Value = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]);
+        let mut firstLeg: Value = self.safe_dict(&legs, Value::from(primaryOrderIndex), &[]);
         let mut legMarketId: Option<String> = self.safe_string_k(firstLeg.clone(), "instrument", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = (if (firstLeg != Value::Null) { self.safe_market(&[legMarketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
         if (firstLeg != Value::Null) {

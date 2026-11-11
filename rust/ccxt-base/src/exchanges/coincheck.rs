@@ -663,7 +663,7 @@ impl Coincheck {
                         let mut i: i64 = 0;
             let mut __for_first_564: bool = true;
             while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (exchangeStatuses.len() as i64) } {
-            let mut exchangeStatus: crate::value::Dict = self.safe_dict(exchangeStatuses.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut exchangeStatus: crate::value::Dict = self.safe_dict(&exchangeStatuses, Value::Int(i), &[]).into_dict();
             let mut rawStatus: Option<String> = self.safe_string_k(&exchangeStatus, "status", &[]).as_str().map(str::to_owned);
             if (updated.is_none()) {
                 updated = self.safe_timestamp_k(&exchangeStatus, "timestamp", &[]).as_i64();
@@ -1192,10 +1192,10 @@ impl Coincheck {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(&response, "exchange_fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(&response, "exchange_fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1210,7 +1210,7 @@ impl Coincheck {
             while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: Value = self.safe_dict(fees.clone(), Value::from((market).id.clone()), &[Value::Map({
+            let mut fee: Value = self.safe_dict(&fees, Value::from((market).id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

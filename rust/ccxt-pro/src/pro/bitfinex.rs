@@ -872,7 +872,7 @@ impl Bitfinex {
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut parsed: Value = self.parse_ws_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("result".to_string(), self.safe_list(trades.clone().into(), index, &[]));
+        m.insert("result".to_string(), self.safe_list(&trades, index, &[]));
     m
 }), &[market.clone()]);
                 stored.append(parsed.clone());

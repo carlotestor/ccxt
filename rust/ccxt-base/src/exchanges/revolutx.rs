@@ -960,7 +960,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1118: bool = true;
             while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut tickerData: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1306,7 +1306,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1120: bool = true;
             while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1364,7 +1364,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1121: bool = true;
             while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1962,7 +1962,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1122: bool = true;
             while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2059,7 +2059,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1123: bool = true;
             while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut order: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2236,7 +2236,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1124: bool = true;
             while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[Value::Map({
+            let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
