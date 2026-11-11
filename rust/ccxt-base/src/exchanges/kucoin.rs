@@ -8005,10 +8005,10 @@ impl Kucoin {
         }
         let mut trigger: bool = false;
         let triggerOptionparamsTriggerVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("trigger".into()), &[Value::Bool(trigger)]).as_array().cloned().unwrap_or_default();
-        let mut triggerOption: Value = triggerOptionparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut triggerOption: Option<bool> = triggerOptionparamsTriggerVariable.get(0).and_then(Value::as_bool);
         let mut paramsTrigger: crate::value::Dict = triggerOptionparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orderFilter: String = "NORMAL".to_string();
-        if (triggerOption.as_bool() == Some(true)) {
+        if (triggerOption == Some(true)) {
             orderFilter = "ADVANCED".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

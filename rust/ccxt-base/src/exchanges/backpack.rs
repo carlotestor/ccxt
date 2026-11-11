@@ -1754,12 +1754,12 @@ impl Backpack {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut defaultStock: bool = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName.clone(), Value::Str("stock".into()), &[Value::Bool(defaultStock)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockqueryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: Option<bool> = stockqueryVariable.get(0).and_then(Value::as_bool);
         let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (market != Value::Null) && stock.as_bool() == Some(true) && !matches!(self.safe_bool_k(market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market != Value::Null) && (stock == Some(true)) && !matches!(self.safe_bool_k(market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a stock market".into()))));
         }
-        return Value::from(vec![stock, query]);
+        return Value::from(vec![stock.map_or(Value::Null, Value::Bool), query]);
 
     Value::Null
 }

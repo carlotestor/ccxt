@@ -8192,13 +8192,13 @@ if _try_result.is_err() {
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsProductType, Value::Str("fetchTickers".into()), Value::Str("stock".into()), &[stockDefault.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: Option<bool> = stockparamsStockVariable.get(0).and_then(Value::as_bool);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only if passedSubType && productType is undefined, then use spot
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Value::Str("fetchTickers".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: Value = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStock: bool = stock.as_bool() == Some(true);
+        let mut isStock: bool = stock == Some(true);
         let mut isStockOrUta: bool = isStock || (uta.as_bool() == Some(true));
         if isStockOrUta {
             if (symbols != Value::Null) {
@@ -9353,12 +9353,12 @@ if _try_result.is_err() {
         let mut marginMode: Option<String> = None;
         let mut response: Value = Value::Null;
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: Option<bool> = stockparamsStockVariable.get(0).and_then(Value::as_bool);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut uta: Option<bool> = None;
         let mut paramsUTA: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsStock, Value::Str("fetchBalance".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut isStock: bool = stock.as_bool() == Some(true);
+        let mut isStock: bool = stock == Some(true);
         let mut isStockOrUta: bool = isStock || (uta == Some(true));
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsUTA.clone()]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsUTA.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }

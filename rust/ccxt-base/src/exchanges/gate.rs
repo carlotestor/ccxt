@@ -8267,7 +8267,7 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let triggerparamsTriggerVariable: Vec<Value> = self.handle_param_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut trigger: Value = triggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut trigger: Option<bool> = triggerparamsTriggerVariable.get(0).and_then(Value::as_bool);
         let mut paramsTrigger: Value = triggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsTrigger]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -8281,9 +8281,9 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        { let __destr_tmp: Vec<Value> = (if spot { self.multi_order_spot_prepare_request(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), trigger.clone(), paramsMarketType.clone()]) } else { self.prepare_request(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(),
+        { let __destr_tmp: Vec<Value> = (if spot { self.multi_order_spot_prepare_request(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), trigger.map_or(Value::Null, Value::Bool), paramsMarketType.clone()]) } else { self.prepare_request(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(),
             type_var.map(Value::from).unwrap_or(Value::Null), paramsMarketType]) }).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if spot && (trigger.as_bool() == Some(true)) {
+        if spot && (trigger == Some(true)) {
             request = self.omit(request.clone(), Value::Str("account".into()), &[]);
         }
         add_element_to_object(&mut request, &Value::Str("status".into()), (if (status.as_str() == Some("closed")) { Value::Str("finished".into()) } else { status }));

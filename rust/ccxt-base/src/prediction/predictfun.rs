@@ -2747,10 +2747,10 @@ impl Predictfun {
         });
         let mut postOnly: bool = self.safe_bool_k(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
-        let mut postOnlyOption: Value = postOnlyOptionparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.get(0).and_then(Value::as_bool);
         let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if postOnlyOption.as_bool() == Some(true) {
-            data.insert("isPostOnly".into(), postOnlyOption);
+        if (postOnlyOption == Some(true)) {
+            data.insert("isPostOnly".into(), postOnlyOption.map_or(Value::Null, Value::Bool));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.as_deref() == Some("FOK")) {
