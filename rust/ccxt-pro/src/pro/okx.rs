@@ -3027,10 +3027,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_550: bool = true;
             while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (data.len() as i64) } {
-            let mut rawPosition: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
+            let mut rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: Value = self.parse_position(Value::from(&rawPosition), &[]);
             let mut contracts: Option<f64> = self.safe_number_k(position.clone(), "contracts", &[]).as_f64();
-            if (contracts == Some(0.0)) && (self.safe_string_k(rawPosition, "posSide", &[]).as_str() == Some("net")) {
+            if (contracts == Some(0.0)) && (self.safe_string_k(&rawPosition, "posSide", &[]).as_str() == Some("net")) {
                 if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 let mut shortPosition: Value = self.clone_value(position.clone());
                 add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
@@ -3303,10 +3303,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_553: bool = true;
             while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (rawOrders.len() as i64) } {
-            let mut rawOrder: Value = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tradeId: String = self.safe_string_k(rawOrder.clone(), "tradeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut tradeId: String = self.safe_string_k(&rawOrder, "tradeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if ((tradeId.chars().count() as i64)) > 0 {
-                let mut order: Value = self.parse_order(rawOrder, &[]);
+                let mut order: Value = self.parse_order(Value::Dict(rawOrder), &[]);
                 filteredOrders.push(order);
             }
         }

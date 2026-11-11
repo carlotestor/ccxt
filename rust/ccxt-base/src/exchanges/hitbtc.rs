@@ -1631,8 +1631,8 @@ impl Hitbtc {
                         let mut j: i64 = 0;
             let mut __for_first_744: bool = true;
             while { if !__for_first_744 { j += 1; } __for_first_744 = false; j < (rawNetworks.len() as i64) } {
-            let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string2(rawNetwork.clone(), Value::Str("protocol".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
+            let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string2(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
             let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Value = Value::Null;
@@ -1644,14 +1644,14 @@ impl Hitbtc {
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), rawNetwork.clone());
+        m.insert("info".to_string(), Value::from(&rawNetwork));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "payout_fee", &[]));
-        m.insert("deposit".to_string(), self.safe_bool_k(rawNetwork.clone(), "payin_enabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork.clone(), "payout_enabled", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(rawNetwork, "precision_payout", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "payout_fee", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&rawNetwork, "payin_enabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&rawNetwork, "payout_enabled", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(&rawNetwork, "precision_payout", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -4183,13 +4183,13 @@ impl Hitbtc {
                                 let mut j: i64 = 0;
                 let mut __for_first_752: bool = true;
                 while { if !__for_first_752 { j += 1; } __for_first_752 = false; j < (fundingRateData.len() as i64) } {
-                let mut entry: Value = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: crate::value::Dict = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut symbolInner: Option<String> = self.safe_symbol(crate::value::KeyRead::key_read(&&marketInner, "symbol"), &[]).as_str().map(str::to_owned);
-                let mut fundingRate: Option<f64> = self.safe_number_k(entry.clone(), "funding_rate", &[]).as_f64();
-                let mut datetime: Option<String> = self.safe_string_k(entry.clone(), "timestamp", &[]).as_str().map(str::to_owned);
+                let mut fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
+                let mut datetime: Option<String> = self.safe_string_k(&entry, "timestamp", &[]).as_str().map(str::to_owned);
                 rates.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), entry);
+                        m.insert("info".to_string(), Value::Dict(entry));
                         m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                         m.insert("fundingRate".to_string(), Value::from(fundingRate));
                         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));

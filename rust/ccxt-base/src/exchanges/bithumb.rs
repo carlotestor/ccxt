@@ -1687,8 +1687,8 @@ impl Bithumb {
                                         let mut j: i64 = 0;
                     let mut __for_first_400: bool = true;
                     while { if !__for_first_400 { j += 1; } __for_first_400 = false; j < (tickers.len() as i64) } {
-                    let mut entry: Value = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[expectedMarketId.clone()]);
+                    let mut entry: crate::value::Dict = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut marketId: Value = self.safe_string_k(&entry, "market", &[expectedMarketId.clone()]);
                     if (marketId == Value::Null) {
                         continue;
                     }
@@ -1697,7 +1697,7 @@ impl Bithumb {
                     if (symbol.is_none()) {
                         continue;
                     }
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(entry, &[market.clone()]));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(Value::Dict(entry), &[market.clone()]));
                 }
                 }
             }

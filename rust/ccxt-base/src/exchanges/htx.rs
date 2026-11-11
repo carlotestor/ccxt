@@ -5870,9 +5870,9 @@ impl Htx {
                         let mut j: i64 = 0;
             let mut __for_first_774: bool = true;
             while { if !__for_first_774 { j += 1; } __for_first_774 = false; j < (chains.len() as i64) } {
-            let mut chainEntry: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut uniqueChainId: Option<String> = self.safe_string_k_opt(chainEntry.clone(), "chain", &[]); // i.e. usdterc20, trc20usdt ...
-            let mut title: Value = self.safe_string2(chainEntry.clone(), Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            let mut chainEntry: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
+            let mut title: Value = self.safe_string2(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code != Value::Null) && (title != Value::Null) {
                 if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &code) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&title), uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null)); }
             }
@@ -5883,30 +5883,30 @@ impl Htx {
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chainEntry.clone());
+        m.insert("info".to_string(), Value::from(&chainEntry));
         m.insert("id".to_string(), uniqueChainId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chainEntry.clone(), "minDepositAmt", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chainEntry, "minDepositAmt", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chainEntry.clone(), "minWithdrawAmt", &[]));
-        m.insert("max".to_string(), self.safe_number_k(chainEntry.clone(), "maxWithdrawAmt", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chainEntry, "minWithdrawAmt", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&chainEntry, "maxWithdrawAmt", &[]));
     m
 }));
     m
 }));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.safe_string_k(chainEntry.clone(), "depositStatus", &[]).as_str() == Some("allowed")));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_string_k(chainEntry.clone(), "withdrawStatus", &[]).as_str() == Some("allowed")));
-        m.insert("fee".to_string(), self.safe_number_k(chainEntry.clone(), "transactFeeWithdraw", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chainEntry, "withdrawPrecision", &[])]), &[]));
+        m.insert("deposit".to_string(), Value::Bool(self.safe_string_k(&chainEntry, "depositStatus", &[]).as_str() == Some("allowed")));
+        m.insert("withdraw".to_string(), Value::Bool(self.safe_string_k(&chainEntry, "withdrawStatus", &[]).as_str() == Some("allowed")));
+        m.insert("fee".to_string(), self.safe_number_k(&chainEntry, "transactFeeWithdraw", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&chainEntry, "withdrawPrecision", &[])]), &[]));
     m
 }));
             }
@@ -11783,18 +11783,18 @@ impl Htx {
                                 let mut k: i64 = 0;
                 let mut __for_first_791: bool = true;
                 while { if !__for_first_791 { k += 1; } __for_first_791 = false; k < (ladders.len() as i64) } {
-                let mut bracket: Value = ladders.get(k as usize).cloned().unwrap_or(Value::Null);
-                let mut adjustFactor: Option<String> = self.safe_string_k(bracket.clone(), "adjust_factor", &[]).as_str().map(str::to_owned);
+                let mut bracket: crate::value::Dict = ladders.get(k as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut adjustFactor: Option<String> = self.safe_string_k(&bracket, "adjust_factor", &[]).as_str().map(str::to_owned);
                 tiers.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("tier".to_string(), self.safe_integer_k(bracket.clone(), "ladder", &[]));
+                        m.insert("tier".to_string(), self.safe_integer_k(&bracket, "ladder", &[]));
                         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("swap".into())]));
                         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                        m.insert("minNotional".to_string(), self.safe_number_k(bracket.clone(), "min_size", &[]));
-                        m.insert("maxNotional".to_string(), self.safe_number_k(bracket.clone(), "max_size", &[]));
+                        m.insert("minNotional".to_string(), self.safe_number_k(&bracket, "min_size", &[]));
+                        m.insert("maxNotional".to_string(), self.safe_number_k(&bracket, "max_size", &[]));
                         m.insert("maintenanceMarginRate".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&adjustFactor.map(Value::from).unwrap_or(Value::Null), &leverage.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                         m.insert("maxLeverage".to_string(), self.parse_number(leverage.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                        m.insert("info".to_string(), bracket);
+                        m.insert("info".to_string(), Value::from(&bracket));
                     m
                 }));
             }

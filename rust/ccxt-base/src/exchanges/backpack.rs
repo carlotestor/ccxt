@@ -1238,9 +1238,9 @@ impl Backpack {
                         let mut j: i64 = 0;
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { j += 1; } __for_first_245 = false; j < (networks.len() as i64) } {
-            let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(network.clone(), "blockchain", &[]).as_str().map(str::to_owned);
-            let mut networkIdLowerCase: Option<String> = self.safe_string_lower_k(network.clone(), "blockchain", &[]).as_str().map(str::to_owned);
+            let mut network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&network, "blockchain", &[]).as_str().map(str::to_owned);
+            let mut networkIdLowerCase: Option<String> = self.safe_string_lower_k(&network, "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkIdLowerCase.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
                 parsedNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -1251,24 +1251,24 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(network.clone(), "minimumWithdrawal", &[]));
-        m.insert("max".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(network.clone(), "maximumWithdrawal", &[])), &[]));
+        m.insert("min".to_string(), self.safe_number_k(&network, "minimumWithdrawal", &[]));
+        m.insert("max".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(&network, "maximumWithdrawal", &[])), &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(network.clone(), "minimumDeposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&network, "minimumDeposit", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(network.clone(), "depositEnabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(network.clone(), "withdrawEnabled", &[]));
-        m.insert("fee".to_string(), self.safe_number_k(network.clone(), "withdrawalFee", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&network, "depositEnabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&network, "withdrawEnabled", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&network, "withdrawalFee", &[]));
         m.insert("precision".to_string(), Value::Null);
-        m.insert("info".to_string(), network);
+        m.insert("info".to_string(), Value::from(&network));
     m
 }));
             }

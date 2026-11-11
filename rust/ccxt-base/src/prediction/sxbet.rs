@@ -2474,14 +2474,14 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1514: bool = true;
             while { if !__for_first_1514 { i += 1; } __for_first_1514 = false; (i as f64) < rawPositionsLength } {
-            let mut raw: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketHash: String = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut raw: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketHash: String = self.safe_string_k(&raw, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if outcomesLength > ((0i64) as f64) {
                 if (self.safe_bool(Value::Map(wantedMarkets.clone()), Value::from(marketHash), &[]) == Value::Null) {
                     continue;
                 }
             }
-            result.push(self.parse_sxbet_v3_position(raw));
+            result.push(self.parse_sxbet_v3_position(Value::Dict(raw)));
         }
         }
         return Value::from(result);

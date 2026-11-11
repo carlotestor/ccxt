@@ -799,8 +799,8 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;
             while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rows.len() as i64) } {
-            let mut t: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut sym: Option<String> = self.safe_string_k(t.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut t: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut sym: Option<String> = self.safe_string_k(&t, "symbol", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
             }
@@ -809,7 +809,7 @@ impl Mudrex {
             if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
             }
-            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(t, &[m]));
+            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(Value::Dict(t), &[m]));
         }
         }
         return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
