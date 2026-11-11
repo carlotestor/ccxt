@@ -1873,12 +1873,12 @@ if _try_result.is_err() {
                 m.insert("instrument".to_string(), self.market_id(symbol));
             m
         });
-        let mut limitResolved: Value = Value::Int(100);
+        let mut limitResolved: Option<i64> = Some(100);
         if (limit != Value::Null) {
-            limitResolved = limit.clone();
+            limitResolved = limit.as_i64();
         }
         if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) <= ((500i64) as f64) {
-            request.insert("depth".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(10), Value::Int(50), Value::Int(100), Value::Int(500)]), limitResolved));
+            request.insert("depth".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(10), Value::Int(50), Value::Int(100), Value::Int(500)]), Value::from(limitResolved)));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_book(&[__ws_arg_4]).await.into_dict();

@@ -2379,10 +2379,10 @@ impl Delta {
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut limitValue: Value = Value::Int(2000);
+        let mut limitValue: Option<i64> = Some(2000);
         let mut windowSeconds: Value = (match (&(Value::Int(2000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-            limitValue = limit.clone(); // max 2000
+            limitValue = limit.as_i64(); // max 2000
             windowSeconds = (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
         let mut until: Option<i64> = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]).as_i64();
@@ -2423,7 +2423,7 @@ impl Delta {
         //     }
         //
         let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(result, &[market, timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(result, &[market, timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }

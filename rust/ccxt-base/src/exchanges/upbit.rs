@@ -1631,16 +1631,16 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(200);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.clone()));
-                m.insert("count".to_string(), limitResolved.clone());
+                m.insert("count".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limitResolved]);
+        return self.parse_trades(response, &[(market).raw.clone(), since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

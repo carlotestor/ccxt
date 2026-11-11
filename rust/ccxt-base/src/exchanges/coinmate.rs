@@ -1460,10 +1460,10 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         if (symbol != Value::Null) {
@@ -1476,7 +1476,7 @@ impl Coinmate {
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_3]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[Value::Null, since, limitResolved]);
+        return self.parse_trades(data, &[Value::Null, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

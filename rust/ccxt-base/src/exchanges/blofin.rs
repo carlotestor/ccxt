@@ -3679,9 +3679,9 @@ impl Blofin {
             let mut entry: Value = self.safe_value(&data, Value::Int(i), &[]);
             let mut matches: bool = false;
             if (id != Value::Null) {
-                matches = self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str();
+                matches = (self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str());
             }  else {
-                matches = self.safe_string_k(entry.clone(), "clientId", &[]).as_str() == clientId.as_str();
+                matches = (self.safe_string_k(entry.clone(), "clientId", &[]).as_str() == clientId.as_str());
             }
             if matches {
                 return self.parse_transaction(entry, &[currency.clone()]);

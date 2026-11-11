@@ -3300,7 +3300,7 @@ impl Mexc {
         let mut isSingularMarket: bool = false;
         if (symbols != Value::Null) {
             let mut length: f64 = ((symbols.len() as i64) as f64);
-            isSingularMarket = length == 1.0;
+            isSingularMarket = (length == 1.0);
             market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
@@ -3596,7 +3596,7 @@ impl Mexc {
         let mut isSingularMarket: bool = false;
         if (symbols != Value::Null) {
             let mut length: f64 = ((symbols.len() as i64) as f64);
-            isSingularMarket = length == 1.0;
+            isSingularMarket = (length == 1.0);
             market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();

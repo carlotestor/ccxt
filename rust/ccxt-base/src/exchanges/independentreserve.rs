@@ -1204,13 +1204,13 @@ impl Independentreserve {
             request.insert("primaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             request.insert("secondaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(50) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(50);
         request.insert("pageIndex".into(), Value::Int(1));
-        request.insert("pageSize".into(), limitResolved.clone());
+        request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_get_open_orders(&[__ws_arg_3]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, limitResolved]);
+        return self.parse_orders(data, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1251,13 +1251,13 @@ impl Independentreserve {
             request.insert("primaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             request.insert("secondaryCurrencyCode".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(50) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(50);
         request.insert("pageIndex".into(), Value::Int(1));
-        request.insert("pageSize".into(), limitResolved.clone());
+        request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_get_closed_orders(&[__ws_arg_4]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, limitResolved]);
+        return self.parse_orders(data, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

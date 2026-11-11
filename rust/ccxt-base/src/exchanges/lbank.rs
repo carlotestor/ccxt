@@ -1556,7 +1556,7 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(60) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(60);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
@@ -1567,11 +1567,11 @@ impl Lbank {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
-            request.insert("depth".into(), limitResolved.clone());
+            request.insert("depth".into(), Value::from(limitResolved));
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
-            request.insert("size".into(), limitResolved);
+            request.insert("size".into(), Value::from(limitResolved));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.spot_public_get_depth(&[__ws_arg_5]).await.into_opt_dict();
         }
@@ -2975,12 +2975,12 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("current_page".to_string(), Value::Int(1));
-                m.insert("page_length".to_string(), limitResolved.clone());
+                m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
@@ -3017,7 +3017,7 @@ impl Lbank {
             m
         })]).into_dict();
         let mut orders: Value = self.safe_list_k(&result, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limitResolved]);
+        return self.parse_orders(orders, &[(market).raw.clone(), since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3053,12 +3053,12 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("current_page".to_string(), Value::Int(1));
-                m.insert("page_length".to_string(), limitResolved.clone());
+                m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -3095,7 +3095,7 @@ impl Lbank {
             m
         })]).into_dict();
         let mut orders: Value = self.safe_list_k(&result, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limitResolved]);
+        return self.parse_orders(orders, &[(market).raw.clone(), since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

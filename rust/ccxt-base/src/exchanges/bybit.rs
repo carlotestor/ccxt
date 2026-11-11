@@ -5705,10 +5705,10 @@ impl Bybit {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(200)]).await;
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit.clone() });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(200);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5788,7 +5788,7 @@ impl Bybit {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolValue, since, limitResolved]);
+        return self.filter_by_symbol_since_limit(sorted, &[symbolValue, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -7231,13 +7231,13 @@ impl Bybit {
                 query = self.omit(query.clone(), Value::Str("reduceOnly".into()), &[]);
             }
             // a reduce-only order closes the position on the opposite side
-            let mut isBuyPosition: Value = Value::Bool(false);
+            let mut isBuyPosition: bool = false;
             if reduceOnly {
-                isBuyPosition = Value::Bool(side.as_str() == Some("sell"));
+                isBuyPosition = (side.as_str() == Some("sell"));
             }  else {
-                isBuyPosition = Value::Bool(side.as_str() == Some("buy"));
+                isBuyPosition = (side.as_str() == Some("buy"));
             }
-            request.insert("positionIdx".into(), (if (isBuyPosition).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) }));
+            request.insert("positionIdx".into(), (if isBuyPosition { Value::Int(1) } else { Value::Int(2) }));
         }
         query = self.omit(query.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
             Value::Str("takeProfit".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("hedged".into())]), &[]);

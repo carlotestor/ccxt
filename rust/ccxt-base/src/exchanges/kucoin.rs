@@ -4126,16 +4126,16 @@ impl Kucoin {
     m
 }));
         let mut migrated: bool = self.safe_bool_k(self.options.clone(), "hf", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut hf: Value = Value::Bool(false);
+        let mut hf: bool = false;
         if migrated {
-            hf = Value::Bool(true);
+            hf = true;
         }
         let mut hfParam: Option<bool> = self.safe_bool_k(params.clone(), "hf", &[]).as_bool();
         if (hfParam.is_some()) {
-            hf = (Value::Bool(hfParam == Some(true)));
+            hf = (hfParam == Some(true));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("hf".into()), &[]);
-        return Value::from(vec![hf, paramsOmitted]);
+        return Value::from(vec![Value::Bool(hf), paramsOmitted]);
 
     Value::Null
 }

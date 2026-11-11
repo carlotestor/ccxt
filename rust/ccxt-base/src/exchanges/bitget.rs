@@ -9094,7 +9094,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut defaultLimit: i64 = 100; // default 100, max 1000
-        let mut maxLimitForRecentEndpoint: Value = Value::Int(1000);
+        let mut maxLimitForRecentEndpoint: i64 = 1000;
         let mut maxLimitForHistoryEndpoint: Value = Value::Int(200); // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         let mut useHistoryEndpoint: bool = self.safe_bool_k(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut useHistoryEndpointForPagination: bool = self.safe_bool_k(params.clone(), "useHistoryEndpointForPagination", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -9108,7 +9108,7 @@ if _try_result.is_err() {
             maxLimitForHistoryEndpoint = Value::Int(100); // the uta history endpoint rejects a limit above 100
         }
         if paginate {
-            let mut limitForPagination: Value = (if useHistoryEndpointForPagination { maxLimitForHistoryEndpoint.clone() } else { maxLimitForRecentEndpoint.clone() });
+            let mut limitForPagination: Value = (if useHistoryEndpointForPagination { maxLimitForHistoryEndpoint.clone() } else { Value::from(maxLimitForRecentEndpoint) });
             let mut paramsWithUta: Value = self.extend(paramsUTA.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), uta.clone());
@@ -9161,11 +9161,11 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut timeframeLimitValue: Option<i64> = self.safe_integer(&maxLimitPerTimeframe, timeframe.clone(), &[]).as_i64();
         // the per-timeframe cap only applies to a user-supplied limit
-        let mut timeframeLimit: Value = (if (timeframeLimitValue.is_none()) { maxLimitForRecentEndpoint.clone() } else { Value::from(timeframeLimitValue) });
-        let mut requestedLimit: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
-        let mut limitCapped: Value = (if (requestedLimit.as_f64().unwrap_or(f64::NAN) > maxLimitForRecentEndpoint.as_f64().unwrap_or(f64::NAN)) { maxLimitForRecentEndpoint } else { requestedLimit });
+        let mut timeframeLimit: Option<i64> = (if (timeframeLimitValue.is_none()) { Some(maxLimitForRecentEndpoint) } else { timeframeLimitValue });
+        let mut requestedLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
+        let mut limitCapped: i64 = (if (requestedLimit > maxLimitForRecentEndpoint) { maxLimitForRecentEndpoint } else { requestedLimit });
         // the per-timeframe cap only applies to a user-supplied limit
-        let mut recentLimit: Value = (if ((limit != Value::Null) && (limitCapped.as_f64().unwrap_or(f64::NAN) > timeframeLimit.as_f64().unwrap_or(f64::NAN))) { timeframeLimit } else { limitCapped });
+        let mut recentLimit: Value = (if ((limit != Value::Null) && ((timeframeLimit.is_some() && Some(limitCapped) > timeframeLimit))) { Value::from(timeframeLimit) } else { Value::from(limitCapped) });
         let mut limitResolved: Value = recentLimit.clone();
         let mut recentDuration: Value = (match (&(recentLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut recentEndpointDaysMap: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()), &[Value::Map({

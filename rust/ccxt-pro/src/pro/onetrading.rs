@@ -724,9 +724,9 @@ impl Onetrading {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("book:".into()), symbolValue);
         let mut subscriptionHash: String = "ORDER_BOOK".to_string();
-        let mut depth: Value = Value::Int(0);
+        let mut depth: Option<i64> = Some(0);
         if (limit != Value::Null) {
-            depth = limit.clone();
+            depth = limit.as_i64();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -734,7 +734,7 @@ impl Onetrading {
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("ORDER_BOOK".into()));
-        m.insert("depth".to_string(), depth);
+        m.insert("depth".to_string(), Value::from(depth));
     m
 })]));
             m

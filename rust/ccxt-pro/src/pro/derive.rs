@@ -391,10 +391,10 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(10) } else { limit.clone() });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(10);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), marketId).into()), Value::Str(".10.".into())).into()), self.number_to_string(limitResolved.clone()));
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), marketId).into()), Value::Str(".10.".into())).into()), self.number_to_string(Value::from(limitResolved)));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -409,7 +409,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(topic.clone()));
                 m.insert("symbol".to_string(), symbol);
-                m.insert("limit".to_string(), limitResolved);
+                m.insert("limit".to_string(), Value::from(limitResolved));
                 m.insert("params".to_string(), params);
             m
         });
