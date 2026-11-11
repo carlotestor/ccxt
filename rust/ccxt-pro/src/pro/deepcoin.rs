@@ -443,12 +443,12 @@ impl Deepcoin {
         let mut suffix = get_arg(optional_args, 1, Value::Str("".into()));
         let mut marketType: String = self.safe_string_k(market.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut requestId: Value = self.request_id();
-        let mut request: Value = self.create_public_request(market, requestId.clone(), topicID, &[suffix]);
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut request: Value = self.create_public_request(market, Value::from(requestId), topicID, &[suffix]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subHash".to_string(), messageHash.clone());
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let __ws_arg_0 = self.deep_extend(request, &[params]);

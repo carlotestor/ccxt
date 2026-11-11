@@ -455,11 +455,11 @@ impl Woo {
         }
         let mut apiUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", apiUrl, urlUid);
-        let mut requestId: Value = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
         let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subHash);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("topic".to_string(), subHash.clone());
             m
@@ -524,12 +524,12 @@ impl Woo {
         }
         let mut apiUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", apiUrl, urlUid);
-        let mut requestId: Value = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), Value::from(topic.clone()));
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({

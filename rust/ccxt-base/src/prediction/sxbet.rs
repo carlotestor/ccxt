@@ -3265,8 +3265,8 @@ impl Sxbet {
         if (connectSent == Value::Null) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut token: Value = self.fetch_sxbet_realtime_token().await;
-            let mut requestId: Value = self.request_id(url.clone());
-            self.register_sxbet_ws_request(requestId.clone(), Value::Str("centrifugoConnected".into()), Value::Str("connect".into()));
+            let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
+            self.register_sxbet_ws_request(Value::from(requestId), Value::Str("centrifugoConnected".into()), Value::Str("connect".into()));
             let mut connectMsg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("connect".to_string(), Value::Map({
@@ -3275,7 +3275,7 @@ impl Sxbet {
         m.insert("name".to_string(), Value::Str("ccxt".into()));
     m
 }));
-                    m.insert("id".to_string(), requestId);
+                    m.insert("id".to_string(), Value::from(requestId));
                 m
             });
             return self.watch(url, Value::Str("centrifugoConnected".into()), &[Value::Map(connectMsg), Value::Str("connect".into())]).await;
@@ -3300,8 +3300,8 @@ impl Sxbet {
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         // finish the connect handshake first so the subscribe frame follows the connect reply
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), messageHash.clone(), channel.clone());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3309,7 +3309,7 @@ impl Sxbet {
         m.insert("channel".to_string(), channel.clone());
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         return self.watch(url.as_deref(), messageHash, &[Value::Map(subscribeMsg), channel]).await;
@@ -3476,8 +3476,8 @@ impl Sxbet {
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), emptyBook); }
             }
         }
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3485,7 +3485,7 @@ impl Sxbet {
         m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
@@ -3642,8 +3642,8 @@ impl Sxbet {
             self.set_ws_option(Value::Str("wsTickers".into()), Value::from(sym.clone()), ticker);
             hydrated = true;
         }
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3651,7 +3651,7 @@ impl Sxbet {
         m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;

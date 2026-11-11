@@ -734,7 +734,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut limitValue: i64 = limit.as_i64().unwrap_or(100);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -746,14 +746,14 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
-                m.insert("i".to_string(), requestId.clone());
+                m.insert("i".to_string(), Value::from(requestId));
                 m.insert("n".to_string(), Value::from(name.clone()));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), Value::from(symbolValue));

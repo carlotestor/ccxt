@@ -3469,18 +3469,18 @@ impl Bybit {
         let mut subscription: Value = Value::Null;
         let mut newTopicsLength: f64 = ((newTopics.len() as i64) as f64);
         if newTopicsLength > ((0i64) as f64) {
-            let mut reqId: Value = self.request_id();
+            let mut reqId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
-                    m.insert("req_id".to_string(), reqId.clone());
+                    m.insert("req_id".to_string(), Value::from(reqId));
                     m.insert("args".to_string(), Value::from(newTopics.clone()));
                 m
             });
             message = self.extend(Value::Map(request), &[params]);
             subscription = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), reqId);
+                    m.insert("id".to_string(), Value::from(reqId));
                     m.insert("topics".to_string(), Value::from(newTopics));
                 m
             });
@@ -3499,17 +3499,17 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut reqId: Value = self.request_id();
+        let mut reqId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("req_id".to_string(), reqId.clone());
+                m.insert("req_id".to_string(), Value::from(reqId));
                 m.insert("args".to_string(), topics);
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), reqId);
+                m.insert("id".to_string(), Value::from(reqId));
                 m.insert("topic".to_string(), topic);
                 m.insert("messageHashes".to_string(), messageHashes.clone());
                 m.insert("subMessageHashes".to_string(), subMessageHashes);

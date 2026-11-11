@@ -2615,12 +2615,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isPrivate {
             self.authenticate(&[]).await;
         }
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), Value::Map(paramsResolved));
             m

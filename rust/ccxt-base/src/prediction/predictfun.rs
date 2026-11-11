@@ -3885,11 +3885,11 @@ impl Predictfun {
         // complement - so a single subscription serves both outcomes and each waits on its own hash
         let mut topic: String = format!("{}{}", Value::Str("predictOrderbook/".into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![Value::from(topic.clone())]));
             m
         });
@@ -3899,7 +3899,7 @@ impl Predictfun {
         // be able to release both of them
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::from(topic.clone()));
                 m.insert("subscribeHash".to_string(), Value::from(topic.clone()));
                 m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.map(Value::from).unwrap_or(Value::Null)));
@@ -3961,11 +3961,11 @@ impl Predictfun {
             }
         }
         }
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![Value::from(topic.clone())]));
             m
         });
@@ -3974,7 +3974,7 @@ impl Predictfun {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
                 m.insert("symbols".to_string(), Value::from(handles));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
@@ -4303,11 +4303,11 @@ impl Predictfun {
     m
 }));
         let mut topic: Value = self.wallet_events_topic().await;
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![topic]));
             m
         });
@@ -4315,7 +4315,7 @@ impl Predictfun {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("walletEvents".into()));
                 m.insert("subscribeHash".to_string(), Value::Str("walletEvents".into()));
                 m.insert("messageHashes".to_string(), self.wallet_event_message_hashes(client.as_value(), &[messageHash.clone()]));
@@ -4379,18 +4379,18 @@ impl Predictfun {
     m
 }));
         let mut topic: Value = self.wallet_events_topic().await;
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![topic]));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("walletEvents".into()));
                 m.insert("symbols".to_string(), Value::from(vec![]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::Str("orders".into()), Value::Str("myTrades".into())]));

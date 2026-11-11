@@ -2085,10 +2085,10 @@ impl Bitvavo {
 }
 
     pub async fn watch_request(&mut self, mut action: Value, mut request: Value) -> Value {
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHashStr: Value = Value::Str(format!("{}", messageHash).into());
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("requestId".into(), messageHash); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(messageHash)); }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         return self.watch(url.as_deref(), messageHashStr.clone(), &[request, messageHashStr.clone()]).await;
 

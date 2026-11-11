@@ -1917,7 +1917,7 @@ impl Lighter {
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = Value::Int((previousValue + 1));
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
-        return self.number_to_string(newValue);
+        return newValue;
 
     Value::Null
 }
@@ -1959,7 +1959,9 @@ impl Lighter {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut nextId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
+        // the venue takes a string request id
+        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
         let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order(Value::Str("createOrderWs".into()), symbol.clone(), type_var, side, amount, &[price, params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoorderVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2015,7 +2017,9 @@ impl Lighter {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut nextId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
+        // the venue takes a string request id
+        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order(Value::Str("cancelOrderWs".into()), id, &[symbol.clone(), params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2068,7 +2072,9 @@ impl Lighter {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut nextId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
+        // the venue takes a string request id
+        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders(Value::Str("cancelAllOrdersWs".into()), &[symbol, params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);

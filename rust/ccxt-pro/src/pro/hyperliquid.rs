@@ -2968,14 +2968,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn wrap_as_post_action(&mut self, mut request: Value) -> Value {
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("requestId".to_string(), requestId.clone());
+        m.insert("requestId".to_string(), Value::from(requestId));
         m.insert("request".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("post".into()));
-        m.insert("id".to_string(), requestId);
+        m.insert("id".to_string(), Value::from(requestId));
         m.insert("request".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("action".into()));

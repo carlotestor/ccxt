@@ -659,8 +659,8 @@ impl Kraken {
         let mut token: Value = self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
-        let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = self.number_to_string(requestId.clone());
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: Value = self.number_to_string(Value::from(requestId));
         let mut orderParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_type".to_string(), type_var.clone());
@@ -674,7 +674,7 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("add_order".into()));
                 m.insert("params".to_string(), Value::Map(orderParams.clone()));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let requestValueparamsValueVariable: Vec<Value> = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, amount, &[price, params]).as_array().cloned().unwrap_or_default();
@@ -757,8 +757,8 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut token: Value = self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
-        let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = self.number_to_string(requestId.clone());
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: Value = self.number_to_string(Value::from(requestId));
         let mut orderParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
@@ -770,7 +770,7 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("amend_order".into()));
                 m.insert("params".to_string(), Value::Map(orderParams.clone()));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let requestValueparamsValueVariable: Vec<Value> = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, amount, &[price, params]).as_array().cloned().unwrap_or_default();
@@ -810,8 +810,8 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut token: Value = self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
-        let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = self.number_to_string(requestId.clone());
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: Value = self.number_to_string(Value::from(requestId));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_order".into()));
@@ -821,7 +821,7 @@ impl Kraken {
         m.insert("token".to_string(), token);
     m
 }));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -858,8 +858,8 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut token: Value = self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
-        let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = self.number_to_string(requestId.clone());
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: Value = self.number_to_string(Value::from(requestId));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_order".into()));
@@ -869,7 +869,7 @@ impl Kraken {
         m.insert("token".to_string(), token);
     m
 }));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -923,8 +923,8 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut token: Value = self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
-        let mut requestId: Value = self.request_id();
-        let mut messageHash: Value = self.number_to_string(requestId.clone());
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: Value = self.number_to_string(Value::from(requestId));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("cancel_all".into()));
@@ -933,7 +933,7 @@ impl Kraken {
         m.insert("token".to_string(), token);
     m
 }));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
