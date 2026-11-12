@@ -1690,10 +1690,10 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: Value) -> Value {
+    pub fn urlencode_with_array_repeat(&self, params: Value) -> String {
         let m = match &params {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+            _ => return String::new(),
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, v) in m.iter() {
@@ -1717,7 +1717,7 @@ impl Exchange {
                 }
             }
         }
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
 
     pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
@@ -2618,16 +2618,16 @@ impl Exchange {
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> Value {
+    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> String {
         let m = match &v {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+            _ => return String::new(),
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, val) in m.iter() {
             urlencode_nested_walk(k, val, &mut pairs);
         }
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
         match optional_args.get(0) {
@@ -2841,16 +2841,16 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> Value {
+    pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> String {
         let m = match &params {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+            _ => return String::new(),
         };
         let pairs: Vec<String> = m
             .iter()
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
@@ -2900,15 +2900,15 @@ impl Exchange {
     }
 
     /// `uuid22()` — pseudo-random 22-char hex id.
-    pub fn uuid22(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(22).into())
+    pub fn uuid22(&self, _optional_args: &[Value]) -> String {
+        random_hex(22)
     }
     /// `uuid16()` — pseudo-random 16-char hex id.
-    pub fn uuid16(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(16).into())
+    pub fn uuid16(&self, _optional_args: &[Value]) -> String {
+        random_hex(16)
     }
     /// `uuid()` — pseudo-random UUID v4: `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`.
-    pub fn uuid(&self, _optional_args: &[Value]) -> Value {
+    pub fn uuid(&self, _optional_args: &[Value]) -> String {
         let h = random_hex(32);
         let variant = ['8', '9', 'a', 'b'][(random_u64() % 4) as usize];
         let s = format!(
@@ -2920,12 +2920,12 @@ impl Exchange {
             &h[17..20],
             &h[20..32],
         );
-        Value::Str(s.into())
+        s
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(self.urlencode_kv(&params).into())
+    pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> String {
+        self.urlencode_kv(&params)
     }
 
     /// `json(value)` — JSON-stringify.

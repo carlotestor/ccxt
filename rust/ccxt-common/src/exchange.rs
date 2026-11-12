@@ -1195,7 +1195,7 @@ impl Exchange {
 
     // ── crypto ──────────────────────────────────────────────────────────────
 
-    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> Value {
+    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> String {
         // `data`/`secret` may be a string OR the byte-array produced by
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
         let dbytes = value_to_bytes(&data);
@@ -1205,10 +1205,7 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v.into()),
-            Err(_) => Value::Null,
-        }
+        self.hmac_typed(&dbytes, &sbytes, &h, &digest).unwrap_or_default()
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
@@ -1217,6 +1214,7 @@ impl Exchange {
         let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
             "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            "sha384" => { let mut m = Hmac::<sha2::Sha384>::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
             other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
