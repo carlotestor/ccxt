@@ -2766,14 +2766,14 @@ impl Bitrue {
             request.insert("contractName".into(), Value::from((market).id.clone()));
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut isMarketBuyWithPrice: bool = isMarket && (side.as_str() == Some("buy")) && createMarketBuyOrderRequiresPrice.as_bool() == Some(true);
-            let mut paramsNoCost: Value = paramsRequiresPrice.clone();
+            let mut paramsNoCost: Value = Value::from(&paramsRequiresPrice);
             if isMarketBuyWithPrice {
-                paramsNoCost = self.omit(paramsRequiresPrice.clone(), Value::Str("cost".into()), &[]);
+                paramsNoCost = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             }
             if isMarketBuyWithPrice {
-                let mut cost: Option<String> = self.safe_string_k(paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
+                let mut cost: Option<String> = self.safe_string_k(&paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
                         Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add \

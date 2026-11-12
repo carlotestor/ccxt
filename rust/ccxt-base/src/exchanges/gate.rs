@@ -10697,7 +10697,7 @@ if _try_result.is_err() {
         });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             if (code != Value::Null) {
                 currency = self.currency(code);
@@ -10709,13 +10709,13 @@ if _try_result.is_err() {
             if (type_var.as_deref() == Some("swap")) {
                 defaultSettle = "usdt".to_string();
             }
-            let mut settle: Value = self.safe_string_lower_k(paramsMarketType.clone(), "settle", &[Value::from(defaultSettle)]);
+            let mut settle: Value = self.safe_string_lower_k(&paramsMarketType, "settle", &[Value::from(defaultSettle)]);
             request.insert("settle".into(), settle);
         }
         let mut isContract: bool = (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
-        let mut paramsSettle: Value = paramsMarketType.clone();
+        let mut paramsSettle: Value = Value::from(&paramsMarketType);
         if isContract {
-            paramsSettle = self.omit(paramsMarketType, Value::Str("settle".into()), &[]);
+            paramsSettle = self.omit(&paramsMarketType, Value::Str("settle".into()), &[]);
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());

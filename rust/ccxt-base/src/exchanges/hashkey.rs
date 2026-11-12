@@ -3608,7 +3608,7 @@ impl Hashkey {
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut timeInForce: Value = timeInForceParam;
         if postOnly {
             timeInForce = Value::Str("LIMIT_MAKER".into());
@@ -3616,12 +3616,12 @@ impl Hashkey {
         if (timeInForce != Value::Null) {
             request.insert("timeInForce".into(), timeInForce);
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsPostOnly, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
             request.insert("clientOrderId".into(), self.uuid(&[]));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(paramsPostOnly.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsPostOnly });
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(&paramsPostOnly, Value::Str("triggerPrice".into()), &[]) } else { Value::from(&paramsPostOnly) });
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("type".into(), Value::Str("STOP".into()));

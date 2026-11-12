@@ -1410,7 +1410,7 @@ impl Binance {
     m
 }));
         let type_varparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchBalance".into()), Value::Str("type".into()), &[Value::Str("SPOT".into())]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = self.sapi_private_get_balance_payment_options(&[paramsType]).await;
         //
@@ -1435,8 +1435,8 @@ impl Binance {
             let mut __for_first_1223: bool = true;
             while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
-            let mut accountType: Option<String> = self.safe_string_k_opt(&balance, "accountType", &[]);
-            if (accountType.as_deref() == type_var.as_str()) {
+            let mut accountType: Option<String> = self.safe_string_k(&balance, "accountType", &[]).as_str().map(str::to_owned);
+            if (accountType == type_var) {
                 let mut free: Option<String> = self.safe_string_k(&balance, "availableBalanceDisplay", &[]).as_str().map(str::to_owned);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));

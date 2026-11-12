@@ -2359,17 +2359,17 @@ impl Hyperliquid {
 }));
         let userAddressparamsAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchOrder".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAddress: Value = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsAddress.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut paramsAddress: crate::value::Dict = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsAddress, "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".into()));
                 m.insert("user".to_string(), userAddress);
             m
         });
-        let mut paramsValue: Value = paramsAddress.clone();
+        let mut paramsValue: Value = Value::from(&paramsAddress);
         if (clientOrderId.is_some()) {
-            paramsValue = self.omit(paramsAddress, Value::Str("clientOrderId".into()), &[]);
+            paramsValue = self.omit(&paramsAddress, Value::Str("clientOrderId".into()), &[]);
             request.insert("oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut isCloid: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);

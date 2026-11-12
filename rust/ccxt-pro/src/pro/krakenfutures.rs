@@ -993,13 +993,13 @@ impl Krakenfutures {
         let mut name: String = "balances".to_string();
         let mut messageHash: String = name.clone();
         let accountparamsAccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchBalance".into()), Value::Str("account".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut account: Value = accountparamsAccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut account: Option<String> = accountparamsAccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccount: Value = accountparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (account != Value::Null) {
-            if (account.as_str() != Some("futures")) && (account.as_str() != Some("flex_futures")) {
+        if (account.is_some()) {
+            if (account.as_deref() != Some("futures")) && (account.as_deref() != Some("flex_futures")) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance account must be either 'futures' or 'flex_futures'".into()))));
             }
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), account));
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), account.as_deref().unwrap_or("null")));
         }
         return self.subscribe_private(Value::from(name), Value::from(messageHash), &[paramsAccount]).await;
         Value::Null

@@ -644,14 +644,14 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut usePerpetualApi: bool = self.safe_string_k(&paramsMarketType, "settle", &[]).as_str() == Some("USDT");
         let mut messageHash: String = "perpetual:balance".to_string();
         if !usePerpetualApi {
-            messageHash = format!("{}{}", type_var, Value::Str(":balance".into()));
+            messageHash = format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":balance".into()));
         }
-        return self.subscribe_private(type_var, Value::from(messageHash), &[Value::Dict(paramsMarketType)]).await;
+        return self.subscribe_private(type_var.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[Value::Dict(paramsMarketType)]).await;
         Value::Null
         }).await?))
     }

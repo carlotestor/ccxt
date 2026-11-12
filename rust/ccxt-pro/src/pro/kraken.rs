@@ -448,23 +448,23 @@ impl Kraken {
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             orderParams.insert("post_only".into(), Value::Bool(true));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsPostOnly, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             orderParams.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut cost: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "cost", &[]).as_str().map(str::to_owned);
+        let mut cost: Option<String> = self.safe_string_k(&paramsPostOnly, "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) {
             orderParams.insert("order_qty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut stopLoss: crate::value::Dict = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[Value::Map({
+        let mut stopLoss: crate::value::Dict = self.safe_dict_k(&paramsPostOnly, "stopLoss", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut takeProfit: crate::value::Dict = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[Value::Map({
+        let mut takeProfit: crate::value::Dict = self.safe_dict_k(&paramsPostOnly, "takeProfit", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -474,19 +474,19 @@ impl Kraken {
         let mut presetTakeProfitLimit: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
         let mut isPresetStopLoss: bool = presetStopLoss.is_some();
         let mut isPresetTakeProfit: bool = presetTakeProfit.is_some();
-        let mut stopLossPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossPriceOrder: bool = stopLossPrice.is_some();
         let mut isTakeProfitPriceOrder: bool = takeProfitPrice.is_some();
-        let mut trailingAmount: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingPercent: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingPercent", &[]).as_str().map(str::to_owned);
-        let mut trailingLimitAmount: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingLimitAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingLimitPercent: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingLimitPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingAmount: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingPercent: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingLimitAmount: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingLimitAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingLimitPercent: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingLimitPercent", &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailingLimitAmountOrder: bool = trailingLimitAmount.is_some();
         let mut isTrailingLimitPercentOrder: bool = trailingLimitPercent.is_some();
-        let mut offset: String = self.safe_string_k(paramsPostOnly.clone(), "offset", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // can set this to - for minus
+        let mut offset: String = self.safe_string_k(&paramsPostOnly, "offset", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // can set this to - for minus
         let mut trailingAmountString: Option<String> = None;
         if (trailingAmount.is_some()) {
             trailingAmountString = Some(format!("{}{}", offset, self.number_to_string(trailingAmount.map(Value::from).unwrap_or(Value::Null))));
@@ -508,11 +508,11 @@ impl Kraken {
             priceType = "pct".to_string();
         }
         if (method.as_str() == Some("createOrderWs")) {
-            let mut reduceOnly: bool = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if reduceOnly {
                 orderParams.insert("reduce_only".into(), Value::Bool(true));
             }
-            let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsPostOnly.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
             if (timeInForce.is_some()) {
                 orderParams.insert("time_in_force".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
             }
@@ -611,9 +611,9 @@ impl Kraken {
             }
         }
         let mut isCreateOrder: bool = method.as_str() == Some("createOrderWs");
-        let mut paramsCreate: Value = paramsPostOnly.clone();
+        let mut paramsCreate: Value = Value::from(&paramsPostOnly);
         if isCreateOrder {
-            paramsCreate = self.omit(paramsPostOnly, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into())]), &[]);
+            paramsCreate = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into())]), &[]);
         }
         let mut paramsPreset: Value = paramsCreate.clone();
         if isCreateOrder && (isPresetStopLoss || isPresetTakeProfit) {

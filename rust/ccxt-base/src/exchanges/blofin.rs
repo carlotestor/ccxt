@@ -2603,22 +2603,22 @@ impl Blofin {
         let mut isTriggerOrder: bool = self.safe_string_k(params.clone(), "triggerPrice", &[]) != Value::Null;
         let isTpslEndpointparamsTpslVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("tpsl".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isTpslEndpoint: Value = isTpslEndpointparamsTpslVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTpsl: Value = isTpslEndpointparamsTpslVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTpsl: crate::value::Dict = isTpslEndpointparamsTpslVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint.as_bool() == Some(true);
         let mut isSlOrTp: bool = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let mut response: Option<crate::value::Dict> = None;
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(paramsTpsl.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsTpsl, "reduceOnly", &[]).as_bool();
         if (reduceOnly.is_some()) {
-            if let Value::Dict(__d) = &mut paramsTpsl { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), (if (reduceOnly == Some(true)) { Value::Str("true".into()) } else { Value::Str("false".into()) })); }
+            std::sync::Arc::make_mut(&mut paramsTpsl).insert("reduceOnly".into(), (if (reduceOnly == Some(true)) { Value::Str("true".into()) } else { Value::Str("false".into()) }));
         }
         if isCombinedSlTp {
-            let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), paramsTpsl.clone()]);
+            let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), Value::from(&paramsTpsl)]);
             response = self.private_post_trade_order_tpsl(&[tpslRequest]).await.into_opt_dict();
         }  else if isTriggerOrder || isSlOrTp {
-            let mut triggerRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsTpsl.clone()]);
+            let mut triggerRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), Value::from(&paramsTpsl)]);
             response = self.private_post_trade_order_algo(&[triggerRequest]).await.into_opt_dict();
         }  else {
-            let mut request: Value = self.create_order_request(symbol, type_var.clone(), side.clone(), amount, &[price, paramsTpsl]);
+            let mut request: Value = self.create_order_request(symbol, type_var.clone(), side.clone(), amount, &[price, Value::Dict(paramsTpsl)]);
             response = self.private_post_trade_order(&[request]).await.into_opt_dict();
         }
         if isCombinedSlTp || isSlOrTp || isTriggerOrder {

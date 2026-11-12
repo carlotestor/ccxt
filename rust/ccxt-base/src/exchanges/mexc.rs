@@ -3134,9 +3134,9 @@ impl Mexc {
         let mut maxLimit: Value = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(500) } else { Value::Int(2000) }); // docs say 1000 for spot, but in practice it's 500
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), maxLimit]).await;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3155,11 +3155,11 @@ impl Mexc {
             m
         });
         let mut candles: Value = Value::from(vec![]);
-        let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]);
+        let mut until: Value = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]);
         let mut omitUntil: bool = (until != Value::Null) && (since == Value::Null);
-        let mut paramsUntil: Value = paramsPaginate.clone();
+        let mut paramsUntil: Value = Value::from(&paramsPaginate);
         if omitUntil {
-            paramsUntil = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+            paramsUntil = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
         }
         if (market).spot {
             if (since != Value::Null) {
@@ -3808,12 +3808,12 @@ impl Mexc {
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("LIMIT_MAKER")), &[paramsWithoutClientOrderId]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }
-        let mut tif: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut paramsWithoutTif: Value = (if (tif.is_some()) { self.omit(paramsPostOnly.clone(), Value::Str("timeInForce".into()), &[]) } else { paramsPostOnly });
+        let mut tif: Option<String> = self.safe_string_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
+        let mut paramsWithoutTif: Value = (if (tif.is_some()) { self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]) } else { Value::from(&paramsPostOnly) });
         if (tif.is_some()) {
             if (tif.as_deref() == Some("IOC")) {
                 request.insert("type".into(), Value::Str("IMMEDIATE_OR_CANCEL".into()));
@@ -3947,7 +3947,7 @@ impl Mexc {
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool((match &(type_var) { Value::Int(__x) => *__x == 2, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 2.0) })), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orderType: Value = self.parse_to_int(Value::Int(0)); // typed seed, every branch below assigns it
         if postOnly {
             orderType = self.parse_to_int(Value::Int(2));
@@ -3978,13 +3978,13 @@ impl Mexc {
             request.insert("price".into(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         if (openType == 1) {
-            let mut leverage: Option<i64> = self.safe_integer_k(paramsPostOnly.clone(), "leverage", &[]).as_i64();
+            let mut leverage: Option<i64> = self.safe_integer_k(&paramsPostOnly, "leverage", &[]).as_i64();
             if (leverage.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSwapOrder() requires a leverage parameter for isolated margin orders".into()))));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut hedged: bool = self.safe_bool_k(paramsPostOnly.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut hedged: bool = self.safe_bool_k(&paramsPostOnly, "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut sideInteger: Option<i64> = None;
         if hedged {
             if reduceOnly {
@@ -4001,7 +4001,7 @@ impl Mexc {
             }
         }
         request.insert("side".into(), Value::from(sideInteger));
-        let mut paramsReduceOnly: Value = (if reduceOnly { self.omit(paramsPostOnly.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsPostOnly }); // hedged mode does not accept this parameter
+        let mut paramsReduceOnly: Value = (if reduceOnly { self.omit(&paramsPostOnly, Value::Str("reduceOnly".into()), &[]) } else { Value::from(&paramsPostOnly) }); // hedged mode does not accept this parameter
         let mut clientOrderId: Option<String> = self.safe_string2(paramsReduceOnly.clone(), Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("externalOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -5630,7 +5630,7 @@ impl Mexc {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
@@ -5644,17 +5644,17 @@ impl Mexc {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let mut until: Option<i64> = self.safe_integer_k(paramsMarketType.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&paramsMarketType, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from(until));
             }
-            let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsMarketType.clone(), Value::Str("until".into()), &[]) } else { paramsMarketType.clone() });
+            let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsMarketType, Value::Str("until".into()), &[]) } else { Value::from(&paramsMarketType) });
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[paramsUntil]);
             trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await;
         }  else {
             if (since != Value::Null) {
                 request.insert("start_time".into(), since.clone());
-                let mut end: Option<i64> = self.safe_integer_k(paramsMarketType.clone(), "end_time", &[]).as_i64();
+                let mut end: Option<i64> = self.safe_integer_k(&paramsMarketType, "end_time", &[]).as_i64();
                 if (end.is_none()) {
                     request.insert("end_time".into(), self.sum(&[since.clone(), self.options.as_map().and_then(|__m| __m.get("maxTimeTillEnd")).cloned().unwrap_or(Value::Null)]));
                 }
@@ -5662,7 +5662,7 @@ impl Mexc {
             if (limit != Value::Null) {
                 request.insert("page_size".into(), limit.clone());
             }
-            let __ws_arg_41 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.contract_private_get_order_list_order_deals(&[__ws_arg_41]).await.into_dict();
             //
             //     {
@@ -7548,10 +7548,10 @@ impl Mexc {
         let mut currency: Value = self.currency(code.clone());
         let tagResolvedparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagResolved: Option<String> = tagResolvedparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagResolvedparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut internal: bool = self.safe_bool_k(paramsWithdrawTag.clone(), "internal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsWithdrawTag: crate::value::Dict = tagResolvedparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut internal: bool = self.safe_bool_k(&paramsWithdrawTag, "internal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if internal {
-            let mut paramsInternal: crate::value::Dict = self.omit(paramsWithdrawTag.clone(), Value::Str("internal".into()), &[]).into_dict();
+            let mut paramsInternal: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("internal".into()), &[]).into_dict();
             let mut requestForInternal: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7571,7 +7571,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut networkRaw: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]).as_str().map(str::to_owned); // this line allows the user to specify either ERC20 or ETH
+        let mut networkRaw: Option<String> = self.safe_string2(Value::from(&paramsWithdrawTag), Value::Str("network".into()), Value::Str("netWork".into()), &[]).as_str().map(str::to_owned); // this line allows the user to specify either ERC20 or ETH
         let mut network: Option<String> = self.network_code_to_id(self.safe_string(&networks, networkRaw.clone().map(Value::from).unwrap_or(Value::Null), &[networkRaw.clone().map(Value::from).unwrap_or(Value::Null)]), &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned); // handle ETH > ERC-20 alias
         self.check_address(&[address.clone(), code, tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -7587,7 +7587,7 @@ impl Mexc {
         if (network.is_some()) {
             request.insert("netWork".into(), network.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]) } else { paramsWithdrawTag });
+        let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]) } else { Value::from(&paramsWithdrawTag) });
         let __ws_arg_59 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await;
         return self.parse_transaction(response, &[currency]);
