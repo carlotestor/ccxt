@@ -2998,8 +2998,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn from_wei_with_decimals(&self, mut hexValue: Value, mut decimals: Value) -> Option<String> {
-        let mut decimalString: Value = self.hex_to_decimal_string(hexValue);
-        if (decimalString == Value::Null) {
+        let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue).as_str().map(str::to_owned);
+        if (decimalString.is_none()) {
             return None;
         }
         let mut scale: String = "1".to_string();
@@ -3014,7 +3014,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             scale = format!("{}{}", scale, Value::Str("0".into()));
         }
         }
-        return crate::precise::Precise::stringDiv(&decimalString, &Value::from(scale)).as_str().map(str::to_owned);
+        return crate::precise::Precise::stringDiv(&decimalString.map(Value::from).unwrap_or(Value::Null), &Value::from(scale)).as_str().map(str::to_owned);
 }
 
     pub fn parse_trade_tx(&self, mut txHash: Value, mut quote: Value, mut market: Value, mut side: Value) -> Value {

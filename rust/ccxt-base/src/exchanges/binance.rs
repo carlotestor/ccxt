@@ -15186,15 +15186,15 @@ impl Binance {
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsSubType, Value::Str("fetchTradingFee".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isLinear: Value = self.is_linear(type_var.clone(), &[subType.clone()]);
-        let mut isInverse: Value = self.is_inverse(type_var, &[subType]);
+        let mut isLinear: bool = self.is_linear(type_var.clone(), &[subType.clone()]).as_bool().unwrap_or_default();
+        let mut isInverse: bool = self.is_inverse(type_var, &[subType]).as_bool().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut response: Value = Value::Null;
-        if isLinear.as_bool() == Some(true) {
+        if isLinear {
             if isPortfolioMargin {
                 let __ws_arg_149 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
                 response = self.papi_get_um_commission_rate(&[__ws_arg_149]).await;
@@ -15202,7 +15202,7 @@ impl Binance {
                 let __ws_arg_150 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
                 response = self.fapi_private_get_commission_rate(&[__ws_arg_150]).await;
             }
-        }  else if isInverse.as_bool() == Some(true) {
+        }  else if isInverse {
             if isPortfolioMargin {
                 let __ws_arg_151 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
                 response = self.papi_get_cm_commission_rate(&[__ws_arg_151]).await;
@@ -15279,14 +15279,14 @@ impl Binance {
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isSpotOrMargin: bool = (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"));
-        let mut isLinear: Value = self.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]);
-        let mut isInverse: Value = self.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType]);
+        let mut isLinear: bool = self.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool().unwrap_or_default();
+        let mut isInverse: bool = self.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType]).as_bool().unwrap_or_default();
         let mut response: Value = Value::Null;
         if isSpotOrMargin {
             response = self.sapi_get_asset_trade_fee(&[paramsSubType.clone()]).await;
-        }  else if isLinear.as_bool() == Some(true) {
+        }  else if isLinear {
             response = self.fapi_private_get_account_config(&[paramsSubType.clone()]).await;
-        }  else if isInverse.as_bool() == Some(true) {
+        }  else if isInverse {
             response = self.dapi_private_get_account(&[paramsSubType]).await;
         }
         //
@@ -15372,7 +15372,7 @@ impl Binance {
             }
             }
             return Value::Map(spotFees);
-        }  else if isLinear.as_bool() == Some(true) {
+        }  else if isLinear {
             //
             //     {
             //         "feeTier": 0,       // account commisssion tier
@@ -15430,7 +15430,7 @@ impl Binance {
             }
             }
             return Value::Map(linearFees);
-        }  else if isInverse.as_bool() == Some(true) {
+        }  else if isInverse {
             //
             //     {
             //         "canDeposit": true,

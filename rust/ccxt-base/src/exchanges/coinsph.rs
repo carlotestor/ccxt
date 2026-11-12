@@ -3204,9 +3204,9 @@ impl Coinsph {
     m
 });
         }
-        let mut encodedQuery: Value = self.url_encode_query(&[query]);
-        if (Value::Int(encodedQuery.len() as i64).as_f64() != Some(0.0)) {
-            url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), encodedQuery);
+        let mut encodedQuery: Option<String> = self.url_encode_query(&[query]).as_str().map(str::to_owned);
+        if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
+            url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), encodedQuery.map(Value::from).unwrap_or(Value::Null));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

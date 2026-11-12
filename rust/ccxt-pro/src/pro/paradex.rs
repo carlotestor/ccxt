@@ -2404,21 +2404,21 @@ impl Paradex {
 
     pub fn sbe_read_decimal(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
-        let mut mantissa: Value = self.sbe_read_int64(frameHex, offset);
-        if (mantissa == Value::Null) {
+        let mut mantissa: Option<String> = self.sbe_read_int64(frameHex, offset).as_str().map(str::to_owned);
+        if (mantissa.is_none()) {
             return None;
         }
-        return crate::precise::Precise::stringDivPrec(&mantissa, &Value::Str("100000000".into()), &Value::Int(8)).as_str().map(str::to_owned);
+        return crate::precise::Precise::stringDivPrec(&mantissa.map(Value::from).unwrap_or(Value::Null), &Value::Str("100000000".into()), &Value::Int(8)).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_timestamp(&self, mut frameHex: Value, mut offset: Value) -> Value {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
-        let mut microseconds: Value = self.sbe_read_int64(frameHex, offset);
-        if (microseconds == Value::Null) {
+        let mut microseconds: Option<String> = self.sbe_read_int64(frameHex, offset).as_str().map(str::to_owned);
+        if (microseconds.is_none()) {
             return Value::Null;
         }
-        return self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds, &Value::Str("1000".into()), &Value::Int(0)));
+        return self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()), &Value::Int(0)));
 
     Value::Null
 }

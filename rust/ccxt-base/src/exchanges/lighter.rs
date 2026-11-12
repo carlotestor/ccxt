@@ -1241,8 +1241,8 @@ impl Lighter {
         }
         let mut standardTier: bool = false;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut isStandardTier: Value = self.check_if_standard_tier(self.parse_to_int(accountIndex.clone())).await;
-            if isStandardTier.as_bool() == Some(true) {
+            let mut isStandardTier: bool = self.check_if_standard_tier(self.parse_to_int(accountIndex.clone())).await.as_bool().unwrap_or_default();
+            if isStandardTier {
                 standardTier = true;
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }  else {
@@ -1678,8 +1678,8 @@ if _try_result.is_err() {
         let mut strApiKeyIndex: Value = self.number_to_string(apiKeyIndex.clone());
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[params.clone()]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut isStandardTier: Value = self.check_if_standard_tier(accountIndex.clone()).await;
-            if isStandardTier.as_bool() == Some(true) {
+            let mut isStandardTier: bool = self.check_if_standard_tier(accountIndex.clone()).await.as_bool().unwrap_or_default();
+            if isStandardTier {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;

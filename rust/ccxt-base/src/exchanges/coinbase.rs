@@ -7307,8 +7307,8 @@ if _try_result.is_err() {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 let mut isCloudAPiKey: bool = (self.apiKey.as_str().unwrap_or("").contains("organizations/")) || (self.secret.as_str().unwrap_or("").starts_with("-----BEGIN"));
-                let mut isV2CloudAPiKey: Value = self.is_eddsa_api_key();
-                if isCloudAPiKey || isV2CloudAPiKey.as_bool() == Some(true) {
+                let mut isV2CloudAPiKey: bool = self.is_eddsa_api_key().as_bool().unwrap_or_default();
+                if isCloudAPiKey || isV2CloudAPiKey {
                     if isCloudAPiKey && (self.apiKey.as_str().unwrap_or("").starts_with("-----BEGIN")) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
                     }
@@ -7330,7 +7330,7 @@ if _try_result.is_err() {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // }
-                    let mut token: Value = self.create_auth_token(Value::from(seconds), Value::from(url.clone()), &[method.clone(), isV2CloudAPiKey]);
+                    let mut token: Value = self.create_auth_token(Value::from(seconds), Value::from(url.clone()), &[method.clone(), Value::Bool(isV2CloudAPiKey)]);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), token));
                 }  else {

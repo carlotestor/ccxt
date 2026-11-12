@@ -2386,7 +2386,7 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
         }
         let mut goodTillBlockOption: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]).as_i64();
-        let mut goodTillBlock: Value = Value::from(goodTillBlockOption);
+        let mut goodTillBlock: Option<i64> = goodTillBlockOption;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
@@ -2410,9 +2410,9 @@ impl Dydx {
             }
             goodTillBlockTime = (match (&(self.seconds()), &(goodTillBlockTimeInSecondsOption)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }  else {
-            if (goodTillBlock == Value::Null) {
-                let mut latestBlockHeight: Value = self.fetch_latest_block_height(&[]).await;
-                goodTillBlock = (match (&(latestBlockHeight), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            if (goodTillBlock.is_none()) {
+                let mut latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
+                goodTillBlock = Some((latestBlockHeight + 20));
             }
         }
         let mut credentials: Value = self.retrieve_credentials();
@@ -2436,7 +2436,7 @@ impl Dydx {
         m.insert("clobPairId".to_string(), marketInfo.get("clobPairId").cloned().unwrap_or(Value::Null));
     m
 }));
-                m.insert("goodTilBlock".to_string(), goodTillBlock);
+                m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
                 m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
             m
         });
@@ -2513,10 +2513,10 @@ impl Dydx {
         let subAccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
         let mut subAccountIdOption: Value = subAccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubAccountId: crate::value::Dict = subAccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut goodTillBlock: Value = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]);
-        if (goodTillBlock == Value::Null) {
-            let mut latestBlockHeight: Value = self.fetch_latest_block_height(&[]).await;
-            goodTillBlock = (match (&(latestBlockHeight), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
+        if (goodTillBlock.is_none()) {
+            let mut latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
+            goodTillBlock = Some((latestBlockHeight + 20));
         }
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
@@ -2539,7 +2539,7 @@ impl Dydx {
     m
 }));
                 m.insert("shortTermCancels".to_string(), Value::from(vec![cancelOrders]));
-                m.insert("goodTilBlock".to_string(), goodTillBlock);
+                m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
             m
         });
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({

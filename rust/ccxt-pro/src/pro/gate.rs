@@ -983,11 +983,11 @@ impl Gate {
         let intervalqueryVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(intervalDefault)]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalqueryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = intervalqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
         // max 100 atm, max 50 for options
         let mut defaultLimit: i64 = 100;
-        if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_str() == Some("options")) {
+        if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_deref() == Some("options")) {
             defaultLimit = 50;
         }
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
@@ -1009,7 +1009,7 @@ impl Gate {
             }
             payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ob.".into()), marketId).into()), Value::Str(".".into())).into()), finalInterval).into())]);
         }  else {
-            channel = format!("{}{}", messageType, Value::Str(".order_book_update".into()));
+            channel = format!("{}{}", messageType.map(Value::from).unwrap_or(Value::Null), Value::Str(".order_book_update".into()));
             payload = Value::from(vec![Value::from(marketId), interval]);
             let mut stringLimit: Value = Value::Str(format!("{}", limitResolved).into());
             if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(stringLimit); }
@@ -1062,11 +1062,11 @@ impl Gate {
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[interval]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Value = self.get_type_by_market((market).raw.clone());
+        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
         if (limit == Value::Null) {
             limit = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
-            if (messageType.as_str() == Some("options")) {
+            if (messageType.as_deref() == Some("options")) {
                 limit = Value::Int(50); // max 50 for options
             }
         }
@@ -1083,7 +1083,7 @@ impl Gate {
             }
             payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ob.".into()), marketId).into()), Value::Str(".".into())).into()), finalInterval).into())]);
         }  else {
-            channel = format!("{}{}", messageType, Value::Str(".order_book_update".into()));
+            channel = format!("{}{}", messageType.map(Value::from).unwrap_or(Value::Null), Value::Str(".order_book_update".into()));
             payload = Value::from(vec![Value::from(marketId), intervalOption]);
             let mut stringLimit: Value = Value::Str(format!("{}", limit).into());
             if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(stringLimit); }
