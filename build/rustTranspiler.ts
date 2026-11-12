@@ -3835,18 +3835,26 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     const own = /^(?:crate::runtime::)?(to_string_val|replace_str|replace_all_str|join|pad_end|to_fixed)\(/.exec(e);
     if (own !== null) return own[1] === 'pad_end' ? new Set([ 'str', 'null' ]) : new Set([ 'str' ]);
     if (/^(?:crate::runtime::)?split\(/.test(e)) return new Set([ 'arr' ]);
-    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|parse_to_int|number_to_string|decimal_to_precision|sum)\(/.exec(e);
+    // `parse_to_int` / `number_to_string` return `Option<i64>` / `Option<String>`, boxed once at a `Value` write.
+    const typed = /^Value::from\(self\.parse_to_int\(/.exec(e) ?? /^self\.number_to_string\(/.exec(e);
+    if (typed !== null) {
+        const open = typed[0].length - 1;
+        const close = stringNativesCloseParen(e, open);
+        const tail = close < 0 ? '' : e.slice(close);
+        if (typed[0].startsWith('Value::from') ? tail === ')' : tail === '.map(Value::from).unwrap_or(Value::Null)') return new Set([ typed[0].startsWith('Value::from') ? 'int' : 'str', 'null' ]);
+        return undefined;
+    }
+    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|decimal_to_precision|sum)\(/.exec(e);
     if (call !== null) {
         const name = call[1];
         const open = call[0].length - 1;
         if (stringNativesCloseParen(e, open) !== e.length) return undefined;
         if (name === 'decimal_to_precision') return new Set([ 'str' ]);
-        if (name === 'number_to_string') return new Set([ 'str', 'null' ]);
         if (name === 'sum') return new Set([ 'int', 'float', 'str', 'null' ]);
         let own = 'str';
         if (name.startsWith('safe_bool')) own = 'bool';
         else if (name.startsWith('safe_float') || name.startsWith('safe_number') || name === 'parse_float') own = 'float';
-        else if (!name.startsWith('safe_string') && name !== 'parse_to_int') own = 'int';
+        else if (!name.startsWith('safe_string')) own = 'int';
         const out: VSet = new Set([ own ]);
         // `safe_*` fall back to their default: a literal box pins it, `&[]` leaves Null.
         if (name.startsWith('safe')) {
@@ -4440,7 +4448,11 @@ function typedFromValue(kind: string, v: string): string {
 }
 
 // A typed method's `Result<T>` boxed back to the dispatcher's `Value`.
-function typedResult(call: string, isTyped: boolean | undefined): string {
+// Base methods printed with a native scalar return keep their by-name arm, boxed back with `Value::from`.
+const TYPED_SCALAR_ARMS = /^(?:parse_to_int|incrementing_nonce|symbol|find_timeframe|network_id_to_code|request_id)$/;
+
+function typedResult(call: string, isTyped: boolean | 'scalar' | undefined): string {
+    if (isTyped === 'scalar') return `crate::Value::from(${call})`;
     return isTyped ? `crate::types::IntoRaw::into_raw(${call})` : call;
 }
 
@@ -11802,8 +11814,8 @@ export class RustTranspilerBuilder {
      * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
      * and `bind`/`dispatch_virtual` we generate ourselves.
      */
-    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> = [];
+    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | 'scalar' }> {
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | 'scalar' }> = [];
         // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
         // `allowNoPub` (used only for the `ExchangeBase` trait body → its
         // `call_dynamic_base`) makes `pub` optional because trait methods are
@@ -11830,7 +11842,7 @@ export class RustTranspilerBuilder {
             // emitters). Sync non-Value methods stay out (they route through the
             // sync dispatch_ws_handler, which already void-wraps them).
             const isValue = /->\s*(crate::)?Value\b/.test(retType);
-            const isTyped = /->\s*crate::Result</.test(retType);
+            const isTyped = /->\s*crate::Result</.test(retType) ? true : (TYPED_SCALAR_ARMS.test(name) ? 'scalar' as const : false);
             if (!isValue && !isAsync && !isTyped) continue;
             const isVoid = !isValue && !isTyped;
             // Skip if there's no `self` receiver.
@@ -12234,7 +12246,8 @@ ${fallthrough}
             }
             const isVoid = retType === '';
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
-            if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
+            const isTyped = TYPED_SCALAR_ARMS.test(name) ? 'scalar' as const : false;
+            if (!isVoid && !isValue && !isTyped) continue; // e.g. `-> bool` — not dispatchable
             const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
             const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (mapParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
             if (kinds.some(k => k === 'other')) continue;
@@ -12251,7 +12264,7 @@ ${fallthrough}
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
-                : `            "${name}" => ${call},`);
+                : `            "${name}" => ${typedResult(call, isTyped)},`);
         }
         // Emit the dispatcher if there are handler arms OR the (already
         // rewritten) content calls it — otherwise a `.call` rewrite with no
