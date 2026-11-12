@@ -2404,7 +2404,7 @@ impl Exchange {
         put("commonCurrencies", &self.commonCurrencies);
         put("baseCurrencies", &self.baseCurrencies);
         put("quoteCurrencies", &self.quoteCurrencies);
-        put("symbols", &self.symbols);
+        put("symbols", &Value::from(&self.symbols));
         put("ids", &self.ids);
         put("codes", &self.codes);
         put("timeframes", &self.timeframes);
