@@ -196,8 +196,8 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "un_watch" => self.un_watch(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null),
-                    args.get(6).cloned().unwrap_or(crate::Value::Null), &args[7.min(args.len())..]).await,
+                "un_watch" => self.un_watch(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_str).unwrap_or_default(),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).and_then(crate::Value::as_str).unwrap_or_default(), &args[7.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -403,7 +403,12 @@ impl Bingx {
     Value::Null
 }
 
-    pub async fn un_watch(&mut self, mut messageHash: Value, mut subMessageHash: Value, mut subscribeHash: Value, mut dataType: Value, mut topic: Value, mut market: Value, mut methodName: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch(&mut self, messageHash: &str, subMessageHash: &str, subscribeHash: &str, mut dataType: Value, topic: &str, mut market: Value, methodName: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
+        let mut subMessageHash: Value = subMessageHash.into();
+        let mut subscribeHash: Value = subscribeHash.into();
+        let mut topic: Value = topic.into();
+        let mut methodName: Value = methodName.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -544,7 +549,7 @@ impl Bingx {
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash);
         let mut topic: String = "ticker".to_string();
         let mut methodName: String = "unWatchTicker".to_string();
-        return self.un_watch(Value::from(messageHash.clone()), subMessageHash, Value::from(messageHash), Value::from(dataType), Value::from(topic), (market).raw.clone(), Value::from(methodName), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.as_str().unwrap_or_default(), messageHash.as_str(), Value::from(dataType), topic.as_str(), (market).raw.clone(), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -831,7 +836,7 @@ impl Bingx {
         let mut topic: String = "trades".to_string();
         let mut methodName: String = "unWatchTrades".to_string();
         let __ws_arg_3 = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]);
-        return self.un_watch(Value::from(messageHash.clone()), subMessageHash, Value::from(messageHash), Value::Str(format!("{}{}", __ws_arg_3, Value::Str("@trade".into())).into()), Value::from(topic), (market).raw.clone(), Value::from(methodName), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.as_str().unwrap_or_default(), messageHash.as_str(), Value::Str(format!("{}{}", __ws_arg_3, Value::Str("@trade".into())).into()), topic.as_str(), (market).raw.clone(), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1077,7 +1082,7 @@ impl Bingx {
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash);
         let mut topic: String = "orderbook".to_string();
         let mut methodName: String = "unWatchOrderBook".to_string();
-        return self.un_watch(Value::from(messageHash.clone()), Value::from(subMessageHash.clone()), Value::from(messageHash), Value::from(subMessageHash), Value::from(topic), market, Value::from(methodName), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), market, methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1509,7 +1514,7 @@ impl Bingx {
         let mut methodName: String = "unWatchOHLCV".to_string();
         let mut symbolsAndTimeframes: Value = Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
-        return self.un_watch(Value::from(messageHash.clone()), Value::from(subMessageHash.clone()), Value::from(messageHash), Value::from(subMessageHash), Value::from(topic), (market).raw.clone(), Value::from(methodName), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), (market).raw.clone(), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }

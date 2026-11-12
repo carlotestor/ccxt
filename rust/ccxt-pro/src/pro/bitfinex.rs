@@ -193,9 +193,9 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -319,7 +319,9 @@ impl Bitfinex {
     Value::Null
 }
 
-    pub async fn subscribe(&mut self, mut channel: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe(&mut self, channel: &str, symbol: &str, optional_args: &[Value]) -> Value {
+        let mut channel: Value = channel.into();
+        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -364,7 +366,10 @@ impl Bitfinex {
     Value::Null
 }
 
-    pub async fn un_subscribe(&mut self, mut channel: Value, mut topic: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe(&mut self, channel: &str, topic: &str, symbol: &str, optional_args: &[Value]) -> Value {
+        let mut channel: Value = channel.into();
+        let mut topic: Value = topic.into();
+        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -403,7 +408,8 @@ impl Bitfinex {
     Value::Null
 }
 
-    pub async fn subscribe_private(&mut self, mut messageHash: Value) -> Value {
+    pub async fn subscribe_private(&mut self, messageHash: &str) -> Value {
+        let mut messageHash: Value = messageHash.into();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -640,7 +646,7 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.subscribe(Value::Str("trades".into()), symbol.clone(), &[params]).await;
+        let mut trades: Value = self.subscribe("trades", symbol.as_str().unwrap_or_default(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -669,7 +675,7 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_subscribe(Value::Str("trades".into()), Value::Str("trades".into()), symbol, &[params]).await;
+        return self.un_subscribe("trades", "trades", symbol.as_str().unwrap_or_default(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -706,7 +712,7 @@ impl Bitfinex {
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("myTrade:".into()), marketId);
         }
-        let mut trades: Value = self.subscribe_private(Value::from(messageHash)).await;
+        let mut trades: Value = self.subscribe_private(messageHash.as_str()).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -735,7 +741,7 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.subscribe(Value::Str("ticker".into()), symbol, &[params]).await;
+        return self.subscribe("ticker", symbol.as_str().unwrap_or_default(), &[params]).await;
         Value::Null
         })).expect("a sync body never awaits")?))
     }
@@ -759,7 +765,7 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_subscribe(Value::Str("ticker".into()), Value::Str("ticker".into()), symbol, &[params]).await;
+        return self.un_subscribe("ticker", "ticker", symbol.as_str().unwrap_or_default(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1131,7 +1137,7 @@ impl Bitfinex {
         if (limit != Value::Null) {
             request.insert("len".into(), limit.clone()); // string, number of price points, '25', '100', default = '25'
         }
-        let mut orderbook: Value = self.subscribe(Value::Str("book".into()), symbol, &[self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut orderbook: Value = self.subscribe("book", symbol.as_str().unwrap_or_default(), &[self.deep_extend(Value::Map(request), &[params])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1330,7 +1336,7 @@ impl Bitfinex {
         }
         let mut balanceType: String = (match params.get("wallet") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("exchange".into()) }).as_str().unwrap_or("exchange").to_string(); // exchange, margin
         let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), balanceType);
-        return self.subscribe_private(Value::from(messageHash)).await;
+        return self.subscribe_private(messageHash.as_str()).await;
         Value::Null
         }).await?))
     }
@@ -1643,7 +1649,7 @@ impl Bitfinex {
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str("orders:".into()), marketId);
         }
-        let mut orders: Value = self.subscribe_private(Value::from(messageHash)).await;
+        let mut orders: Value = self.subscribe_private(messageHash.as_str()).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());

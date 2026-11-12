@@ -211,8 +211,8 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_uint" => self.sbe_read_uint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
-                "send_request" => self.send_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "subscribe_channels" => self.subscribe_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "send_request" => self.send_request(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "subscribe_channels" => self.subscribe_channels(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "subscribe_request" => self.subscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "unsubscribe_request" => self.unsubscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -480,7 +480,8 @@ impl Paradex {
  * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
  * @returns {object} the reply
  */
-    pub async fn send_request(&mut self, mut url: Value, mut request: Value, optional_args: &[Value]) -> Value {
+    pub async fn send_request(&mut self, url: &str, mut request: Value, optional_args: &[Value]) -> Value {
+        let mut url: Value = url.into();
         let mut subscribeHash = get_arg(optional_args, 0, Value::Null);
         let mut requestHash: String = format!("{}{}", Value::Str("request:".into()), self.safe_string_k(request.clone(), "id", &[]));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -506,7 +507,8 @@ impl Paradex {
  * @param {object} [params] extra parameters merged into each subscribe request
  * @returns {object} the first update
  */
-    pub async fn subscribe_channels(&mut self, mut url: Value, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_channels(&mut self, url: &str, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
+        let mut url: Value = url.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -526,7 +528,7 @@ impl Paradex {
             }
             let mut channel: Value = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null));
             let mut pendingRequest: Value = self.subscribe_request(channel.clone());
-            self.send_request(url.clone(), self.deep_extend(pendingRequest, &[params.clone()]), &[channel]).await;
+            self.send_request(url.as_str().unwrap_or_default(), self.deep_extend(pendingRequest, &[params.clone()]), &[channel]).await;
         }
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
@@ -757,7 +759,7 @@ impl Paradex {
         }
         let mut url: Value = self.get_ws_url();
         // handleTrade resolves the channel of each market
-        let mut trades: Value = self.subscribe_channels(url, Value::Arr(channels.clone()), Value::Arr(channels), &[params]).await;
+        let mut trades: Value = self.subscribe_channels(url.as_str().unwrap_or_default(), Value::Arr(channels.clone()), Value::Arr(channels), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -800,7 +802,7 @@ impl Paradex {
         let mut channel: String = format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone()));
         let mut messageHash: String = format!("{}{}", Value::Str("liquidations:".into()), Value::from((market).symbol.clone()));
         let mut url: Value = self.get_ws_url();
-        let mut liquidations: Value = self.subscribe_channels(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
+        let mut liquidations: Value = self.subscribe_channels(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = liquidations.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -999,14 +1001,14 @@ impl Paradex {
                 // arrives once the reply is in
                 let mut unsubscribe: Value = self.unsubscribe_request(snapshotChannel.clone());
                 __ch.remove_subscription(&snapshotChannel);
-                self.send_request(url.clone(), unsubscribe, &[]).await;
+                self.send_request(url.as_str().unwrap_or_default(), unsubscribe, &[]).await;
             }
             let mut channel: Value = (if (isDeltas) { deltasChannel } else { snapshotChannel });
             channels.push(channel);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone())).into()));
         }
         }
-        let mut orderbook: Value = self.subscribe_channels(url, Value::from(messageHashes), Value::from(channels), &[paramsDeltas]).await;
+        let mut orderbook: Value = self.subscribe_channels(url.as_str().unwrap_or_default(), Value::from(messageHashes), Value::from(channels), &[paramsDeltas]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1296,7 +1298,7 @@ impl Paradex {
                 }
                 }
                 let mut unsubscribe: Value = self.unsubscribe_request(Value::from(channel.clone()));
-                self.send_request(url.clone(), unsubscribe, &[]).await;
+                self.send_request(url.as_str().unwrap_or_default(), unsubscribe, &[]).await;
             }
             let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1500,7 +1502,7 @@ impl Paradex {
             channels.push(Value::Str("bbo.ALL".into()));
             messageHashes.push(Value::Str("bidask".into()));
         }
-        let mut newBidAsk: Value = self.subscribe_channels(url, Value::from(messageHashes), Value::from(channels), &[params]).await;
+        let mut newBidAsk: Value = self.subscribe_channels(url.as_str().unwrap_or_default(), Value::from(messageHashes), Value::from(channels), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2111,7 +2113,7 @@ impl Paradex {
         let mut channel: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from((market).id.clone()));
         let mut url: Value = self.get_ws_url();
         let mut messageHash: String = format!("{}{}", Value::Str("funding_data.".into()), Value::from((market).symbol.clone()));
-        return self.subscribe_channels(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
+        return self.subscribe_channels(url.as_str().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
         Value::Null
         }).await?))
     }
