@@ -3568,7 +3568,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(methodName.clone(), &[firstMarket.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
         let mut isOptionMarkPrice: bool = isMarkPrice && (marketType.as_str() == Some("option"));
@@ -3577,9 +3577,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             rawMarketType = (if (isOptionMarkPrice) { Value::Str("optionMarket".into()) } else { Value::Str("option".into()) });
-        }  else if self.parent.is_linear(marketType.as_str().unwrap_or_default(), &[subType.clone()]).as_bool() == Some(true) {
+        }  else if self.parent.is_linear(marketType.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             rawMarketType = Value::Str("linear".into());
-        }  else if self.parent.is_inverse(marketType.as_str().unwrap_or_default(), &[subType]).as_bool() == Some(true) {
+        }  else if self.parent.is_inverse(marketType.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             rawMarketType = Value::Str("inverse".into());
         }  else if (marketType.as_str() == Some("spot")) {
             rawMarketType = marketType.clone();
@@ -4521,9 +4521,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
-            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), &[subType.clone()]).as_bool() == Some(true) {
+            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
                 type_var = Value::Str("linear".into());
-            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), &[subType]).as_bool() == Some(true) {
+            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
         }
@@ -4804,7 +4804,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
             rawBalance = self.safe_list_k(&result, "assets", &[Value::from(vec![])]);
         }
-        let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance, &[]);
+        let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance, None, None, &[]);
         client.resolve(parsedBalances, messageHash.as_deref());
 }
 
@@ -4862,7 +4862,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut parsedBalances: Value = self.parent.parse_balance_custom(result, &[]);
+        let mut parsedBalances: Value = self.parent.parse_balance_custom(result, None, None, &[]);
         client.resolve(parsedBalances, messageHash.as_deref());
 }
 
@@ -5283,17 +5283,17 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(methodName, &[market, paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = marketType;
         if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
-            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), &[subType.clone()]).as_bool() == Some(true) {
+            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 type_var = Value::Str("linear".into());
-            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), &[subType.clone()]).as_bool() == Some(true) {
+            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
         }
-        return Value::from(vec![type_var, subType, paramsSubType]);
+        return Value::from(vec![type_var, subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
 
     Value::Null
 }
@@ -5310,9 +5310,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut subType: Value = self.handle_sub_type_and_params(method, &[market, paramsMarketType]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), &[subType.clone()]).as_bool() == Some(true) {
+        if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
-        }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), &[subType]).as_bool() == Some(true) {
+        }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
             type_var = Some("inverse".to_string());
         }
         return type_var.map(Value::from).unwrap_or(Value::Null);

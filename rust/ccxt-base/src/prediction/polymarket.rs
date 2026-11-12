@@ -144,7 +144,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]),
+                "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_f64)),
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -3419,7 +3419,7 @@ impl Polymarket {
         let mut cost: Option<f64> = self.safe_number_k(params.clone(), "cost", &[]).as_f64();
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into()), Value::Str("funder".into()), Value::Str("maker".into()), Value::Str("orderType".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("tickSize".into()),
             Value::Str("negRisk".into()), Value::Str("salt".into()), Value::Str("timestamp".into()), Value::Str("expiration".into()), Value::Str("cost".into()), Value::Str("builder".into()), Value::Str("builderCode".into())]), &[]).into_dict();
-        let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.as_str(), amount.clone(), priceResolved.clone(), tickSize.as_deref(), &[Value::from(cost)]);
+        let mut amounts: Value = self.polymarket_order_raw_amounts(sideStr.as_str(), amount.as_f64(), priceResolved.as_f64(), tickSize.as_deref(), cost.clone());
         let mut makerAmount: Option<String> = self.safe_string_k(amounts.clone(), "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(amounts, "takerAmount", &[]).as_str().map(str::to_owned);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
@@ -3478,7 +3478,7 @@ impl Polymarket {
             exchangeAddress = negRiskExchangeV2;
         }
         let mut domainVersion: String = self.safe_string_k(self.options.clone(), "ctfExchangeVersion", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
-        let mut signature: Value = self.sign_clob_order(Value::Map(message), exchangeAddress.as_str().unwrap_or_default(), domainVersion.as_str(), Value::from(signatureType)).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Value = self.sign_clob_order(Value::Map(message), exchangeAddress.as_str().unwrap_or_default(), domainVersion.as_str(), Value::from(signatureType).as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         let mut owner: Option<String> = self.safe_string_k(self.options.clone(), "l2ApiKey", &[self.apiKey.clone()]).as_str().map(str::to_owned);
         let mut orderBody: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3565,10 +3565,12 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn polymarket_order_raw_amounts(&self, side: Option<&str>, mut size: Value, mut price: Value, tickSize: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn polymarket_order_raw_amounts(&self, side: Option<&str>, size: Option<f64>, price: Option<f64>, tickSize: Option<&str>, cost: Option<f64>) -> Value {
         let mut side: Value = side.into();
+        let mut size: Value = size.into();
+        let mut price: Value = price.into();
         let mut tickSize: Value = tickSize.into();
-        let mut cost = get_arg(optional_args, 0, Value::Null);
+        let mut cost: Value = cost.into();
         let mut configs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0.1".to_string(), Value::Map({
@@ -3638,9 +3640,10 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_clob_order(&self, mut message: Value, exchangeAddress: &str, domainVersion: &str, mut sigType: Value) -> Option<String> {
+    pub fn sign_clob_order(&self, mut message: Value, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
         let mut exchangeAddress: Value = exchangeAddress.into();
         let mut domainVersion: Value = domainVersion.into();
+        let mut sigType: Value = sigType.into();
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
         // var '$signatureType', corrupting the EIP-712 type hash

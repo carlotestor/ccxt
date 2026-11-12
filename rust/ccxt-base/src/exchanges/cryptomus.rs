@@ -1542,7 +1542,7 @@ impl Cryptomus {
         }
         let mut amount: Option<f64> = self.safe_number_k(order.clone(), "quantity", &[]).as_f64();
         let mut cost: Option<f64> = self.safe_number_k(order.clone(), "value", &[]).as_f64();
-        let mut status: Value = self.parse_order_status(&[self.safe_string_k(order.clone(), "state", &[])]).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1574,8 +1574,8 @@ impl Cryptomus {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, optional_args: &[Value]) -> Option<String> {
-        let mut status = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("active".to_string(), Value::Str("open".into()));

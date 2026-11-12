@@ -206,7 +206,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "request_id" => self.request_id(),
-                "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), &args[3.min(args.len())..]).await,
+                "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_str)).await,
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]).await,
                 "subscribe_public_multiple" => self.subscribe_public_multiple(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]).await,
@@ -573,7 +573,7 @@ impl Gate {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".into(), Value::Bool(true)); }
         let mut request: Value = self.parent.create_order_request(symbolValue.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
         self.authenticate(url.as_str(), messageType.as_str()).await;
-        let mut rawOrder: Value = self.request_private(url.as_str(), request, Some(channel.as_str()), &[]).await;
+        let mut rawOrder: Value = self.request_private(url.as_str(), request, Some(channel.as_str()), None).await;
         let mut order: Value = self.parse_order(rawOrder, &[(market).raw.clone()]);
         return order;
         Value::Null
@@ -614,7 +614,7 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_batch_place".into()));
         let mut url: Value = self.get_url_by_market((market).raw.clone());
         self.authenticate(url.as_str(), messageType.as_str()).await;
-        let mut rawOrders: Value = self.request_private(url.as_str(), request, Some(channel.as_str()), &[]).await;
+        let mut rawOrders: Value = self.request_private(url.as_str(), request, Some(channel.as_str()), None).await;
         return self.parse_orders(rawOrders, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -670,7 +670,7 @@ impl Gate {
         let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         self.authenticate(url.as_str(), messageType.as_str()).await;
         let __ws_arg_0 = self.extend(request, &[requestParams]);
-        let mut rawOrders: Value = self.request_private(url.as_str(), __ws_arg_0, channelOption.as_deref(), &[]).await;
+        let mut rawOrders: Value = self.request_private(url.as_str(), __ws_arg_0, channelOption.as_deref(), None).await;
         return self.parse_orders(rawOrders, &[market]);
         Value::Null
         }).await?))
@@ -724,7 +724,7 @@ impl Gate {
         self.authenticate(url.as_str(), messageType.as_str()).await;
         add_element_to_object(&mut request, &Value::Str("order_id".into()), Value::Str(format!("{}", id).into()));
         let __ws_arg_1 = self.extend(request, &[requestParams]);
-        let mut res: Value = self.request_private(url.as_str(), __ws_arg_1, Some(channel.as_str()), &[]).await;
+        let mut res: Value = self.request_private(url.as_str(), __ws_arg_1, Some(channel.as_str()), None).await;
         return self.parse_order(res, &[market]);
         Value::Null
         }).await?))
@@ -770,7 +770,7 @@ impl Gate {
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_amend".into()));
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.as_str(), messageType.as_str()).await;
-        let mut rawOrder: Value = self.request_private(url.as_str(), extendedRequest, Some(channel.as_str()), &[]).await;
+        let mut rawOrder: Value = self.request_private(url.as_str(), extendedRequest, Some(channel.as_str()), None).await;
         return self.parse_order(rawOrder, &[market]);
         Value::Null
         }).await?))
@@ -812,7 +812,7 @@ impl Gate {
         }  else {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
-        let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), &[symbol, params]).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Value = self.get_type_by_market(market.clone());
@@ -820,7 +820,7 @@ impl Gate {
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.as_str(), messageType.as_str()).await;
         let __ws_arg_2 = self.extend(request, &[&requestParams]);
-        let mut rawOrder: Value = self.request_private(url.as_str(), __ws_arg_2, Some(channel.as_str()), &[]).await;
+        let mut rawOrder: Value = self.request_private(url.as_str(), __ws_arg_2, Some(channel.as_str()), None).await;
         return self.parse_order(rawOrder, &[market]);
         Value::Null
         }).await?))
@@ -924,7 +924,7 @@ impl Gate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets".into()))));
             }
         }
-        let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status.as_str(), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
+        let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut newRequest: crate::value::Dict = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
@@ -933,7 +933,7 @@ impl Gate {
         let mut url: Value = self.get_url_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         self.authenticate(url.as_str(), messageType.as_str()).await;
         let __ws_arg_3 = self.extend(newRequest, &[&requestParams]);
-        let mut rawOrders: Value = self.request_private(url.as_str(), __ws_arg_3, Some(channel.as_str()), &[]).await;
+        let mut rawOrders: Value = self.request_private(url.as_str(), __ws_arg_3, Some(channel.as_str()), None).await;
         let mut orders: Value = self.parse_orders(rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -3470,7 +3470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.request_private(url.as_str(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Some(channel.as_str()), &[Value::from(messageHash)]).await;
+}), Some(channel.as_str()), Some(messageHash.as_str())).await;
         }
         return future;
 
@@ -3484,10 +3484,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         future.resolve(Value::Bool(true), None);
 }
 
-    pub async fn request_private(&mut self, url: Option<&str>, mut reqParams: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn request_private(&mut self, url: Option<&str>, mut reqParams: Value, channel: Option<&str>, requestId: Option<&str>) -> Value {
         let mut url: Value = url.into();
         let mut channel: Value = channel.into();
-        let mut requestId = get_arg(optional_args, 0, Value::Null);
+        let mut requestId: Value = requestId.into();
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials
         let mut event: String = "api".to_string();

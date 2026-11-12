@@ -1924,7 +1924,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.cancel_order_request(id.as_str(), &[symbol, params]);
+        let mut request: Value = self.parent.cancel_order_request(id.as_str(), symbol.as_str(), &[params]);
         return self.watch_request("privateCancelOrder", request).await;
         Value::Null
         }).await?))
@@ -2073,7 +2073,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_orders_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
+        let mut request: Value = self.parent.fetch_orders_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]);
         let mut orders: Value = self.watch_request("privateGetOrders", request).await;
         return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -2175,7 +2175,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_my_trades_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
+        let mut request: Value = self.parent.fetch_my_trades_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]);
         let mut myTrades: Value = self.watch_request("privateGetTrades", request).await;
         return self.filter_by_symbol_since_limit(myTrades, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -2240,14 +2240,14 @@ impl Bitvavo {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.withdraw_request(code.as_str(), amount, address.as_str().unwrap_or_default(), &[tagWithdrawTag, paramsWithdrawTag]);
+        let mut request: Value = self.parent.withdraw_request(code.as_str(), amount, address.as_str().unwrap_or_default(), tagWithdrawTag.as_deref(), &[paramsWithdrawTag]);
         return self.watch_request("privateWithdrawAssets", request).await;
         Value::Null
         }).await?))
@@ -2305,7 +2305,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_withdrawals_request(&[code.clone(), since.clone(), limit.clone(), params]);
+        let mut request: Value = self.parent.fetch_withdrawals_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]);
         let mut withdraws: Value = self.watch_request("privateGetWithdrawalHistory", request).await;
         return self.filter_by_currency_since_limit(withdraws, &[code, since, limit]);
         Value::Null
@@ -2407,7 +2407,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_deposits_request(&[code.clone(), since.clone(), limit.clone(), params]);
+        let mut request: Value = self.parent.fetch_deposits_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]);
         let mut deposits: Value = self.watch_request("privateGetDepositHistory", request).await;
         return self.filter_by_currency_since_limit(deposits, &[code, since, limit]);
         Value::Null

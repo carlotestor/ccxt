@@ -1762,7 +1762,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, paramsExtended]).await;
+        let mut request: Value = self.parent.cancel_orders_request(ids, symbol.as_str(), &[paramsExtended]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), request).await;
         //
         //     {
@@ -1841,7 +1841,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".into()))));
         }
-        let mut request: Value = self.parent.cancel_all_orders_request(&[symbol, paramsExtended]).await;
+        let mut request: Value = self.parent.cancel_all_orders_request(symbol.as_str(), &[paramsExtended]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), request).await;
         let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

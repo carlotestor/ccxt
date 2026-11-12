@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "clamp_sxbet_per_page" => self.clamp_sxbet_per_page(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "clamp_sxbet_per_page" => self.clamp_sxbet_per_page(args.get(0).and_then(crate::Value::as_i64)),
                 "connect_sxbet_centrifugo" => self.connect_sxbet_centrifugo(args.get(0).and_then(crate::Value::as_str)).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -2015,7 +2015,8 @@ impl Sxbet {
  * @param {int} limit the user-requested limit
  * @returns {int} the limit clamped to at most 100
  */
-    pub fn clamp_sxbet_per_page(&self, mut limit: Value) -> Value {
+    pub fn clamp_sxbet_per_page(&self, limit: Option<i64>) -> Value {
+        let mut limit: Value = limit.into();
         if (limit == Value::Null) {
             return limit;
         }
@@ -2063,7 +2064,7 @@ impl Sxbet {
             request.insert("marketHash".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[]));
         }
         if (limit != Value::Null) {
-            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.as_i64()));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_orders_v3(&[__ws_arg_11]).await.into_dict();
@@ -2189,7 +2190,7 @@ impl Sxbet {
             m
         });
         if (limit != Value::Null) {
-            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.as_i64()));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_public_get_trades_v3_public(&[__ws_arg_13]).await.into_dict();
@@ -2255,7 +2256,7 @@ impl Sxbet {
         if (limit != Value::Null) && (outcome == Value::Null) {
             // with an outcome filter the rows are narrowed client-side - a server-side page
             // size would truncate the page before the filter and under-fill the result
-            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.clone()));
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.as_i64()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_fills_v3(&[__ws_arg_14]).await.into_dict();
@@ -2608,7 +2609,7 @@ impl Sxbet {
         if (limit != Value::Null) && (outcome == Value::Null) {
             // the outcome scope narrows rows client-side (the venue filter is per market, not
             // per side) - a server-side page size would under-fill the filtered result
-            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit));
+            request.insert("perPage".into(), self.clamp_sxbet_per_page(limit.as_i64()));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_trades_v3(&[__ws_arg_16]).await.into_dict();
@@ -3239,7 +3240,8 @@ impl Sxbet {
  * @param {string} messageHash the future hash the caller awaits
  * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
  */
-    pub fn register_sxbet_ws_request(&self, mut requestId: Value, messageHash: &str, subscription: &str) {
+    pub fn register_sxbet_ws_request(&self, requestId: f64, messageHash: &str, subscription: &str) {
+        let mut requestId: Value = requestId.into();
         let mut messageHash: Value = messageHash.into();
         let mut subscription: Value = subscription.into();
         let mut requestIdString: Option<String> = self.number_to_string(requestId).as_str().map(str::to_owned);
@@ -3284,7 +3286,7 @@ impl Sxbet {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut token: Value = self.fetch_sxbet_realtime_token().await;
             let mut requestId: i64 = self.request_id(url.as_str()).as_i64().unwrap_or_default();
-            self.register_sxbet_ws_request(Value::from(requestId), "centrifugoConnected", "connect");
+            self.register_sxbet_ws_request((requestId as f64), "centrifugoConnected", "connect");
             let mut connectMsg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("connect".to_string(), Value::Map({
@@ -3321,7 +3323,7 @@ impl Sxbet {
         // finish the connect handshake first so the subscribe frame follows the connect reply
         self.connect_sxbet_centrifugo(url.as_deref()).await;
         let mut requestId: i64 = self.request_id(url.as_deref()).as_i64().unwrap_or_default();
-        self.register_sxbet_ws_request(Value::from(requestId), messageHash.as_str().unwrap_or_default(), channel.as_str().unwrap_or_default());
+        self.register_sxbet_ws_request((requestId as f64), messageHash.as_str().unwrap_or_default(), channel.as_str().unwrap_or_default());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3497,7 +3499,7 @@ impl Sxbet {
             }
         }
         let mut requestId: i64 = self.request_id(url.as_deref()).as_i64().unwrap_or_default();
-        self.register_sxbet_ws_request(Value::from(requestId), messageHash.as_str(), channel.as_str());
+        self.register_sxbet_ws_request((requestId as f64), messageHash.as_str(), channel.as_str());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3663,7 +3665,7 @@ impl Sxbet {
             hydrated = true;
         }
         let mut requestId: i64 = self.request_id(url.as_deref()).as_i64().unwrap_or_default();
-        self.register_sxbet_ws_request(Value::from(requestId), messageHash.as_str(), channel.as_str());
+        self.register_sxbet_ws_request((requestId as f64), messageHash.as_str(), channel.as_str());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
