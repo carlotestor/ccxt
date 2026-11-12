@@ -172,6 +172,45 @@ pub struct Internals {
     /// `fetchWebEndpoint` treats a miss as fatal — see
     /// `crate::exchange::call_dynamic_required`.
     pub dynamic_dispatch_miss: Option<String>,
+    /// Typed views of `markets_by_id` / `currencies_by_id`, rebuilt only when the source map changes.
+    pub typed_by_id: std::sync::Mutex<TypedByIdStores>,
+}
+
+/// A typed by-id store decoded once from one source dict: `rows[i]` holds the records of the
+/// source's i-th id, so a lookup is one index probe and the keys are never copied.
+pub struct TypedById<T> {
+    source: Option<crate::value::Dict>,
+    rows: Vec<Vec<T>>,
+}
+
+impl<T> Default for TypedById<T> {
+    fn default() -> Self { TypedById { source: None, rows: Vec::new() } }
+}
+
+#[derive(Default)]
+pub struct TypedByIdStores {
+    pub markets:    Arc<TypedById<crate::types::Market>>,
+    pub currencies: Arc<TypedById<crate::types::Currency>>,
+}
+
+impl<T> TypedById<T> {
+    /// The records stored under exchange id `id` (several markets can share one id).
+    pub fn records_by_id(&self, id: &str) -> Option<&[T]> {
+        let index = self.source.as_ref()?.get_index_of(id)?;
+        self.rows.get(index).map(Vec::as_slice)
+    }
+    fn is_from(&self, src: &Value) -> bool {
+        match (&self.source, src) { (Some(a), Value::Dict(b)) => Arc::ptr_eq(a, b), (None, Value::Dict(_)) => false, (None, _) => true, _ => false }
+    }
+    /// The shared store for `src`, decoded only when `src` is not the dict decoded last time.
+    fn refresh(store: &mut Arc<Self>, src: &Value, decode: impl Fn(&Value) -> Vec<T>) -> Arc<Self> {
+        if !store.is_from(src) {
+            let source = match src { Value::Dict(d) => Some(Arc::clone(d)), _ => None };
+            let rows = source.as_deref().map_or_else(Vec::new, |m| m.values().map(&decode).collect());
+            *store = Arc::new(TypedById { source, rows });
+        }
+        Arc::clone(store)
+    }
 }
 
 /// The Go-style "interface" that every derived exchange implements. When
@@ -260,6 +299,7 @@ impl Default for Internals {
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
             dynamic_dispatch_miss: None,
+            typed_by_id:      std::sync::Mutex::new(TypedByIdStores::default()),
         }
     }
 }
@@ -1048,6 +1088,24 @@ impl Exchange {
             Value::Dict(d) => d.values().cloned().map(crate::types::Market::from_value).collect(),
             _ => Vec::new(),
         }
+    }
+
+    /// Markets by exchange id (one id can name several markets), typed and shared.
+    pub fn markets_by_id_typed(&self) -> Arc<TypedById<crate::types::Market>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.markets, &self.markets_by_id, |v| match v {
+            Value::Arr(a) => a.iter().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by exchange id, typed and shared.
+    pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
     }
 
     /// Every loaded currency, typed. Empty until markets are loaded.
@@ -1956,6 +2014,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 self.markets_by_id = Value::Map(by_id);
             }
         }
+        let _ = (self.markets_by_id_typed(), self.currencies_by_id_typed());
         self.markets.clone()
         }).await?;
         Ok(crate::types::FromRaw::from_raw(markets))
@@ -2986,5 +3045,41 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod typed_by_id_tests {
+    use super::Exchange;
+    use crate::Value;
+    use indexmap::IndexMap;
+
+    fn market(id: &str, symbol: &str) -> Value {
+        let mut m = IndexMap::new();
+        m.insert("id".to_string(), Value::Str(id.to_string().into()));
+        m.insert("symbol".to_string(), Value::Str(symbol.to_string().into()));
+        Value::Map(m)
+    }
+
+    #[test]
+    fn by_id_stores_decode_once_and_follow_a_replaced_map() {
+        let mut ex = Exchange::new(None);
+        let mut by_id = IndexMap::new();
+        by_id.insert("BTCUSDT".to_string(), Value::Array(vec![market("BTCUSDT", "BTC/USDT"), market("BTCUSDT", "BTC/USDT:USDT")]));
+        ex.markets_by_id = Value::Map(by_id);
+        let first = ex.markets_by_id_typed();
+        let rows = first.records_by_id("BTCUSDT").unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[1].symbol, "BTC/USDT:USDT");
+        assert_eq!(rows[0].id.as_deref(), Some("BTCUSDT"));
+        assert!(std::sync::Arc::ptr_eq(&first, &ex.markets_by_id_typed()));
+        assert!(first.records_by_id("ETHUSDT").is_none());
+        let mut cur = IndexMap::new();
+        cur.insert("XBt".to_string(), market("XBt", "BTC"));
+        ex.currencies_by_id = Value::Map(cur);
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id, "XBt");
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
+        ex.markets_by_id = Value::Null;
+        assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
     }
 }
