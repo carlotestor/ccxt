@@ -410,7 +410,7 @@ impl Value {
     pub fn network_id_to_code(&self, args: &[Value]) -> Value {
         #[cfg(feature = "engine")]
         {
-            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args);
+            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args));
         }
         #[cfg(not(feature = "engine"))]
         {
