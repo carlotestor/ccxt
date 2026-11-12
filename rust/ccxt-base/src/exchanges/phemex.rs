@@ -6015,8 +6015,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() != Some("isolated")) && (marginModeValue.as_str() != Some("cross")) {
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeValue != "isolated") && (marginModeValue != "cross") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -6024,7 +6024,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut isCross: bool = marginModeValue.as_str() == Some("cross");
+        let mut isCross: bool = marginModeValue == "cross";
         if self.in_array(Value::from((market).settle.as_deref()), Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())])).as_bool() == Some(true) {
             let mut currentLeverage: Option<String> = self.safe_string_k(params.clone(), "leverage", &[]).as_str().map(str::to_owned);
             if (currentLeverage.is_none()) {
@@ -6035,7 +6035,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.private_put_g_positions_leverage(&[__ws_arg_53]).await;
         }
         let mut leverage: Option<i64> = self.safe_integer_k(params.clone(), "leverage", &[]).as_i64();
-        if (marginModeValue.as_str() == Some("cross")) {
+        if (marginModeValue == "cross") {
             leverage = Some(0);
         }
         if (leverage.is_none()) {

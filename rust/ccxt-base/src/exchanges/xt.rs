@@ -7869,11 +7869,11 @@ impl Xt {
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports contract markets only".into()))));
         }
-        let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeLower.as_str() != Some("isolated")) && (marginModeLower.as_str() != Some("cross")) {
+        let mut marginModeLower: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeLower != "isolated") && (marginModeLower != "cross") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
-        let mut positionType: Value = (if (marginModeLower.as_str() == Some("cross")) { Value::Str("CROSSED".into()) } else { Value::Str("ISOLATED".into()) });
+        let mut positionType: Value = (if (marginModeLower == "cross") { Value::Str("CROSSED".into()) } else { Value::Str("ISOLATED".into()) });
         let mut posSide: Option<String> = self.safe_string_upper_k(params.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         self.check_required_argument(Value::Str("setMarginMode".into()), posSide.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("positionSide".into()), &[Value::from(vec![Value::Str("LONG".into()), Value::Str("SHORT".into())])]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("positionSide".into()), &[]);

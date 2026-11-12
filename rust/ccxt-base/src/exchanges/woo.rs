@@ -2526,7 +2526,7 @@ impl Woo {
 }));
         let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2557,14 +2557,14 @@ impl Woo {
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(paramsMarginMode.clone(), "childOrders", &[]) != Value::Null);
-        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
+        let mut isMarket: bool = orderType == "MARKET";
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[paramsMarginMode.clone()]).as_bool() == Some(true);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();
         }
-        request.insert("type".into(), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        request.insert("type".into(), Value::from(orderType)); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !(isConditional) {
             if postOnly {
                 request.insert("type".into(), Value::Str("POST_ONLY".into()));

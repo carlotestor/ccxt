@@ -2966,8 +2966,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rowId: Option<String> = self.safe_string_k_opt(row.clone(), "order_id", &[]);
-            if (rowId.as_deref() == id.as_str()) {
+            let mut rowId: Option<String> = self.safe_string_k(row.clone(), "order_id", &[]).as_str().map(str::to_owned);
+            if (rowId.as_deref() == Some(id.as_str().unwrap_or_default().to_string().as_str())) {
                 return self.parse_order(row, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
             }
         }

@@ -15042,11 +15042,11 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() == Some("cross")) {
-            marginModeValue = Value::Str("crossed".into());
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeValue == "cross") {
+            marginModeValue = "crossed".to_string();
         }
-        if (marginModeValue.as_str() != Some("isolated")) && (marginModeValue.as_str() != Some("crossed")) {
+        if (marginModeValue != "isolated") && (marginModeValue != "crossed") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either isolated or crossed (cross)".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -15060,7 +15060,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("marginCoin".to_string(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
-                m.insert("marginMode".to_string(), marginModeValue);
+                m.insert("marginMode".to_string(), Value::from(marginModeValue));
                 m.insert("productType".to_string(), productType);
             m
         });

@@ -600,14 +600,14 @@ impl Poloniex {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() side is required".into()))));
         }
-        let mut uppercaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType.as_str() == Some("MARKET")), Value::Bool(uppercaseType.as_str() == Some("LIMIT_MAKER")), &[params.clone()]);
+        let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
         if isPostOnly.as_bool() == Some(true) {
-            uppercaseType = Value::Str("LIMIT_MAKER".into());
+            uppercaseType = "LIMIT_MAKER".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -616,7 +616,7 @@ impl Poloniex {
                 m.insert("type".to_string(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let mut isMarketBuy: bool = (uppercaseType.as_str() == Some("MARKET")) && (uppercaseSide.as_str() == Some("BUY"));
+        let mut isMarketBuy: bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY");
         let mut paramsOmitted: Value = params.clone();
         if isMarketBuy {
             let mut quoteAmount: Value = Value::Null;

@@ -3359,9 +3359,9 @@ impl Modetrade {
             if (side != Value::Null) {
                 request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             }
-            let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-            let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
+            let mut isMarket: Value = Value::Bool(orderType == "MARKET");
             let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
             if postOnly {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
@@ -3370,7 +3370,7 @@ impl Modetrade {
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 request.insert("order_type".into(), Value::Str("IOC".into()));
             }  else {
-                request.insert("order_type".into(), orderType);
+                request.insert("order_type".into(), Value::from(orderType));
             }
             let mut clientOrderId: Option<String> = self.safe_string_n(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
             let mut paramsOrder: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
@@ -4577,11 +4577,11 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone()]);
-        let mut codeUpper: Value = (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (codeUpper.as_str() != Some("USDC")) {
+        let mut codeUpper: String = code.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (codeUpper != "USDC") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
-        let mut currency: Value = self.currency(codeUpper.clone());
+        let mut currency: Value = self.currency(Value::from(codeUpper.clone()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
         let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
@@ -4654,7 +4654,7 @@ impl Modetrade {
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "keyBrokerId", &[Value::Str("mode".into())]));
                 m.insert("chainId".to_string(), self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null)));
                 m.insert("receiver".to_string(), address.clone());
-                m.insert("token".to_string(), codeUpper);
+                m.insert("token".to_string(), Value::from(codeUpper));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("withdrawNonce".to_string(), withdrawNonce);
                 m.insert("timestamp".to_string(), nonce);

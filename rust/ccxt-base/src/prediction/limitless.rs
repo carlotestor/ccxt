@@ -3001,9 +3001,9 @@ if _try_result.is_err() {
         let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
         let mut makerAmount: Value = Value::Null;
         let mut takerAmount: Value = Value::Null;
-        let mut isMarket: bool = type_var.as_str() == Some("market");
+        let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: Value = Value::Bool(false);
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket.clone()), Value::Bool(false), &[paramsValue.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsValue.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut timeInForce: Option<String> = self.safe_string_k(paramsValue.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         paramsValue = self.omit(paramsValue.clone(), Value::Str("timeInForce".into()), &[]);
         if (timeInForce.is_none()) {
@@ -3045,7 +3045,7 @@ if _try_result.is_err() {
         let mut signature: Value = self.sign_order_request(Value::Map(signRequest.clone()), marketSymbol.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         signRequest.insert("signature".into(), signature);
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-        if !(isMarket) && (price != Value::Null) {
+        if !isMarket && (price != Value::Null) {
             signRequest.insert("price".into(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         let mut slug: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);

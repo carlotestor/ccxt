@@ -2353,8 +2353,8 @@ impl Binance {
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_deref().unwrap_or_default()));
-        let mut typeUpper: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut typeUpper: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut wallet: Value = self.fetch_wallet(Value::Str("createOrder".into()), &[params.clone()]).await;
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
@@ -2363,27 +2363,27 @@ impl Binance {
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
-                m.insert("orderType".to_string(), typeUpper.clone());
+                m.insert("orderType".to_string(), Value::from(typeUpper.clone()));
                 m.insert("slippageBps".to_string(), slippageBps);
             m
         });
         let mut amountStr: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
         let mut defaultTif: String = "FOK".to_string();
-        if (typeUpper.as_str() == Some("LIMIT")) {
+        if (typeUpper == "LIMIT") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".into()))));
             }
             commonRequest.insert("priceLimit".into(), self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
             defaultTif = "GTC".to_string();
         }
-        if (sideUpper.as_str() == Some("BUY")) {
+        if (sideUpper == "BUY") {
             if (cost.is_some()) {
                 amountStr = cost;
             }  else {
                 // the amountIn represents USDT for buy order
                 let mut feeRateBps: String = self.safe_string_k(params.clone(), "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string();
-                if (typeUpper.as_str() == Some("LIMIT")) {
+                if (typeUpper == "LIMIT") {
                     feeRateBps = "0".to_string();
                 }  else {
                     if (price == Value::Null) {
@@ -2406,7 +2406,7 @@ impl Binance {
         let mut quoteRequest: Value = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tokenId".to_string(), crate::value::KeyRead::key_read(&&outcomeObj, "id"));
-                m.insert("side".to_string(), sideUpper);
+                m.insert("side".to_string(), Value::from(sideUpper));
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
             m
         })]);

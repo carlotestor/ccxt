@@ -17237,11 +17237,11 @@ impl Binance {
         //
         // { "code": 200, "msg": "success" }
         //
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() == Some("CROSS")) {
-            marginModeValue = Value::Str("CROSSED".into());
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (marginModeValue == "CROSS") {
+            marginModeValue = "CROSSED".to_string();
         }
-        if (marginModeValue.as_str() != Some("ISOLATED")) && (marginModeValue.as_str() != Some("CROSSED")) {
+        if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -17251,7 +17251,7 @@ impl Binance {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let mut response: Value = Value::Null;

@@ -3008,8 +3008,8 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code.clone());
         let mut account: Value = self.fetch_extended_account(&[]).await;
-        let mut currentAccountId: Value = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]);
-        if (fromAccount != Value::Null) && (fromAccount.as_str() != currentAccountId.as_str()) {
+        let mut currentAccountId: String = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (fromAccount != Value::Null) && (fromAccount.as_str().unwrap_or_default().to_string() != currentAccountId) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only transfer from the authenticated account".into()))));
         }
         let mut toVault: Option<String> = self.safe_string2(params.clone(), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), &[]).as_str().map(str::to_owned);
@@ -3021,7 +3021,7 @@ impl Extended {
         let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone(), currency.clone(), account, toVault.map(Value::from).unwrap_or(Value::Null), toL2Key.map(Value::from).unwrap_or(Value::Null), &[params.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fromAccount".to_string(), currentAccountId.clone());
+                m.insert("fromAccount".to_string(), Value::from(currentAccountId.clone()));
                 m.insert("toAccount".to_string(), toAccount.clone());
                 m.insert("amount".to_string(), amountString.clone());
                 m.insert("transferredAsset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3059,7 +3059,7 @@ impl Extended {
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
         m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
-        m.insert("fromAccount".to_string(), currentAccountId);
+        m.insert("fromAccount".to_string(), Value::from(currentAccountId));
         m.insert("toAccount".to_string(), toAccount);
         m.insert("status".to_string(), Value::from(status));
     m

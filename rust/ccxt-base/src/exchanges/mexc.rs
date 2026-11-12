@@ -8115,8 +8115,8 @@ impl Mexc {
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports contract markets only".into()))));
         }
-        let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeLower.as_str() != Some("isolated")) && (marginModeLower.as_str() != Some("cross")) {
+        let mut marginModeLower: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeLower != "isolated") && (marginModeLower != "cross") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
         let mut leverage: Option<i64> = self.safe_integer_k(params.clone(), "leverage", &[]).as_i64();
@@ -8127,7 +8127,7 @@ impl Mexc {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), Value::from(leverage));
-                m.insert("openType".to_string(), (if (marginModeLower.as_str() == Some("isolated")) { Value::Int(1) } else { Value::Int(2) }));
+                m.insert("openType".to_string(), (if (marginModeLower == "isolated") { Value::Int(1) } else { Value::Int(2) }));
             m
         });
         if (symbol != Value::Null) {

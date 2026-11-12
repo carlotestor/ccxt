@@ -2557,8 +2557,8 @@ impl Whitebit {
                     let mut __for_first_1157: bool = true;
                     while { if !__for_first_1157 { i += 1; } __for_first_1157 = false; i < (orders.len() as i64) } {
                     let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut orderId: Value = self.safe_string_k(order.clone(), "orderId", &[Value::Str("".into())]);
-                    if (orderId.as_str() == id.as_str()) {
+                    let mut orderId: String = self.safe_string_k(order.clone(), "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    if (orderId == id.as_str().unwrap_or_default().to_string()) {
                         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
                         let mut marketNew: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into())]);
                         return self.parse_order(order.clone(), &[marketNew.clone()]);
@@ -2591,8 +2591,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut __for_first_1158: bool = true;
                         while { if !__for_first_1158 { j += 1; } __for_first_1158 = false; j < (marketOrders.len() as i64) } {
                         let mut order: Value = marketOrders.get(j as usize).cloned().unwrap_or(Value::Null);
-                        let mut orderId: Value = self.safe_string_k(order.clone(), "id", &[Value::Str("".into())]);
-                        if (orderId.as_str() == id.as_str()) {
+                        let mut orderId: String = self.safe_string_k(order.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        if (orderId == id.as_str().unwrap_or_default().to_string()) {
                             return self.parse_order(order, &[marketNew.clone()]);
                         }
                     }

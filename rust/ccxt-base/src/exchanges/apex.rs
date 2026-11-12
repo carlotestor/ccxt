@@ -1964,7 +1964,7 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount);
@@ -1985,22 +1985,22 @@ impl Apex {
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
-            orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) });
+            orderType = (if (orderType == "MARKET") { "STOP_MARKET".to_string() } else { "STOP_LIMIT".to_string() });
             triggerPrice = stopLossPrice;
         }  else if (takeProfitPrice.is_some()) {
-            orderType = (if (orderType.as_str() == Some("MARKET")) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) });
+            orderType = (if (orderType == "MARKET") { "TAKE_PROFIT_MARKET".to_string() } else { "TAKE_PROFIT_LIMIT".to_string() });
             triggerPrice = takeProfitPrice;
         }
-        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
+        let mut isMarket: bool = orderType == "MARKET";
         if isMarket && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
-        if !(isMarket) {
+        if !isMarket {
             if postOnly {
                 timeInForce = Some("POST_ONLY".to_string());
             }  else if (timeInForce.as_deref() == Some("ioc")) {
@@ -2035,7 +2035,7 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), Value::from(orderSide));
-                m.insert("type".to_string(), orderType);
+                m.insert("type".to_string(), Value::from(orderType));
                 m.insert("size".to_string(), orderSize);
                 m.insert("price".to_string(), finalOrderPrice);
                 m.insert("limitFee".to_string(), limitFee);

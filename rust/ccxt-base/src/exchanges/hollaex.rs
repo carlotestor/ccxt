@@ -1956,9 +1956,9 @@ impl Hollaex {
     m
 })]).into_dict();
         let mut exchangeSpecificParam: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(exchangeSpecificParam), &[params.clone()]).as_bool() == Some(true);
-        if !(isMarketOrder) {
+        let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]).as_bool() == Some(true);
+        if !isMarketOrder {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         if (triggerPrice.is_some()) {

@@ -1515,9 +1515,9 @@ impl Btse {
                 let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
                 let mut twoWeeksAgo: i64 = (now - 1209600000); // 14 days in ms
                 let mut oneWeekAgo: i64 = (now - 604800000); // 7 days in ms
-                if since.as_f64().unwrap_or(f64::NAN) < (twoWeeksAgo as f64) {
+                if (since.as_i64().is_some() && since.as_i64() < Some(twoWeeksAgo)) {
                     period = Some("1M".to_string());
-                }  else if since.as_f64().unwrap_or(f64::NAN) < (oneWeekAgo as f64) {
+                }  else if (since.as_i64().is_some() && since.as_i64() < Some(oneWeekAgo)) {
                     period = Some("2W".to_string());
                 }
             }
@@ -4759,13 +4759,13 @@ impl Btse {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut positionMode: String = "ONE_WAY".to_string();
-        if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
+        if (marginModeValue != "cross") && (marginModeValue != "isolated") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be either cross or isolated".into()))));
         }
         let mut hedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        if (marginModeValue.as_str() == Some("cross")) {
+        if (marginModeValue == "cross") {
             if !(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a hedged parameter for cross margin mode".into()))));
             }  else if hedged {

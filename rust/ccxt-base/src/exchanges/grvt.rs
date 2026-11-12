@@ -3176,7 +3176,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", self.request_id()).into())));
         }
         let mut paramsOmitted3: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
-        let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
+        let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut subAccountId: Value = self.get_sub_account_id(paramsOmitted3.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut isReduceOnly: bool = self.safe_bool_k(paramsOmitted3.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut orderRequest: indexmap::IndexMap<String, Value> = ({
@@ -3190,13 +3190,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("client_order_id".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-                m.insert("is_market".to_string(), isMarketOrder.clone());
+                m.insert("is_market".to_string(), Value::Bool(isMarketOrder));
                 m.insert("post_only".to_string(), Value::Bool(false));
                 m.insert("reduce_only".to_string(), Value::Bool(isReduceOnly));
             m
         });
         let mut timeInForce: Value = self.safe_string_upper_k(paramsOmitted3.clone(), "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]);
-        let mut postOnly: bool = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOmitted3.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]).as_bool() == Some(true);
         if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }
@@ -3213,7 +3213,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             timeInForce = self.safe_string(&tifMap, timeInForce.clone(), &[timeInForce.clone()]);
         }
         orderRequest.insert("time_in_force".into(), timeInForce.clone());
-        if !(matches!(&isMarketOrder, Value::Bool(true))) {
+        if !isMarketOrder {
             if postOnly {
                 timeInForce = Value::Str("POST_ONLY".into());
             }  else if (timeInForce.as_str() == Some("ioc")) {

@@ -1496,8 +1496,8 @@ impl Foxbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut typeValue: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (typeValue.as_str() != Some("LIMIT")) && (typeValue.as_str() != Some("MARKET")) && (typeValue.as_str() != Some("STOP_MARKET")) && (typeValue.as_str() != Some("STOP_LIMIT")) && (typeValue.as_str() != Some("INSTANT")) {
+        let mut typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "STOP_LIMIT") && (typeValue != "INSTANT") {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must be one of: limit, market, stop_market, stop_limit, instant.".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -1508,10 +1508,10 @@ impl Foxbit {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("type".to_string(), typeValue.clone());
+                m.insert("type".to_string(), Value::from(typeValue.clone()));
             m
         });
-        if (typeValue.as_str() == Some("STOP_MARKET")) || (typeValue.as_str() == Some("STOP_LIMIT")) {
+        if (typeValue == "STOP_MARKET") || (typeValue == "STOP_LIMIT") {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must have triggerPrice.".into()))));
             }
@@ -1529,12 +1529,12 @@ impl Foxbit {
         if (triggerPrice.is_some()) {
             request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
         }
-        if (typeValue.as_str() == Some("INSTANT")) {
+        if (typeValue == "INSTANT") {
             request.insert("amount".into(), self.price_to_precision(symbol.clone(), amount.clone()));
         }  else {
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         }
-        if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("STOP_LIMIT")) {
+        if (typeValue == "LIMIT") || (typeValue == "STOP_LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -2255,8 +2255,8 @@ impl Foxbit {
     m
 }));
         self.check_required_argument(Value::Str("editOrder".into()), symbol.clone(), Value::Str("symbol".into()), &[]);
-        let mut typeValue: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (typeValue.as_str() != Some("LIMIT")) && (typeValue.as_str() != Some("MARKET")) && (typeValue.as_str() != Some("STOP_MARKET")) && (typeValue.as_str() != Some("INSTANT")) {
+        let mut typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2266,22 +2266,22 @@ impl Foxbit {
         self.check_required_argument(Value::Str("editOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut createRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), typeValue.clone());
+                m.insert("type".to_string(), Value::from(typeValue.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("market_symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        if (typeValue.as_str() == Some("LIMIT")) || (typeValue.as_str() == Some("MARKET")) {
+        if (typeValue == "LIMIT") || (typeValue == "MARKET") {
             createRequest.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
-            if (typeValue.as_str() == Some("LIMIT")) {
+            if (typeValue == "LIMIT") {
                 createRequest.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
-        if (typeValue.as_str() == Some("STOP_MARKET")) {
+        if (typeValue == "STOP_MARKET") {
             createRequest.insert("stop_price".into(), self.price_to_precision(symbol.clone(), price));
             createRequest.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        if (typeValue.as_str() == Some("INSTANT")) {
+        if (typeValue == "INSTANT") {
             createRequest.insert("amount".into(), self.price_to_precision(symbol, amount));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

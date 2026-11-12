@@ -2739,21 +2739,21 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("type".to_string(), uppercaseType.clone());
+                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
             m
         });
-        if (uppercaseType.as_str() == Some("LIMIT")) {
+        if (uppercaseType == "LIMIT") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".into()))));
             }
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if (market).swap {
-            let mut isMarket: bool = uppercaseType.as_str() == Some("MARKET");
+            let mut isMarket: bool = uppercaseType == "MARKET";
             let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]).as_bool() == Some(true);
             if postOnly {
@@ -2814,7 +2814,7 @@ impl Bitrue {
             request.insert("symbol".into(), Value::from((market).id.clone()));
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
             let mut validOrderTypes: Value = self.safe_list((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
-            if !(self.in_array(uppercaseType, validOrderTypes).as_bool() == Some(true)) {
+            if !(self.in_array(Value::from(uppercaseType), validOrderTypes).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type in market ".into())).into()), symbol)));
             }
             let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);

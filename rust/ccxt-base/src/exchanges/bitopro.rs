@@ -1586,11 +1586,11 @@ impl Bitopro {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (orderType.as_str() == Some("LIMIT")) {
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (orderType == "LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if (orderType.as_str() == Some("STOP_LIMIT")) {
+        if (orderType == "STOP_LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
             let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             if (triggerPrice.is_none()) {
@@ -1605,8 +1605,8 @@ impl Bitopro {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = (if (orderType.as_str() == Some("STOP_LIMIT")) { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
-        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
+        let mut paramsOmitted: Value = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
