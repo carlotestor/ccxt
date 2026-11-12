@@ -2854,14 +2854,14 @@ impl Exchange {
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
-    pub fn int_to_base16(&self, n: Value, _optional_args: &[Value]) -> Value {
+    pub fn int_to_base16(&self, n: Value, _optional_args: &[Value]) -> String {
         let v = match n {
             Value::Int(n) => n as u64,
             Value::Float(f) => f as u64,
             Value::Str(s) => s.parse::<u64>().unwrap_or(0),
             _ => 0,
         };
-        Value::Str(format!("{:x}", v).into())
+        format!("{:x}", v)
     }
 
     /// `packb(action)` — MessagePack pack stub. Hyperliquid signs the
