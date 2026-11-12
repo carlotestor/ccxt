@@ -1611,27 +1611,31 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         &mut self,
         url: impl Into<Option<&'a str>>,
         message_hash: impl Into<Option<&'a str>>,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let (url_s, hash_s): (String, String) = (url.into().unwrap_or("null").to_string(), message_hash.into().unwrap_or("null").to_string()); async move {
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(Value::from(hash_s.as_str()));
-        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
-    } }
+        message: impl Into<Value>,
+        subscribe_hash: impl Into<Option<&'a str>>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let hash_s = message_hash.into().unwrap_or("null").to_string();
+        let (url_s, message, subscription) = (url.into().unwrap_or("null").to_string(), message.into(), subscription.into());
+        let sub_hash_s = match subscribe_hash.into() { Some(s) => s.to_string(), None => hash_s.to_string() };
+        async move { self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await }
+    }
 
     fn watch_multiple<'a>(
         &mut self,
         url: impl Into<Option<&'a str>>,
         message_hashes: impl Into<Value>,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let (url_s, message_hashes): (String, Value) = (url.into().unwrap_or("null").to_string(), message_hashes.into()); async move {
-        let hashes = ws_string_list(&message_hashes);
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, hashes, message, subscribe_hashes, subscription).await
-    } }
+        message: impl Into<Value>,
+        subscribe_hashes: impl Into<Value>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let (url_s, message_hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.into(), message.into());
+        let (subscribe_hashes, subscription) = (subscribe_hashes.into(), subscription.into());
+        async move {
+            let hashes = ws_string_list(&message_hashes);
+            self.ws_run(url_s, hashes, message, ws_string_list(&subscribe_hashes), subscription).await
+        }
+    }
 
     fn fetch_typed(
         &mut self,
