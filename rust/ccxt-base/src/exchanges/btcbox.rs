@@ -736,7 +736,7 @@ impl Btcbox {
         });
         let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
         if numSymbols > ((1i64) as f64) {
-            request.insert("coin".into(), Value::from((market).base_id.clone()));
+            request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_depth(&[__ws_arg_0]).await;
@@ -808,7 +808,7 @@ impl Btcbox {
         });
         let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
         if numSymbols > ((1i64) as f64) {
-            request.insert("coin".into(), Value::from((market).base_id.clone()));
+            request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_1]).await;
@@ -921,7 +921,7 @@ impl Btcbox {
         });
         let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
         if numSymbols > ((1i64) as f64) {
-            request.insert("coin".into(), Value::from((market).base_id.clone()));
+            request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_orders(&[__ws_arg_2]).await;
@@ -967,7 +967,7 @@ impl Btcbox {
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
                 m.insert("type".to_string(), side);
-                m.insert("coin".to_string(), Value::from((market).base_id.clone()));
+                m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -1008,7 +1008,7 @@ impl Btcbox {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
-                m.insert("coin".to_string(), Value::from((market).base_id.clone()));
+                m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1130,7 +1130,7 @@ impl Btcbox {
         let mut request: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
-                m.insert("coin".to_string(), Value::from((market).base_id.clone()));
+                m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
         }), &[params.clone()]).into_dict();
         let __ws_arg_5 = self.extend(request, &[params]);
@@ -1158,7 +1158,7 @@ impl Btcbox {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("coin".to_string(), Value::from((market).base_id.clone()));
+                m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);

@@ -987,7 +987,7 @@ impl Gate {
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
         // max 100 atm, max 50 for options
         let mut defaultLimit: i64 = 100;
-        if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) || (messageType.as_deref() == Some("options")) {
+        if (market).spot || (messageType.as_deref() == Some("options")) {
             defaultLimit = 50;
         }
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
@@ -1065,7 +1065,7 @@ impl Gate {
         let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
         if (limit == Value::Null) {
-            limit = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
+            limit = (if (market).spot { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
             if (messageType.as_deref() == Some("options")) {
                 limit = Value::Int(50); // max 50 for options
             }
@@ -1837,7 +1837,7 @@ impl Gate {
         // todo add options support
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut marketId: Value = Value::from((market).id.as_deref());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageType: Value = self.get_type_by_market((market).raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".candlesticks".into()));
@@ -1883,7 +1883,7 @@ impl Gate {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut marketId: Value = Value::from((market).id.as_deref());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageType: Value = self.get_type_by_market((market).raw.clone());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".candlesticks".into()));
@@ -2700,8 +2700,8 @@ impl Gate {
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (Value::from((market).id.clone()) != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&(Value::from((market).id.clone()))), Value::Bool(true));
+            if (Value::from((market).id.as_deref()) != Value::Null) {
+                marketIds.insert(crate::runtime::stringify_param(&(Value::from((market).id.as_deref()))), Value::Bool(true));
             }
         }
         }

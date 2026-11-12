@@ -3697,7 +3697,7 @@ impl Htx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from((market).id.clone()));
+                m.insert("symbols".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -4479,21 +4479,21 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.contract_public_get_linear_swap_ex_market_detail_merged(&[__ws_arg_6]).await.into_opt_dict();
         }  else if ((market).inverse == Some(true)) {
             if (market).future {
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_market_detail_merged(&[__ws_arg_7]).await.into_opt_dict();
             }  else if (market).swap {
-                request.insert("contract_code".into(), Value::from((market).id.clone()));
+                request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_swap_ex_market_detail_merged(&[__ws_arg_8]).await.into_opt_dict();
             }
         }  else {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
             response = self.spot_public_get_market_detail_merged(&[__ws_arg_9]).await.into_opt_dict();
         }
@@ -4799,16 +4799,16 @@ impl Htx {
         });
         let mut response: Value = Value::Null;
         if ((market).linear == Some(true)) {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.contract_public_get_linear_swap_ex_market_depth(&[__ws_arg_14]).await;
         }  else if ((market).inverse == Some(true)) {
             if (market).future {
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_market_depth(&[__ws_arg_15]).await;
             }  else if (market).swap {
-                request.insert("contract_code".into(), Value::from((market).id.clone()));
+                request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_swap_ex_market_depth(&[__ws_arg_16]).await;
             }
@@ -4825,7 +4825,7 @@ impl Htx {
                     request.insert("depth".into(), limit);
                 }
             }
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
             response = self.spot_public_get_market_depth(&[__ws_arg_17]).await;
         }
@@ -5378,16 +5378,16 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (market).future {
             if ((market).inverse == Some(true)) {
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_market_history_trade(&[__ws_arg_23]).await.into_opt_dict();
             }  else if ((market).linear == Some(true)) {
-                request.insert("contract_code".into(), Value::from((market).id.clone()));
+                request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_linear_swap_ex_market_history_trade(&[__ws_arg_24]).await.into_opt_dict();
             }
         }  else if (market).swap {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             if ((market).inverse == Some(true)) {
                 let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.contract_public_get_swap_ex_market_history_trade(&[__ws_arg_25]).await.into_opt_dict();
@@ -5396,7 +5396,7 @@ impl Htx {
                 response = self.contract_public_get_linear_swap_ex_market_history_trade(&[__ws_arg_26]).await.into_opt_dict();
             }
         }  else {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
             response = self.spot_public_get_market_history_trade(&[__ws_arg_27]).await.into_opt_dict();
         }
@@ -5540,7 +5540,7 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (market).future {
             if ((market).inverse == Some(true)) {
-                request.insert("symbol".into(), Value::from((market).id.clone()));
+                request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_mark_price_kline(&[__ws_arg_28]).await.into_opt_dict();
@@ -5555,7 +5555,7 @@ impl Htx {
                     response = self.contract_public_get_market_history_kline(&[__ws_arg_30]).await.into_opt_dict();
                 }
             }  else if ((market).linear == Some(true)) {
-                request.insert("contract_code".into(), Value::from((market).id.clone()));
+                request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[__ws_arg_31]).await.into_opt_dict();
@@ -5571,7 +5571,7 @@ impl Htx {
                 }
             }
         }  else if (market).swap {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             if ((market).inverse == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
@@ -5602,7 +5602,7 @@ impl Htx {
                 }
             }
         }  else {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let useHistoricalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUntil, Value::Str("fetchOHLCV".into()), Value::Str("useHistoricalEndpointForSpot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut useHistorical: bool = useHistoricalparamsHistoricalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsHistorical: crate::value::Dict = useHistoricalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6736,7 +6736,7 @@ impl Htx {
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_mode".into(), marginMode); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), Value::from((market).id.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), Value::from((market).id.as_deref())); }
             if isAlgo {
                 if (trigger == Some(true)) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trigger".into())); }
@@ -6756,7 +6756,7 @@ impl Htx {
                 response = self.contract_private_get_v5_trade_order_history(&[__ws_arg_57]).await.into_opt_dict();
             }
         }  else if ((market).inverse == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::from((market).id.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::from((market).id.as_deref())); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Int(1)); }; // 1:All Orders,2:Order in Finished Status
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trade_type".into(), Value::Int(0)); }; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("0".into())); }; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
@@ -7914,7 +7914,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account-id".to_string(), accountId);
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut orderType: Value = (if let Some(__s) = typeStr.as_deref() { Some(__s.replace("buy-", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
@@ -8065,7 +8065,7 @@ impl Htx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), Value::from((market).id.clone()));
+                m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
                 m.insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
@@ -10329,7 +10329,7 @@ impl Htx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), Value::from((market).id.clone()));
+                m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if ((market).linear == Some(true)) {
@@ -10510,7 +10510,7 @@ impl Htx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), Value::from((market).id.clone()));
+                m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut response: Option<crate::value::Dict> = None;
@@ -11083,14 +11083,14 @@ impl Htx {
                 let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
                 let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                 std::sync::Arc::make_mut(&mut request).insert("margin_mode".into(), marginMode);
-                std::sync::Arc::make_mut(&mut request).insert("contract_code".into(), Value::from((market).id.clone()));
+                std::sync::Arc::make_mut(&mut request).insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (limit != Value::Null) {
                     std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
                 }
                 let __ws_arg_130 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.contract_private_get_v5_account_bills(&[__ws_arg_130]).await.into_opt_dict();
             }  else {
-                std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::from((market).id.clone()));
+                std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::from((market).id.as_deref()));
                 //
                 //     {
                 //         "code": 200,
@@ -11115,7 +11115,7 @@ impl Htx {
                 response = self.contract_private_post_swap_api_v3_swap_financial_record_exact(&[__ws_arg_131]).await.into_opt_dict();
             }
         }  else {
-            std::sync::Arc::make_mut(&mut request).insert("symbol".into(), Value::from((market).id.clone()));
+            std::sync::Arc::make_mut(&mut request).insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_132 = self.extend(request, &[&paramsUntil]);
             response = self.contract_private_post_api_v3_contract_financial_record_exact(&[__ws_arg_132]).await.into_opt_dict();
         }
@@ -11165,10 +11165,10 @@ impl Htx {
                 m.insert("lever_rate".to_string(), leverage);
             m
         });
-        if (marketType.as_deref() == Some("future")) && matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
+        if (marketType.as_deref() == Some("future")) && ((market).inverse == Some(true)) {
             request.insert("symbol".into(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
         }  else {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
         }
         let mut response: Value = Value::Null;
         if ((market).linear == Some(true)) {
@@ -11511,13 +11511,13 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if matches!((self.safe_bool_k((market).raw.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
+        if (market).future && ((market).inverse == Some(true)) {
             request.insert("symbol".into(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
         }  else {
             if !((market).linear == Some(true)) && ((marginModeOption.is_none()) || (marginModeOption.as_deref() == Some("cross"))) {
                 request.insert("margin_account".into(), Value::Str("USDT".into())); // only allowed value
             }
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
@@ -11551,7 +11551,7 @@ impl Htx {
         let mut omitted: crate::value::Dict = self.omit(account.clone(), Value::from(vec![Value::Str("positions".into())]), &[]).into_dict();
         let mut positions: crate::value::List = self.safe_list_k(account, "positions", &[Value::from(vec![])]).into_list();
         let mut position: Value = Value::Null;
-        if matches!((self.safe_bool_k((market).raw.clone(), "future", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
+        if (market).future && ((market).inverse == Some(true)) {
             let mut marketId: Option<String> = self.safe_string_k_opt((market).raw.clone(), "id", &[]);
             {
                                 let mut i: i64 = 0;
@@ -11897,19 +11897,19 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (market).future {
             request.insert("contract_type".into(), self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("contract_type".into()), &[]));
-            request.insert("symbol".into(), Value::from((market).base_id.clone())); // currency code on coin-m futures
+            request.insert("symbol".into(), Value::from((market).base_id.as_deref())); // currency code on coin-m futures
             // coin-m futures
             let __ws_arg_142 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.contract_public_get_api_v1_contract_his_open_interest(&[__ws_arg_142]).await.into_opt_dict();
         }  else if ((market).linear == Some(true)) {
             request.insert("contract_type".into(), Value::Str("swap".into()));
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             // USDT-M
             let __ws_arg_143 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.contract_public_get_linear_swap_api_v1_swap_his_open_interest(&[__ws_arg_143]).await.into_opt_dict();
         }  else {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             // coin-m swaps
             let __ws_arg_144 = self.extend(Value::Map(request), &[params]);
             response = self.contract_public_get_swap_api_v1_swap_his_open_interest(&[__ws_arg_144]).await.into_opt_dict();
@@ -12074,13 +12074,13 @@ impl Htx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), Value::from((market).id.clone()));
+                m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).future {
             request.insert("contract_type".into(), self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("contract_type".into()), &[]));
-            request.insert("symbol".into(), Value::from((market).base_id.clone()));
+            request.insert("symbol".into(), Value::from((market).base_id.as_deref()));
             // COIN-M futures
             let __ws_arg_147 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.contract_public_get_api_v1_contract_open_interest(&[__ws_arg_147]).await.into_opt_dict();
@@ -12276,7 +12276,7 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_152 = self.extend(Value::Map(request), &[params]);
@@ -12545,12 +12545,12 @@ impl Htx {
             m
         });
         if (market).future {
-            request.insert("symbol".into(), Value::from((market).base_id.clone()));
+            request.insert("symbol".into(), Value::from((market).base_id.as_deref()));
         }  else {
-            request.insert("contract_code".into(), Value::from((market).id.clone()));
+            request.insert("contract_code".into(), Value::from((market).id.as_deref()));
         }
         if (limit != Value::Null) {
-            if matches!((self.safe_bool_k((market).raw.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k((market).raw.clone(), "swap", &[Value::Bool(false)])), Value::Bool(true)) {
+            if ((market).linear == Some(true)) && (market).swap {
                 request.insert("limit".into(), limit.clone());
             }  else {
                 request.insert("page_size".into(), limit);
@@ -12993,19 +12993,19 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if ((market).linear == Some(true)) {
-                std::sync::Arc::make_mut(&mut requestUntil).insert("contract_code".into(), Value::from((market).id.clone()));
+                std::sync::Arc::make_mut(&mut requestUntil).insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (limit != Value::Null) {
                     std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
                 }
                 let __ws_arg_159 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_v5_market_liquidation_orders(&[__ws_arg_159]).await.into_opt_dict();
             }  else {
-                std::sync::Arc::make_mut(&mut requestUntil).insert("contract".into(), Value::from((market).id.clone()));
+                std::sync::Arc::make_mut(&mut requestUntil).insert("contract".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_160 = self.extend(&requestUntil, &[&paramsUntil]);
                 response = self.contract_public_get_swap_api_v3_swap_liquidation_orders(&[__ws_arg_160]).await.into_opt_dict();
             }
         }  else if (market).future {
-            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.clone()));
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_161 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_public_get_api_v3_contract_liquidation_orders(&[__ws_arg_161]).await.into_opt_dict();
         }  else {
@@ -13133,7 +13133,7 @@ impl Htx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), Value::from((market).id.clone()));
+                m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });

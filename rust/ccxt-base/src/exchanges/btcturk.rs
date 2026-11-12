@@ -776,7 +776,7 @@ impl Btcturk {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairSymbol".to_string(), Value::from((market).id.clone()));
+                m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1031,7 +1031,7 @@ impl Btcturk {
         // let maxCount = 50;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairSymbol".to_string(), Value::from((market).id.clone()));
+                m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1106,7 +1106,7 @@ impl Btcturk {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -1269,7 +1269,7 @@ impl Btcturk {
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderType".to_string(), side);
                 m.insert("orderMethod".to_string(), type_var.clone());
-                m.insert("pairSymbol".to_string(), Value::from((market).id.clone()));
+                m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
@@ -1409,7 +1409,7 @@ impl Btcturk {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairSymbol".to_string(), Value::from((market).id.clone()));
+                m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {

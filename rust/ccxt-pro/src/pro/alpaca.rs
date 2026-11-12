@@ -365,7 +365,7 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("quotes".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("quotes".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -476,7 +476,7 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("bars".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("bars".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
@@ -555,7 +555,7 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("orderbooks".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("orderbooks".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -654,7 +654,7 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("trades".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("trades".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);

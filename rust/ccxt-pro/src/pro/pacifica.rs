@@ -951,7 +951,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
@@ -1017,7 +1017,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
@@ -1554,7 +1554,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
     m
 }));
             m
@@ -1620,7 +1620,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
     m
 }));
             m
@@ -1827,7 +1827,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("interval".to_string(), parsedTf.clone());
     m
 }));
@@ -1895,7 +1895,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("interval".to_string(), timeframe.clone());
     m
 }));

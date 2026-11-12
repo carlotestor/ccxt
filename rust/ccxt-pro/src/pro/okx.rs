@@ -546,8 +546,8 @@ impl Okx {
         let mut messageHashResolved: String = messageHash.as_str().unwrap_or_default().to_string();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]));
-            firstArgument.insert("instId".into(), Value::from((market).id.clone()));
+            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), Value::from((market).id.as_deref().unwrap_or("")));
+            firstArgument.insert("instId".into(), Value::from((market).id.as_deref()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3202,7 +3202,7 @@ impl Okx {
                 stored.append(order.clone());
                 let mut symbol: String = self.safe_string_k(order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(Value::from((market).id.clone()));
+                marketIds.push(Value::from((market).id.as_deref()));
             }
             }
             client.resolve(stored.clone(), channel.as_deref());
@@ -3678,7 +3678,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("instType".to_string(), Value::Str("OPTION".into()));
-        m.insert("instFamily".to_string(), Value::from((market).id.clone()));
+        m.insert("instFamily".to_string(), Value::from((market).id.as_deref()));
     m
 }), &[params])]));
             m

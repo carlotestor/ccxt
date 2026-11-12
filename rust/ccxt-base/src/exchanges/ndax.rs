@@ -1418,7 +1418,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("Depth".to_string(), limitValue);
             m
         });
@@ -1593,7 +1593,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1644,7 +1644,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("Interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -1898,7 +1898,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -2366,7 +2366,7 @@ impl Ndax {
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.clone())));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.as_deref())));
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
@@ -2437,7 +2437,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), self.parse_to_int(id.clone()));
-                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.clone())));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.as_deref())));
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
@@ -2555,7 +2555,7 @@ impl Ndax {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("IntrumentId".into(), Value::from((market).id.clone()));
+            request.insert("IntrumentId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;

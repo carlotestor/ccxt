@@ -1365,8 +1365,8 @@ impl Bithumb {
                 m
             });
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             if (limit != Value::Null) {
                 request.insert("count".into(), limit); // default 30, max 30
             }
@@ -1859,8 +1859,8 @@ impl Bithumb {
     m
 })]);
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_ticker_base_id_quote_id(&[__ws_arg_8]).await;
             //
@@ -2036,8 +2036,8 @@ impl Bithumb {
                 m
             });
             request.insert("interval".into(), self.safe_string(&legacyTimeframes, timeframe.clone(), &[timeframe.clone()]));
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_candlestick_base_id_quote_id_interval(&[__ws_arg_13]).await;
             //
@@ -2272,8 +2272,8 @@ impl Bithumb {
             //
             data = response.clone();
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_transaction_history_base_id_quote_id(&[__ws_arg_15]).await;
             //

@@ -825,7 +825,7 @@ impl Blofin {
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::from(channel.clone()));
-                    m.insert("instId".to_string(), Value::from((market).id.clone()));
+                    m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m
             }));
         }
@@ -1401,7 +1401,7 @@ impl Blofin {
         let mut requestParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("funding-rate".into()));
-                m.insert("instId".to_string(), Value::from((market).id.clone()));
+                m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.get_subscription_request(Value::from(vec![requestParams]));
@@ -1582,7 +1582,7 @@ impl Blofin {
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channel.clone());
-                    m.insert("instId".to_string(), Value::from((market).id.clone()));
+                    m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             topics.push(topic);

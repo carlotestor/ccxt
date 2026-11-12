@@ -502,7 +502,7 @@ impl Bitget {
             symbolOrInstId = "symbol".to_string();
         }
         args.insert(topicOrChannel, Value::Str("ticker".into()));
-        args.insert(symbolOrInstId, Value::from((market).id.clone()));
+        args.insert(symbolOrInstId, Value::from((market).id.as_deref()));
         return self.watch_public(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), Value::Map(args), &[paramsValue]).await;
         Value::Null
         }).await?))
@@ -591,7 +591,7 @@ impl Bitget {
                 symbolOrInstId = "symbol".to_string();
             }
             args.insert(topicOrChannel, Value::Str("ticker".into()));
-            args.insert(symbolOrInstId, Value::from((marketInner).id.clone()));
+            args.insert(symbolOrInstId, Value::from((marketInner).id.as_deref()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
@@ -880,7 +880,7 @@ impl Bitget {
                 symbolOrInstId = "symbol".to_string();
             }
             args.insert(topicOrChannel, Value::Str("ticker".into()));
-            args.insert(symbolOrInstId, Value::from((marketInner).id.clone()));
+            args.insert(symbolOrInstId, Value::from((marketInner).id.as_deref()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
@@ -1010,12 +1010,12 @@ impl Bitget {
         });
         if isStockOrUta {
             args.insert("topic".into(), Value::Str("kline".into()));
-            args.insert("symbol".into(), Value::from((market).id.clone()));
+            args.insert("symbol".into(), Value::from((market).id.as_deref()));
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", Value::Str("kline:".into()), symbolValue));
         }  else {
             args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null)).into()));
-            args.insert("instId".into(), Value::from((market).id.clone()));
+            args.insert("instId".into(), Value::from((market).id.as_deref()));
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue));
         }
         let mut ohlcv: Value = self.watch_public(Value::Bool(isStockOrUta), messageHash.as_deref().unwrap_or_default(), Value::Map(args), &[paramsRequest]).await;
@@ -1087,13 +1087,13 @@ impl Bitget {
         if matches!(&isStockOrUta, Value::Bool(true)) {
             channel = Some("kline".to_string());
             args.insert("topic".into(), channel.clone().map(Value::from).unwrap_or(Value::Null));
-            args.insert("symbol".into(), Value::from((market).id.clone()));
+            args.insert("symbol".into(), Value::from((market).id.as_deref()));
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", Value::Str("kline".into()), symbol));
         }  else {
             channel = Some(format!("{}{}", Value::Str("candle".into()), interval.clone().map(Value::from).unwrap_or(Value::Null)));
             args.insert("channel".into(), channel.clone().map(Value::from).unwrap_or(Value::Null));
-            args.insert("instId".into(), Value::from((market).id.clone()));
+            args.insert("instId".into(), Value::from((market).id.as_deref()));
             messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.map(Value::from).unwrap_or(Value::Null)));
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_deref().unwrap_or_default(), messageHash.as_deref().unwrap_or_default(), "watchOHLCV", &[paramsRequest]).await;
@@ -1384,13 +1384,13 @@ impl Bitget {
         });
         if (uta == Some(true)) {
             args.insert("topic".into(), channel.clone());
-            args.insert("symbol".into(), Value::from((market).id.clone()));
+            args.insert("symbol".into(), Value::from((market).id.as_deref()));
             if (channel.as_str() == Some("kline")) {
                 args.insert("interval".into(), self.safe_string_k(&paramsInstType, "interval", &[Value::Str("1m".into())]));
             }
         }  else {
             args.insert("channel".into(), channel);
-            args.insert("instId".into(), Value::from((market).id.clone()));
+            args.insert("instId".into(), Value::from((market).id.as_deref()));
         }
         if privateChannel {
             return self.un_watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash.clone()), Value::Map(args.clone()), &[paramsRequest.clone()]).await;
@@ -1779,7 +1779,7 @@ impl Bitget {
                 symbolOrInstId = "symbol".to_string();
             }
             args.insert(topicOrChannel, (if (uta == Some(true)) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) }));
-            args.insert(symbolOrInstId, Value::from((market).id.clone()));
+            args.insert(symbolOrInstId, Value::from((market).id.as_deref()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }

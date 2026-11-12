@@ -513,7 +513,7 @@ impl Htx {
         }
         let mut messageHash: String = self.implode_params(Value::from(topic), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("marketId".to_string(), Value::from((market).id.clone()));
+        m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
         let mut url: Value = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[(market).linear.map(Value::Bool).unwrap_or_default()]).map(Value::from).unwrap_or(Value::Null);
@@ -558,7 +558,7 @@ impl Htx {
         }
         let mut subMessageHash: String = self.implode_params(Value::from(channel), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("marketId".to_string(), Value::from((market).id.clone()));
+        m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash.as_str(), topic.as_str(), &[params]).await;
@@ -705,7 +705,7 @@ impl Htx {
         let mut channel: String = self.safe_string_k(&options, "name", &[Value::Str("market.{marketId}.trade.detail".into())]).as_str().unwrap_or("market.{marketId}.trade.detail").to_string();
         let mut subMessageHash: String = self.implode_params(Value::from(channel), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("marketId".to_string(), Value::from((market).id.clone()));
+        m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash.as_str(), topic.as_str(), &[params]).await;

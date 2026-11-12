@@ -669,7 +669,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
     m
 }));
             m
@@ -1190,7 +1190,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
     m
 }));
             m
@@ -1409,7 +1409,7 @@ impl Hitbtc {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscribeParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         if (limit != Value::Null) {

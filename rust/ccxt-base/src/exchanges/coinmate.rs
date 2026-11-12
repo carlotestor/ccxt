@@ -997,7 +997,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("groupByPriceLimit".to_string(), Value::Str("False".into()));
             m
         });
@@ -1039,7 +1039,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1472,7 +1472,7 @@ impl Coinmate {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("currencyPair".into(), Value::from((market).id.clone()));
+            request.insert("currencyPair".into(), Value::from((market).id.as_deref()));
         }
         if (since != Value::Null) {
             request.insert("timestampFrom".into(), since.clone());
@@ -1587,7 +1587,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("minutesIntoHistory".to_string(), Value::Int(10));
             m
         });
@@ -1641,7 +1641,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1748,7 +1748,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         // offset param that appears in other parts of the API doesn't appear to be supported here
@@ -1918,7 +1918,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (type_var.as_str() == Some("market")) {

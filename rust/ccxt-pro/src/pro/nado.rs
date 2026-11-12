@@ -1448,7 +1448,7 @@ impl Nado {
                 if (marketSymbol.is_some()) {
                     messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
                 }
-                productId = self.parse_to_int(Value::from((market).id.clone()));
+                productId = self.parse_to_int(Value::from((market).id.as_deref()));
             }
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
@@ -1510,7 +1510,7 @@ impl Nado {
                 if (marketSymbol.is_some()) {
                     messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
                 }
-                productId = self.parse_to_int(Value::from((market).id.clone()));
+                productId = self.parse_to_int(Value::from((market).id.as_deref()));
             }
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();

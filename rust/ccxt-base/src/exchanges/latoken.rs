@@ -1293,8 +1293,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1457,8 +1457,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("base".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("base".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1626,8 +1626,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1691,8 +1691,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -1723,8 +1723,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1982,8 +1982,8 @@ impl Latoken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quote".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("currency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quote".to_string(), Value::from((market).quote_id.as_deref()));
             m
         });
         if (isTrigger == Some(true)) {
@@ -2154,8 +2154,8 @@ impl Latoken {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("baseCurrency".to_string(), Value::from((market).base_id.clone()));
-                m.insert("quoteCurrency".to_string(), Value::from((market).quote_id.clone()));
+                m.insert("baseCurrency".to_string(), Value::from((market).base_id.as_deref()));
+                m.insert("quoteCurrency".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
