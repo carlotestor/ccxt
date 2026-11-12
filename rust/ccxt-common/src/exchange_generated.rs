@@ -5773,7 +5773,7 @@ pub trait ExchangeBase:
 }
 
     fn resolve_path(&self, mut path: Value, mut params: Value) -> Value {
-        return Value::from(vec![self.implode_params(path.clone(), params.clone()), self.omit(params, self.extract_params(path), &[])]);
+        return Value::from(vec![Value::from(self.implode_params(path.clone(), params.clone())), self.omit(params, self.extract_params(path), &[])]);
 
     Value::Null
 }
@@ -8077,11 +8077,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 } }
 
     fn implode_hostname(&self, mut url: Value) -> Value {
-        return self.implode_params(url, Value::Map({
+        return Value::from(self.implode_params(url, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
-}));
+})));
 
     Value::Null
 }

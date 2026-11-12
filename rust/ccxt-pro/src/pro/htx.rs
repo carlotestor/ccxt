@@ -511,11 +511,11 @@ impl Htx {
         if (topic == "market.{marketId}.ticker") && (Value::from((market).market_type.clone()).as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".into()))));
         }
-        let mut messageHash: Value = self.implode_params(Value::from(topic), Value::Map({
+        let mut messageHash: Value = Value::from(self.implode_params(Value::from(topic), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         let mut url: Value = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[(market).linear.map(Value::Bool).unwrap_or_default()]).map(Value::from).unwrap_or(Value::Null);
         return self.subscribe_public(url, symbolValue, messageHash, &[Value::Null, params]).await;
         Value::Null
@@ -556,11 +556,11 @@ impl Htx {
         if (channel == "market.{marketId}.ticker") && (Value::from((market).market_type.clone()).as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".into()))));
         }
-        let mut subMessageHash: Value = self.implode_params(Value::from(channel), Value::Map({
+        let mut subMessageHash: Value = Value::from(self.implode_params(Value::from(channel), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash, Value::from(topic), &[params]).await;
         Value::Null
         }).await?))
@@ -703,11 +703,11 @@ impl Htx {
             m
         })]).into_dict();
         let mut channel: String = self.safe_string_k(&options, "name", &[Value::Str("market.{marketId}.trade.detail".into())]).as_str().unwrap_or("market.{marketId}.trade.detail").to_string();
-        let mut subMessageHash: Value = self.implode_params(Value::from(channel), Value::Map({
+        let mut subMessageHash: Value = Value::from(self.implode_params(Value::from(channel), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash, Value::from(topic), &[params]).await;
         Value::Null
         }).await?))
@@ -3662,7 +3662,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     hostnameURL = spotUrls.get("public").cloned().unwrap_or(Value::Null);
                 }
             }
-            url = self.implode_params(hostnameURL, Value::Map(hostname));
+            url = Value::from(self.implode_params(hostnameURL, Value::Map(hostname)));
         }  else {
             let mut typeUrls: crate::value::Dict = self.safe_dict(&typeUrlsByApi, type_var, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

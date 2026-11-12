@@ -3175,7 +3175,7 @@ impl Coinsph {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[__ws_arg_23]);
-        let mut endpoint: Value = self.implode_params(path, params);
+        let mut endpoint: String = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);

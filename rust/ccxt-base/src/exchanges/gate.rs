@@ -10018,7 +10018,7 @@ if _try_result.is_err() {
         let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
         let mut type_var: Value = api.get(1).cloned().unwrap_or(Value::Null); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut pathImploded: Value = Value::Str("".into());
+        let mut pathImploded: String = "".to_string();
         let mut bodyJson: Option<String> = None;
         let mut signedHeaders: Value = Value::Null;
         let mut containsSettle: bool = path.as_str().unwrap_or("").contains("settle");
@@ -10051,7 +10051,7 @@ if _try_result.is_err() {
             pathImploded = self.implode_params(path, params);
         }
         let mut endPart: String = "".to_string();
-        if (pathImploded.as_str() != Some("")) {
+        if (pathImploded != "") {
             endPart = format!("{}{}", Value::Str("/".into()), pathImploded);
         }
         let mut entirePath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), type_var).into()), endPart);
@@ -10073,7 +10073,7 @@ if _try_result.is_err() {
             let mut rawQueryString: Option<String> = Some("".to_string());
             let mut requiresURLEncoding: bool = false;
             if ((type_var.as_str() == Some("futures")) || (type_var.as_str() == Some("delivery"))) && (method.as_str() == Some("POST")) {
-                let mut pathParts: Value = Value::Array(if let Some(__s) = pathImploded.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+                let mut pathParts: Value = Value::Array(pathImploded.split("/").map(Value::from).collect());
                 let mut secondPart: Value = self.safe_string(pathParts, Value::Int(1), &[Value::Str("".into())]);
                 requiresURLEncoding = (secondPart.as_str().unwrap_or("").contains("dual")) || (secondPart.as_str().unwrap_or("").contains("positions"));
             }

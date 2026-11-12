@@ -5036,7 +5036,7 @@ impl Woo {
         let mut requestBody: Option<String> = None;
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
+        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));

@@ -1818,11 +1818,11 @@ impl Alpaca {
         let mut uuid: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
         let mut parts: Value = Value::Array(if let Some(__s) = uuid.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut random_id: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default().into());
-        let mut defaultClientId: Value = self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        let mut defaultClientId: Value = Value::from(self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), random_id);
             m
-        }));
+        })));
         let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultClientId });
         return clientOrderId.as_str().map(str::to_owned);
 }

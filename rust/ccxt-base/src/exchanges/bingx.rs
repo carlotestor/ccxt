@@ -9081,7 +9081,7 @@ impl Bingx {
         if isSandbox && (url == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), type_var).into()), Value::Str(" endpoints".into()))));
         }
-        let mut pathValue: Value = self.implode_params(path, params.clone());
+        let mut pathValue: Value = Value::from(self.implode_params(path, params.clone()));
         let mut versionIsTransfer: bool = version.as_str() == Some("transfer");
         let mut versionIsAsset: bool = version.as_str() == Some("asset");
         if versionIsTransfer || versionIsAsset {

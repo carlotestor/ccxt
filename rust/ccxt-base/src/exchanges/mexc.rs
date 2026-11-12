@@ -8163,7 +8163,7 @@ impl Mexc {
         let mut requestBody: Value = Value::Null;
         let mut section: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut pathValue: Value = self.implode_params(path.clone(), params.clone());
+        let mut pathValue: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: String = "".to_string();
         if (section.as_str() == Some("spot")) || (section.as_str() == Some("broker")) {

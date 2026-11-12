@@ -2537,7 +2537,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if byteLength.as_f64().unwrap_or(f64::NAN) < ((56i64) as f64) {
             return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(128)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), hex).into());
         }
-        let mut lengthHex: Option<String> = self.int_to_base16(byteLength, &[]).as_str().map(str::to_owned);
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(183)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
@@ -2560,7 +2560,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(192)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
                 _ => Value::Null }), &[]), concatenated).into());
         }
-        let mut lengthHex: Option<String> = self.int_to_base16(byteLength, &[]).as_str().map(str::to_owned);
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(247)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
@@ -2577,7 +2577,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (value.as_f64() == Some(0.0)) {
             return Value::Str("".into());
         }
-        let mut hex: Value = self.int_to_base16(value, &[]);
+        let mut hex: Value = Value::from(self.int_to_base16(value, &[]));
         hex = self.pad_hex_to_even(hex.clone());
         return hex;
 
