@@ -3310,7 +3310,7 @@ impl Mexc {
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tickers: Value = Value::Null;
         if isSingularMarket {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -4280,7 +4280,7 @@ impl Mexc {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
@@ -4441,7 +4441,7 @@ impl Mexc {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrdersByIds".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4537,7 +4537,7 @@ impl Mexc {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             if (symbol != Value::Null) {
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4707,7 +4707,7 @@ impl Mexc {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4722,7 +4722,7 @@ impl Mexc {
             }
             let mut requestInner: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                    m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
                 m
             });
             let mut clientOrderId: Option<String> = self.safe_string_k(&paramsMarketType, "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -4757,7 +4757,7 @@ impl Mexc {
                 }
                 let mut cancelRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                        m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
                         m.insert("orderId".to_string(), id.clone());
                     m
                 });
@@ -4782,7 +4782,7 @@ impl Mexc {
                 return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("info".to_string(), response.clone());
     m
 }), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
@@ -4893,13 +4893,13 @@ impl Mexc {
                 self.spot_private_delete_order_all(&[Value::from(&paramsMarketType)]).await;
                 return Value::from(vec![]);
             }
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             let mut response: Value = self.spot_private_delete_open_orders(&[__ws_arg_33]).await;
             return self.parse_orders(response.clone(), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         }  else {
             if (symbol != Value::Null) {
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
@@ -5756,7 +5756,7 @@ impl Mexc {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".into()))));
             }
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             request.insert("orderId".into(), id.clone());
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&query]);
             trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await;
@@ -5918,7 +5918,7 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions".into()))));
             }  else {
                 request.insert("openType".into(), Value::from(openType));
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                 request.insert("positionType".into(), Value::from(positionType));
             }
         }  else {
@@ -5964,7 +5964,7 @@ impl Mexc {
         });
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit);

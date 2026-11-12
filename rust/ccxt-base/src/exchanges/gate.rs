@@ -5623,7 +5623,7 @@ if _try_result.is_err() {
             response = self.public_delivery_get_settle_tickers(&[__ws_arg_19]).await;
         }  else if (type_var.as_deref() == Some("option")) {
             self.check_required_argument(Value::Str("fetchTickers".into()), symbolsNormalized.clone().map_or(Value::Null, Value::Arr), Value::Str("symbols".into()), &[]);
-            let mut marketId: Option<String> = self.safe_string_k_opt(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let mut optionParts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("underlying".into(), self.safe_string(optionParts, Value::Int(0), &[])); }
             let __ws_arg_20 = self.extend(request, &[&requestParams]);
@@ -8254,7 +8254,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { symbol });
+        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]) } else { symbol });
         let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::from(&paramsPaginate)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let useHistoricalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useHistorical: bool = useHistoricalparamsHistoricalVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -8356,7 +8356,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { symbol });
+        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]) } else { symbol });
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -9357,7 +9357,7 @@ if _try_result.is_err() {
         let mut query: crate::value::Dict = requestqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() == Some("option")) {
             if (symbolsNormalized.is_some()) {
-                let mut marketId: Option<String> = self.safe_string_k_opt(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]);
+                let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
                 let mut optionParts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("underlying".into(), self.safe_string(optionParts, Value::Int(0), &[])); }
             }
@@ -11420,8 +11420,8 @@ if _try_result.is_err() {
         let mut response: Value = Value::Null;
         let mut isUnified: bool = self.safe_bool_k(params.clone(), "unified", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("unified".into()), &[]).into_dict();
-        if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-            request.insert("currency_pair".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+        if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+            request.insert("currency_pair".into(), self.safe_string_k(&market, "id", &[]));
             if isUnified {
                 let __ws_arg_111 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.public_margin_get_uni_currency_pairs_currency_pair(&[__ws_arg_111]).await;
@@ -11433,7 +11433,7 @@ if _try_result.is_err() {
             let __ws_arg_113 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_unified_get_accounts(&[__ws_arg_113]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() does not support ".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[])).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() does not support ".into())).into()), self.safe_string_k(&market, "type", &[])).into()), Value::Str(" markets".into()))));
         }
         return self.parse_leverage(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null

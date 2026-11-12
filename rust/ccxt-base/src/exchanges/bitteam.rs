@@ -1792,7 +1792,7 @@ impl Bitteam {
         });
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("pairId".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "numericId", &[]));
+            request.insert("pairId".into(), self.safe_string_k(&market, "numericId", &[]));
         }  else {
             request.insert("pairId".into(), Value::Str("0".into())); // '0' for all markets
         }

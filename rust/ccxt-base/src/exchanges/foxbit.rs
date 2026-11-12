@@ -1435,15 +1435,15 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), status);
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market_symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market_symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             request.insert("start_time".into(), self.iso8601(since));

@@ -1809,7 +1809,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1825,8 +1825,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 symbol = symbols.clone();
             }
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_public_get_public_get_tickers(&[__ws_arg_0]).await.into_dict();
@@ -2905,14 +2905,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v1_private_post_private_cancel_all_orders(&[__ws_arg_7]).await;
@@ -4913,7 +4913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized != Value::Null) {
             let mut symbol: Value = Value::Null;
             if (matches!(&symbolsNormalized, Value::Arr(_))) {
@@ -4925,8 +4925,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 symbol = symbolsNormalized;
             }
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_private_post_private_get_positions(&[__ws_arg_22]).await.into_dict();

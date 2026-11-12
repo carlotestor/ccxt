@@ -2675,7 +2675,7 @@ impl Phemex {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("spot")) {
             response = self.v1_get_md_spot_ticker24hr_all(&[query.clone()]).await.into_opt_dict();
-        }  else if (subType.as_deref() == Some("inverse")) || (self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]).as_str() == Some("USD")) {
+        }  else if (subType.as_deref() == Some("inverse")) || (self.safe_string_k(&market, "settle", &[]).as_str() == Some("USD")) {
             response = self.v1_get_md_ticker24hr_all(&[query.clone()]).await.into_opt_dict();
         }  else {
             response = self.v2_get_md_v2_ticker24hr_all(&[query]).await.into_opt_dict();
@@ -5251,8 +5251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]).as_str().map(str::to_owned);
-            code = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
+            settle = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
+            code = self.safe_string_k(&market, "settle", &[]);
         }  else {
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
@@ -7334,8 +7334,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            settle = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]).as_str().map(str::to_owned);
-            code = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "settle", &[]);
+            settle = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
+            code = self.safe_string_k(&market, "settle", &[]);
         }  else {
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone()]).as_array().cloned().unwrap_or_default(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }

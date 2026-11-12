@@ -2423,8 +2423,8 @@ impl Bitget {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
-            marketId = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            marketId = self.safe_string_k(&market, "id", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsTrigger, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -3009,7 +3009,7 @@ impl Bitget {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();

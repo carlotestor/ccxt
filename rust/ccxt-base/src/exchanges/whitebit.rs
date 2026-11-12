@@ -2542,10 +2542,10 @@ impl Whitebit {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         // Try active orders first (if enabled)
         if checkActive {
@@ -3847,12 +3847,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let mut symbolResolved: Option<String> = (if (market != Value::Null) { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 50 max 100
         }

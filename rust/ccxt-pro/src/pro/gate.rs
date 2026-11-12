@@ -919,8 +919,8 @@ impl Gate {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
-            if !matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            if !matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets".into()))));
             }
         }

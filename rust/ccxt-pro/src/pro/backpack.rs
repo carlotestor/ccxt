@@ -2023,15 +2023,15 @@ impl Backpack {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             self.parent.handle_stock_params("watchOrders", query.clone(), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut topic: String = "account.orderUpdate".to_string();
         let mut messageHash: String = "orders".to_string();
         if (market.is_some()) {
-            topic = format!("{}{}", Value::Str("account.orderUpdate.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
-            if (self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "executionModel", &[]).as_str() == Some("rfq")) {
-                topic = format!("{}{}", Value::Str("account.rfqUpdate.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
+            topic = format!("{}{}", Value::Str("account.orderUpdate.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
+            if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) {
+                topic = format!("{}{}", Value::Str("account.rfqUpdate.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
             }
-            messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut topics: Vec<Value> = vec![Value::from(topic)];
         if (market.is_none()) {
@@ -2084,11 +2084,11 @@ impl Backpack {
         let mut topic: String = "account.orderUpdate".to_string();
         let mut messageHash: String = "unsubscribe:orders".to_string();
         if (market.is_some()) {
-            topic = format!("{}{}", Value::Str("account.orderUpdate.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
-            if (self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "executionModel", &[]).as_str() == Some("rfq")) {
-                topic = format!("{}{}", Value::Str("account.rfqUpdate.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
+            topic = format!("{}{}", Value::Str("account.orderUpdate.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
+            if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) {
+                topic = format!("{}{}", Value::Str("account.rfqUpdate.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
             }
-            messageHash = format!("{}{}", Value::Str("unsubscribe:orders:".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str("unsubscribe:orders:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut topics: Vec<Value> = vec![Value::from(topic)];
         if (market.is_none()) {

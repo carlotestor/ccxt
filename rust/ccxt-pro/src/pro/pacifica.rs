@@ -1995,8 +1995,8 @@ impl Pacifica {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();

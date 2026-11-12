@@ -2886,7 +2886,7 @@ impl Woo {
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
             response = self.v3_private_delete_trade_algo_order(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             if isByClientOrder {
                 request.insert("clientOrderId".into(), clientOrderIdExchangeSpecific.clone());
             }  else {
@@ -5775,11 +5775,11 @@ impl Woo {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        if (symbol == Value::Null) || matches!((self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
+        if (symbol == Value::Null) || matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) {
             let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             return self.v3_private_post_spot_margin_leverage(&[__ws_arg_39]).await;
-        }  else if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+        }  else if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -5787,7 +5787,7 @@ impl Woo {
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_40]).await;
         }  else {
-            let mut marketType: String = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
         }
         Value::Null

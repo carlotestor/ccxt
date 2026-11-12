@@ -4357,12 +4357,12 @@ impl Blofin {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
             let mut symbolsLength: i64 = symbols.len() as i64;
             if (symbolsLength == 0) {
-                market = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                request.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
         }
         if (limit != Value::Null) {

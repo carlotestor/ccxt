@@ -2619,7 +2619,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "orders".to_string();
         let mut type_var: Value = Value::Null;
@@ -2631,7 +2631,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), paramsMarketType]).await;
         if (market.is_some()) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("::".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
@@ -2679,7 +2679,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "myTrades".to_string();
         let mut type_var: Value = Value::Null;
@@ -2691,7 +2691,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), paramsMarketType]).await;
         if (market.is_some()) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str("::".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));

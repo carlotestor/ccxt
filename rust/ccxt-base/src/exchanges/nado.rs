@@ -1543,7 +1543,7 @@ impl Nado {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            productIds.push(self.parse_to_int(self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])));
+            productIds.push(self.parse_to_int(self.safe_string_k(&market, "id", &[])));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1772,7 +1772,7 @@ impl Nado {
             m
         });
         if (market.is_some()) {
-            ordersRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]))]));
+            ordersRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(self.safe_string_k(&market, "id", &[]))]));
         }
         if (limit != Value::Null) {
             ordersRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
@@ -1939,7 +1939,7 @@ impl Nado {
             m
         });
         if (market.is_some()) {
-            matchesRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]))]));
+            matchesRequest.insert("product_ids".into(), Value::from(vec![self.parse_to_int(self.safe_string_k(&market, "id", &[]))]));
         }
         if (limit != Value::Null) {
             matchesRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));

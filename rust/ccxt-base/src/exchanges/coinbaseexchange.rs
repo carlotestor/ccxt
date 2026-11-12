@@ -2539,10 +2539,10 @@ impl Coinbaseexchange {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]) } else { params }).into_dict();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("product_id".into(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); // the request will be more performant if you include it
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("product_id".into(), crate::value::KeyRead::key_read(&&market, "symbol")); // the request will be more performant if you include it
         }
         let mut response: Value = Value::Null;
         if (clientOrderId.is_none()) {
@@ -2588,10 +2588,10 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("product_id".into(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)); // the request will be more performant if you include it
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("product_id".into(), crate::value::KeyRead::key_read(&&market, "symbol")); // the request will be more performant if you include it
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_21]).await;

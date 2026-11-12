@@ -4225,7 +4225,7 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
             let mut length: i64 = symbols.len() as i64;
             if length > 1 {
@@ -4233,8 +4233,8 @@ impl Toobit {
             }
             let mut firstSymbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             if (firstSymbol.is_some()) {
-                market = crate::types::IntoRaw::into_raw(self.market(firstSymbol.as_deref().unwrap_or_default()));
-                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);

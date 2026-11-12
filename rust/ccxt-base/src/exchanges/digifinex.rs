@@ -3021,7 +3021,7 @@ impl Digifinex {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
             }
-            request.insert("instrument_id".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("instrument_id".into(), self.safe_string_k(&market, "id", &[]));
         }  else {
             request.insert("market".into(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -3939,7 +3939,7 @@ impl Digifinex {
             marketIdRequest = "instrument_id".to_string();
         }
         if (symbol != Value::Null) {
-            request.insert(marketIdRequest, self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert(marketIdRequest, self.safe_string_k(&market, "id", &[]));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());

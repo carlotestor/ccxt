@@ -345,7 +345,7 @@ impl Coinbaseexchange {
         let mut productIds: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: String = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), marketId).into())).into());
             productIds.push(Value::from(marketId));
         }
@@ -394,9 +394,9 @@ impl Coinbaseexchange {
             while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Value = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]);
+            let mut marketId: Value = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
             productIds.push(marketId);
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()));
         }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);

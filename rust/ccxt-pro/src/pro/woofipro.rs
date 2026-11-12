@@ -1218,7 +1218,7 @@ impl Woofipro {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])));
         }
@@ -1279,7 +1279,7 @@ impl Woofipro {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])));
         }

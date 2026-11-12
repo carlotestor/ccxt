@@ -2409,7 +2409,7 @@ impl Poloniex {
             request.insert("limit".into(), limit.clone());
         }
         if isContract.as_bool() == Some(true) && (symbol != Value::Null) {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::from(endKey), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();

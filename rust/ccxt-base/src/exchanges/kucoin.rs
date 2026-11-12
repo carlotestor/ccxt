@@ -8786,7 +8786,7 @@ impl Kucoin {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".into()))));
                 }
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("stop".into()), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), Value::Str("trigger".into())]), &[]).into_dict();
@@ -8799,7 +8799,7 @@ impl Kucoin {
                     response = self.private_get_hf_margin_stop_order_client_oid(&[__ws_arg_67]).await.into_opt_dict();
                 }  else {
                     if (symbol != Value::Null) {
-                        request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                        request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                     }
                     let __ws_arg_68 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                     response = self.private_get_stop_order_query_order_by_client_oid(&[__ws_arg_68]).await.into_opt_dict();
@@ -13622,7 +13622,7 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol argument for contract markets".into()))));
             }
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 return self.set_contract_leverage(leverage.clone(), &[symbol.clone(), paramsRequest.clone()]).await;
             }
         }
@@ -13660,7 +13660,7 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol parameter for isolated margin".into()))));
             }
             if (symbol != Value::Null) {
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             request.insert("isIsolated".into(), (Value::Bool(marginMode.as_deref() == Some("isolated"))));
             let __ws_arg_127 = self.extend(Value::Map(request), &[paramsRequest]);

@@ -3549,14 +3549,14 @@ impl Deepcoin {
                 m.insert("OrderSysID".to_string(), id.clone());
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is not supported for spot markets".into()))));
             }
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
         }
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
@@ -3629,7 +3629,7 @@ impl Deepcoin {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() is not supported for spot markets".into()))));
             }
         }

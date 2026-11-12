@@ -3491,11 +3491,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("sub_account_id".to_string(), self.get_sub_account_id(&paramsPaginate).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("base".into(), Value::from(vec![market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)]));
-            request.insert("quote".into(), Value::from(vec![market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)]));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("base".into(), Value::from(vec![crate::value::KeyRead::key_read(&&market, "baseId")]));
+            request.insert("quote".into(), Value::from(vec![crate::value::KeyRead::key_read(&&market, "quoteId")]));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));

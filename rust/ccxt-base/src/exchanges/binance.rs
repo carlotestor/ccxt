@@ -12705,7 +12705,7 @@ impl Binance {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = Value::Bool(false);
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                 stock = Value::Bool(true);
             }
         }  else if !(stock.as_bool() == Some(true)) {
@@ -12766,7 +12766,7 @@ impl Binance {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = Value::Bool(false);
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                 stock = Value::Bool(true);
             }
         }  else if !(stock.as_bool() == Some(true)) {
@@ -12827,7 +12827,7 @@ impl Binance {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = Value::Bool(false);
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
                 stock = Value::Bool(true);
             }
         }  else if !(stock.as_bool() == Some(true)) {
@@ -14372,16 +14372,16 @@ impl Binance {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
         if (requestType.is_none()) {
             let mut symbol: Option<String> = self.safe_string_k(paramsOmitted.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = Value::Null;
+            let mut market: Option<crate::types::Market> = None;
             if (symbol.is_some()) {
-                market = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
+                market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("symbol".into()), &[]);
             }
             let mut fromId: Value = (if let Some(__s) = (self.convert_type_to_account(fromAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut toId: Value = (if let Some(__s) = (self.convert_type_to_account(toAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut isolatedSymbol: Value = Value::Null;
-            if (market != Value::Null) {
-                isolatedSymbol = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            if (market.is_some()) {
+                isolatedSymbol = crate::value::KeyRead::key_read(&&market, "id");
             }
             if (fromId.as_str() == Some("ISOLATED")) {
                 if (symbol.is_none()) {
@@ -14399,10 +14399,10 @@ impl Binance {
 })]);
             let mut fromIsolated: bool = !(matches!((&accountsById, &fromId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
             let mut toIsolated: bool = !(matches!((&accountsById, &toId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
-            if fromIsolated && (market == Value::Null) {
+            if fromIsolated && (market.is_none()) {
                 isolatedSymbol = fromId.clone(); // allow user provide symbol as the from/to account
             }
-            if toIsolated && (market == Value::Null) {
+            if toIsolated && (market.is_none()) {
                 isolatedSymbol = toId.clone();
             }
             if fromIsolated || toIsolated {
@@ -19649,12 +19649,12 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
         }
         let __ws_arg_219 = self.extend(Value::Map(request), &[params]);

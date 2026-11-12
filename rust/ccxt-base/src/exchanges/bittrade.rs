@@ -2894,10 +2894,10 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_order_orders_batch_cancel_open_orders(&[__ws_arg_16]).await.into_dict();

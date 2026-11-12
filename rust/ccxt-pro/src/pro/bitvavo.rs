@@ -1966,10 +1966,10 @@ impl Bitvavo {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOperatorId]);
         return self.watch_request("privateCancelOrders", __ws_arg_1).await;
@@ -2132,10 +2132,10 @@ impl Bitvavo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.watch_request("privateGetOrdersOpen", __ws_arg_3).await;

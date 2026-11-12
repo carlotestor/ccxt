@@ -2259,14 +2259,14 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
+            request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;

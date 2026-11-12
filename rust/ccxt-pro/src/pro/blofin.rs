@@ -1485,24 +1485,24 @@ impl Blofin {
                 let mut __for_first_173: bool = true;
                 while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut current: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut market: Value = Value::Null;
+                let mut market: Option<crate::types::Market> = None;
                 let mut channel: String = channelName.as_str().unwrap_or_default().to_string();
                 if isOHLCV {
-                    market = crate::types::IntoRaw::into_raw(self.market(current.as_deref().unwrap_or_default()));
+                    market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                     let mut tf: Option<String> = self.safe_string(self.safe_value(symbolsArray.clone(), Value::Int(i), &[]), Value::Int(1), &[]).as_str().map(str::to_owned);
                     let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), tf.clone().map(Value::from).unwrap_or(Value::Null), &[tf.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                     channel = format!("{}{}", channel, interval.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    market = crate::types::IntoRaw::into_raw(self.market(current.as_deref().unwrap_or_default()));
+                    market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
                 let mut topic: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("channel".to_string(), Value::from(channel.clone()));
-                        m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                        m.insert("instId".to_string(), crate::value::KeyRead::key_read(&&market, "id"));
                     m
                 });
                 std::sync::Arc::make_mut(&mut rawSubscriptions).push(topic);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()));
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()));
             }
             }
         }  else {

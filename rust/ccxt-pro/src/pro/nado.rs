@@ -1193,18 +1193,18 @@ impl Nado {
     m
 }), &[params.clone()]);
         self.authenticate(&[__ws_arg_3]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "orders".to_string();
         let mut productId: Value = Value::Null;
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             symbolResolved = marketSymbol.clone();
             if (marketSymbol.is_some()) {
                 messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
             }
-            productId = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1255,16 +1255,16 @@ impl Nado {
     m
 }), &[params.clone()]);
         self.authenticate(&[__ws_arg_4]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "orders".to_string();
         let mut productId: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             if (marketSymbol.is_some()) {
                 messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
             }
-            productId = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1315,18 +1315,18 @@ impl Nado {
     m
 }), &[params.clone()]);
         self.authenticate(&[__ws_arg_5]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "myTrades".to_string();
         let mut productId: Value = Value::Null;
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             symbolResolved = marketSymbol.clone();
             if (marketSymbol.is_some()) {
                 messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
             }
-            productId = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1377,16 +1377,16 @@ impl Nado {
     m
 }), &[params.clone()]);
         self.authenticate(&[__ws_arg_6]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "myTrades".to_string();
         let mut productId: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             if (marketSymbol.is_some()) {
                 messageHash.push_str(&format!("{}{}", Value::Str(":".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null)));
             }
-            productId = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);

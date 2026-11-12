@@ -2864,7 +2864,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolResolved: Option<String> = symbol.as_str().map(str::to_owned);
         if (market.is_some()) {
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: Value = Value::Str("orders".into());
         if (symbolResolved.is_some()) {

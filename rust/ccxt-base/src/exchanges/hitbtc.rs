@@ -4153,7 +4153,7 @@ impl Hitbtc {
         if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4162,8 +4162,8 @@ impl Hitbtc {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            std::sync::Arc::make_mut(&mut requestUntil).insert("symbols".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbols".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("from".into(), since.clone());
@@ -4219,7 +4219,7 @@ impl Hitbtc {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        let mut symbolResolved: Option<String> = (if (market == Value::Null) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_none()) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) });
         return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))

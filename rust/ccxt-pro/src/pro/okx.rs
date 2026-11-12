@@ -2826,13 +2826,13 @@ impl Okx {
             channel = "orders-algo".to_string();
         }
         let mut messageHash: String = format!("{}{}", channel, Value::Str("::myTrades".into()));
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut symbolResolved: Value = Value::Null;
         let mut type_var: Value = typeOption;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            type_var = self.safe_string_k(market, "type", &[]);
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
+            type_var = self.safe_string_k(&market, "type", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbolResolved);
         }
         if (type_var.as_str() == Some("future")) {
@@ -3085,8 +3085,8 @@ impl Okx {
         let mut type_var: Value = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
-            type_var = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[]);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            type_var = self.safe_string_k(&market, "type", &[]);
         }
         if (type_var.as_str() == Some("future")) {
             type_var = Value::Str("futures".into());

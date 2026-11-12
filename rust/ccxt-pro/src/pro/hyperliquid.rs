@@ -2365,9 +2365,9 @@ impl Hyperliquid {
         let mut messageHash: String = "order".to_string();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = format!("{}{}", Value::Str("order:".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str("order:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

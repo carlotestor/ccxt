@@ -2642,7 +2642,7 @@ impl Kraken {
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
         let mut symbol: Value = Value::Null;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_852: bool = true;
@@ -2656,7 +2656,7 @@ impl Kraken {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
-            market = crate::types::IntoRaw::into_raw(self.market(marketId.as_deref().unwrap_or_default()));
+            market = Some(match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
@@ -2666,7 +2666,7 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut parsedAmount: Value = self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone());
+            let mut parsedAmount: Value = self.amount_to_precision(crate::value::KeyRead::key_read(&&market, "symbol"), amount.clone());
             let mut req: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2683,7 +2683,7 @@ impl Kraken {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(ordersRequests));
-                m.insert("pair".to_string(), self.safe_string_k(market, "id", &[]));
+                m.insert("pair".to_string(), self.safe_string_k(&market, "id", &[]));
             m
         });
         request = self.extend(request.clone(), &[params]);

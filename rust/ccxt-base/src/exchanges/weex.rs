@@ -3886,7 +3886,7 @@ impl Weex {
             m
         });
         if (symbol != Value::Null) {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let mut response: Value = Value::Null;
         if isSpot {
@@ -4557,7 +4557,7 @@ impl Weex {
             m
         });
         if (symbol != Value::Null) {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());

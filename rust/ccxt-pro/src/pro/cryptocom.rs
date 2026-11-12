@@ -944,11 +944,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "user.trade".to_string();
         if (market.is_some()) {
-            messageHash = format!("{}{}", Value::Str("user.trade.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str("user.trade.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
         }
         let mut trades: Value = self.watch_private_subscribe(Some(messageHash.as_str()), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1483,11 +1483,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: String = "user.order".to_string();
         if (market.is_some()) {
-            messageHash = format!("{}{}", Value::Str("user.order.".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str("user.order.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
         }
         let mut orders: Value = self.watch_private_subscribe(Some(messageHash.as_str()), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -2014,7 +2014,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("private/cancel-all-orders".into()));
@@ -2025,8 +2025,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = request.entry("params".into()).or_default() { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            if let Value::Dict(__d) = request.entry("params".into()).or_default() { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id")); }
         }
         let mut messageHash: Value = self.incrementing_nonce();
         return self.watch_private_request(messageHash, &[Value::Map(request)]).await;

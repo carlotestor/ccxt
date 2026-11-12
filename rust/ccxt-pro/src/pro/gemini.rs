@@ -1148,7 +1148,7 @@ impl Gemini {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         let mut messageHash: String = "orders".to_string();
         let mut orders: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();

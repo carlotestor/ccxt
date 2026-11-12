@@ -2242,7 +2242,7 @@ if _try_result.is_err() {
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         std::sync::Arc::make_mut(&mut requestUntil).insert("account".into(), userAddress);
         if (symbol != Value::Null) {
-            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (limit != Value::Null) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());

@@ -2410,7 +2410,7 @@ impl Btse {
         });
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&market, "id", &[])); }
         }
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
@@ -3478,7 +3478,7 @@ impl Btse {
             // the literal ALL value cancels every open order across all pairs
             request.insert("symbol".into(), Value::Str("ALL".into()));
             if (symbol != Value::Null) {
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_delete_spot_api_v4_trade_orders_all(&[__ws_arg_22]).await;
@@ -3581,7 +3581,7 @@ impl Btse {
         let mut response: Value = Value::Null;
         if (marketTypeOption.as_deref() == Some("spot")) {
             if (symbol != Value::Null) {
-                request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_spot_api_v4_trade_orders(&[__ws_arg_26]).await;

@@ -3458,7 +3458,7 @@ impl Modetrade {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
             m
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);

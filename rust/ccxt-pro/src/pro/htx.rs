@@ -1429,8 +1429,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subType: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            type_var = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[]).as_str().map(str::to_owned);
-            if matches!(self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+            type_var = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
+            if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 subType = Some("linear".to_string());
             }  else {
                 subType = Some("inverse".to_string());
@@ -1441,7 +1441,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string2(self.options.clone(), Value::Str("subType".into()), Value::Str("defaultSubType".into()), &[Value::Str("linear".into())]).as_str().map(str::to_owned);
             subType = self.safe_string_k(params.clone(), "subType", &[subType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut paramsRequest: Value = (if (symbol != Value::Null) { params.clone() } else { self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("subType".into())]), &[]) });
         let mut linear: bool = subType.as_deref() == Some("linear");
         let mut swap: bool = type_var.as_deref() == Some("swap");
@@ -1451,7 +1451,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut mode: Value = self.safe_string2(self.options.clone(), Value::Str("watchMyTrades".into()), Value::Str("mode".into()), &[Value::Str("0".into())]);
             mode = self.safe_string_k(paramsRequest.clone(), "mode", &[mode.clone()]);
             paramsRequest = self.omit(paramsRequest.clone(), Value::Str("mode".into()), &[]);
-            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "lowercaseId", &[Value::Str("*".into())])).into()), Value::Str("#".into())).into()), mode));
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade.clearing".into()), Value::Str("#".into())).into()), self.safe_string_k(&market, "lowercaseId", &[Value::Str("*".into())])).into()), Value::Str("#".into())).into()), mode));
             channel = messageHash.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if isV5Linear {
             let mut channelAndMessageHashAndParams: Value = self.get_v5_linear_channel_and_message_hash(Value::Str("trade".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsRequest.clone()]);
@@ -2570,7 +2570,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (marginMode.as_deref() == Some("isolated")) {
                         // isolated margin only allows filtering by symbol3
                         if (symbol.is_some()) && (market.is_some()) {
-                            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())])).into())).into());
+                            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into())).into());
                             channel = messageHash.clone();
                         }  else {
                             // subscribe to all
@@ -2599,7 +2599,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 // inverse swaps account
                 if (market.is_some()) {
-                    messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())])).into())).into());
+                    messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into())).into());
                     channel = messageHash.clone();
                 }  else {
                     // subscribe to all

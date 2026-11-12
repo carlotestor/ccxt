@@ -11401,7 +11401,7 @@ impl Okx {
                 m.insert("mgnMode".to_string(), marginMode);
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (code != Value::Null) {
             let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
             request.insert("ccy".into(), currency.get("id").cloned().unwrap_or(Value::Null));
@@ -11413,8 +11413,8 @@ impl Okx {
             request.insert("limit".into(), limit.clone());
         }
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut response: crate::value::Dict = self.private_get_account_interest_accrued(&[__ws_arg_77]).await.into_dict();
@@ -12652,12 +12652,12 @@ impl Okx {
         if (symbolsNormalized.is_some()) {
             if (symbolsLength == 1) {
                 market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut marketId: String = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut optionParts: Value = Value::Array(marketId.split("-").map(Value::from).collect());
-                let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+                let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).as_map().cloned().unwrap_or_default();
                 request.insert("uly".into(), marketInfo.get("uly").cloned().unwrap_or(Value::Null));
                 request.insert("instFamily".into(), marketInfo.get("instFamily").cloned().unwrap_or(Value::Null));
                 request.insert("expTime".into(), self.safe_string(optionParts, Value::Int(2), &[]));

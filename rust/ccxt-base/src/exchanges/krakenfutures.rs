@@ -4427,11 +4427,11 @@ impl Krakenfutures {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
             let mut symbolsLength: i64 = symbols.len() as i64;
             if (symbolsLength == 1) {
-                market = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+                market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4439,8 +4439,8 @@ impl Krakenfutures {
                 m.insert("closed".to_string(), Value::Bool(true));
             m
         });
-        if (market != Value::Null) {
-            request.insert("tradeable".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market.is_some()) {
+            request.insert("tradeable".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (since != Value::Null) {
             request.insert("since".into(), since.clone());

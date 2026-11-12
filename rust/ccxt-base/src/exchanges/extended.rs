@@ -4564,10 +4564,10 @@ impl Extended {
                 m.insert("cancelAll".to_string(), Value::Bool(true));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("markets".into(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("markets".into(), Value::from(vec![crate::value::KeyRead::key_read(&&market, "id")]));
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_26]).await;

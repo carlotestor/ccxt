@@ -8182,7 +8182,7 @@ if _try_result.is_err() {
         if (symbols != Value::Null) {
             let mut symbol: Option<String> = self.safe_string_opt(symbols.clone(), Value::Int(0), &[]);
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            stockDefault = self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "stock", &[Value::Bool(false)]).as_bool();
+            stockDefault = self.safe_bool_k(&market, "stock", &[Value::Bool(false)]).as_bool();
         }
         let mut response: Option<crate::value::Dict> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8212,7 +8212,7 @@ if _try_result.is_err() {
             if (symbols != Value::Null) {
                 let mut symbolsLength: i64 = symbols.len() as i64;
                 if (symbolsLength == 1) {
-                    request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                    request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                 }
             }
             if isStock {
@@ -12886,7 +12886,7 @@ if _try_result.is_err() {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), utaProductType); }
                 }
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&market, "id", &[])); }
                 }
                 let __ws_arg_98 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_98]).await.into_opt_dict();
@@ -12903,7 +12903,7 @@ if _try_result.is_err() {
             response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_99]).await.into_opt_dict();
         }  else {
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&market, "id", &[])); }
             }
             let mut productType: Value = Value::Null;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -15397,10 +15397,10 @@ if _try_result.is_err() {
         });
         let mut symbol: Option<String> = self.safe_string_k(&paramsUTA, "symbol", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUTA, Value::Str("symbol".into()), &[]).into_dict();
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol.is_some()) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (uta.as_bool() == Some(true)) {
@@ -16008,7 +16008,7 @@ if _try_result.is_err() {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyLiquidations() requires a symbol argument".into()))));
             }
-            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_139 = self.extend(&requestUntil, &[&paramsMarginMode]);
             response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_139]).await.into_opt_dict();
         }  else if (marginMode.as_deref() == Some("cross")) {
@@ -16487,7 +16487,7 @@ if _try_result.is_err() {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchBorrowInterest() requires a symbol argument".into()))));
             }
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_144 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
             response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_144]).await.into_opt_dict();
         }  else if (marginMode.as_deref() == Some("cross")) {

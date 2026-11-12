@@ -3398,15 +3398,15 @@ impl Bitstamp {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Option<crate::value::Dict> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_cancel_all_orders_pair(&[__ws_arg_13]).await.into_opt_dict();
         }  else {

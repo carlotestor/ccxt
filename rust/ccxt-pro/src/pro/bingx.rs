@@ -1553,7 +1553,7 @@ impl Bingx {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1574,9 +1574,9 @@ impl Bingx {
         }
         if (market.is_some()) {
             if isSpot {
-                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }  else {
-                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }
         }
         let mut uuid: Value = self.uuid(&[]);
@@ -1652,7 +1652,7 @@ impl Bingx {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1673,9 +1673,9 @@ impl Bingx {
         }
         if (market.is_some()) {
             if isSpot {
-                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", spotMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }  else {
-                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", swapMessageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
             }
         }
         let mut uuid: Value = self.uuid(&[]);

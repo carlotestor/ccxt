@@ -3632,9 +3632,9 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("cancelAllOrders", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3645,8 +3645,8 @@ impl Derive {
             m
         });
         let mut response: Value = Value::Null;
-        if (market != Value::Null) {
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market.is_some()) {
+            request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsDeriveSubaccountId]);
             response = self.private_post_cancel_by_instrument(&[__ws_arg_19]).await;
         }  else {

@@ -8588,7 +8588,7 @@ impl Bingx {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionMode".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (subType.as_deref() == Some("inverse")) || ((market.is_some()) && matches!((self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
+        if (subType.as_deref() == Some("inverse")) || ((market.is_some()) && matches!((self.safe_bool_k(&market, "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionMode() is not supported for inverse swap markets".into()))));
         }
         let mut response: Value = self.swap_v1_private_get_position_side_dual(&[paramsSubType]).await;
@@ -8641,7 +8641,7 @@ impl Bingx {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setPositionMode".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (subType.as_deref() == Some("inverse")) || ((market.is_some()) && matches!((self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
+        if (subType.as_deref() == Some("inverse")) || ((market.is_some()) && matches!((self.safe_bool_k(&market, "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setPositionMode() is not supported for inverse swap markets".into()))));
         }
         let mut dualSidePosition: Option<String> = None;

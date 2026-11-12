@@ -4927,7 +4927,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
                 market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                payload.insert("symbol".into(), self.safe_value_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+                payload.insert("symbol".into(), self.safe_value_k(&market, "id", &[]));
             }
         }
         let mut type_var: Option<String> = self.get_market_type(Value::Str("fetchPositionsWs".into()), market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), &[params.clone()]).as_str().map(str::to_owned);

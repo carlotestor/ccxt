@@ -10624,11 +10624,11 @@ impl Bybit {
         if (symbol == Value::Null) {
             request.insert("coin".into(), Value::Str("USDT".into()));
         }  else {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let mut query: Value = params.clone();
         if (symbol != Value::Null) {
-            let mut isLinear: bool = self.safe_bool_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isLinear: bool = self.safe_bool_k(&market, "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             request.insert("category".into(), (if isLinear { Value::Str("linear".into()) } else { Value::Str("inverse".into()) }));
         }  else {
             let mut type_var: Value = Value::Null;
@@ -13280,7 +13280,7 @@ impl Bybit {
             m
         });
         if (symbols != Value::Null) && (symbolsLength == 1) {
-            request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
