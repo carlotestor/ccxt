@@ -1218,8 +1218,8 @@ impl Bitopro {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_409: bool = true;
-            while { if !__for_first_409 { i += 1; } __for_first_409 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_408: bool = true;
+            while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1379,8 +1379,8 @@ impl Bitopro {
         let mut rows: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_410: bool = true;
-            while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (rows.len() as i64) } {
+            let mut __for_first_409: bool = true;
+            while { if !__for_first_409 { i += 1; } __for_first_409 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1664,14 +1664,14 @@ impl Bitopro {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_412: bool = true;
-            while { if !__for_first_412 { i += 1; } __for_first_412 = false; i < (dataKeys.len() as i64) } {
+            let mut __for_first_411: bool = true;
+            while { if !__for_first_411 { i += 1; } __for_first_411 = false; i < (dataKeys.len() as i64) } {
             let mut marketId: Value = dataKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut orderIds: crate::value::List = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_411: bool = true;
-                while { if !__for_first_411 { j += 1; } __for_first_411 = false; j < (orderIds.len() as i64) } {
+                let mut __for_first_410: bool = true;
+                while { if !__for_first_410 { j += 1; } __for_first_410 = false; j < (orderIds.len() as i64) } {
                 orders.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
@@ -1925,8 +1925,8 @@ impl Bitopro {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_orders_open(&[__ws_arg_11]).await.into_dict();
-        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&orders, &[market, since, limit]);
         Value::Null
         }).await?))
     }

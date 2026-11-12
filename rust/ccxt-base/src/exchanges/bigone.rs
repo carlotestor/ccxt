@@ -939,8 +939,8 @@ impl Bigone {
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_263: bool = true;
-            while { if !__for_first_263 { j += 1; } __for_first_263 = false; j < (chains.len() as i64) } {
+            let mut __for_first_262: bool = true;
+            while { if !__for_first_262 { j += 1; } __for_first_262 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "gateway_name", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1109,8 +1109,8 @@ impl Bigone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_264: bool = true;
-            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (markets.len() as i64) } {
+            let mut __for_first_263: bool = true;
+            while { if !__for_first_263 { i += 1; } __for_first_263 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseAsset: crate::value::Dict = self.safe_dict_k(market.clone(), "base_asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1196,8 +1196,8 @@ impl Bigone {
         let mut contractMarkets: crate::value::List = self.to_array(contractResponse).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (contractMarkets.len() as i64) } {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (contractMarkets.len() as i64) } {
             let mut market: Value = contractMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCurrency", &[]);
@@ -1635,8 +1635,8 @@ impl Bigone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (bidsAsksKeys.len() as i64) } {
+            let mut __for_first_265: bool = true;
+            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
             let mut price: Option<String> = bidsAsksKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.push(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(amount, &[])]));
@@ -2014,8 +2014,8 @@ impl Bigone {
         let mut balances: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_267: bool = true;
-            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (balances.len() as i64) } {
+            let mut __for_first_266: bool = true;
+            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "asset_symbol", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2434,8 +2434,8 @@ impl Bigone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_268: bool = true;
-            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (cancelled.len() as i64) } {
+            let mut __for_first_267: bool = true;
+            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2448,8 +2448,8 @@ impl Bigone {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_269: bool = true;
-            while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (failed.len() as i64) } {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2567,8 +2567,8 @@ impl Bigone {
         //        "page_token":"dxzef",
         //    }
         //
-        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

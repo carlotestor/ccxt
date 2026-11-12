@@ -969,8 +969,8 @@ impl Bitbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (pairs.len() as i64) } {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (pairs.len() as i64) } {
             let mut pair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&pair, "name", &[]).as_str().map(str::to_owned);
             let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
@@ -1097,8 +1097,8 @@ impl Bitbank {
         let mut assets: crate::value::List = self.safe_list_k(&data, "assets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (assets.len() as i64) } {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (assets.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1420,8 +1420,8 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

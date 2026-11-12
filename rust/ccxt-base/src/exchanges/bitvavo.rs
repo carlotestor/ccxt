@@ -870,8 +870,8 @@ impl Bitvavo {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (markets.len() as i64) } {
+            let mut __for_first_452: bool = true;
+            while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (markets.len() as i64) } {
             let mut market: Value = self.safe_dict(markets.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "market", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
@@ -1030,8 +1030,8 @@ impl Bitvavo {
         let mut minWithdraw: Option<f64> = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]).as_f64();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_454: bool = true;
-            while { if !__for_first_454 { j += 1; } __for_first_454 = false; j < (networksArray.len() as i64) } {
+            let mut __for_first_453: bool = true;
+            while { if !__for_first_453 { j += 1; } __for_first_453 = false; j < (networksArray.len() as i64) } {
             let mut networkId: Value = networksArray.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -1429,8 +1429,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_455: bool = true;
-            while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_454: bool = true;
+            while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1658,8 +1658,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (response.len() as i64) } {
+            let mut __for_first_455: bool = true;
+            while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

@@ -948,8 +948,8 @@ impl Bithumb {
             let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_390: bool = true;
-                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (response.len() as i64) } {
+                let mut __for_first_389: bool = true;
+                while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Value = Value::Null;
@@ -1041,8 +1041,8 @@ impl Bithumb {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_391: bool = true;
-                while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_390: bool = true;
+                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_1]).await);
@@ -1051,8 +1051,8 @@ impl Bithumb {
             let mut results: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_393: bool = true;
-                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_392: bool = true;
+                while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
                 let mut response: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
@@ -1067,8 +1067,8 @@ impl Bithumb {
                 let mut currencyIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_392: bool = true;
-                    while { if !__for_first_392 { j += 1; } __for_first_392 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_391: bool = true;
+                    while { if !__for_first_391 { j += 1; } __for_first_391 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Value = currencyIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     if (currencyId.as_str() == Some("date")) {
                         continue;
@@ -1193,8 +1193,8 @@ impl Bithumb {
             let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_394: bool = true;
-                while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (codes.len() as i64) } {
+                let mut __for_first_393: bool = true;
+                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
@@ -1208,8 +1208,8 @@ impl Bithumb {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_395: bool = true;
-                while { if !__for_first_395 { i += 1; } __for_first_395 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_394: bool = true;
+                while { if !__for_first_394 { i += 1; } __for_first_394 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
                 let mut account: Value = self.account();
                 let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
@@ -1341,8 +1341,8 @@ impl Bithumb {
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_396: bool = true;
-                while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
+                let mut __for_first_395: bool = true;
+                while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (orderBookUnits.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&orderBookUnits, Value::Int(i), &[]).into_dict();
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1581,8 +1581,8 @@ impl Bithumb {
             let mut symbolsForMarketIdsLength: f64 = ((symbolsForMarketIds.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { i += 1; } __for_first_397 = false; (i as f64) < symbolsForMarketIdsLength } {
+                let mut __for_first_396: bool = true;
+                while { if !__for_first_396 { i += 1; } __for_first_396 = false; (i as f64) < symbolsForMarketIdsLength } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 marketIds.push(self.get_gen2_market_id(market.clone()));
             }
@@ -1599,8 +1599,8 @@ impl Bithumb {
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_398: bool = true;
-                while { if !__for_first_398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_398 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_397: bool = true;
+                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: f64 = ((marketIdsChunk.len() as i64) as f64);
                 let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
@@ -1649,8 +1649,8 @@ impl Bithumb {
             let mut responsesLength: f64 = ((responses.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_401: bool = true;
-                while { if !__for_first_401 { i += 1; } __for_first_401 = false; (i as f64) < responsesLength } {
+                let mut __for_first_400: bool = true;
+                while { if !__for_first_400 { i += 1; } __for_first_400 = false; (i as f64) < responsesLength } {
                 let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response.clone(), "data", &[]);
@@ -1671,8 +1671,8 @@ impl Bithumb {
                         let mut ids: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_399: bool = true;
-                            while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (ids.len() as i64) } {
+                            let mut __for_first_398: bool = true;
+                            while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (ids.len() as i64) } {
                             let mut id: Value = ids.get(j as usize).cloned().unwrap_or(Value::Null);
                             let mut ticker: Value = self.safe_dict(response.clone(), id.clone(), &[]);
                             if (ticker != Value::Null) {
@@ -1685,8 +1685,8 @@ impl Bithumb {
                 }
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_400: bool = true;
-                    while { if !__for_first_400 { j += 1; } __for_first_400 = false; j < (tickers.len() as i64) } {
+                    let mut __for_first_399: bool = true;
+                    while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (tickers.len() as i64) } {
                     let mut entry: crate::value::Dict = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut marketId: Value = self.safe_string_k(&entry, "market", &[expectedMarketId.clone()]);
                     if (marketId == Value::Null) {
@@ -1715,8 +1715,8 @@ impl Bithumb {
                 });
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_402: bool = true;
-                    while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (symbols.len() as i64) } {
+                    let mut __for_first_401: bool = true;
+                    while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
                     let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteId", &[]);
@@ -1734,8 +1734,8 @@ impl Bithumb {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_403: bool = true;
-                while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_402: bool = true;
+                while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await);
@@ -1744,8 +1744,8 @@ impl Bithumb {
             let mut responses: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_404: bool = true;
+                while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(i), &[]);
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
@@ -1757,8 +1757,8 @@ impl Bithumb {
                 let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_404: bool = true;
-                    while { if !__for_first_404 { j += 1; } __for_first_404 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_403: bool = true;
+                    while { if !__for_first_403 { j += 1; } __for_first_403 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Option<String> = currencyIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut ticker: Value = data.get(currencyId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                     let mut base: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2336,8 +2336,8 @@ impl Bithumb {
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_406: bool = true;
-            while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (orders.len() as i64) } {
+            let mut __for_first_405: bool = true;
+            while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
@@ -2385,8 +2385,8 @@ impl Bithumb {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "batch_orders_response", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "batch_orders_response", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market]);
         Value::Null
         }).await?))
     }
@@ -3163,8 +3163,8 @@ impl Bithumb {
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_post_info_orders(&[__ws_arg_27]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3530,8 +3530,8 @@ impl Bithumb {
         //         "fail": []
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "success", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "success", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -4245,16 +4245,16 @@ impl Bithumb {
         let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_408: bool = true;
-            while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (keys.len() as i64) } {
+            let mut __for_first_407: bool = true;
+            while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_value(query.clone(), key.clone(), &[]);
             if (matches!(&value, Value::Arr(_))) {
                 let mut encodedKey: String = format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".into()));
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_407: bool = true;
-                    while { if !__for_first_407 { j += 1; } __for_first_407 = false; j < (value.len() as i64) } {
+                    let mut __for_first_406: bool = true;
+                    while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.len() as i64) } {
                     let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut valueString: Option<String> = self.safe_string(value.clone(), Value::Int(j), &[]).as_str().map(str::to_owned);
                     if (valueString.is_none()) {

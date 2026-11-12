@@ -435,8 +435,8 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut statuses: Value = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]);
-        return self.parse_orders(statuses, &[Value::Null]);
+        let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&statuses, &[Value::Null]);
         Value::Null
         }).await?))
     }

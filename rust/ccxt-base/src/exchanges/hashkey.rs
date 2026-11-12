@@ -1808,8 +1808,8 @@ impl Hashkey {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_727: bool = true;
-            while { if !__for_first_727 { j += 1; } __for_first_727 = false; j < (networks.len() as i64) } {
+            let mut __for_first_726: bool = true;
+            while { if !__for_first_726 { j += 1; } __for_first_726 = false; j < (networks.len() as i64) } {
             let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k(network.clone(), "chainType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -2565,8 +2565,8 @@ impl Hashkey {
         let mut balances: crate::value::List = self.safe_list_k(balance, "balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (balances.len() as i64) } {
+            let mut __for_first_727: bool = true;
+            while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (balances.len() as i64) } {
             let mut balanceEntry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balanceEntry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3693,8 +3693,8 @@ impl Hashkey {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_729: bool = true;
-            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (orders.len() as i64) } {
+            let mut __for_first_728: bool = true;
+            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
@@ -3736,8 +3736,8 @@ impl Hashkey {
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (result.len() as i64) } {
+            let mut __for_first_729: bool = true;
+            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (result.len() as i64) } {
             let mut responseEntry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4756,8 +4756,8 @@ impl Hashkey {
         let mut rows: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (rows.len() as i64) } {
+            let mut __for_first_730: bool = true;
+            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (rows.len() as i64) } {
             let mut entry: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "settleTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -5306,8 +5306,8 @@ impl Hashkey {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (riskLimits.len() as i64) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (riskLimits.len() as i64) } {
             let mut tier: Value = riskLimits.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMarginRate: Option<String> = self.safe_string_k(tier.clone(), "initialMargin", &[]).as_str().map(str::to_owned);
             tiers.push(Value::Map({
@@ -5427,8 +5427,8 @@ impl Hashkey {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (data.len() as i64) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (data.len() as i64) } {
             let mut fee: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5589,8 +5589,8 @@ impl Hashkey {
             let mut result: crate::value::List = self.safe_list_k(response, "result", &[Value::from(vec![])]).into_list(); // for batch methods
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_734: bool = true;
-                while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (result.len() as i64) } {
+                let mut __for_first_733: bool = true;
+                while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (result.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {

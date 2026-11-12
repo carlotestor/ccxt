@@ -2662,7 +2662,7 @@ impl Gate {
         //         ]
         //     }
         //
-        let mut orders: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut orders: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut isTrigger: bool = (channel.contains("autoorders")) || (channel.contains("priceorders"));
         let mut hashPrefix: String = "orders".to_string();
@@ -2679,7 +2679,7 @@ impl Gate {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut parsedOrders: Value = self.parse_orders(orders, &[]);
+        let mut parsedOrders: Value = self.parse_orders(&orders, &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;

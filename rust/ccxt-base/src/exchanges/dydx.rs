@@ -1395,8 +1395,8 @@ impl Dydx {
         let mut rows: crate::value::List = self.safe_list_k(&response, "historicalFunding", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Value = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let mut marketId: Option<String> = self.safe_string_k(&entry, "ticker", &[]).as_str().map(str::to_owned);
@@ -2027,8 +2027,8 @@ impl Dydx {
         let mut c: Value = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r.clone().map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
         }
         }
@@ -3410,8 +3410,8 @@ impl Dydx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (rows.len() as i64) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (rows.len() as i64) } {
             let mut account: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut accountId: Option<String> = self.safe_string_k(&account, "subaccountNumber", &[]).as_str().map(str::to_owned);
             result.push(Value::Map({

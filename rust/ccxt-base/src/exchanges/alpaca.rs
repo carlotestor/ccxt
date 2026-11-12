@@ -1546,8 +1546,8 @@ impl Alpaca {
                 let mut pageToken: Option<String> = self.safe_string_k(response.clone(), "next_page_token", &[]).as_str().map(str::to_owned);
                 {
                                         let mut i: Value = Value::Int(1);
-                    let mut __for_first_220: bool = true;
-                    while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_219: bool = true;
+                    while { if !__for_first_219 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
                     let mut ohlcvsLength: i64 = ohlcvs.len() as i64;
                     if (pageToken.is_none()) || ((limit != Value::Null) && ((limit.as_i64().is_some() && Some(ohlcvsLength) >= limit.as_i64()))) {
                         break;
@@ -1757,8 +1757,8 @@ impl Alpaca {
         let mut marketIds: Vec<Value> = Value::Array(snapshots.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut entry: Value = self.safe_dict(&snapshots, marketId, &[]);
@@ -2753,8 +2753,8 @@ impl Alpaca {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_222: bool = true;
-                while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (ledger.len() as i64) } {
+                let mut __for_first_221: bool = true;
+                while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (ledger.len() as i64) } {
                 let mut entry: Value = ledger.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k(entry.clone(), "net_amount", &[]).as_str().map(str::to_owned);
@@ -2795,8 +2795,8 @@ impl Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (transfers.len() as i64) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (transfers.len() as i64) } {
             let mut entry: Value = transfers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut direction: Option<String> = self.safe_string_k_opt(entry.clone(), "direction", &[]);
             if (direction.as_deref() == type_var.as_str()) {
@@ -3176,8 +3176,8 @@ impl Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (positions.len() as i64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (positions.len() as i64) } {
             let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
             let mut positionSymbol: Value = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]);
             if (positionSymbol.as_str() == Some("")) {
