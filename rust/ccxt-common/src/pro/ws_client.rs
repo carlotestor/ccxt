@@ -1108,55 +1108,59 @@ pub struct Flight {
 }
 
 impl Flight {
-    /// An entry settles its own hash; an opened flight settles the hash passed, as `value_resolve` does.
+    /// Settles through the same routing as the boxed handle (an entry settles its own hash).
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
-        let value = value.into();
-        let hash = if self.entry { self.hash.as_deref() } else { hash.into() };
-        if let (Some(c), Some(hash)) = (self.url.as_deref().and_then(get_client), hash) { c.resolve(hash, value.clone()); }
-        value
+        value_resolve(&Value::from(self), value.into(), hash.into())
     }
     pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
-        let err = err.into();
-        if let Some(c) = self.url.as_deref().and_then(get_client) {
-            match if self.entry { self.hash.as_deref() } else { hash.into() } {
-                Some(hash) => c.reject(hash, err.clone()),
-                None => c.reject_pending_futures(err.clone()),
-            }
-        }
-        err
+        value_reject(&Value::from(self), err.into(), hash.into())
     }
 }
 
 /// The handle shape untyped code reads: `{url, __ws_flight_hash, __ws_flight_led}` or `{url, __ws_future_hash}`.
-impl From<Flight> for Value {
-    fn from(f: Flight) -> Value {
-        let (url, hash) = match (f.url, f.hash) {
+impl From<&Flight> for Value {
+    fn from(f: &Flight) -> Value {
+        let (url, hash) = match (f.url.as_deref(), f.hash.as_deref()) {
             (Some(u), Some(h)) => (u, h),
-            (_, h) => return h.map_or(Value::Null, |h| Value::Str(h.into())),
+            (_, h) => return Value::from(h),
         };
         let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str(url.into()));
+        m.insert("url".to_string(), Value::from(url));
         if f.entry {
-            m.insert("__ws_future_hash".to_string(), Value::Str(hash.into()));
+            m.insert("__ws_future_hash".to_string(), Value::from(hash));
         } else {
-            m.insert("__ws_flight_hash".to_string(), Value::Str(hash.into()));
+            m.insert("__ws_flight_hash".to_string(), Value::from(hash));
             m.insert("__ws_flight_led".to_string(), Value::Bool(f.led));
         }
         Value::Map(m)
     }
 }
 
+impl From<Flight> for Value {
+    fn from(f: Flight) -> Value { Value::from(&f) }
+}
+
 impl From<&Value> for Flight {
     fn from(v: &Value) -> Flight {
-        let read = |k: &str| match crate::get_value(v, &Value::Str(k.to_string().into())) { Value::Str(s) => Some(s.to_string()), _ => None };
-        let (flight, entry) = (read("__ws_flight_hash"), read("__ws_future_hash"));
         let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
-        Flight { url: read("url"), entry: flight.is_none() && entry.is_some(), hash: flight.or(entry), led }
+        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
     }
 }
 
 impl From<&Flight> for Flight {
-    fn from(f: &Flight) -> Flight { f.clone() }
+    fn from(f: &Flight) -> Flight { Flight { url: f.url.as_deref().map(str::to_owned), hash: f.hash.as_deref().map(str::to_owned), led: f.led, entry: f.entry } }
+}
+
+/// The hash a flight handle refers to. Accepts the `futures_value ()` handle
+/// shape too, so `client.futures[hash]` entries can be awaited as well.
+fn flight_hash_of(handle: &Value) -> Option<String> {
+    for key in ["__ws_flight_hash", "__ws_future_hash"] {
+        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string().into())) {
+            return Some(h.to_string());
+        }
+    }
+    None
 }
 
 /// Await a flight handle — the port of TS's `await client.future (hash)` and
@@ -1165,11 +1169,8 @@ impl From<&Flight> for Flight {
 /// Returns the resolved value; a rejected flight panics with the error, which
 /// is how the port rethrows (the drive loop does the same with `take_settled`).
 /// A handle that names no flight returns `Value::Null` rather than hanging.
-pub fn ws_await_flight(handle: impl Into<Flight>) -> impl std::future::Future<Output = Value> + Send {
-    ws_await_flight_on(handle.into())
-}
-
-async fn ws_await_flight_on(handle: Flight) -> Value {
+pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
+    let handle: Flight = handle.into();
     let (url, hash) = match (handle.url, handle.hash) {
         (Some(u), Some(h)) => (u, h),
         _ => return Value::Null,
